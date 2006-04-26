@@ -1,0 +1,8 @@
+
+This driver is taken from the IEEE 1275-1994 specs.
+Changes from the errata draft #4 are included and
+filename suffixes are changed to .fs (was: .fth)
+
+To tokenize this driver, do
+
+ $ toke ./overall.fs

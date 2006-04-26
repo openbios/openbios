@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ x"$1" = x ]; then
+  echo -e "Usage:\n  $0 [arch-config]"
+  echo -e "\narch-config: cross-ppc, x86"
+  exit 0
+fi
+
+ARCH=$1
+
+rm rules.xml
+rm config.xml
+ln -s config/examples/${ARCH}_rules.xml rules.xml
+ln -s config/examples/${ARCH}_config.xml config.xml
+

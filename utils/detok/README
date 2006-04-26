@@ -1,0 +1,80 @@
+Welcome to the OpenBIOS detokenizer README.
+
+-----------------------------------------------------------
+
+Table of Contents:
+
+1. What is the OpenBIOS detokenizer?
+2. What is required to build the OpenBIOS detokenizer?
+3. How to use the OpenBIOS detokenizer
+4. Contact
+
+-----------------------------------------------------------
+
+1. What is the OpenBIOS detokenizer?
+
+   detok is a GPLed FCode detokenizer. It can detokenize (disassemble)
+   fcode bytecode files as described by the IEEE 1275-1994 standard.  
+   This program aims towards IEEE 1275-1994 compliance, but there is no
+   warranty that it is actually compliant.  Bytecode files, such as used
+   with detok, normally contain Open Firmware drivers or other packages 
+   for use with an Open Firmware compliant system.
+
+   
+2. What is required to build the OpenBIOS detokenizer?
+
+   detok should build with any ANSI compliant C compiler, although
+   currently only Linux on i386/alpha/ia64 are tested. To build detok 
+   on other platforms you might have to adjust the Makefile.
+   To build detok, just enter "make". To clean up an existing build, 
+   use "make clean" or "make distclean".
+   
+   
+3. How to use the OpenBIOS detokenizer
+
+   detok has a couple of options that can be used for detokenizing
+   fcode binaries. To use detok, use the following syntax:
+
+   	$ detok [OPTION]... [FCODE-FILE]...
+
+	The following options are available:
+	
+         -v, --verbose     print fcode numbers
+         -a, --all         don't stop at end0
+         -n, --linenumbers print line numbers
+         -o, --offsets     print byte offsets
+         -h, --help        print this help text 
+
+	Please note: Long options are not available on all systems.
+
+   Example:
+	
+    $ detok -ov world.fc
+    Welcome to the OpenBIOS detokenizer v0.6.1
+    detok Copyright(c) 2001-2005 by Stefan Reinauer.
+    Written by Stefan Reinauer, <stepan@openbios.org>  
+    This program is free software; you may redistribute it under the terms of
+    the GNU General Public License.  This program has absolutely no warranty.
+
+    0: start1 [0x0f1] 
+    1:   format:    0x08
+    2:   checksum:  0x0fc1 (Ok)
+    4:   len:       0x39 (57 bytes)
+    8: external-token [0x0ca] world 0x800
+    17: b(:) [0x0b7] 
+    18:     b(") [0x012] "Hello World!" 0x0a 0x0a"Forth is alife." 0x0a
+    50:     type [0x090] 
+    51:     0 [0x0a5] 
+    52:     exit [0x033] 
+    53:     b(;) [0x0c2] 
+    54: world [0x800] 
+    56: end0 [0x000] 
+    57: \ detokenizing finished after 57 of 57 bytes.
+
+
+4. Contact
+
+   Any ideas, bug reports, patches, contributions, discussion is
+   welcome.
+
+        Stefan Reinauer <stepan@openbios.org>

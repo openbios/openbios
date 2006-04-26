@@ -1,0 +1,141 @@
+*** 0.6.10 (release) - 2005/10/15 ***************************************
+ 
+ * fix hex parsing in strings. Reported by Arti Itra.
+
+*** 0.6.9 (release) - 2005/10/05 ****************************************
+
+ * Bail out with an error if the maximum word count is exceeded.
+ * fix bug in endcase that limited fcode output size to 32k. Thanks to
+   Prasana Kumar for reporting this.
+ * Update FSF address.
+
+*** 0.6.8 (release) - 2005/03/10 ****************************************
+
+ * fcode numbers have been reset to 0x800 when using the 
+   fload directive. Fixed.
+ * Add makefile to compile as an extra release
+
+******************* 2005/01/02 ******************************************
+
+ * drop endian.h/mconfig.h dependency 
+
+******************* 2004/06/19 ******************************************
+ 
+ * fix off by one error in s"
+
+******************* 2004/06/10 ******************************************
+ 
+ * fix big endian problem in pci header generation.
+ * add pci-code-revision (same as pci-revision)
+
+******************* 2004/04/23 ******************************************
+
+ * remove silly warning again
+ * other minor changes and bug fixes have been included
+
+******************* 2003/12/13 ******************************************
+
+ * fix emission of device class in pci headers
+ * add encode-file keyword
+ * add interpose fcode
+
+*** 0.6 (release) - 2003/11/28 ******************************************
+
+ * make lots of functions and variables static
+ * update email address
+ * handle big output files right
+ * clean up pci header code.
+ * add pci-header-end, set-rev-level for compatibility 
+   to firmworks tokenizer.
+ * fix string escape handling
+
+******************* 2003/08/16 ******************************************
+
+ * fit Makefile into openbios build process (allows out of place build)
+ * fix address error in emit.c
+ 
+******************* 2002/07/18 ******************************************
+
+ * implement FCODE-VERSION1 and FCODE-VERSION3 (used by SUN's tokenizer)
+ * fix uneven embedded hex message for " "(00 FF FF FF FF FF FF 00)"
+
+******************* 2002/07/16 ******************************************
+
+ * implement PCI-REVISION, NOT-LAST-IMAGE
+ * implement FCODE-TIME and FCODE-DATE
+ * fix header fixup
+ * add dependencies to Makefile
+ * align to 512byte if we have a PCI header
+ * use 128k output buffer per default.
+ * rename example suffix to .fs
+ * add version1.fs, date.fs, pciexample.fs to examples
+
+******************* 2002/07/15 ******************************************
+
+ * fix CHAR/[CHAR] warnings.
+ * remove some debugging from stack.c
+ * some more line number fixes.
+ * compile with -pedantic on gcc systems
+ * fix header generation. 
+
+******************* 2002/07/12 ******************************************
+
+ * move offs16 to scanner.c
+ * generate version1 header correctly and switch
+   to 8bit offsets when it's detected.
+ * let offset16 emit it's fcode# as well
+ * implement PCI-HEADER
+
+
+******************* 2002/07/11 ******************************************
+
+ * add CHAR and [CHAR]
+ * change BUFFER to BUFFER:
+ * add H.7 renamed fcode words as macros
+ * add sample scsi driver package from IEEE 1275-1994
+ * new function emit_token supersedes emit_fcode(lookup_token())
+
+*** 0.4 (release) - 2002/05/24 ******************************************
+
+ * remove if..then from abort" (conditionally) 
+ * fix linked list juggling in case..endcase constructs
+
+******************* 2002/05/22 ******************************************
+
+ * fix get_word() not to read beyound end of strings
+ * more adequate implementation of abort"
+
+******************* 2002/03/27 ******************************************
+ 
+ * add name and endif macro
+ * fix typo in finish-device, new-device
+ * use new number parsing function to handle dots.
+ * do proper handling of hex values embedded in strings.
+ * reset fcode word number counter when compiling multiple files.
+
+******************* 2002/03/21 ******************************************
+
+ * some IEEE 1275 compliance changes (forbid definitions in definitions)
+ * fix macros
+ * fix hex, octal, decimal inside colon definitions
+
+*** 0.2a (bugfix) - 2002/03/21 ******************************************
+
+ * fix off by one bug in string escape codes
+ * fix line number calculation
+ * do proper debugging output
+
+*** 0.2 (release) - 2002/03/20 ******************************************
+
+ * implemented (most of the) missing control words
+ * implemented next-fcode tokenizer directive
+ * implemented line numbers for errors and warnings.
+ * improved string handling.
+ * stop on errors by default.
+ * use case insensitive dictionary lookup.
+ * lots of debug made compile time conditional
+
+*** 0.1 (release) - 2002/03/04 ******************************************
+
+ * initial release
+

@@ -1,0 +1,11 @@
+<build>
+ <library name="fs" type="static" target="target">
+  <object source="blockiter.c" flags="-Ifs/hfsplus/include -Ifs/ -fno-strict-aliasing" condition="HFSP"/>
+  <object source="btree.c" flags="-Ifs/hfsplus/include -Ifs/ -fno-strict-aliasing" condition="HFSP"/>
+  <object source="libhfsp.c" flags="-Ifs/hfsplus/include -Ifs/ -fno-strict-aliasing" condition="HFSP"/>
+  <object source="record.c" flags="-Ifs/hfsplus/include -Ifs/ -fno-strict-aliasing" condition="HFSP"/>
+  <object source="unicode.c" flags="-Ifs/hfsplus/include -Ifs/ -fno-strict-aliasing" condition="HFSP"/>
+  <object source="volume.c" flags="-Ifs/hfsplus/include -Ifs/ -fno-strict-aliasing" condition="HFSP"/>
+  <object source="hfsp_fs.c" flags="-Ifs/hfsplus/include -Ifs/ -fno-strict-aliasing" condition="HFSP"/>
+ </library>
+</build>

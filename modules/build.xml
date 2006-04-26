@@ -1,0 +1,27 @@
+<build>
+
+ <library name="modules" type="static" target="target">
+  <object source="nvram.c"/>
+  <object source="init.c"/>
+  <object source="bindings.c"/>
+  <object source="client.c"/>
+  <object source="ipchecksum.c"/>
+  <object source="elfnote.c" condition="X86"/>
+  <object source="elfnote.c" condition="AMD64"/>
+  <object source="elfload.c" condition="PPC"/>
+  <object source="linuxbios.c" condition="LINUXBIOS"/>
+  <object source="cmdline.c" condition="CMDLINE"/>
+  <object source="deblocker.c" condition="DEBLOCKER"/>
+  <object source="disk-label.c" condition="DISK_LABEL"/>
+  <object source="filesystems.c" condition="FS"/>
+  <object source="mac-parts.c" condition="MAC_PARTS"/>
+  <object source="pc-parts.c" condition="PC_PARTS"/>
+ </library>
+
+ <dictionary name="openbios" target="forth">
+  <object source="clib.fs"/>
+  <object source="support.fs"/>
+  <object source="helpers.fs"/>
+ </dictionary>
+  
+</build>

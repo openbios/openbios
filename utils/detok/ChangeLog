@@ -1,0 +1,75 @@
+*** 0.6.1 - 2005/03/10 **************************************************
+
+ * fix bug in output of strings. Strings were cut off when 0 bytes
+   occured, in a C manner. Now detok prints correct forth strings.
+   Thanks to Arti Itra <a.itra@ieee.org> for reporting this.
+ * free string after printing it.
+
+*********** 2003/12/14 **************************************************
+
+ * add interpose fcode
+
+*** 0.6 - 2003/11/24 ****************************************************
+
+ * minor modifications
+ * release version 0.6
+
+*********** 2003/08/16 **************************************************
+
+ * fit Makefile into openbios build process (allows out of place build)
+
+*********** 2002/07/12 **************************************************
+
+ * fix version1 headers.
+
+*** 0.5.2 - 2002/05/24 **************************************************
+
+ * fix detokenizing case..endcase expressions.
+ * update usage() and README to show all possible options
+
+*** 0.5.1 - 2002/03/30 **************************************************
+
+ * Tim Barrett <jtb@isi.edu>: add prototypes for getopt()/optind to 
+   detok.c as there seem to be some systems with an insane unistd.h.
+ * output fcode number, in case we have an unnamed fcode.
+ * make detok more silent per default.
+ * put DEBUG_ defines to Makefile (there's only one anyways).
+
+*** 0.5 - 2002/02/27 ****************************************************
+
+ * change indent size to 4
+ * added line numbers for debugging.
+ * added file offset output for debugging
+ * added checksum calculation
+ * input files.are buffered now.
+ * repair pretty print of strings.
+ * added 64bit extensions
+ * fix position decode at end of file.
+ 
+*** 0.3 - 2002/02/26 ****************************************************
+
+ * removed autogenerator (create-array, supported.h and fcode-table.raw)
+ * organized dictionary as linked list.
+ * initialize dictionary during runtime.
+
+*** 0.2.3 - 2001/12/02 **************************************************
+ 
+ * ansi compilation fixes
+ * typos in fcode-table.raw fixed.
+ * removed debugging output.
+
+*** 0.2.2 - 2001/10/04 **************************************************
+
+ * fixed wrong indentation for loops.
+ * branch direction used for indentation.
+ * new option -a, --all to decode a file after end0 occured.
+ * fixed buffer overflow bug in get_string()
+ 
+*** 0.2.1 - 2001/09/10 **************************************************
+
+ * start0-4 are no exceptional cases but normal fcode words now
+
+*** 0.2 (release) - 2001/09/09 ******************************************
+
+ * initial release
+

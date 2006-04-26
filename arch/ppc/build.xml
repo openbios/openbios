@@ -1,0 +1,217 @@
+<?xml version="1.0"?>
+<build condition="PPC">
+
+ <dictionary name="openbios-briq" init="openbios" target="forth" condition="BRIQ">
+  <object source="ppc.fs"/>
+  <object source="briq/tree.fs"/>
+  <object source="briq/briq.fs"/>
+ </dictionary>
+ 
+  <dictionary name="openbios-pearpc" init="openbios" target="forth" condition="PEARPC">
+  <object source="ppc.fs"/>
+  <object source="pearpc/tree.fs"/>
+  <object source="pearpc/pearpc.fs"/>
+ </dictionary>
+ 
+ <dictionary name="openbios-mol" init="openbios" target="forth" condition="MOL">
+  <object source="ppc.fs"/>
+  <object source="mol/tree.fs"/>
+  <object source="mol/mol.fs"/>
+ </dictionary>
+ 
+ <!-- HACK ALERT -->
+ 
+ <executable name="target/include/briq-dict.h" target="target" condition="BRIQ">
+  <rule><![CDATA[
+	@echo "static const char forth_dictionary[] = {" > $@
+	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
+					| sed 's/0x  ,//g' >> $@
+	@echo "};" >> $@
+  ]]></rule>
+  <external-object source="openbios-briq.dict"/>
+ </executable>
+ 
+ <executable name="target/arch/ppc/briq/kernel.o" target="target" condition="BRIQ">
+  <rule><![CDATA[
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/briq/kernel.c
+  ]]></rule>
+  <external-object source="target/include/briq-dict.h"/>
+ </executable>
+ 
+ 
+ <executable name="target/include/pearpc-dict.h" target="target" condition="PEARPC">
+  <rule><![CDATA[
+	@echo "static const char forth_dictionary[] = {" > $@
+	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
+					| sed 's/0x  ,//g' >> $@
+	@echo "};" >> $@
+  ]]></rule>
+  <external-object source="openbios-pearpc.dict"/>
+ </executable>
+ 
+ <executable name="target/arch/ppc/pearpc/kernel.o" target="target" condition="PEARPC">
+  <rule><![CDATA[
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/pearpc/kernel.c
+  ]]></rule>
+  <external-object source="target/include/pearpc-dict.h"/>
+ </executable>
+
+ 
+ <executable name="target/include/mol-dict.h" target="target" condition="MOL">
+  <rule><![CDATA[
+	@echo "static const char forth_dictionary[] = {" > $@
+	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
+					| sed 's/0x  ,//g' >> $@
+	@echo "};" >> $@
+  ]]></rule>
+  <external-object source="openbios-mol.dict"/>
+ </executable>
+ 
+ <executable name="target/arch/ppc/mol/kernel.o" target="target" condition="MOL">
+  <rule><![CDATA[
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/mol/kernel.c
+  ]]></rule>
+  <external-object source="target/include/mol-dict.h"/>
+ </executable>
+ 
+ <!-- END OF HACK ALERT -->
+ 
+ <library name="briq" target="target" type="static" condition="BRIQ">
+  <object source="misc.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <object source="ofmem.c"/>
+  <object source="briq/briq.c" flags="-Iarch/ppc"/>
+  <object source="briq/init.c" flags="-Iarch/ppc"/>
+  <external-object source="target/arch/ppc/briq/kernel.o"/>
+  <object source="briq/main.c" flags="-Iarch/ppc"/>
+  <object source="briq/methods.c" flags="-Iarch/ppc"/>
+  <object source="briq/tree.c" flags="-Iarch/ppc"/>
+  <object source="briq/vfd.c" flags="-Iarch/ppc"/>
+ </library>
+ 
+ <library name="pearpc" target="target" type="static" condition="PEARPC">
+  <object source="misc.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <object source="ofmem.c"/>
+  <object source="pearpc/pearpc.c" flags="-Iarch/ppc"/>
+  <object source="pearpc/init.c" flags="-Iarch/ppc"/>
+  <external-object source="target/arch/ppc/pearpc/kernel.o"/>
+  <object source="pearpc/main.c" flags="-Iarch/ppc"/>
+  <object source="pearpc/methods.c" flags="-Iarch/ppc"/>
+  <object source="pearpc/tree.c" flags="-Iarch/ppc"/>
+  <object source="pearpc/vfd.c" flags="-Iarch/ppc"/>
+  <!-- taken from mol: generalize -->
+  <object source="pearpc/console.c" flags="-Iarch/ppc"/>
+ </library>
+ 
+ 
+ <library name="mol" target="target" type="static" condition="MOL">
+  <object source="misc.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <object source="ofmem.c"/>
+  <object source="mol/init.c" flags="-Iarch/ppc"/>
+  <object source="mol/main.c" flags="-Iarch/ppc"/>
+  <object source="mol/mol.c" flags="-Iarch/ppc"/>
+  <object source="mol/console.c" flags="-Iarch/ppc"/>
+  <object source="mol/osi-blk.c" flags="-Iarch/ppc"/>
+  <object source="mol/osi-scsi.c" flags="-Iarch/ppc"/>
+  <object source="mol/pseudodisk.c" flags="-Iarch/ppc"/>
+  <object source="mol/methods.c" flags="-Iarch/ppc"/>
+  <object source="mol/prom.c" flags="-Iarch/ppc"/>
+  <object source="mol/tree.c" flags="-Iarch/ppc"/>
+  <external-object source="target/arch/ppc/mol/kernel.o"/>
+ </library>
+ 
+ <executable name="openbios-briq.elf" target="target" condition="BRIQ">
+  <rule>
+	$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@
+	$(NM) $@ | sort > $(ODIR)/openbios-briq.syms
+	cp $@ $@.nostrip
+	$(STRIP) $@
+  </rule>
+  <object source="start.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <object source="timebase.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <external-object source="libbriq.a"/>
+  <external-object source="libbootstrap.a"/>
+  <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
+  <external-object source="liblibc.a"/>
+  <external-object source="libfs.a"/>
+ </executable>
+ 
+ 
+ <executable name="openbios-pearpc.elf" target="target" condition="PEARPC">
+  <rule>
+	$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@
+	$(NM) $@ | sort > $(ODIR)/openbios-pearpc.syms
+	cp $@ $@.nostrip
+	$(STRIP) $@
+  </rule>
+  <object source="start.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <object source="timebase.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <external-object source="libpearpc.a"/>
+  <external-object source="libbootstrap.a"/>
+  <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
+  <external-object source="liblibc.a"/>
+  <external-object source="libfs.a"/>
+ </executable>
+ 
+
+ 
+ <executable name="openbios-mol.elf" target="target" condition="MOL">
+  <rule>
+	$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@
+	$(NM) $@ | sort > $(ODIR)/openbios-mol.syms
+	cp $@ $@.nostrip
+	$(STRIP) $@
+
+  </rule>
+  <object source="start.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <external-object source="libmol.a"/>
+  <external-object source="libbootstrap.a"/>
+  <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
+  <external-object source="liblibc.a"/>
+  <external-object source="libfs.a"/>
+ </executable>
+ 
+</build>
+

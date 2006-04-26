@@ -1,0 +1,290 @@
+/* 
+ *   Creation Date: <2002/10/23 20:26:40 samuel>
+ *   Time-stamp: <2004/01/07 19:39:15 samuel>
+ *   
+ *	<video.c>
+ *	
+ *	Mac-on-Linux display node
+ *   
+ *   Copyright (C) 2002, 2003, 2004 Samuel Rydh (samuel@ibrium.se)
+ *   
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU General Public License
+ *   as published by the Free Software Foundation
+ *   
+ */
+
+#include "openbios/config.h"
+#include "openbios/bindings.h"
+#include "libc/diskio.h"
+#include "ofmem.h"
+
+static struct {
+	int		has_video;
+	osi_fb_info_t	fb;
+	ulong		*pal;		/* 256 elements */
+} video;
+
+
+int
+video_get_res( int *w, int *h )
+{
+	if( !video.has_video ) {
+		*w = *h = 0;
+		return -1;
+	}
+	*w = video.fb.w;
+	*h = video.fb.h;
+	return 0;
+}
+
+static void
+startup_splash( void )
+{
+	int fd, s, i, y, x, dx, dy;
+	int width, height;
+	char *pp, *p;
+	char buf[64];
+	
+	/* only draw logo in 24-bit mode (for now) */
+	if( video.fb.depth < 15 )
+		return;
+#ifdef CONFIG_MOL
+	for( i=0; i<2; i++ ) {
+		if( !BootHGetStrResInd("bootlogo", buf, sizeof(buf), 0, i) )
+			return;
+		*(!i ? &width : &height) = atol(buf);
+	}
+	
+	if( (s=width * height * 3) > 0x20000 )
+		return;
+
+	if( (fd=open_io("pseudo:,bootlogo")) >= 0 ) {
+		p = malloc( s );
+		if( read_io(fd, p, s) != s )
+			printk("bootlogo size error\n");
+		close_io( fd );
+
+		dx = (video.fb.w - width)/2;
+		dy = (video.fb.h - height)/3;
+		
+		pp = (char*)video.fb.mphys + dy * video.fb.rb + dx * (video.fb.depth >= 24 ? 4 : 2);
+		
+		for( y=0 ; y<height; y++, pp += video.fb.rb ) {
+			if( video.fb.depth >= 24 ) {
+				ulong *d = (ulong*)pp;
+				for( x=0; x<width; x++, p+=3, d++ )
+					*d = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
+			} else if( video.fb.depth == 15 ) {
+				ushort *d = (ushort*)pp;
+				for( x=0; x<width; x++, p+=3, d++ ) {
+					int col = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
+					*d = ((col>>9) & 0x7c00) | ((col>>6) & 0x03e0) | ((col>>3) & 0x1f);
+				}
+			}
+		}
+		free( p );
+	}
+#else
+	/* No bootlogo support yet on other platforms */
+	return;
+#endif
+}
+
+static ulong
+get_color( int col_ind )
+{
+	ulong col;
+	if( !video.has_video || col_ind < 0 || col_ind > 255 )
+		return 0;
+	if( video.fb.depth == 8 )
+		return col_ind;
+	col = video.pal[col_ind];
+	if( video.fb.depth == 24 || video.fb.depth == 32 )
+		return col;
+	if( video.fb.depth == 15 )
+		return ((col>>9) & 0x7c00) | ((col>>6) & 0x03e0) | ((col>>3) & 0x1f);
+	return 0;
+}
+
+void 
+draw_pixel( int x, int y, int colind )
+{
+	char *p = (char*)video.fb.mphys + video.fb.rb * y;
+	int color, d = video.fb.depth;
+
+	if( x < 0 || y < 0 || x >= video.fb.w || y >=video.fb.h )
+		return;
+	color = get_color( colind );
+
+	if( d >= 24 )
+		*((ulong*)p + x) = color;
+	else if( d >= 15 )
+		*((short*)p + x) = color;
+	else
+		*(p + x) = color;
+}
+
+static void
+fill_rect( int col_ind, int x, int y, int w, int h )
+{
+	char *pp;
+	ulong col = get_color(col_ind);
+
+	if( !video.has_video || x < 0 || y < 0 || x+w > video.fb.w || y+h > video.fb.h )
+		return;
+
+	pp = (char*)video.fb.mphys + video.fb.rb * y;
+	for( ; h--; pp += video.fb.rb ) {
+		int ww = w;
+		if( video.fb.depth == 24 || video.fb.depth == 32 ) {
+			ulong *p = (ulong*)pp + x;
+			while( ww-- )
+				*p++ = col;
+		} else if( video.fb.depth == 16 || video.fb.depth == 15 ) {
+			ushort *p = (ushort*)pp + x;
+			while( ww-- )
+				*p++ = col;
+		} else {
+			char *p = (char*)pp + x;
+			while( ww-- )
+				*p++ = col;
+		}
+	}
+}
+
+static void
+refresh_palette( void )
+{
+#ifdef CONFIG_MOL
+	if( video.fb.depth == 8 )
+		OSI_RefreshPalette();
+#endif
+}
+
+void
+set_color( int ind, ulong color )
+{
+	if( !video.has_video || ind < 0 || ind > 255 )
+		return;
+	video.pal[ind] = color;
+
+#ifdef CONFIG_MOL
+	if( video.fb.depth == 8 )
+		OSI_SetColor( ind, color );
+#endif
+}
+
+
+/************************************************************************/
+/*	OF methods							*/
+/************************************************************************/
+
+DECLARE_NODE( video, INSTALL_OPEN, 0, "Tdisplay" );
+
+/* ( -- width height ) (?) */
+static void
+video_dimensions( void )
+{
+	int w, h;
+	(void) video_get_res( &w, &h );
+	PUSH( w );
+	PUSH( h );	
+}
+
+/* ( table start count -- ) (?) */
+static void
+video_set_colors( void )
+{
+	int count = POP();
+	int start = POP();
+	uchar *p = (uchar*)POP();
+	int i;
+
+	for( i=0; i<count; i++, p+=3 ) {
+		ulong col = (p[0] << 16) | (p[1] << 8) | p[2];
+		set_color( i + start, col );
+	}
+	refresh_palette();
+}
+
+/* ( r g b index -- ) */
+static void
+video_color_bang( void )
+{
+	int index = POP();
+	int b = POP();
+	int g = POP();
+	int r = POP();
+	ulong col = ((r << 16) & 0xff0000) | ((g << 8) & 0x00ff00) | (b & 0xff);
+	/* printk("color!: %08lx %08lx %08lx %08lx\n", r, g, b, index ); */
+	set_color( index, col );
+	refresh_palette();
+}
+
+/* ( color_ind x y width height -- ) (?) */
+static void
+video_fill_rect( void )
+{
+	int h = POP();
+	int w = POP();
+	int y = POP();
+	int x = POP();
+	int color_ind = POP();
+	
+	fill_rect( color_ind, x, y, w, h );
+}
+
+NODE_METHODS( video ) = {
+	{"dimensions",		video_dimensions	},
+	{"set-colors",		video_set_colors	},
+	{"fill-rectangle",	video_fill_rect		},
+	{"color!",		video_color_bang	},
+};
+
+
+/************************************************************************/
+/*	init 								*/
+/************************************************************************/
+
+void
+init_video( void )
+{
+	int i, s, size;
+	phandle_t ph=0;
+	
+	if( openbios_GetFBInfo(&video.fb) ) {
+		printk("init_video: No video display\n");
+		return;
+	}
+	while( (ph=dt_iterate_type(ph, "display")) ) {
+		set_property( ph, "width", (char*)&video.fb.w, 4 );
+		set_property( ph, "height", (char*)&video.fb.h, 4 );
+		set_property( ph, "depth", (char*)&video.fb.depth, 4 );
+		set_property( ph, "linebytes", (char*)&video.fb.rb, 4 );
+		set_property( ph, "address", (char*)&video.fb.mphys, 4 );
+	}
+	video.has_video = 1;
+	video.pal = malloc( 256 * sizeof(int) );
+
+	s = (video.fb.mphys & 0xfff);
+	size = ((video.fb.h * video.fb.rb + s) + 0xfff) & ~0xfff;
+	s = video.fb.mphys - s;
+
+#ifdef CONFIG_PPC
+	ofmem_claim_phys( video.fb.mphys, size, 0 );
+	ofmem_claim_virt( video.fb.mphys, size, 0 );
+	ofmem_map( video.fb.mphys, video.fb.mphys, size, -1 );
+#endif
+		
+	for( i=0; i<256; i++ )
+		set_color( i, i * 0x010101 );
+	
+	set_color( 254, 0xffffcc );
+	fill_rect( 254, 0, 0, video.fb.w, video.fb.h );
+
+	refresh_palette();
+	startup_splash();
+
+	REGISTER_NODE( video );	
+}

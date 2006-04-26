@@ -1,0 +1,13 @@
+<build>
+
+ <executable name="toke" target="host">
+  <object source="toke.c"/>
+  <object source="emit.c"/>
+  <object source="dictionary.c"/>
+  <object source="stack.c"/>
+  <object source="stream.c"/>
+  <object source="macros.c"/>
+  <object source="scanner.c"/>
+ </executable>
+  
+</build>
