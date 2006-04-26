@@ -5,4 +5,5 @@
  <include href="ppc/build.xml"/>
  <include href="ia64/build.xml"/>
  <include href="unix/build.xml"/>
+ <include href="sparc32/build.xml"/>
 </build>

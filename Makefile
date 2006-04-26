@@ -11,7 +11,7 @@ clean:
 	@echo -n "Cleaning up..."
 	@rm -rf $(ODIR) forth.dict.core
 	@echo " ok"
-	
+
 directories: clean
 	@echo -n "Initializing build tree..."
 	@mkdir $(ODIR)
@@ -53,7 +53,11 @@ build: xml
 	@echo -n "Building..."
 	@( $(MAKE) -f $(ODIR)/Makefile > $(ODIR)/build.log 2>&1 && echo "ok." ) || \
 		( echo "error:"; tail -15 $(ODIR)/build.log )
-	
+
+build-verbose:
+	@echo "Building..."
+	$(MAKE) -f $(ODIR)/Makefile
+
 run: 
 	@echo "Running..."
 	@$(ODIR)/openbios-unix $(ODIR)/openbios-unix.dict

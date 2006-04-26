@@ -1,0 +1,96 @@
+<build condition="SPARC32">
+
+ <dictionary name="openbios-sparc32" init="openbios">
+  <object source="init.fs" target="forth"/>
+ </dictionary>
+
+ <library name="sparc32" type="static" target="target">
+  <object source="openbios.c"/>
+  <object source="console.c"/>
+  <object source="lib.c"/>
+  <object source="boot.c"/>
+  <object source="context.c"/>
+  <object source="switch.S"/>
+  <object source="linux_load.c"/>
+  <object source="sys_info.c"/>
+  <object source="elfload.c"/>
+  <object source="forthload.c"/>
+  <object source="loadfs.c"/>
+ </library>
+ 
+ <executable name="openbios.multiboot" target="target" condition="IMAGE_ELF_MULTIBOOT">
+  <rule>
+	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^ `$(CC) --print-libgcc`
+	$(NM) $@.nostrip | sort > $(ODIR)/openbios-multiboot.syms
+	cp $@.nostrip $@
+	$(STRIP) $@
+  </rule>
+  <object source="multiboot.c"/>
+  <object source="entry.S"/>
+  <object source="vectors.S"/>
+  <external-object source="libsparc32.a"/>
+  <external-object source="libbootstrap.a"/>
+  <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
+  <external-object source="liblibc.a"/>
+  <external-object source="libfs.a"/>
+ </executable>
+
+ <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
+  <rule>
+	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^ `$(CC) --print-libgcc`
+	$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms
+	cp $@.nostrip $@
+	$(STRIP) $@
+  </rule>
+  <object source="plainboot.c"/>
+  <object source="entry.S"/>
+  <object source="vectors.S"/>
+  <external-object source="libsparc32.a"/>
+  <external-object source="libbootstrap.a"/>
+  <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
+  <external-object source="liblibc.a"/>
+  <external-object source="libfs.a"/>
+ </executable>
+
+ <!-- HACK ALERT -->
+ 
+ <executable name="target/include/static-dict.h" target="target" condition="IMAGE_ELF_EMBEDDED">
+  <rule><![CDATA[
+	@echo "static const char forth_dictionary[] = {" > $@
+	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
+					| sed 's/0x  ,//g' >> $@
+	@echo "};" >> $@
+  ]]></rule>
+  <external-object source="openbios-sparc32.dict"/>
+ </executable>
+ 
+ <executable name="target/arch/sparc32/builtin.o" target="target" condition="IMAGE_ELF_EMBEDDED">
+  <rule><![CDATA[
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/sparc32/builtin.c
+  ]]></rule>
+  <external-object source="target/include/static-dict.h"/>
+ </executable>
+ 
+ <!-- END OF HACK ALERT -->
+
+ <executable name="openbios-builtin.elf" target="target" condition="IMAGE_ELF_EMBEDDED">
+  <rule>
+	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^ `$(CC) --print-libgcc`
+	$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms
+	cp $@.nostrip $@
+	$(STRIP) $@
+  </rule>
+  <object source="entry.S"/>
+  <object source="vectors.S"/>
+  <external-object source="target/arch/sparc32/builtin.o"/>
+  <external-object source="libsparc32.a"/>
+  <external-object source="libbootstrap.a"/>
+  <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
+  <external-object source="liblibc.a"/>
+  <external-object source="libfs.a"/>
+ </executable>
+ 
+</build>

@@ -8,6 +8,7 @@
   <object source="ipchecksum.c"/>
   <object source="elfnote.c" condition="X86"/>
   <object source="elfnote.c" condition="AMD64"/>
+  <object source="elfnote.c" condition="SPARC32"/>
   <object source="elfload.c" condition="PPC"/>
   <object source="linuxbios.c" condition="LINUXBIOS"/>
   <object source="cmdline.c" condition="CMDLINE"/>
