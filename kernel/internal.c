@@ -73,7 +73,7 @@ static inline void next(void)
 int enterforth(xt_t xt)
 {
 	ucell *_cfa = (ucell*)cell2pointer(xt);
-	ucell tmp;
+	cell tmp;
 
 	if (read_ucell(_cfa) != DOCOL ) {
 		trampoline[1] = target_ucell(xt);

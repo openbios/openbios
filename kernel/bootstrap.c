@@ -98,7 +98,7 @@ void init_trampoline(void)
  * dictionary related functions.
  */
 
-static void relocation_table(char * dict_one, char *dict_two, int length)
+static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, int length)
 {
 	ucell *d1=(ucell *)dict_one, *d2=(ucell *)dict_two;
 	ucell *reloc_table;
@@ -118,9 +118,10 @@ static void relocation_table(char * dict_one, char *dict_two, int length)
 		if(d1[i]==d2[i]) {
 			reloc_table[pos] &= target_ucell(~(1UL<<bit));
 			
-			if(d1[i] >= pointer2cell(dict_one) &&
-					d1[i] <= pointer2cell(dict_one+length))
-				printk("\nWARNING: inconsistent relocation (%x:%x)!\n", d1[i], d2[i]);
+			// This check might bring false positives in data.
+			//if(d1[i] >= pointer2cell(dict_one) &&
+			//		d1[i] <= pointer2cell(dict_one+length))
+			//	printk("\nWARNING: inconsistent relocation (%x:%x)!\n", d1[i], d2[i]);
 		} else {
 			/* This is a pointer, it needs relocation, d2==dict */
 			reloc_table[pos] |= target_ucell(1UL<<bit);
@@ -878,12 +879,12 @@ encode_file( const char *name )
 }
 
 
-static void run_dictionary(const char *basedict)
+static void run_dictionary(char *basedict)
 {
 	if(!basedict)
 		return;
 
-	read_dictionary((char *)basedict);
+	read_dictionary(basedict);
 	PC = (ucell)findword("initialize");
 
 	if (!PC)
@@ -953,8 +954,8 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 
 	unsigned char *ressources=NULL; /* All memory used by us */
-	unsigned char *dictname = NULL;
-	unsigned char *basedict = NULL;
+	char *dictname = NULL;
+	char *basedict = NULL;
 
 	unsigned char *bootstrapdict[2];
 	int c, cnt;
@@ -1102,8 +1103,7 @@ int main(int argc, char *argv[])
 #endif
 	{
 		relocation_table( bootstrapdict[0], bootstrapdict[1], dicthead);
-		write_dictionary( dictname ? dictname : 
-					(unsigned char *)"bootstrap.dict");
+		write_dictionary( dictname ? dictname : "bootstrap.dict");
 	}
 	
 	free(ressources);
