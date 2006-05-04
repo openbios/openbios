@@ -8,12 +8,16 @@
   <object source="adb.c"   condition="DRIVER_ADB"/>
   <object source="cuda.c"   condition="DRIVER_ADB"/>
   <object source="floppy.c"   condition="DRIVER_FLOPPY"/>
+  <object source="sbus.c"   condition="DRIVER_SBUS"/>
+  <object source="esp.c"   condition="DRIVER_ESP"/>
  </library>
 
  <dictionary name="openbios" target="forth">
   <object source="pci.fs" condition="DRIVER_PCI"/>
   <object source="ide.fs" condition="DRIVER_IDE"/>
   <object source="adb.fs" condition="DRIVER_ADB"/>
+  <object source="sbus.fs" condition="DRIVER_SBUS"/>
+  <object source="esp.fs" condition="DRIVER_ESP"/>
  </dictionary>
   
 </build>

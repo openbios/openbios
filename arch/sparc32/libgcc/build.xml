@@ -1,0 +1,12 @@
+<build condition="SPARC32">
+
+ <library name="gcc" type="static" target="target">
+  <object source="ashldi3.c"/>
+  <object source="ashrdi3.c"/>
+  <object source="__divdi3.c"/>
+  <object source="__udivdi3.c"/>
+  <object source="__udivmoddi4.c"/>
+  <object source="__umoddi3.c"/>
+ </library>
+
+</build>

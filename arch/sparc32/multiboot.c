@@ -46,7 +46,7 @@ void collect_multiboot_info(struct sys_info *info)
     struct multiboot_info *mbinfo;
     struct multiboot_mmap *mbmem;
     unsigned mbcount, mbaddr;
-    int i;
+    unsigned int i;
     struct memrange *mmap;
     int mmap_count;
     module_t *mod;

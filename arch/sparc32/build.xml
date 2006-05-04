@@ -1,6 +1,9 @@
 <build condition="SPARC32">
 
+ <include href="libgcc/build.xml"/>
+
  <dictionary name="openbios-sparc32" init="openbios">
+  <object source="tree.fs" target="forth"/>
   <object source="init.fs" target="forth"/>
  </dictionary>
 
@@ -11,6 +14,7 @@
   <object source="boot.c"/>
   <object source="context.c"/>
   <object source="switch.S"/>
+  <object source="udiv.S"/>
   <object source="linux_load.c"/>
   <object source="sys_info.c"/>
   <object source="elfload.c"/>
@@ -18,40 +22,53 @@
   <object source="loadfs.c"/>
  </library>
  
+ <executable name="target/arch/sparc32/entry.o" target="target">
+  <rule><![CDATA[
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/sparc32/entry.S
+  ]]></rule>
+ </executable>
+ <executable name="target/arch/sparc32/vectors.o" target="target">
+  <rule><![CDATA[
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/sparc32/vectors.S
+  ]]></rule>
+ </executable>
+
  <executable name="openbios.multiboot" target="target" condition="IMAGE_ELF_MULTIBOOT">
   <rule>
-	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^ `$(CC) --print-libgcc`
+	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-multiboot.syms
 	cp $@.nostrip $@
 	$(STRIP) $@
   </rule>
   <object source="multiboot.c"/>
-  <object source="entry.S"/>
-  <object source="vectors.S"/>
+  <external-object source="target/arch/sparc32/vectors.o"/>
+  <external-object source="target/arch/sparc32/entry.o"/>
   <external-object source="libsparc32.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
   <rule>
-	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^ `$(CC) --print-libgcc`
+	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms
 	cp $@.nostrip $@
 	$(STRIP) $@
   </rule>
   <object source="plainboot.c"/>
-  <object source="entry.S"/>
-  <object source="vectors.S"/>
+  <external-object source="target/arch/sparc32/vectors.o"/>
+  <external-object source="target/arch/sparc32/entry.o"/>
   <external-object source="libsparc32.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
 
  <!-- HACK ALERT -->
@@ -77,13 +94,13 @@
 
  <executable name="openbios-builtin.elf" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule>
-	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^ `$(CC) --print-libgcc`
+	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms
 	cp $@.nostrip $@
 	$(STRIP) $@
   </rule>
-  <object source="entry.S"/>
-  <object source="vectors.S"/>
+  <external-object source="target/arch/sparc32/vectors.o"/>
+  <external-object source="target/arch/sparc32/entry.o"/>
   <external-object source="target/arch/sparc32/builtin.o"/>
   <external-object source="libsparc32.a"/>
   <external-object source="libbootstrap.a"/>
@@ -91,6 +108,7 @@
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
  
 </build>

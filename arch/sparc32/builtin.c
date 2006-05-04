@@ -1,4 +1,4 @@
-/* tag: openbios forth starter for builtin dictionary for amd64
+/* tag: openbios forth starter for builtin dictionary for sparc32
  *
  * Copyright (C) 2003 Stefan Reinauer
  *

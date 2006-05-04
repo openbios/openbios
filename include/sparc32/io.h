@@ -171,9 +171,9 @@ static inline void _outsw(volatile uint16_t * port, const void *buf,
 #define inb(reg) ((u8)0xff)
 #define inw(reg) ((u16)0xffff)
 #define inl(reg) ((u32)0xffffffff)
-#define outb(reg, val) // nothing
-#define outw(reg, val) // nothing
-#define outl(reg, val) // nothing
+#define outb(reg, val) do{} while(0)
+#define outw(reg, val) do{} while(0)
+#define outl(reg, val) do{} while(0)
 #else
 extern u8 inb(u32 reg);
 extern u16 inw(u32 reg);

@@ -8,6 +8,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "openbios/drivers.h"
 #include "asm/types.h"
 #include "dict.h"
 #include "openbios/kernel.h"
@@ -47,9 +48,11 @@ arch_init( void )
 	void setup_timers(void);
 
 	modules_init();
-#ifdef CONFIG_DRIVER_IDE
-	setup_timers();
-	ob_ide_init();
+#ifdef CONFIG_DRIVER_SBUS
+	ob_sbus_init();
+#endif
+#ifdef CONFIG_DRIVER_ESP
+	ob_esp_init();
 #endif
 	device_end();
 	bind_func("platform-boot", boot );

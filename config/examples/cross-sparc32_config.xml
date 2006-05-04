@@ -26,6 +26,7 @@
   <option name="CONFIG_DEBUG_INTERPRETER" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_CONSOLE" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_CONSOLE_SERIAL" type="boolean" value="true"/>
+  <option name="CONFIG_DEBUG_ESP" type="boolean" value="true"/>
   <option name="CONFIG_SERIAL_PORT" type="integer" value="0"/>
   <option name="CONFIG_SERIAL_SPEED" type="integer" value="115200"/>
   
@@ -61,6 +62,8 @@
   <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>
  
   <!-- Drivers -->
+  <option name="CONFIG_DRIVER_SBUS" type="boolean" value="true"/>
+  <option name="CONFIG_DRIVER_ESP" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_FLOPPY" type="boolean" value="false"/>
 
 </config>

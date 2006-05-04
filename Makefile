@@ -9,7 +9,8 @@ info:
 
 clean:
 	@echo -n "Cleaning up..."
-	@rm -rf $(ODIR) forth.dict.core
+	@rm -rf $(ODIR) forth.dict.core 
+	@find . -type f -name "*~" -exec rm \{\} \;
 	@echo " ok"
 
 directories: clean
@@ -22,6 +23,7 @@ directories: clean
 	@mkdir -p $(ODIR)/target/arch/ppc/pearpc
 	@mkdir -p $(ODIR)/target/arch/ppc/mol
 	@mkdir -p $(ODIR)/target/arch/x86/xbox
+	@mkdir -p $(ODIR)/target/sparc32/libgcc
 	@mkdir -p $(ODIR)/target/kernel
 	@mkdir -p $(ODIR)/target/modules
 	@mkdir -p $(ODIR)/target/fs/grubfs

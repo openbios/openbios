@@ -14,7 +14,13 @@
 #ifdef CONFIG_DRIVER_PCI
 int ob_pci_init(void);
 #endif
+#ifdef CONFIG_DRIVER_SBUS
+int ob_sbus_init(void);
+#endif
 #ifdef CONFIG_DRIVER_IDE
 int ob_ide_init(void);
+#endif
+#ifdef CONFIG_DRIVER_ESP
+int ob_esp_init(void);
 #endif
 

@@ -181,7 +181,7 @@ entry:
         bl	1b
          add	%o0, 0x4, %o0
 
-        set     0x10000, %sp    ! XXX
+        set     _estack, %sp
         mov     0, %fp
         mov     2, %g1
         wr      %g1, 0x0, %wim			! make window 1 invalid
