@@ -313,7 +313,7 @@
 \ 7.4.11    Device tree
 
 : print-dev ( phandle -- phandle )
-  dup . 
+  dup u. 
   dup get-package-path type
   dup " device_type" rot get-package-property if
     cr 
