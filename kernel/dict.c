@@ -145,7 +145,7 @@ ucell load_dictionary(const char *data, ucell len)
 	if(checksum) {
 		printk("Checksum invalid (%08x)!\n", checksum);
 #ifndef __sparc__ // XXX hack
-#warn "FIXME: checksum calculation does not seem to work on SPARC32"
+#warning FIXME: checksum calculation does not seem to work on SPARC32
 		return 0;
 #endif
 	}
