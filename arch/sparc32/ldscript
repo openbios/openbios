@@ -10,6 +10,8 @@ BASE_ADDR = 0xffd00000;
 /* 16KB heap and stack */
 HEAP_SIZE = 16384;
 STACK_SIZE = 16384;
+VMEM_SIZE = 128 * 1024;
+IOMEM_SIZE = 128 * 1024;
 
 SECTIONS
 {
@@ -55,6 +57,11 @@ SECTIONS
 	. = ALIGN(16);
 	_eheap = .;
 
+	. = ALIGN(4096);
+	_vmem = .;
+	. += VMEM_SIZE;
+        _evmem = .;
+
 	_stack = .;
 	. += STACK_SIZE;
 	. = ALIGN(16);
@@ -72,6 +79,7 @@ SECTIONS
 
     . = ALIGN(4096);
     _end = .;
+    _iomem = _end + IOMEM_SIZE;
 
     /DISCARD/ : { *(.comment.*) *(.note.*) }
 }

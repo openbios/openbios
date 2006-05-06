@@ -144,10 +144,7 @@ ucell load_dictionary(const char *data, ucell len)
 
 	if(checksum) {
 		printk("Checksum invalid (%08x)!\n", checksum);
-#ifndef __sparc__ // XXX hack
-#warning FIXME: checksum calculation does not seem to work on SPARC32
 		return 0;
-#endif
 	}
 
 	data += sizeof(dictionary_header_t);

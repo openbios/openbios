@@ -42,6 +42,8 @@ void exception(cell no)
 	 */
 }
 
+void init_mmu_swift(void);
+
 static void
 arch_init( void )
 {
@@ -49,6 +51,8 @@ arch_init( void )
 
 	modules_init();
 #ifdef CONFIG_DRIVER_SBUS
+        init_mmu_swift();
+   
 	ob_sbus_init();
 #endif
 #ifdef CONFIG_DRIVER_ESP
@@ -73,7 +77,8 @@ int openbios(void)
 	
 	dict=intdict;
 	load_dictionary((char *)sys_info.dict_start,
-			sys_info.dict_end-sys_info.dict_start);
+			(unsigned long)sys_info.dict_end 
+                        - (unsigned long)sys_info.dict_start);
 	
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
 	video_init();

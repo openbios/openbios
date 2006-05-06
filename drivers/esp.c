@@ -20,10 +20,13 @@
 #include "libc/vsprintf.h"
 
 #include "openbios/drivers.h"
+#include "scsi.h"
 #include "asm/dma.h"
+#include "esp.h"
 
 #define PHYS_JJ_ESPDMA  0x78400000      /* ESP DMA controller */
 #define PHYS_JJ_ESP     0x78800000      /* ESP SCSI */
+#define BUFSIZE         4096
 
 #define REGISTER_NAMED_NODE( name, path )   do {                        \
         bind_new_node( name##_flags_, name##_size_,                     \
@@ -39,173 +42,211 @@
     } while(0)
 
 struct esp_dma {
-    struct sparc_dma_registers *regs;
+    volatile struct sparc_dma_registers *regs;
     enum dvma_rev revision;
 };
 
 typedef struct sd_private {
-    unsigned int id;
-    unsigned int hw_sector;
+    unsigned int bs;
+    char *media_str;
+    uint32_t sectors;
+    uint8_t media;
+    uint8_t id;
+    uint8_t present;
+    char model[40];
 } sd_private_t;
 
 struct esp_regs {
-    unsigned int regs[16];
+    unsigned char regs[ESP_REG_SIZE];
 };
 
 typedef struct esp_private {
     volatile struct esp_regs *ll;
-    __u32 buffer_dvma;
+    uint32_t buffer_dvma;
     unsigned int irq;        /* device IRQ number    */
-
-    struct esp_dma *espdma;         /* If set this points to espdma    */
-
+    struct esp_dma espdma;
     unsigned char *buffer;
+    sd_private_t sd[8];
 } esp_private_t;
 
+esp_private_t *global_esp;
+
 /* DECLARE data structures for the nodes.  */
-DECLARE_UNNAMED_NODE(ob_sd, INSTALL_OPEN, sizeof(sd_private_t));
-DECLARE_UNNAMED_NODE(ob_esp, INSTALL_OPEN, sizeof(esp_private_t));
+DECLARE_UNNAMED_NODE(ob_sd, INSTALL_OPEN, sizeof(sd_private_t *));
+DECLARE_UNNAMED_NODE(ob_esp, INSTALL_OPEN, sizeof(esp_private_t *));
+
+static void dump_drive(sd_private_t *drive)
+{
+#ifdef CONFIG_DEBUG_ESP
+    printk("SCSI DRIVE @%lx:\n", (unsigned long)drive);
+    printk("id: %d\n", drive->id);
+    printk("media: %s\n", drive->media_str);
+    printk("model: %s\n", drive->model);
+    printk("sectors: %d\n", drive->sectors);
+    printk("present: %d\n", drive->present);
+    printk("bs: %d\n", drive->bs);
+#endif
+}
+
+static int
+do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
+{
+    int status;
+
+    // Set SCSI target
+    esp->ll->regs[ESP_BUSID] = sd->id & 7;
+    // Set DMA address
+    esp->espdma.regs->st_addr = esp->buffer_dvma;
+    // Set DMA length
+    esp->ll->regs[ESP_TCLOW] = cmdlen & 0xff;
+    esp->ll->regs[ESP_TCMED] = (cmdlen >> 8) & 0xff;
+    // Set DMA direction
+    esp->espdma.regs->cond_reg = 0;
+    // Set ATN, issue command
+    esp->ll->regs[ESP_CMD] = ESP_CMD_SELA | ESP_CMD_DMA;
+    // Check status
+    status = esp->ll->regs[ESP_STATUS];
+
+    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT)
+        return status;
+    
+    // Get reply
+    // Set DMA address
+    esp->espdma.regs->st_addr = esp->buffer_dvma;
+    // Set DMA length
+    esp->ll->regs[ESP_TCLOW] = replylen & 0xff;
+    esp->ll->regs[ESP_TCMED] = (replylen >> 8) & 0xff;
+    // Set DMA direction
+    esp->espdma.regs->cond_reg = DMA_ST_WRITE;
+    // Transfer
+    esp->ll->regs[ESP_CMD] = ESP_CMD_TI | ESP_CMD_DMA;
+    // Check status
+    status = esp->ll->regs[ESP_STATUS];
+
+    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT)
+        return status;
+    else
+        return 0; // OK
+}
 
 // offset is multiple of 512, len in bytes
 static int
-ob_sd_read_sectors(sd_private_t *sd, int offset, void *dest, short len)
+ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest, short len)
 {
-#if 0
-    unsigned char *buffer = malloc(2048); // XXX setup dvma
-
-    // Set SCSI target
-    outb(PHYS_JJ_ESP + 4*4, sd->id & 7);
-    // Set DMA address
-    outl(PHYS_JJ_ESPDMA + 4, buffer);
-    // Set DMA length
-    outb(PHYS_JJ_ESP + 0*4, 10);
-    outb(PHYS_JJ_ESP + 1*4, 0);
-    // Set DMA direction
-    outl(PHYS_JJ_ESPDMA + 0, 0x000);
     // Setup command = Read(10)
-    buffer[0] = 0x80;
-    buffer[1] = 0x28;
-    buffer[2] = 0x00;
-    buffer[3] = (offset >> 24) & 0xff;
-    buffer[4] = (offset >> 16) & 0xff;
-    buffer[5] = (offset >> 8) & 0xff;
-    buffer[6] = offset & 0xff;
-    buffer[7] = 0x00;
-    buffer[8] = ((len / 512) >> 8) & 0xff;
-    buffer[9] = (len / 512) & 0xff;
-    // Set ATN, issue command
-    outb(PHYS_JJ_ESP + 3*4, 0xc2);
+    memset(esp->buffer, 0, 10);
+    esp->buffer[0] = 0x80;
+    esp->buffer[1] = READ_10;
 
-    // Set DMA length
-    outb(PHYS_JJ_ESP + 0*4, len & 0xff);
-    outb(PHYS_JJ_ESP + 1*4, (len >> 8) & 0xff);
-    // Set DMA direction
-    outl(PHYS_JJ_ESPDMA + 0, 0x100);
-    // Transfer
-    outb(PHYS_JJ_ESP + 3*4, 0x90);
-    memcpy(buffer, dest, len);
-    free(buffer);
-#endif
-    return 0 * sd->id * offset * len * (int)dest;
+    esp->buffer[3] = (offset >> 24) & 0xff;
+    esp->buffer[4] = (offset >> 16) & 0xff;
+    esp->buffer[5] = (offset >> 8) & 0xff;
+    esp->buffer[6] = offset & 0xff;
+
+    esp->buffer[8] = (len >> 8) & 0xff;
+    esp->buffer[9] = len & 0xff;
+
+    if (do_command(esp, sd, 10, len * 512))
+        return 0;
+
+    memcpy(esp->buffer, dest, len * 512);
+
+    return 0;
 }
 
-static void
-ob_sd_read_blocks(sd_private_t *sd)
+static unsigned int
+read_capacity(esp_private_t *esp, sd_private_t *sd)
 {
-    cell n = POP(), cnt=n;
+    // Setup command = Read Capacity
+    memset(esp->buffer, 0, 11);
+    esp->buffer[0] = 0x80;
+    esp->buffer[1] = READ_CAPACITY;
+
+    if (do_command(esp, sd, 11, 8)) {
+        sd->sectors = 0;
+        sd->bs = 0;
+
+        return 0;
+    }
+    sd->sectors =  (esp->buffer[0] << 24) | (esp->buffer[1] << 16) | (esp->buffer[2] << 8) | esp->buffer[3];
+    sd->bs = (esp->buffer[4] << 24) | (esp->buffer[5] << 16) | (esp->buffer[6] << 8) | esp->buffer[7];
+
+    return 1;
+}
+
+static unsigned int
+inquiry(esp_private_t *esp, sd_private_t *sd)
+{
+    char *media = "UNKNOWN";
+
+    // Setup command = Inquiry
+    memset(esp->buffer, 0, 7);
+    esp->buffer[0] = 0x80;
+    esp->buffer[1] = INQUIRY;
+
+    esp->buffer[4] = BUFSIZE & 0xff;
+    esp->buffer[5] = (BUFSIZE >> 8) & 0xff;
+
+    if (do_command(esp, sd, 7, 36)) {
+        sd->present = 0;
+        sd->media = -1;
+        return 0;
+    }
+    sd->present = 1;
+    sd->media = esp->buffer[0];
+    
+    switch (sd->media) {
+    case TYPE_DISK:
+        media = "disk";
+        break;
+    case TYPE_ROM:
+        media = "cdrom";
+        break;
+    }
+    sd->media_str = media;
+    memcpy(sd->model, &esp->buffer[16], 16);
+    sd->model[17] = '\0';
+
+    return 1;
+}
+
+
+static void
+ob_sd_read_blocks(sd_private_t **sd)
+{
+    cell n = POP();
     ucell blk = POP();
     char *dest = (char*)POP();
 
 #ifdef CONFIG_DEBUG_ESP
-    printk("ob_sd_read_blocks %lx block=%d n=%d\n", (unsigned long)dest, blk, n );
+    printk("ob_sd_read_blocks id %d %lx block=%d n=%d\n", (*sd)->id, (unsigned long)dest, blk, n );
 #endif
-    while (n) {
-        int len = n;
-
-        if (ob_sd_read_sectors(sd, blk, dest, len)) {
-            printk("ob_ide_read_blocks: error\n");
-            RET(0);
-        }
-        dest += len * sd->hw_sector;
-        n -= len;
-        blk += len;
+    if (ob_sd_read_sectors(global_esp, *sd, blk, dest, n)) {
+        printk("ob_ide_read_blocks: error\n");
+        RET(0);
     }
-    PUSH(cnt);
+    PUSH(n);
 }
 
 static void
-ob_sd_block_size(sd_private_t *sd)
+ob_sd_block_size(sd_private_t **sd)
 {
-    PUSH(sd->hw_sector);
-}
-
-static unsigned int
-get_block_size(sd_private_t *sd)
-{
-#if 1
-    return 512 + sd->id * 0; // XXX
-#else
-    unsigned char *buffer = malloc(64); // XXX setup dvma
-    unsigned int ret;
-
-    // Set SCSI target
-    outb(PHYS_JJ_ESP + 4*4, sd->id & 7);
-    // Set DMA address
-    outl(PHYS_JJ_ESPDMA + 4, buffer);
-    // Set DMA length
-    outb(PHYS_JJ_ESP + 0*4, 10);
-    outb(PHYS_JJ_ESP + 1*4, 0);
-    // Set DMA direction
-    outl(PHYS_JJ_ESPDMA + 0, 0x000);
-    // Setup command = Read Capacity
-    buffer[0] = 0x80;
-    buffer[1] = 0x25;
-    buffer[2] = 0x00;
-    buffer[3] = 0x00;
-    buffer[4] = 0x00;
-    buffer[5] = 0x00;
-    buffer[6] = 0x00;
-    buffer[7] = 0x00;
-    buffer[8] = 0x00;
-    buffer[9] = 0x00;
-    buffer[10] = 0x00;
-    // Set ATN, issue command
-    outb(PHYS_JJ_ESP + 3*4, 0xc2);
-    
-    // Set DMA length
-    outb(PHYS_JJ_ESP + 0*4, 0);
-    outb(PHYS_JJ_ESP + 1*4, 8 & 0xff);
-    // Set DMA direction
-    outl(PHYS_JJ_ESPDMA + 0, 0x100);
-    // Transfer
-    outb(PHYS_JJ_ESP + 3*4, 0x90);
-    ret = (buffer[4] << 24) | (buffer[5] << 16) | (buffer[6] << 8) | buffer[7];
-    free(buffer);
-    return ret;
-#endif
+    PUSH((*sd)->bs);
 }
 
 static void
-ob_sd_open(sd_private_t *sd)
+ob_sd_open(__attribute__((unused))sd_private_t **sd)
 {
-    int ret=1;
+    int ret = 1, id;
     phandle_t ph;
 
     fword("my-unit");
-    sd->id = POP();
-    sd->hw_sector = get_block_size(sd);
+    id = POP();
+    *sd = &global_esp->sd[id];
 
 #ifdef CONFIG_DEBUG_ESP
-    printk("opening drive %d\n", sd->id);
+    printk("opening drive %d\n", id);
 #endif
-
-#if 0
-    dump_drive(drive);
-
-    if (drive->type != esp_type_ata)
-        ret= !ob_esp_atapi_drive_ready(drive);
-#endif
-
     selfword("open-deblocker");
 
     /* interpose disk-label */
@@ -218,7 +259,7 @@ ob_sd_open(sd_private_t *sd)
 }
 
 static void
-ob_sd_close(__attribute__((unused)) sd_private_t *sd)
+ob_sd_close(__attribute__((unused)) sd_private_t **sd)
 {
     selfword("close-deblocker");
 }
@@ -230,10 +271,61 @@ NODE_METHODS(ob_sd) = {
     { "block-size",     ob_sd_block_size },
 };
 
-static void
-ob_esp_initialize(esp_private_t *esp)
+
+static int
+espdma_init(struct esp_dma *espdma)
 {
-    phandle_t ph=get_cur_dev();
+    void *p;
+
+    /* Hardcode everything for MrCoffee. */
+    if ((p = (void *)map_io(PHYS_JJ_ESPDMA, 0x10)) == 0) {
+        printk("espdma_init: cannot map registers\n");
+        return -1;
+    }
+    espdma->regs = p;
+
+    printk("dma1: ");
+
+    switch ((espdma->regs->cond_reg) & DMA_DEVICE_ID) {
+    case DMA_VERS0:
+        espdma->revision = dvmarev0;
+        printk("Revision 0 ");
+        break;
+    case DMA_ESCV1:
+        espdma->revision = dvmaesc1;
+        printk("ESC Revision 1 ");
+        break;
+    case DMA_VERS1:
+        espdma->revision = dvmarev1;
+        printk("Revision 1 ");
+        break;
+    case DMA_VERS2:
+        espdma->revision = dvmarev2;
+        printk("Revision 2 ");
+        break;
+    case DMA_VERHME:
+        espdma->revision = dvmahme;
+        printk("HME DVMA gate array ");
+        break;
+    case DMA_VERSPLUS:
+        espdma->revision = dvmarevplus;
+        printk("Revision 1 PLUS ");
+        break;
+    default:
+        printk("unknown dma version %x",
+               (espdma->regs->cond_reg) & DMA_DEVICE_ID);
+        /* espdma->allocated = 1; */
+        break;
+    }
+    printk("\n");
+
+    return 0;
+}
+
+static void
+ob_esp_initialize(__attribute__((unused)) esp_private_t **esp)
+{
+    phandle_t ph = get_cur_dev();
 
     set_int_property(ph, "#address-cells", 2);
     set_int_property(ph, "#size-cells", 0);
@@ -253,31 +345,17 @@ ob_esp_initialize(esp_private_t *esp)
     fword("encode+");
     push_str("reg");
     fword("property");
-#if 1
-    esp->ll = (void *)PHYS_JJ_ESP;
-    esp->buffer = (void *)0x100000; // XXX
-#else
-    /* Get the IO region */
-    esp->ll = map_io(PHYS_JJ_ESP, sizeof (struct esp_regs));
-    if (esp->ll == 0)
-        return -1;
-
-    esp->buffer = dvma_alloc(BUFSIZE, &esp->buffer_dvma);
-    esp->espdma = espdma;
-#endif
-    // Chip reset
-    outb((int)esp->ll + 3*2, 2);
 }
 
 static void
-ob_esp_decodeunit(__attribute__((unused)) esp_private_t * esp)
+ob_esp_decodeunit(__attribute__((unused)) esp_private_t **esp)
 {
     fword("decode-unit-scsi");
 }
 
 
 static void
-ob_esp_encodeunit(__attribute__((unused)) esp_private_t * esp)
+ob_esp_encodeunit(__attribute__((unused)) esp_private_t **esp)
 {
     fword("encode-unit-scsi");
 }
@@ -287,24 +365,6 @@ NODE_METHODS(ob_esp) = {
     { "decode-unit",    ob_esp_decodeunit },
     { "encode-unit",    ob_esp_encodeunit },
 };
-
-static int
-drive_present(int drive)
-{
-    // XXX
-    if (drive == 0 || drive == 2)
-        return 1;
-    return 0;
-}
-
-static int
-drive_cdrom(int drive)
-{
-    // XXX
-    if (drive == 2)
-        return 1;
-    return 0;
-}
 
 static void
 add_alias(const unsigned char *device, const unsigned char *alias)
@@ -322,20 +382,56 @@ int ob_esp_init(void)
 {
     int id, diskcount = 0, cdcount = 0, *counter_ptr;
     char nodebuff[256], aliasbuff[256];
-    const char *type;
+    esp_private_t *esp;
 
 #ifdef CONFIG_DEBUG_ESP
     printk("Initializing SCSI...");
 #endif
-    sprintf(nodebuff, "/iommu/sbus/espdma/esp");
-    REGISTER_NAMED_NODE(ob_esp, nodebuff);
-    device_end();
+
+    esp = malloc(sizeof(esp_private_t));
+    global_esp = esp;
+
+    if (espdma_init(&esp->espdma) != 0) {
+        return -1;
+    }
+    /* Get the IO region */
+    esp->ll = (void *)map_io(PHYS_JJ_ESP, sizeof(struct esp_regs));
+    if (esp->ll == 0) {
+        printk("Can't map ESP registers\n");
+        return -1;
+    }
+
+    esp->buffer = (void *)dvma_alloc(BUFSIZE, &esp->buffer_dvma);
+    if (!esp->buffer || !esp->buffer_dvma) {
+        printk("Can't get a DVMA buffer\n");
+        return -1;
+    }
+
+    // Chip reset
+    esp->ll->regs[ESP_CMD] = ESP_CMD_RC;
+
 #ifdef CONFIG_DEBUG_ESP
     printk("done\n");
     printk("Initializing SCSI devices...");
 #endif
+
     for (id = 0; id < 8; id++) {
-        if (!drive_present(id))
+        esp->sd[id].id = id;
+        if (!inquiry(esp, &esp->sd[id]))
+            continue;
+        read_capacity(esp, &esp->sd[id]);
+
+#ifdef CONFIG_DEBUG_ESP
+        dump_drive(&esp->sd[id]);
+#endif
+    }
+
+    sprintf(nodebuff, "/iommu/sbus/espdma/esp");
+    REGISTER_NAMED_NODE(ob_esp, nodebuff);
+    device_end();
+
+    for (id = 0; id < 8; id++) {
+        if (!esp->sd[id].present)
             continue;
         push_str("/iommu/sbus/espdma/esp");
         fword("find-device");
@@ -355,17 +451,15 @@ int ob_esp_init(void)
         fword("finish-device");
         sprintf(nodebuff, "/iommu/sbus/espdma/esp/sd@%d,0", id);
         REGISTER_NODE_METHODS(ob_sd, nodebuff);
-        if (drive_cdrom(id)) {
-            type = "cdrom";
+        if (esp->sd[id].media == TYPE_ROM) {
             counter_ptr = &cdcount;
         } else {
-            type = "disk";
             counter_ptr = &diskcount;
         }
         if (*counter_ptr == 0) {
-            add_alias(nodebuff, type);
+            add_alias(nodebuff, esp->sd[id].media_str);
         }
-        sprintf(aliasbuff, "%s%d", type, *counter_ptr);
+        sprintf(aliasbuff, "%s%d", esp->sd[id].media_str, *counter_ptr);
         (*counter_ptr)++;
         add_alias(nodebuff, aliasbuff);
     }

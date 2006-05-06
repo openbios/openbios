@@ -9,7 +9,7 @@
 
 #include "psr.h"
 #include "asi.h"
-#include "crs.h"
+#include "asm/crs.h"
 
 #define PHYS_JJ_EEPROM	0x71200000
 
@@ -40,13 +40,13 @@ entry:
         ! map PROLDATA to PROLBASE+PROLSIZE to end of ram
         !set	PROLSIZE+0x1000-PROLDATA+PROLBASE, %g2	! add 0x1000 for temp tables
         set     _end, %g3
-        set     _start, %g2
+        set     0xfff, %g2
+        add     %g3, %g2, %g3
+        andn    %g3, %g2, %g3
+        set     _data, %g2
         sub     %g3, %g2, %g3
-        set     0x1000, %g4
-        add     %g4, %g3, %g3
-        set     _data, %g4
-        sub     %g4, %g2, %g2
-        sub     %g3, %g2, %g2
+        set     0x1000, %g4                     ! add 0x1000 for page tables
+        add     %g4, %g3, %g2
         sub	%g1, %g2, %g2			! start of private memory
         srl	%g2, 0x4, %g7			! ctx table at s+0x0
         add	%g2, 0x400, %g3			! l1 table at s+0x400
@@ -54,7 +54,7 @@ entry:
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
         add	%g2, 0x400, %g2			! s+0x400
-        add	%g2, 0x800, %g3			! l2 table for ram (00xxxxxx) at s+0x800
+        add	%g2, 0x400, %g3			! l2 table for ram (00xxxxxx) at s+0x800
         srl	%g3, 0x4, %g3
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
@@ -64,10 +64,16 @@ entry:
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
         add	%g2, 0x4, %g2			! s+0x800
+        set     0x40, %g6
         set	((7 << 2) | 2), %g3		! 7 = U: --- S: RWX (main memory)
-        sta	%g3, [%g2] ASI_M_BYPASS
-        add	%g2, 0xa00 - 0x800, %g3		! l3 table for rom at s+0xa00
-        add	%g2, 0x1d0, %g2			! s+0x9d0
+1:      sta	%g3, [%g2] ASI_M_BYPASS
+        add     %g2, 4, %g2
+        deccc   %g6
+        bne     1b
+         nop
+                                                ! s+0x900
+        add	%g2, 0xa00 - 0x900, %g3		! l3 table for rom at s+0xa00
+        add	%g2, 0x0d0, %g2			! s+0x9d0
         srl	%g3, 0x4, %g3
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
@@ -86,7 +92,12 @@ entry:
         srl	%g3, 0x4, %g3
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
-        add	%g2, 0xa00-0x9dc, %g2			! s+0xa00
+        add	%g2, 4, %g2			! s+0x9e0
+        add	%g2, 0xd00 - 0x9e0, %g3		! 5th l3 table for rom at s+0xe00
+        srl	%g3, 0x4, %g3
+        or	%g3, 0x1, %g3
+        sta	%g3, [%g2] ASI_M_BYPASS
+        add	%g2, 0xa00-0x9e0, %g2			! s+0xa00
 
         !set	(PROLDATA-PROLBASE)/0x1000, %g6 ! # of .text pages
         set	_start, %g3
@@ -192,6 +203,13 @@ entry:
 
         set     qemu_mem_size, %g1
         st      %g3, [%g1]
+        
+        sll     %g7, 4, %g7                     ! Store va->pa conversion factor
+        set     _data - 0x1000, %g1
+        sub     %g1, %g7, %g7
+        set     va_shift, %g1
+        st      %g7, [%g1]
+        
         /* Finally, turn on traps so that we can call c-code. */
         rd	%psr, %g3
         wr	%g3, 0x0, %psr

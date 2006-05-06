@@ -6,9 +6,10 @@
   <object source="timer.c" condition="DRIVER_IDE"/>
   <object source="kbd.c"   condition="DRIVER_ADB"/>
   <object source="adb.c"   condition="DRIVER_ADB"/>
-  <object source="cuda.c"   condition="DRIVER_ADB"/>
-  <object source="floppy.c"   condition="DRIVER_FLOPPY"/>
-  <object source="sbus.c"   condition="DRIVER_SBUS"/>
+  <object source="cuda.c"  condition="DRIVER_ADB"/>
+  <object source="floppy.c" condition="DRIVER_FLOPPY"/>
+  <object source="iommu.c" condition="DRIVER_SBUS"/>
+  <object source="sbus.c"  condition="DRIVER_SBUS"/>
   <object source="esp.c"   condition="DRIVER_ESP"/>
  </library>
 
