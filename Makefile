@@ -1,4 +1,4 @@
-ARCH= $(shell cat rules.xml |grep ^ARCH|cut -d\= -f2|tr -d \ )
+ARCH= $(shell cat rules.xml |grep "^ARCH" |cut -d\= -f2|tr -d \ )
 HOSTARCH=$(shell config/scripts/archname)
 ODIR=obj-$(ARCH)
 
@@ -8,13 +8,13 @@ info:
 	@echo "Building OpenBIOS on $(HOSTARCH) for $(ARCH)"
 
 clean:
-	@echo -n "Cleaning up..."
+	@printf "Cleaning up..."
 	@rm -rf $(ODIR) forth.dict.core 
 	@find . -type f -name "*~" -exec rm \{\} \;
 	@echo " ok"
 
 directories: clean
-	@echo -n "Initializing build tree..."
+	@printf "Initializing build tree..."
 	@mkdir $(ODIR)
 	@mkdir -p $(ODIR)/target/include
 	@mkdir -p $(ODIR)/target/arch/unix
@@ -41,18 +41,18 @@ directories: clean
 	@echo "ok."
 
 xml: directories
-	@echo -n "Creating target Makefile..."
+	@printf "Creating target Makefile..."
 	@xsltproc config/xml/xinclude.xsl build.xml > $(ODIR)/build-full.xml
 	@xsltproc config/xml/makefile.xsl $(ODIR)/build-full.xml > $(ODIR)/Makefile
 	@echo "ok."
-	@echo -n "Creating config files..."
+	@printf "Creating config files..."
 	@xsltproc config/xml/config-c.xsl config.xml > $(ODIR)/host/include/autoconf.h
 	@xsltproc config/xml/config-c.xsl config.xml > $(ODIR)/target/include/autoconf.h
 	@xsltproc config/xml/config-forth.xsl config.xml > $(ODIR)/forth/config.fs
 	@echo "ok."
 
 build: xml
-	@echo -n "Building..."
+	@printf "Building..."
 	@( $(MAKE) -f $(ODIR)/Makefile > $(ODIR)/build.log 2>&1 && echo "ok." ) || \
 		( echo "error:"; tail -15 $(ODIR)/build.log )
 

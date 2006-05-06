@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if [ x"$1" = x ]; then
-  echo -e "Usage:\n  $0 [arch-config]"
-  echo -e "\narch-config: cross-ppc, x86"
+  printf "Usage:\n  $0 [arch-config]"
+  printf "\narch-config: cross-ppc, x86\n"
   exit 0
 fi
 
