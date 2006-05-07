@@ -42,8 +42,6 @@ void exception(cell no)
 	 */
 }
 
-void init_mmu_swift(void);
-
 static void
 arch_init( void )
 {

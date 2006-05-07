@@ -366,7 +366,7 @@ get_fstype( fs_ops_t *fs )
 }               
 
 
-static fs_ops_t fs_ops = {
+static const fs_ops_t fs_ops = {
 	.close_fs	= close_fs,
 	.open_path	= open_path,
 	.search_rom	= search_rom,

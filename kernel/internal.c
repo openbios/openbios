@@ -13,7 +13,7 @@
  *  - address pointed by CFA is executed by CPU
  */
 
-extern void *words[];
+extern void * const words[];
 ucell PC;
 volatile int runforth = 0;
 

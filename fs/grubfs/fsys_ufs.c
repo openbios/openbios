@@ -204,7 +204,7 @@ lookup(const char *path)
 /*
  * Possible superblock locations ordered from most to least likely.
  */
-static int sblock_try[] = SBLOCKSEARCH;
+static const int sblock_try[] = SBLOCKSEARCH;
 
 ssize_t
 fsread(ino_t inode, void *buf, size_t nbyte)

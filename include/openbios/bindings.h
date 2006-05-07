@@ -112,11 +112,11 @@ static const int name##_flags_ = flags;	\
 static const int name##_size_ = size;
 
 #define DECLARE_NODE( name, flags, size, paths... )	\
-static char *name##_p[] = { paths };	\
+static const char * const name##_p[] = { paths };	\
 DECLARE_UNNAMED_NODE(name, flags, size)
 
 #define NODE_METHODS( name ) \
-static method_t name##_m[]
+static const method_t name##_m[]
 
 #define REGISTER_NODE( name )	do { \
 	    bind_node( name##_flags_, name##_size_, \

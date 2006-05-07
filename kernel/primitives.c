@@ -39,7 +39,7 @@
  * THE END). ANY OTHER CHANGE WILL BREAK COMPATIBILITY TO OLDER 
  * BINARY DICTIONARIES.
  */
-void *words[] = {
+void * const words[] = {
 
 	/*
 	 * CFAs and special words

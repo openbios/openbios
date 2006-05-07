@@ -3,8 +3,42 @@
 
 #include "asm/types.h"
 
+extern unsigned int va_shift; // Set in entry.S
+extern char _start, _data, _end, _vmem, _evmem, _iomem; // Defined in ldscript
+
+static inline unsigned long
+va2pa(unsigned long va)
+{
+    if ((va >= (unsigned long)&_data) &&
+        (va < (unsigned long)&_end))
+        return va - va_shift;
+    else
+        return va;
+}
+
+static inline unsigned long
+pa2va(unsigned long pa)
+{
+    if ((pa + va_shift >= (unsigned long)&_data) && 
+        (pa + va_shift< (unsigned long)&_end))
+        return pa + va_shift;
+    else
+        return pa;
+}
+
+// XXX check use and merge
 #define phys_to_virt(phys) ((void *) ((unsigned long) (phys)))
 #define virt_to_phys(virt) ((unsigned long) (virt))
+
+struct mem;
+
+void *mem_alloc(struct mem *t, int size, int align);
+void *mem_zalloc(struct mem *t, int size, int align);
+int map_page(unsigned long *pgd, unsigned long va,
+             unsigned long epa, int type);
+void *map_io(unsigned pa, int size);
+void init_mmu_swift();
+void *dvma_alloc(int size, unsigned int *pphys);
 
 #ifndef BOOTSTRAP
 

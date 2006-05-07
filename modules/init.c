@@ -39,4 +39,7 @@ modules_init( void )
 #ifdef CONFIG_PC_PARTS
 	pcparts_init();
 #endif
+#ifdef CONFIG_SUN_PARTS
+	sunparts_init();
+#endif
 }

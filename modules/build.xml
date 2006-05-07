@@ -17,6 +17,7 @@
   <object source="filesystems.c" condition="FS"/>
   <object source="mac-parts.c" condition="MAC_PARTS"/>
   <object source="pc-parts.c" condition="PC_PARTS"/>
+  <object source="sun-parts.c" condition="SUN_PARTS"/>
  </library>
 
  <dictionary name="openbios" target="forth">

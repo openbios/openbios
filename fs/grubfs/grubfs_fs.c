@@ -55,7 +55,7 @@ typedef struct fsys_entry {
 	int	(*embed_func) (int *start_sector, int needed_sectors);
 } fsys_entry_t;
 
-struct fsys_entry fsys_table[] = {
+static const struct fsys_entry fsys_table[] = {
 # ifdef CONFIG_FSYS_FAT
 	{"fat", fat_mount, fat_read, fat_dir, 0, 0},
 # endif
@@ -93,11 +93,11 @@ typedef struct {
 	unsigned long	pos;
 	unsigned long	len;
 	const char	*path;
-	fs_ops_t	*fs;
+	const fs_ops_t	*fs;
 } grubfile_t;
 
 typedef struct {
-	struct fsys_entry *fsys;
+	const struct fsys_entry *fsys;
 	grubfile_t *fd;
 	int		dev_fd;
 } grubfs_t;
@@ -226,7 +226,7 @@ grubfs_get_fstype( fs_ops_t *fs )
 	return gfs->fsys->name;
 }		
 
-static fs_ops_t grubfs_ops = {
+static const fs_ops_t grubfs_ops = {
 	.close_fs	= close_fs,
 	.open_path	= open_path,
 	.get_path	= get_path,
@@ -251,7 +251,7 @@ fs_grubfs_open( int fd, fs_ops_t *fs )
 		printk("Trying %s\n", fsys_table[i].name);
 #endif
 		if (fsys_table[i].mount_func()) {
-			fsys_entry_t *fsys = &fsys_table[i];
+			const fsys_entry_t *fsys = &fsys_table[i];
 #ifdef CONFIG_DEBUG_FS
 			printk("Mounted %s\n", fsys->name);
 #endif

@@ -20,6 +20,7 @@
 #include "libc/vsprintf.h"
 
 #include "openbios/drivers.h"
+#include "asm/io.h"
 #include "scsi.h"
 #include "asm/dma.h"
 #include "esp.h"
@@ -133,6 +134,9 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
 static int
 ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest, short len)
 {
+#ifdef CONFIG_DEBUG_ESP
+    printk("ob_sd_read_sectors id %d %lx block=%d len=%d\n", sd->id, (unsigned long)dest, offset, len);
+#endif
     // Setup command = Read(10)
     memset(esp->buffer, 0, 10);
     esp->buffer[0] = 0x80;
@@ -149,7 +153,7 @@ ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest,
     if (do_command(esp, sd, 10, len * 512))
         return 0;
 
-    memcpy(esp->buffer, dest, len * 512);
+    memcpy(dest, esp->buffer, len * 512);
 
     return 0;
 }
@@ -169,7 +173,11 @@ read_capacity(esp_private_t *esp, sd_private_t *sd)
         return 0;
     }
     sd->sectors =  (esp->buffer[0] << 24) | (esp->buffer[1] << 16) | (esp->buffer[2] << 8) | esp->buffer[3];
+#if 0
     sd->bs = (esp->buffer[4] << 24) | (esp->buffer[5] << 16) | (esp->buffer[6] << 8) | esp->buffer[7];
+#else
+    sd->bs = 512;
+#endif
 
     return 1;
 }
@@ -214,18 +222,25 @@ inquiry(esp_private_t *esp, sd_private_t *sd)
 static void
 ob_sd_read_blocks(sd_private_t **sd)
 {
-    cell n = POP();
+    cell n = POP(), cnt = n;
     ucell blk = POP();
     char *dest = (char*)POP();
 
 #ifdef CONFIG_DEBUG_ESP
     printk("ob_sd_read_blocks id %d %lx block=%d n=%d\n", (*sd)->id, (unsigned long)dest, blk, n );
 #endif
-    if (ob_sd_read_sectors(global_esp, *sd, blk, dest, n)) {
-        printk("ob_ide_read_blocks: error\n");
-        RET(0);
+
+    n *= (*sd)->bs / 512;
+    while (n) {
+        if (ob_sd_read_sectors(global_esp, *sd, blk, dest, 1)) {
+            printk("ob_ide_read_blocks: error\n");
+            RET(0);
+        }
+        dest += (*sd)->bs;
+        n--;
+        blk++;
     }
-    PUSH(n);
+    PUSH(cnt);
 }
 
 static void

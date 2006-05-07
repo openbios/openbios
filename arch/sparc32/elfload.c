@@ -15,7 +15,7 @@
 #define debug printk
 
 extern unsigned int start_elf(unsigned long entry_point, unsigned long param);
-extern char _start, _end;
+#define addr_fixup(addr) ((addr) & 0x00ffffff)
 
 static char *image_name, *image_version;
 const char *program_name, *program_version;
@@ -51,7 +51,7 @@ static int check_mem_ranges(struct sys_info *info,
     for (i = 0; i < phnum; i++) {
 	if (phdr[i].p_type != PT_LOAD)
 	    continue;
-	start = phdr[i].p_paddr;
+	start = addr_fixup(phdr[i].p_paddr);
 	end = start + phdr[i].p_memsz;
 	if (start < prog_start && end > prog_start)
 	    goto conflict;
@@ -144,22 +144,22 @@ static int load_segments(Elf_phdr *phdr, int phnum,
 	if (phdr[i].p_type != PT_LOAD)
 	    continue;
 	debug("segment %d addr:%#x file:%#x mem:%#x ",
-		i, phdr[i].p_paddr, phdr[i].p_filesz, phdr[i].p_memsz);
+              i, addr_fixup(phdr[i].p_paddr), phdr[i].p_filesz, phdr[i].p_memsz);
 	file_seek(phdr[i].p_offset);
 	debug("loading... ");
-	if (lfile_read(phys_to_virt(phdr[i].p_paddr), phdr[i].p_filesz)
+	if (lfile_read(phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_filesz)
 		!= phdr[i].p_filesz) {
 	    printf("Can't read program segment %d\n", i);
 	    return 0;
 	}
 	bytes += phdr[i].p_filesz;
 	debug("clearing... ");
-	memset(phys_to_virt(phdr[i].p_paddr + phdr[i].p_filesz), 0, 
+	memset(phys_to_virt(addr_fixup(phdr[i].p_paddr) + phdr[i].p_filesz), 0, 
 		phdr[i].p_memsz - phdr[i].p_filesz);
 	if (phdr[i].p_offset <= checksum_offset
 		&& phdr[i].p_offset + phdr[i].p_filesz >= checksum_offset+2) {
 	    debug("clearing checksum... ");
-	    memset(phys_to_virt(phdr[i].p_paddr + checksum_offset
+	    memset(phys_to_virt(addr_fixup(phdr[i].p_paddr) + checksum_offset
 			- phdr[i].p_offset), 0, 2);
 	}
 	debug("ok\n");
@@ -194,7 +194,7 @@ static int verify_image(Elf_ehdr *ehdr, Elf_phdr *phdr, int phnum,
     for (i = 0; i < phnum; i++) {
 	if (phdr[i].p_type != PT_LOAD)
 	    continue;
-	part_sum = ipchksum(phys_to_virt(phdr[i].p_paddr), phdr[i].p_memsz);
+	part_sum = ipchksum(phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_memsz);
 	sum = add_ipchksums(offset, sum, part_sum);
 	offset += phdr[i].p_memsz;
     }
@@ -367,9 +367,9 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     //debug("current time: %lu\n", currticks());
 
-    debug("entry point is %#x\n", ehdr.e_entry);
+    debug("entry point is %#x\n", addr_fixup(ehdr.e_entry));
     printf("Jumping to entry point...\n");
-    image_retval = start_elf(ehdr.e_entry, virt_to_phys(boot_notes));
+    image_retval = start_elf(addr_fixup(ehdr.e_entry), virt_to_phys(boot_notes));
 
     // console_init(); FIXME
     printf("Image returned with return value %#x\n", image_retval);

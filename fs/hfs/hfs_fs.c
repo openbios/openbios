@@ -294,7 +294,7 @@ get_fstype( fs_ops_t *fs )
 	return ("HFS");
 }		
 
-static fs_ops_t hfs_ops = {
+static const fs_ops_t hfs_ops = {
 	.close_fs	= close_fs,
 	.open_path	= open_path,
 	.search_rom	= search_rom,
