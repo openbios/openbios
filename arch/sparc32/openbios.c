@@ -23,6 +23,8 @@ static char intdict[256 * 1024];
 
 static void init_memory(void)
 {
+        extern char _heap, _eheap;
+
 	/* push start and end of available memory to the stack
 	 * so that the forth word QUIT can initialize memory 
 	 * management. For now we use hardcoded memory between
@@ -30,8 +32,8 @@ static void init_memory(void)
 	 * than that we have serious bloat.
 	 */
 
-	PUSH(0x10000);
-	PUSH(0x9FFFF);
+	PUSH((unsigned int)&_heap);
+	PUSH((unsigned int)&_eheap);
 }
 
 void exception(cell no)

@@ -35,8 +35,8 @@ struct mem cio;                 /* Current I/O space */
 
 unsigned int va_shift;
 
-unsigned long *context_table;
-unsigned long *l1;
+static unsigned long *context_table;
+static unsigned long *l1;
 
 /*
  * IOMMU parameters
@@ -105,21 +105,20 @@ mem_zalloc(struct mem *t, int size, int align)
  * highbase is used for v2p translation.
  */
 int
-map_page(unsigned long *pgd, unsigned long va,
-         unsigned long epa, int type)
+map_page(unsigned long va, unsigned long epa, int type)
 {
     uint32_t pte;
     void *p;
     unsigned long pa;
 
-    pte = pgd[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)];
+    pte = l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)];
     if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
         p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PMD * sizeof(int),
                        SRMMU_PTRS_PER_PMD * sizeof(int));
         if (p == 0)
             goto drop;
         pte = SRMMU_ET_PTD | ((va2pa((unsigned long)p)) >> 4);
-        pgd[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
+        l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
         /* barrier() */
     }
 
@@ -178,9 +177,9 @@ map_io(unsigned pa, int size)
         return va;
 
     mva = (unsigned int) va;
-    printk("map_io: va 0x%p pa 0x%x off 0x%x npages %d\n", va, pa, off, npages); /* P3 */
+    //printk("map_io: va 0x%p pa 0x%x off 0x%x npages %d\n", va, pa, off, npages); /* P3 */
     while (npages-- != 0) {
-        map_page(l1, mva, pa, 1);
+        map_page(mva, pa, 1);
         mva += PAGE_SIZE;
         pa += PAGE_SIZE;
     }
@@ -215,20 +214,20 @@ init_mmu_swift()
     // 1:1 mapping for ROM
     pa = va = (unsigned long)&_start;
     for (; va < (unsigned long)&_data; va += PAGE_SIZE, pa += PAGE_SIZE) {
-        map_page(l1, va, pa, 0);
+        map_page(va, pa, 0);
     }
 
     // data & bss mapped to end of RAM
     va = (unsigned long)&_data;
     for (; va < (unsigned long)&_end; va += PAGE_SIZE) {
         pa = va2pa(va);
-        map_page(l1, va, pa, 0);
+        map_page(va, pa, 0);
     }
 
     // 1:1 mapping for RAM
     pa = va = 0;
     for (; va < LOWMEMSZ; va += PAGE_SIZE, pa += PAGE_SIZE) {
-        map_page(l1, va, pa, 0);
+        map_page(va, pa, 0);
     }
 
     /*
@@ -279,7 +278,7 @@ dvma_alloc(int size, unsigned int *pphys)
     mva = (unsigned int) va;
     mpa = (unsigned int) pa;
     for (i = 0; i < npages; i++) {
-        map_page(l1, mva, mpa, 1);
+        map_page(mva, mpa, 1);
         mva += PAGE_SIZE;
         mpa += PAGE_SIZE;
     }

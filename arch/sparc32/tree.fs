@@ -3,14 +3,29 @@
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
   " SUNW,SparcStation-5" encode-string " name" property
-  " " encode-string " idprom" property
   " SparcStation" encode-string " banner-name" property
   " sun4m" encode-string " compatible" property
+  h# 01800000 encode-int 0 encode-int encode+ 0 encode-int encode+ h# 00000081 encode-int encode+ 
+   0 encode-int encode+ 0 encode-int encode+ 0 encode-int encode+ 0 encode-int encode+
+   " idprom" property \ XXX
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
 
 new-device
   " memory" device-name
+  h# 100000 encode-int " available" property \ XXX
+  h# 0 encode-int h# 10000000 encode-int encode+ h# 00000300 encode-int encode+ " reg" property \ XXX
+  external
+  : open true ;
+  : close ;
+  \ claim ( phys size align -- base )
+  \ release ( phys size -- )
+finish-device
+
+new-device
+  " virtual-memory" device-name
+  h# 100000 encode-int " available" property \ XXX
+  h# 0 encode-int h# 10000000 encode-int encode+ h# 00000300 encode-int encode+ " reg" property \ XXX
   external
   : open true ;
   : close ;
@@ -33,7 +48,7 @@ new-device
   1 encode-int " #size-cells" property
   h# 0 encode-int h# 10000000 encode-int encode+ h# 00000300 encode-int encode+ " reg" property
   external
-  : open cr ." opening iommu" cr true ;
+  : open ( cr ." opening iommu" cr) true ;
   : close ;
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
@@ -53,7 +68,7 @@ new-device
    " ranges" property
   h# 0 encode-int h# 10001000 encode-int encode+ h# 00000028 encode-int encode+ " reg" property
   external
-  : open cr ." opening SBus" cr true ;
+  : open ( cr ." opening SBus" cr) true ;
   : close ;
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
@@ -157,7 +172,7 @@ new-device
   h# 0 encode-int h# 0 encode-int encode+ h# 0 encode-int encode+ h# 71000000 encode-int encode+ h# 01000000 encode-int encode+
    " ranges" property
   external
-  : open cr ." opening obio" cr true ;
+  : open ( cr ." opening obio" cr) true ;
   : close ;
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;

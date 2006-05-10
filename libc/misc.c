@@ -22,7 +22,7 @@ int errno;
 void
 qsort( void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void*) )
 {
-	int worked, i, j;
+	unsigned int worked, i, j;
 
 	/* even more inefficient than the glibc variant :-) */
 	do {

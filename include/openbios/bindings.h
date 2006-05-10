@@ -124,11 +124,11 @@ static const method_t name##_m[]
 		       name##_m, sizeof(name##_m)/sizeof(method_t) ); \
         } while(0)
 
-extern void 	bind_node( int flags, int size, char **paths, int npaths,
-			   method_t *methods, int nmethods );
+extern void 	bind_node( int flags, int size, const char * const *paths, int npaths,
+			   const method_t *methods, int nmethods );
 
-extern void 	bind_new_node( int flags, int size, char *name,
-			   method_t *methods, int nmethods );
+extern void 	bind_new_node( int flags, int size, const char *name,
+			   const method_t *methods, int nmethods );
 
 #define INSTALL_OPEN	1	/* install trivial open and close methods */
 

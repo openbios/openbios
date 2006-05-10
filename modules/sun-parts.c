@@ -17,6 +17,13 @@
 #include "libc/byteorder.h"
 #include "modules.h"
 
+#ifdef CONFIG_DEBUG_SUN_PARTS
+#define DPRINTF(fmt, args...)                   \
+    do { printk(fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...)
+#endif
+
 typedef struct {
 	ullong		offs;
 	ullong		size;
@@ -88,7 +95,7 @@ sunparts_open( sunparts_info_t *di )
         struct sun_disklabel *p;
         unsigned int i;
 
-	printk("sunparts_open '%s'\n", str );
+	DPRINTF("sunparts_open '%s'\n", str );
 
 	if( str ) {
 		parnum = atol(str);
@@ -103,7 +110,7 @@ sunparts_open( sunparts_info_t *di )
 
 	/* Check Magic */
 	if (!has_sun_part_magic(buf)) {
-		printk("sun partition magic not found.\n");
+		DPRINTF("sun partition magic not found.\n");
 		RET(0);
 	}
 	
@@ -111,7 +118,7 @@ sunparts_open( sunparts_info_t *di )
 	p = (struct sun_disklabel *)buf;
 
         for (i = 0; i < 8; i++) {
-	    printk("%c: %d + %d, id %x, flags %x\n", 'a' + i, p->partitions[i].start_cylinder,
+	    DPRINTF("%c: %d + %d, id %x, flags %x\n", 'a' + i, p->partitions[i].start_cylinder,
 		   p->partitions[i].num_sectors, p->infos[i].id, p->infos[i].flags);
             if (parnum < 0) {
                 if (p->partitions[i].num_sectors != 0 && p->infos[i].id != 0)
@@ -122,7 +129,7 @@ sunparts_open( sunparts_info_t *di )
             __be16_to_cpu(p->ntrks) * __be16_to_cpu(p->nsect);
 
         di->size = (llong)__be32_to_cpu(p->partitions[parnum].num_sectors) ;
-        printk("Found Sun partition table, offs %d size %d\n", (int)di->offs, (int)di->size);
+        DPRINTF("Found Sun partition table, offs %d size %d\n", (int)di->offs, (int)di->size);
 
         RET( -1 );
 }

@@ -34,8 +34,7 @@ struct mem;
 
 void *mem_alloc(struct mem *t, int size, int align);
 void *mem_zalloc(struct mem *t, int size, int align);
-int map_page(unsigned long *pgd, unsigned long va,
-             unsigned long epa, int type);
+int map_page(unsigned long va, unsigned long epa, int type);
 void *map_io(unsigned pa, int size);
 void init_mmu_swift();
 void *dvma_alloc(int size, unsigned int *pphys);

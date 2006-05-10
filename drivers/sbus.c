@@ -46,7 +46,7 @@ NODE_METHODS(ob_sbus_node) = {
 
 int ob_sbus_init(void)
 {
-	printk("Initializing SBus devices...\n");
+        //printk("Initializing SBus devices...\n");
 	
 	return 0;
 }

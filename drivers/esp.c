@@ -35,7 +35,7 @@
     } while(0)
 
 #define REGISTER_NODE_METHODS( name, path )   do {                      \
-        char *paths[1];                                                  \
+        const char *paths[1];                                                  \
                                                                         \
         paths[0] = path;                                                \
         bind_node( name##_flags_, name##_size_,                         \
@@ -76,9 +76,9 @@ esp_private_t *global_esp;
 DECLARE_UNNAMED_NODE(ob_sd, INSTALL_OPEN, sizeof(sd_private_t *));
 DECLARE_UNNAMED_NODE(ob_esp, INSTALL_OPEN, sizeof(esp_private_t *));
 
+#ifdef CONFIG_DEBUG_ESP
 static void dump_drive(sd_private_t *drive)
 {
-#ifdef CONFIG_DEBUG_ESP
     printk("SCSI DRIVE @%lx:\n", (unsigned long)drive);
     printk("id: %d\n", drive->id);
     printk("media: %s\n", drive->media_str);
@@ -86,8 +86,8 @@ static void dump_drive(sd_private_t *drive)
     printk("sectors: %d\n", drive->sectors);
     printk("present: %d\n", drive->present);
     printk("bs: %d\n", drive->bs);
-#endif
 }
+#endif
 
 static int
 do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)

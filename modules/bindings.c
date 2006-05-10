@@ -431,7 +431,7 @@ call1_func( void )
 
 
 static void
-add_methods( int flags, int size, method_t *methods, int nmet )
+add_methods( int flags, int size, const method_t *methods, int nmet )
 {
 	xt_t xt=0;
 	int i;
@@ -470,14 +470,14 @@ add_methods( int flags, int size, method_t *methods, int nmet )
 }
 
 void
-bind_node( int flags, int size, char **paths, int npaths,
-	   method_t *methods, int nmet )
+bind_node( int flags, int size, const char * const *paths, int npaths,
+	   const method_t *methods, int nmet )
 {
 	phandle_t save_ph = get_cur_dev();
 	int i;
 	
 	for( i=0; i<npaths; i++ ) {
-		char *name = paths[i];
+		const char *name = paths[i];
 
 		/* type matching? */
 		if( *name == 'T' ) {
@@ -506,8 +506,8 @@ bind_node( int flags, int size, char **paths, int npaths,
 }
 
 void
-bind_new_node( int flags, int size, char *name,
-	   method_t *methods, int nmet )
+bind_new_node( int flags, int size, const char *name,
+	   const method_t *methods, int nmet )
 {
 	phandle_t save_ph = get_cur_dev();
 	

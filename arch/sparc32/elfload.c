@@ -369,7 +369,22 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     debug("entry point is %#x\n", addr_fixup(ehdr.e_entry));
     printf("Jumping to entry point...\n");
+
+#if 1
+    {
+        extern unsigned int qemu_mem_size;
+        void *init_openprom(unsigned long memsize, const char *cmdline, char boot_device);
+
+        int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
+        const void *romvec;
+
+        romvec = init_openprom(qemu_mem_size, NULL, 'c');
+        entry = (void *) addr_fixup(ehdr.e_entry);
+        image_retval = entry(romvec, 0, 0, 0, 0);
+    }
+#else
     image_retval = start_elf(addr_fixup(ehdr.e_entry), virt_to_phys(boot_notes));
+#endif
 
     // console_init(); FIXME
     printf("Image returned with return value %#x\n", image_retval);

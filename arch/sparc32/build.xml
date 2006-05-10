@@ -20,6 +20,7 @@
   <object source="elfload.c"/>
   <object source="forthload.c"/>
   <object source="loadfs.c"/>
+  <object source="romvec.c"/>
  </library>
  
  <executable name="target/arch/sparc32/entry.o" target="target">
