@@ -268,8 +268,8 @@ cmdline_prompt( cmdline_info_t *ci )
 			pos += emit_str( &buf[pos] );
 			break;
 
-		case 68: /* left */
-			drop = 1;
+		//case 68: /* left */
+		//	drop = 1;
 		case 2: /* ^b */
 			if( pos ) {
 				move_cursor( -1 );
@@ -277,8 +277,8 @@ cmdline_prompt( cmdline_info_t *ci )
 			}
 			break;
 
-		case 67: /* right */
-			drop = 1;
+		//case 67: /* right */
+		//	drop = 1;
 		case 6: /* ^f */
 			if( pos < n )
 				emit( buf[pos++] );
@@ -313,8 +313,8 @@ cmdline_prompt( cmdline_info_t *ci )
 			move_cursor( pos-emit_str(buf) );
 			break;
 			
-		case 66: /* down */
-			drop = 1;
+		//case 66: /* down */
+		//	drop = 1;
 		case 14: /* ^n */
 			if( !histind )
 				break;
@@ -328,8 +328,8 @@ cmdline_prompt( cmdline_info_t *ci )
 			}
 			break;
 			
-		case 65: /* up */
-			drop = 1;
+		//case 65: /* up */
+		//	drop = 1;
 		case 16: /* ^p */
 			if( !histind && add_to_history(ci, ci->buf) ) {
 				cur_added = 1;
