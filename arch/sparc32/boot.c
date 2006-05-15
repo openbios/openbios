@@ -10,6 +10,7 @@
 #include "sys_info.h"
 
 int elf_load(struct sys_info *, const char *filename, const char *cmdline);
+int aout_load(struct sys_info *, const char *filename, const char *cmdline);
 int linux_load(struct sys_info *, const char *filename, const char *cmdline);
 
 void boot(void);
@@ -37,8 +38,9 @@ void boot(void)
 	printk("[sparc] Booting file '%s' with parameters '%s'\n",path, param);
 
 	if (elf_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-		if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-			printk("Unsupported image format\n");
+            if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
+                if (aout_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
+                    printk("Unsupported image format\n");
 
 	free(path);
 }

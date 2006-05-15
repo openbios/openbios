@@ -378,7 +378,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
         int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
         const void *romvec;
 
-        romvec = init_openprom(qemu_mem_size, NULL, 'c');
+        romvec = init_openprom(qemu_mem_size, cmdline, 'c');
         entry = (void *) addr_fixup(ehdr.e_entry);
         image_retval = entry(romvec, 0, 0, 0, 0);
     }

@@ -17,9 +17,7 @@
 #include "openbios/kernel.h"
 #include "openbios/sysinclude.h"
 
-//#define DEBUG_OBP
-
-#ifdef DEBUG_OBP
+#ifdef CONFIG_DEBUG_OBP
 #define DPRINTF(fmt, args...)                   \
     do { printk(fmt , ##args); } while (0)
 #else
@@ -181,7 +179,7 @@ static const char *obp_nextprop(int node, char *name)
 
 static int obp_nbgetchar(void)
 {
-    return 0;
+    return getchar();
 }
 
 static int obp_nbputchar(int ch)
@@ -214,9 +212,15 @@ static void obp_halt()
 
 static int obp_devopen(char *str)
 {
+    int ret;
+
     DPRINTF("obp_devopen(%s)\n", str);
 
-    return 0;
+    push_str(str);
+    fword("open-dev");
+    ret = POP();
+
+    return ret;
 }
 
 static int obp_devclose(__attribute__((unused)) int dev_desc)
@@ -228,9 +232,19 @@ static int obp_devclose(__attribute__((unused)) int dev_desc)
 
 static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
 {
-    DPRINTF("obp_rdblkdev: fd %x, num_blks %d, offset %d, buf 0x%x\n", dev_desc, num_blks, offset, buf);
+    int ret;
 
-    return 0;
+    DPRINTF("obp_rdblkdev: fd %x, num_blks %d, offset %d, buf 0x%x\n", dev_desc, num_blks, offset, (int)buf);
+
+    PUSH((int)buf);
+    PUSH(offset);
+    PUSH(num_blks);
+    push_str("read-blocks");
+    PUSH(dev_desc);
+    fword("$call-method");
+    ret = POP();
+
+    return ret;
 }
 
 static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,

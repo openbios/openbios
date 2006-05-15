@@ -247,3 +247,7 @@ new-device
   0 encode-int " slave" property
   h# 2c encode-int 0 encode-int encode+ " intr" property
 finish-device
+
+" /options" find-device
+  " disk" encode-string " boot-from" property
+

@@ -28,6 +28,7 @@
   <option name="CONFIG_DEBUG_CONSOLE_SERIAL" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_ESP" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_SUN_PARTS" type="boolean" value="false"/>
+  <option name="CONFIG_DEBUG_OBP" type="boolean" value="false"/>
   <option name="CONFIG_SERIAL_PORT" type="integer" value="0"/>
   <option name="CONFIG_SERIAL_SPEED" type="integer" value="115200"/>
   
