@@ -22,6 +22,14 @@
 #define IOPERM        (IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID)
 #define MKIOPTE(phys) (((((phys)>>4) & IOPTE_PAGE) | IOPERM) & ~IOPTE_WAZ)
 #define LOWMEMSZ 32 * 1024 * 1024
+
+#ifdef CONFIG_DEBUG_IOMMU
+#define DPRINTF(fmt, args...)                   \
+    do { printk(fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...)
+#endif
+
 /*
  * Allocatable memory chunk.
  */
@@ -68,12 +76,6 @@ mem_init(struct mem *t, char *begin, char *limit)
     t->start = begin;
     t->uplim = limit;
     t->curp = begin;
-}
-
-static void
-mem_fini(struct mem *t)
-{
-    t->curp = 0;
 }
 
 void *
@@ -147,7 +149,7 @@ map_page(unsigned long va, unsigned long epa, int type)
         pte |= SRMMU_PRIV; /* Supervisor only access */
     }
     *(uint32_t *)pa2va(pa) = pte;
-    //printk("map_page: va 0x%lx pa 0x%lx pte 0x%x\n", va, epa, pte);
+    DPRINTF("map_page: va 0x%lx pa 0x%lx pte 0x%x\n", va, epa, pte);
 
     return 0;
 
@@ -177,7 +179,7 @@ map_io(unsigned pa, int size)
         return va;
 
     mva = (unsigned int) va;
-    //printk("map_io: va 0x%p pa 0x%x off 0x%x npages %d\n", va, pa, off, npages); /* P3 */
+    DPRINTF("map_io: va 0x%p pa 0x%x off 0x%x npages %d\n", va, pa, off, npages); /* P3 */
     while (npages-- != 0) {
         map_page(mva, pa, 1);
         mva += PAGE_SIZE;
@@ -313,7 +315,7 @@ iommu_init(struct iommu *t)
     unsigned int tmp;
 
     if ((regs = map_io(PHYS_JJ_IOMMU, sizeof(struct iommu_regs))) == 0) {
-        printk("Cannot map IOMMU\n");
+        DPRINTF("Cannot map IOMMU\n");
         for (;;) { }
     }
     t->regs = regs;
@@ -334,7 +336,7 @@ iommu_init(struct iommu *t)
     /* Thremendous alignment causes great waste... */
     ptsize = (t->vasize/PAGE_SIZE) *  sizeof(int);
     if ((ptab = mem_zalloc(&cmem, ptsize, ptsize)) == 0) {
-        printk("Cannot allocate IOMMU table [0x%x]\n", ptsize);
+        DPRINTF("Cannot allocate IOMMU table [0x%x]\n", ptsize);
         for (;;) { }
     }
     t->page_table = ptab;
@@ -344,8 +346,8 @@ iommu_init(struct iommu *t)
     regs->base = ((unsigned int)va2pa((unsigned long)ptab)) >> 4;
     iommu_invalidate(regs);
 
-    printk("IOMMU: impl %d vers %d page table at 0x%p of size %d bytes\n",
-           impl, vers, t->page_table, ptsize);
+    DPRINTF("IOMMU: impl %d vers %d page table at 0x%p of size %d bytes\n",
+            impl, vers, t->page_table, ptsize);
 
     mem_init(&t->bmap, (char*)t->plow, (char *)0xfffff000);
 }

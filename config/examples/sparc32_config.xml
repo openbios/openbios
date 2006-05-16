@@ -18,7 +18,7 @@
  
   <!-- Kernel Debugging -->
   <option name="CONFIG_DEBUG" type="boolean" value="true"/>
-  <option name="CONFIG_DEBUG_BOOT" type="boolean" value="true"/>
+  <option name="CONFIG_DEBUG_BOOT" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_DSTACK" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_RSTACK" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_DICTIONARY" type="boolean" value="false"/>
@@ -29,6 +29,7 @@
   <option name="CONFIG_DEBUG_ESP" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_SUN_PARTS" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_OBP" type="boolean" value="false"/>
+  <option name="CONFIG_DEBUG_IOMMU" type="boolean" value="false"/>
   <option name="CONFIG_SERIAL_PORT" type="integer" value="0"/>
   <option name="CONFIG_SERIAL_SPEED" type="integer" value="115200"/>
   

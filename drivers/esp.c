@@ -42,6 +42,13 @@
                    paths, 1, name##_m, sizeof(name##_m)/sizeof(method_t)); \
     } while(0)
 
+#ifdef CONFIG_DEBUG_ESP
+#define DPRINTF(fmt, args...)                   \
+    do { printk(fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...)
+#endif
+
 struct esp_dma {
     volatile struct sparc_dma_registers *regs;
     enum dvma_rev revision;
@@ -134,9 +141,8 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
 static int
 ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest, short len)
 {
-#ifdef CONFIG_DEBUG_ESP
-    printk("ob_sd_read_sectors id %d %lx block=%d len=%d\n", sd->id, (unsigned long)dest, offset, len);
-#endif
+    DPRINTF("ob_sd_read_sectors id %d %lx block=%d len=%d\n", sd->id, (unsigned long)dest, offset, len);
+
     // Setup command = Read(10)
     memset(esp->buffer, 0, 10);
     esp->buffer[0] = 0x80;
@@ -226,14 +232,12 @@ ob_sd_read_blocks(sd_private_t **sd)
     ucell blk = POP();
     char *dest = (char*)POP();
 
-#ifdef CONFIG_DEBUG_ESP
-    printk("ob_sd_read_blocks id %d %lx block=%d n=%d\n", (*sd)->id, (unsigned long)dest, blk, n );
-#endif
+    DPRINTF("ob_sd_read_blocks id %d %lx block=%d n=%d\n", (*sd)->id, (unsigned long)dest, blk, n );
 
     n *= (*sd)->bs / 512;
     while (n) {
         if (ob_sd_read_sectors(global_esp, *sd, blk, dest, 1)) {
-            printk("ob_ide_read_blocks: error\n");
+            DPRINTF("ob_ide_read_blocks: error\n");
             RET(0);
         }
         dest += (*sd)->bs;
@@ -259,9 +263,8 @@ ob_sd_open(__attribute__((unused))sd_private_t **sd)
     id = POP();
     *sd = &global_esp->sd[id];
 
-#ifdef CONFIG_DEBUG_ESP
-    printk("opening drive %d\n", id);
-#endif
+    DPRINTF("opening drive %d\n", id);
+
     selfword("open-deblocker");
 
     /* interpose disk-label */
@@ -294,45 +297,45 @@ espdma_init(struct esp_dma *espdma)
 
     /* Hardcode everything for MrCoffee. */
     if ((p = (void *)map_io(PHYS_JJ_ESPDMA, 0x10)) == 0) {
-        printk("espdma_init: cannot map registers\n");
+        DPRINTF("espdma_init: cannot map registers\n");
         return -1;
     }
     espdma->regs = p;
 
-    printk("dma1: ");
+    DPRINTF("dma1: ");
 
     switch ((espdma->regs->cond_reg) & DMA_DEVICE_ID) {
     case DMA_VERS0:
         espdma->revision = dvmarev0;
-        printk("Revision 0 ");
+        DPRINTF("Revision 0 ");
         break;
     case DMA_ESCV1:
         espdma->revision = dvmaesc1;
-        printk("ESC Revision 1 ");
+        DPRINTF("ESC Revision 1 ");
         break;
     case DMA_VERS1:
         espdma->revision = dvmarev1;
-        printk("Revision 1 ");
+        DPRINTF("Revision 1 ");
         break;
     case DMA_VERS2:
         espdma->revision = dvmarev2;
-        printk("Revision 2 ");
+        DPRINTF("Revision 2 ");
         break;
     case DMA_VERHME:
         espdma->revision = dvmahme;
-        printk("HME DVMA gate array ");
+        DPRINTF("HME DVMA gate array ");
         break;
     case DMA_VERSPLUS:
         espdma->revision = dvmarevplus;
-        printk("Revision 1 PLUS ");
+        DPRINTF("Revision 1 PLUS ");
         break;
     default:
-        printk("unknown dma version %x",
+        DPRINTF("unknown dma version %x",
                (espdma->regs->cond_reg) & DMA_DEVICE_ID);
         /* espdma->allocated = 1; */
         break;
     }
-    printk("\n");
+    DPRINTF("\n");
 
     return 0;
 }
@@ -399,9 +402,7 @@ int ob_esp_init(void)
     char nodebuff[256], aliasbuff[256];
     esp_private_t *esp;
 
-#ifdef CONFIG_DEBUG_ESP
-    printk("Initializing SCSI...");
-#endif
+    DPRINTF("Initializing SCSI...");
 
     esp = malloc(sizeof(esp_private_t));
     global_esp = esp;
@@ -412,23 +413,21 @@ int ob_esp_init(void)
     /* Get the IO region */
     esp->ll = (void *)map_io(PHYS_JJ_ESP, sizeof(struct esp_regs));
     if (esp->ll == 0) {
-        printk("Can't map ESP registers\n");
+        DPRINTF("Can't map ESP registers\n");
         return -1;
     }
 
     esp->buffer = (void *)dvma_alloc(BUFSIZE, &esp->buffer_dvma);
     if (!esp->buffer || !esp->buffer_dvma) {
-        printk("Can't get a DVMA buffer\n");
+        DPRINTF("Can't get a DVMA buffer\n");
         return -1;
     }
 
     // Chip reset
     esp->ll->regs[ESP_CMD] = ESP_CMD_RC;
 
-#ifdef CONFIG_DEBUG_ESP
-    printk("done\n");
-    printk("Initializing SCSI devices...");
-#endif
+    DPRINTF("done\n");
+    DPRINTF("Initializing SCSI devices...");
 
     for (id = 0; id < 8; id++) {
         esp->sd[id].id = id;
@@ -475,12 +474,12 @@ int ob_esp_init(void)
             add_alias(nodebuff, esp->sd[id].media_str);
         }
         sprintf(aliasbuff, "%s%d", esp->sd[id].media_str, *counter_ptr);
-        (*counter_ptr)++;
         add_alias(nodebuff, aliasbuff);
+        sprintf(aliasbuff, "sd(0,%d,0)", id);
+        add_alias(nodebuff, aliasbuff);
+        (*counter_ptr)++;
     }
-#ifdef CONFIG_DEBUG_ESP
-    printk("done\n");
-#endif
+    DPRINTF("done\n");
 
     return 0;
 }

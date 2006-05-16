@@ -42,6 +42,8 @@ static int obp_proplen(int node, char *name);
 static int obp_getprop(int node, char *name, char *val);
 static int obp_setprop(int node, char *name, char *val, int len);
 static const char *obp_nextprop(int node, char *name);
+static int obp_devread(int dev_desc, char *buf, int nbytes);
+static int obp_devseek(int dev_desc, int hi, int lo);
 
 static const struct linux_nodeops nodeops0 = {
     obp_nextnode,	/* int (*no_nextnode)(int node); */
@@ -167,14 +169,36 @@ static int obp_setprop(__attribute__((unused)) int node,
 
 static const char *obp_nextprop(int node, char *name)
 {
+    char *ret;
+    int found;
+
     if (!name || *name == '\0') {
         // NULL name means get first property
-        DPRINTF("obp_nextprop(%x, NULL)\n", node);
-        return 0;
+        push_str("");
+        name = "NULL";
+    } else {
+        push_str(name);
     }
-    DPRINTF("obp_nextprop(%x, %s)\n", node, name);
+    PUSH(node);
+    fword("next-property");
+    found = POP();
+    if (!found) {
+        DPRINTF("obp_nextprop(%x, %s) (not found)\n", node, name);
+        (void) POP();
+        (void) POP();
 
-    return 0;
+        return NULL;
+    } else {
+        int len;
+        char *str;
+            
+        len = POP();
+        str = (char *) POP();
+
+        DPRINTF("obp_nextprop(%x, %s) = %s\n", node, name, str);
+
+        return str;
+    }
 }
 
 static int obp_nbgetchar(void)
@@ -214,35 +238,40 @@ static int obp_devopen(char *str)
 {
     int ret;
 
-    DPRINTF("obp_devopen(%s)\n", str);
-
     push_str(str);
     fword("open-dev");
     ret = POP();
+    DPRINTF("obp_devopen(%s) = 0x%x\n", str, ret);
 
     return ret;
 }
 
-static int obp_devclose(__attribute__((unused)) int dev_desc)
+static int obp_devclose(int dev_desc)
 {
-    DPRINTF("obp_devclose %x\n", dev_desc);
+    int ret;
 
-    return 0;
+    PUSH(dev_desc);
+    fword("close-dev");
+    ret = POP();
+
+    DPRINTF("obp_devclose(0x%x) = %d\n", dev_desc, ret);
+
+    return ret;
 }
 
 static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
 {
-    int ret;
+    int ret, hi, lo, bs;
 
-    DPRINTF("obp_rdblkdev: fd %x, num_blks %d, offset %d, buf 0x%x\n", dev_desc, num_blks, offset, (int)buf);
+    bs = 512; // XXX: real blocksize?
+    hi = ((uint64_t)offset * bs) >> 32;
+    lo = ((uint64_t)offset * bs) & 0xffffffff;
 
-    PUSH((int)buf);
-    PUSH(offset);
-    PUSH(num_blks);
-    push_str("read-blocks");
-    PUSH(dev_desc);
-    fword("$call-method");
-    ret = POP();
+    ret = obp_devseek(dev_desc, hi, lo);
+
+    ret = obp_devread(dev_desc, buf, num_blks * bs) / bs;
+
+    DPRINTF("obp_rdblkdev(fd %x, num_blks %d, offset %d (hi %d lo %d), buf 0x%x) = %d\n", dev_desc, num_blks, offset, hi, lo, (int)buf, ret);
 
     return ret;
 }
@@ -277,30 +306,63 @@ static void obp_dumb_munmap(__attribute__((unused)) char *va,
 
 static int obp_devread(int dev_desc, char *buf, int nbytes)
 {
-    DPRINTF("obp_devread: fd %d, nbytes %d\n", dev_desc, nbytes);
+    int ret;
 
-    return 0;
+    PUSH((int)buf);
+    PUSH(nbytes);
+    push_str("read");
+    PUSH(dev_desc);
+    fword("$call-method");
+    ret = POP();
+
+    DPRINTF("obp_devread(fd 0x%x, buf 0x%x, nbytes %d) = %d\n", dev_desc, (int)buf, nbytes, ret);
+
+    return ret;
 }
 
 static int obp_devwrite(int dev_desc, char *buf, int nbytes)
 {
-    DPRINTF("obp_devwrite: fd %d, buf %s, nbytes %d\n", dev_desc, buf, nbytes);
+    int ret;
+
+    PUSH((int)buf);
+    PUSH(nbytes);
+    push_str("write");
+    PUSH(dev_desc);
+    fword("$call-method");
+    ret = POP();
+
+    DPRINTF("obp_devwrite(fd 0x%x, buf %s, nbytes %d) = %d\n", dev_desc, buf, nbytes, ret);
 
     return nbytes;
 }
 
-static int obp_devseek(int dev_desc, __attribute__((unused)) int hi, int lo)
+static int obp_devseek(int dev_desc, int hi, int lo)
 {
-    DPRINTF("obp_devseek: fd %d, hi %d, lo %d\n", dev_desc, hi, lo);
+    int ret;
 
-    return 0;
+    PUSH(lo);
+    PUSH(hi);
+    push_str("seek");
+    PUSH(dev_desc);
+    fword("$call-method");
+    ret = POP();
+
+    DPRINTF("obp_devseek(fd 0x%x, hi %d, lo %d) = %d\n", dev_desc, hi, lo, ret);
+
+    return ret;
 }
 
 static int obp_inst2pkg(int dev_desc)
 {
-    DPRINTF("obp_inst2pkg: fd %d\n", dev_desc);
+    int ret;
 
-    return 0;
+    PUSH(dev_desc);
+    fword("ihandle>phandle");
+    ret = POP();
+
+    DPRINTF("obp_inst2pkg(fd 0x%x) = 0x%x\n", dev_desc, ret);
+
+    return ret;
 }
 
 static int obp_cpustart(unsigned int whichcpu, int ctxtbl_ptr,
@@ -415,7 +477,7 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_v2devops.v2_dev_write = obp_devwrite;
     romvec0.pv_v2devops.v2_dev_seek = obp_devseek;
     obp_arg.boot_dev_ctrl = 0;
-    obp_arg.boot_dev_unit = '0';
+    obp_arg.boot_dev_unit = 0;
     obp_arg.argv[0] = "sd(0,0,0):d";
 
     switch(boot_device) {
@@ -444,6 +506,8 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_v2bootargs.bootargs = &cmdline;
     romvec0.pv_v2bootargs.fd_stdin = &obp_fd_stdin;
     romvec0.pv_v2bootargs.fd_stdout = &obp_fd_stdout;
+    obp_stdin = PROMDEV_TTYA;
+    obp_stdout = PROMDEV_TTYA;
 
     romvec0.v3_cpustart = obp_cpustart;
     romvec0.v3_cpustop = obp_cpustop;
