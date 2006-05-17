@@ -14,6 +14,8 @@
 
 #define __bswap16(x) ((((x) & 0xff00) >>  8) | (((x) & 0x00ff) << 8))
 
+#define __bswap64(x) ( (__bswap32( (x)  >> 32)) | \
+		(__bswap32((x) & 0xffffffff) << 32) )
 
 #ifdef CONFIG_LITTLE_ENDIAN
 #define __cpu_to_le32(x) ((u32) (x))
