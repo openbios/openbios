@@ -140,7 +140,7 @@ volume_readbuf(volume * vol, hfsp_vh* vh, void* p)
 	vh->write_count		= bswabU32_inc(p);
 	vh->encodings_bmp	= bswabU64_inc(p);
 	memcpy(vh->finder_info, p, 32); 
-	((char*) p) += 32; // So finderinfo must be swapped later, ***
+	p += 32; // So finderinfo must be swapped later, ***
 	p = volume_readfork(p, &vh->alloc_file );
 	p = volume_readfork(p, &vh->ext_file   );
 	p = volume_readfork(p, &vh->cat_file   );
@@ -180,12 +180,12 @@ volume_read_wrapper(volume * vol, hfsp_vh* vh)
 		UInt16  drAlBlSt;			/* first allocation block in volume */
   		UInt16	embeds, embedl;			/* Start/lenght of embedded area in blocks */
 		
-		((char*) p) += 0x12;			/* skip unneded HFS vol fields */
+		p += 0x12;			/* skip unneded HFS vol fields */
 		drAlBlkSiz = bswabU32_inc(p);		/* offset 0x14 */
-		((char*) p) += 0x4;			/* skip unneded HFS vol fields */
+		p += 0x4;			/* skip unneded HFS vol fields */
 		drAlBlSt = bswabU16_inc(p);		/* offset 0x1C */
 		
-		((char*) p) += 0x5E;			/* skip unneded HFS vol fields */
+		p += 0x5E;			/* skip unneded HFS vol fields */
 		signature = bswabU16_inc(p);		/* offset 0x7C, drEmbedSigWord */
 		if( signature != HFSP_VOLHEAD_SIG)
 			HFSP_ERROR(-1, "This looks like a normal HFS volume");

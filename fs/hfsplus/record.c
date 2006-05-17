@@ -146,8 +146,11 @@ static inline void* record_readFInfo(void *p, FInfo* info)
 /* read extra File info */
 static inline void* record_readFXInfo(void *p, FXInfo* xinfo)
 {
+    SInt16 *q;
     xinfo->fdIconID	= bswabU16_inc(p);
-    ((SInt16*) p)	+= 4; // skip unused
+    q=(SInt16*) p;
+    q+=4; // skip unused
+    p=(void *)q;
     xinfo->fdComment	= bswabU16_inc(p);
     xinfo->fdPutAway	= bswabU32_inc(p);
     return p;

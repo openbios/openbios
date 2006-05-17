@@ -55,6 +55,7 @@ static void* btree_readnode(btree* bt, btree_node_desc* node, void *p)
  */
 static void* btree_readhead(btree* bt, btree_head* head, void *p)
 {
+	UInt32 *q;
         head->depth	    = bswabU16_inc(p);
         head->root	    = bswabU32_inc(p);
         head->leaf_count    = bswabU32_inc(p);
@@ -70,8 +71,10 @@ static void* btree_readhead(btree* bt, btree_head* head, void *p)
         head->reserved2	    = bswabU8_inc(p);
         head->attributes    = bswabU32_inc(p);
 	    // skip reserved bytes
-	((UInt32*) p) += 16;
-	return p;
+	q=((UInt32*) p);
+	// ((UInt32*) p) += 16;
+	q+=16;
+	return q;
 }
 
 /* Priority of the depth of the node compared to LRU value.
