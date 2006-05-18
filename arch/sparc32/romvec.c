@@ -76,7 +76,7 @@ static int obp_nextnode(int node)
     PUSH(node);
     fword("peer");
     peer = POP();
-    DPRINTF("obp_nextnode(%x) = %x\n", node, peer);
+    DPRINTF("obp_nextnode(0x%x) = 0x%x\n", node, peer);
 
     return peer;
 }
@@ -88,7 +88,7 @@ static int obp_child(int node)
     PUSH(node);
     fword("child");
     child = POP();
-    DPRINTF("obp_child(%x) = %x\n", node, child);
+    DPRINTF("obp_child(0x%x) = 0x%x\n", node, child);
 
     return child;
 }
@@ -103,9 +103,7 @@ static int obp_proplen(int node, char *name)
     notfound = POP();
 
     if (notfound) {
-        DPRINTF("obp_proplen(%x, %s) (not found)\n", node, name);
-        (void) POP();
-        (void) POP();
+        DPRINTF("obp_proplen(0x%x, %s) (not found)\n", node, name);
 
         return -1;
     } else {
@@ -113,7 +111,7 @@ static int obp_proplen(int node, char *name)
 
         len = POP();
         (void) POP();
-        DPRINTF("obp_proplen(%x, %s) = %d\n", node, name, len);
+        DPRINTF("obp_proplen(0x%x, %s) = %d\n", node, name, len);
 
         return len;
     }
@@ -138,9 +136,7 @@ static int obp_getprop(int node, char *name, char *value)
         notfound = POP();
     }
     if (notfound) {
-        DPRINTF("obp_getprop(%x, %s) (not found)\n", node, name);
-        (void) POP();
-        (void) POP();
+        DPRINTF("obp_getprop(0x%x, %s) (not found)\n", node, name);
 
         return -1;
     } else {
@@ -151,7 +147,7 @@ static int obp_getprop(int node, char *name, char *value)
         str = (char *) POP();
         memcpy(value, str, len);
 
-        DPRINTF("obp_getprop(%x, %s) = %s\n", node, name, str);
+        DPRINTF("obp_getprop(0x%x, %s) = %s\n", node, name, str);
 
         return len;
     }
@@ -162,14 +158,13 @@ static int obp_setprop(__attribute__((unused)) int node,
 		       __attribute__((unused)) char *value,
 		       __attribute__((unused)) int len)
 {
-    DPRINTF("obp_setprop(%x, %s) = %s (%d)\n", node, name, value, len);
+    DPRINTF("obp_setprop(0x%x, %s) = %s (%d)\n", node, name, value, len);
 
     return -1;
 }
 
 static const char *obp_nextprop(int node, char *name)
 {
-    char *ret;
     int found;
 
     if (!name || *name == '\0') {
@@ -183,11 +178,11 @@ static const char *obp_nextprop(int node, char *name)
     fword("next-property");
     found = POP();
     if (!found) {
-        DPRINTF("obp_nextprop(%x, %s) (not found)\n", node, name);
+        DPRINTF("obp_nextprop(0x%x, %s) (not found)\n", node, name);
         (void) POP();
         (void) POP();
 
-        return NULL;
+        return "";
     } else {
         int len;
         char *str;
@@ -195,7 +190,7 @@ static const char *obp_nextprop(int node, char *name)
         len = POP();
         str = (char *) POP();
 
-        DPRINTF("obp_nextprop(%x, %s) = %s\n", node, name, str);
+        DPRINTF("obp_nextprop(0x%x, %s) = %s\n", node, name, str);
 
         return str;
     }
@@ -271,7 +266,7 @@ static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
 
     ret = obp_devread(dev_desc, buf, num_blks * bs) / bs;
 
-    DPRINTF("obp_rdblkdev(fd %x, num_blks %d, offset %d (hi %d lo %d), buf 0x%x) = %d\n", dev_desc, num_blks, offset, hi, lo, (int)buf, ret);
+    DPRINTF("obp_rdblkdev(fd 0x%x, num_blks %d, offset %d (hi %d lo %d), buf 0x%x) = %d\n", dev_desc, num_blks, offset, hi, lo, (int)buf, ret);
 
     return ret;
 }
@@ -283,7 +278,7 @@ static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,
     unsigned int off;
     unsigned int mva;
 
-    DPRINTF("obp_dumb_mmap: virta %x, which_io %d, paddr %x, sz %d\n", va, which_io, pa, size);
+    DPRINTF("obp_dumb_mmap: virta 0x%x, which_io %d, paddr 0x%x, sz %d\n", va, which_io, pa, size);
     off = pa & (PAGE_SIZE-1);
     npages = (off + size + (PAGE_SIZE-1)) / PAGE_SIZE;
     pa &= ~(PAGE_SIZE-1);
@@ -301,7 +296,7 @@ static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,
 static void obp_dumb_munmap(__attribute__((unused)) char *va,
 			    __attribute__((unused)) unsigned int size)
 {
-    DPRINTF("obp_dumb_munmap: virta %x, sz %d\n", va, size);
+    DPRINTF("obp_dumb_munmap: virta 0x%x, sz %d\n", va, size);
 }
 
 static int obp_devread(int dev_desc, char *buf, int nbytes)
@@ -371,7 +366,7 @@ static int obp_cpustart(unsigned int whichcpu, int ctxtbl_ptr,
     //int cpu, found;
     struct linux_prom_registers *smp_ctable = (void *)ctxtbl_ptr;
 
-    DPRINTF("obp_cpustart: cpu %d, ctxptr %x, ctx %d, pc %x\n", whichcpu,
+    DPRINTF("obp_cpustart: cpu %d, ctxptr 0x%x, ctx %d, pc 0x%x\n", whichcpu,
             smp_ctable->phys_addr, thiscontext, prog_counter);
 #if 0
     found = obp_getprop(whichcpu, "mid", (char *)&cpu);
@@ -435,7 +430,7 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     prop_mem_reg[2] = memsize;
     prop_mem_avail[0] = 0;
     prop_mem_avail[1] = 0;
-    prop_mem_avail[2] = va2pa((unsigned long)&_data);
+    prop_mem_avail[2] = va2pa((unsigned long)&_data) - 1;
     prop_vmem_avail[0] = 0;
     prop_vmem_avail[1] = 0;
     prop_vmem_avail[2] = (unsigned long)&_start - 1;
@@ -506,6 +501,14 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_v2bootargs.bootargs = &cmdline;
     romvec0.pv_v2bootargs.fd_stdin = &obp_fd_stdin;
     romvec0.pv_v2bootargs.fd_stdout = &obp_fd_stdout;
+
+    push_str("/builtin/console");
+    fword("open-dev");
+    obp_fd_stdin = POP();
+    push_str("/builtin/console");
+    fword("open-dev");
+    obp_fd_stdout = POP();
+    
     obp_stdin = PROMDEV_TTYA;
     obp_stdout = PROMDEV_TTYA;
 

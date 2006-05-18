@@ -58,6 +58,9 @@ arch_init( void )
 #ifdef CONFIG_DRIVER_ESP
 	ob_esp_init();
 #endif
+#ifdef CONFIG_DRIVER_OBIO
+	ob_obio_init(0x71000000);
+#endif
 	device_end();
 	bind_func("platform-boot", boot );
 }

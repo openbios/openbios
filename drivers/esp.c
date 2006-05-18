@@ -363,6 +363,14 @@ ob_esp_initialize(__attribute__((unused)) esp_private_t **esp)
     fword("encode+");
     push_str("reg");
     fword("property");
+
+    PUSH(0x24);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    push_str("intr");
+    fword("property");
 }
 
 static void

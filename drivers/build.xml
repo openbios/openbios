@@ -11,6 +11,7 @@
   <object source="iommu.c" condition="DRIVER_SBUS"/>
   <object source="sbus.c"  condition="DRIVER_SBUS"/>
   <object source="esp.c"   condition="DRIVER_ESP"/>
+  <object source="obio.c"   condition="DRIVER_OBIO"/>
  </library>
 
  <dictionary name="openbios" target="forth">

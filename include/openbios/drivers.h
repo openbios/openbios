@@ -23,4 +23,7 @@ int ob_ide_init(void);
 #ifdef CONFIG_DRIVER_ESP
 int ob_esp_init(void);
 #endif
+#ifdef CONFIG_DRIVER_OBIO
+int ob_obio_init(unsigned long slavio_base);
+#endif
 

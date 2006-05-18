@@ -96,7 +96,7 @@ new-device
   " SUNW,tcx" device-name
   " display" device-type
   h# 1d encode-int " vbporch" property
-  h# 90 encode-int " hbporch" property
+  h# a0 encode-int " hbporch" property
   h# 06 encode-int " vsync" property
   h# 88 encode-int " hsync" property
   h# 03 encode-int " vfporch" property
@@ -111,7 +111,7 @@ new-device
   5 encode-int 0 encode-int encode+ " intr" property
   5 encode-int " interrupts" property
   2 encode-int h# 00800000 encode-int encode+ h# 00100000 encode-int encode+
-  2 encode-int encode+ h# 02000000 encode-int encode+ h# 00000001 encode-int encode+
+   2 encode-int encode+ h# 02000000 encode-int encode+ h# 00000001 encode-int encode+
    2 encode-int encode+ h# 04000000 encode-int encode+ h# 00800000 encode-int encode+
    2 encode-int encode+ h# 06000000 encode-int encode+ h# 00800000 encode-int encode+
    2 encode-int encode+ h# 0a000000 encode-int encode+ h# 00000001 encode-int encode+
@@ -235,8 +235,8 @@ new-device
   h# 0 encode-int h# 00000000 encode-int encode+ h# 00000008 encode-int encode+ " reg" property
   1 encode-int " slave" property
   h# 2c encode-int 0 encode-int encode+ " intr" property
-  1 encode-int " keyboard" property
-  1 encode-int " mouse" property
+  -1 encode-int " keyboard" property
+  -1 encode-int " mouse" property
 finish-device
 
 " /obio" find-device
