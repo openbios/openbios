@@ -61,6 +61,7 @@
   <option name="CONFIG_FSYS_NTFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_AFFS" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_FS" type="boolean" value="false"/>
+  <option name="CONFIG_DEBUG_EXT2FS" type="boolean" value="false"/>
   
   <!-- Miscellaneous -->
   <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>

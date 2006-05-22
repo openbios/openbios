@@ -5,9 +5,6 @@
   " SUNW,SparcStation-5" encode-string " name" property
   " SparcStation" encode-string " banner-name" property
   " sun4m" encode-string " compatible" property
-  h# 01800000 encode-int 0 encode-int encode+ 0 encode-int encode+ h# 00000081 encode-int encode+ 
-   0 encode-int encode+ 0 encode-int encode+ 0 encode-int encode+ 0 encode-int encode+
-   " idprom" property \ XXX
   " /obio/zs@0,100000:a" encode-string " stdin-path" property
   " /obio/zs@0,100000:a" encode-string " stdout-path" property
   : encode-unit encode-unit-sbus ;
@@ -15,8 +12,6 @@
 
 new-device
   " memory" device-name
-  h# 100000 encode-int " available" property \ XXX
-  h# 0 encode-int h# 10000000 encode-int encode+ h# 00000300 encode-int encode+ " reg" property \ XXX
   external
   : open true ;
   : close ;
@@ -26,8 +21,6 @@ finish-device
 
 new-device
   " virtual-memory" device-name
-  h# 100000 encode-int " available" property \ XXX
-  h# 0 encode-int h# 10000000 encode-int encode+ h# 00000300 encode-int encode+ " reg" property \ XXX
   external
   : open true ;
   : close ;
@@ -131,7 +124,6 @@ finish-device
 " /iommu/sbus" find-device
 new-device
   " espdma" device-name
-  h# 4 encode-int h# 08400000 encode-int encode+ h# 00000010 encode-int encode+ " reg" property
   external
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
@@ -178,76 +170,6 @@ new-device
   : close ;
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
-finish-device
-
-" /obio" find-device
-new-device
-  " SUNW,fdtwo" device-name
-  " block" device-type
-  h# 0 encode-int h# 00400000 encode-int encode+ h# 0000000f encode-int encode+ " reg" property
-  h# 2b encode-int 0 encode-int encode+ " intr" property
-finish-device
-
-" /obio" find-device
-new-device
-  " auxio" device-name
-  h# 0 encode-int h# 00900000 encode-int encode+ h# 00000001 encode-int encode+ " reg" property
-finish-device
-
-" /obio" find-device
-new-device
-  " counter" device-name
-  h# 0 encode-int h# 00d00000 encode-int encode+ h# 00000010 encode-int encode+
-  h# 0 encode-int encode+ h# 00d10000 encode-int encode+ h# 00000010 encode-int encode+
-   " reg" property
-finish-device
-
-" /obio" find-device
-new-device
-  " eeprom" device-name
-  h# 0 encode-int h# 00200000 encode-int encode+ h# 00002000 encode-int encode+ " reg" property
-  " mk48t08" model
-finish-device
-
-" /obio" find-device
-new-device
-  " interrupt" device-name
-  h# 0 encode-int h# 00e00000 encode-int encode+ h# 00000010 encode-int encode+
-  h# 0 encode-int encode+ h# 00e10000 encode-int encode+ h# 00000010 encode-int encode+
-   " reg" property
-finish-device
-
-" /obio" find-device
-new-device
-  " power" device-name
-  h# 0 encode-int h# 00910000 encode-int encode+ h# 00000001 encode-int encode+ " reg" property
-  h# 22 encode-int 0 encode-int encode+ " intr" property
-finish-device
-
-" /obio" find-device
-new-device
-  " slavioconfig" device-name
-  h# 0 encode-int h# 00800000 encode-int encode+ h# 00000001 encode-int encode+ " reg" property
-finish-device
-
-" /obio" find-device
-new-device
-  " zs" device-name
-  " serial" device-type
-  h# 0 encode-int h# 00000000 encode-int encode+ h# 00000008 encode-int encode+ " reg" property
-  1 encode-int " slave" property
-  h# 2c encode-int 0 encode-int encode+ " intr" property
-  -1 encode-int " keyboard" property
-  -1 encode-int " mouse" property
-finish-device
-
-" /obio" find-device
-new-device
-  " zs" device-name
-  " serial" device-type
-  h# 0 encode-int h# 00100000 encode-int encode+ h# 00000008 encode-int encode+ " reg" property
-  0 encode-int " slave" property
-  h# 2c encode-int 0 encode-int encode+ " intr" property
 finish-device
 
 " /options" find-device

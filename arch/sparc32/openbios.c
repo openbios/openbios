@@ -19,6 +19,10 @@
 void boot(void);
 void ob_ide_init(void);
 
+#define IOMMU_BASE    0x10000000 /* First page of sun4m IOMMU */
+#define SLAVIO_BASE   0x71000000
+#define MACIO_BASE    0x70000000
+
 static unsigned char intdict[256 * 1024];
 
 static void init_memory(void)
@@ -50,17 +54,19 @@ arch_init( void )
 
 	modules_init();
 #ifdef CONFIG_DRIVER_SBUS
-        init_mmu_swift();
+        init_mmu_swift(IOMMU_BASE);
    
 	ob_sbus_init();
 #endif
 #ifdef CONFIG_DRIVER_ESP
-	ob_esp_init();
+	ob_esp_init(MACIO_BASE);
 #endif
 #ifdef CONFIG_DRIVER_OBIO
-	ob_obio_init(0x71000000);
+	ob_obio_init(SLAVIO_BASE);
+        nvram_init();
 #endif
 	device_end();
+
 	bind_func("platform-boot", boot );
 }
 

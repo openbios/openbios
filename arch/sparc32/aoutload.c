@@ -57,16 +57,23 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
     int image_retval;
     struct exec ehdr;
     unsigned long start, size;
+    unsigned int offset;
 
     image_name = image_version = 0;
 
     if (!file_open(filename))
 	goto out;
 
-    if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
-	debug("Can't read a.out header\n");
-	retval = LOADER_NOT_SUPPORT;
-	goto out;
+    for (offset = 0; offset < 16 * 512; offset += 512) {
+        if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
+            debug("Can't read a.out header\n");
+            retval = LOADER_NOT_SUPPORT;
+            goto out;
+        }
+        if (!N_BADMAG(ehdr))
+            break;
+
+        file_seek(offset);
     }
 
     if (N_BADMAG(ehdr)) {
@@ -76,9 +83,9 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
     }
 
     if (N_MAGIC(ehdr) == NMAGIC) {
-        size = N_DATADDR(ehdr) + ehdr.a_data;
+        size = addr_fixup(N_DATADDR(ehdr)) + addr_fixup(ehdr.a_data);
     } else {
-        size = ehdr.a_text + ehdr.a_data;
+        size = addr_fixup(ehdr.a_text) + addr_fixup(ehdr.a_data);
     }
 
     start = 0x4000; // N_TXTADDR(ehdr);
@@ -88,7 +95,7 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     printf("Loading a.out %s...\n", image_name ? image_name : "image");
 
-    file_seek(N_TXTOFF(ehdr));
+    file_seek(offset + N_TXTOFF(ehdr));
 
     if (N_MAGIC(ehdr) == NMAGIC) {
         if (lfile_read(start, ehdr.a_text) != ehdr.a_text) {
@@ -108,18 +115,19 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
     
     debug("Loaded %lu bytes\n", size);
 
-    debug("entry point is %#x\n", start);
+    debug("entry point is %#lx\n", start);
     printf("Jumping to entry point...\n");
 
 #if 1
     {
         extern unsigned int qemu_mem_size;
+        extern char boot_device;
         void *init_openprom(unsigned long memsize, const char *cmdline, char boot_device);
 
         int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
         const void *romvec;
 
-        romvec = init_openprom(qemu_mem_size, cmdline, 'c');
+        romvec = init_openprom(qemu_mem_size, cmdline, boot_device);
         entry = (void *) addr_fixup(start);
         image_retval = entry(romvec, 0, 0, 0, 0);
     }

@@ -61,9 +61,6 @@ static const struct linux_arguments_v0 * const obp_argp = &obp_arg;
 static void (*synch_hook)(void);
 
 static struct linux_romvec romvec0;
-static int prop_mem_reg[3];
-static int prop_mem_avail[3];
-static int prop_vmem_avail[6];
 
 static void doublewalk(__attribute__((unused)) unsigned int ptab1,
                        __attribute__((unused)) unsigned int va)
@@ -418,30 +415,17 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     /*
      * Form memory descriptors.
      */
-    totphys[0].theres_more = 0;
+    totphys[0].theres_more = NULL;
     totphys[0].start_adr = (char *) 0;
     totphys[0].num_bytes = memsize;
 
-    totavail[0].theres_more = 0;
-    totavail[0].start_adr = (char*) 0;
+    totavail[0].theres_more = NULL;
+    totavail[0].start_adr = (char *) 0;
     totavail[0].num_bytes = memsize;
 
-    totmap[0].theres_more = 0;
+    totmap[0].theres_more = NULL;
     totmap[0].start_adr = &_start;
     totmap[0].num_bytes = (unsigned long) &_iomem - (unsigned long) &_start;
-
-    prop_mem_reg[0] = 0;
-    prop_mem_reg[1] = 0;
-    prop_mem_reg[2] = memsize;
-    prop_mem_avail[0] = 0;
-    prop_mem_avail[1] = 0;
-    prop_mem_avail[2] = va2pa((unsigned long)&_data) - 1;
-    prop_vmem_avail[0] = 0;
-    prop_vmem_avail[1] = 0;
-    prop_vmem_avail[2] = (unsigned long)&_start - 1;
-    prop_vmem_avail[3] = 0;
-    prop_vmem_avail[4] = 0xffe00000;
-    prop_vmem_avail[5] = 0x00200000;
 
     // Linux wants a R/W romvec table
     romvec0.pv_magic_cookie = LINUX_OPPROM_MAGIC;
@@ -478,6 +462,7 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_v2devops.v2_dev_seek = obp_devseek;
     obp_arg.boot_dev_ctrl = 0;
     obp_arg.boot_dev_unit = 0;
+    obp_arg.dev_partition = 4;
     obp_arg.argv[0] = "sd(0,0,0):d";
 
     switch(boot_device) {
@@ -503,7 +488,7 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     }
     obp_arg.argv[1] = cmdline;
     romvec0.pv_v2bootargs.bootpath = &obp_arg.argv[0];
-    romvec0.pv_v2bootargs.bootargs = &cmdline;
+    romvec0.pv_v2bootargs.bootargs = &obp_arg.argv[1];
     romvec0.pv_v2bootargs.fd_stdin = &obp_fd_stdin;
     romvec0.pv_v2bootargs.fd_stdout = &obp_fd_stdout;
 

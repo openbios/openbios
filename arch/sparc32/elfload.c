@@ -76,7 +76,8 @@ badseg:
 }
 
 static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
-	unsigned short *sum_ptr)
+                                         unsigned short *sum_ptr,
+                                         unsigned int offset)
 {
     int i;
     char *buf = NULL;
@@ -90,7 +91,7 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	if (phdr[i].p_type != PT_NOTE)
 	    continue;
 	buf = malloc(phdr[i].p_filesz);
-	file_seek(phdr[i].p_offset);
+	file_seek(offset + phdr[i].p_offset);
 	if (lfile_read(buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
 	    printf("Can't read note segment\n");
 	    goto out;
@@ -132,7 +133,8 @@ out:
 }
 
 static int load_segments(Elf_phdr *phdr, int phnum,
-	unsigned long checksum_offset)
+                         unsigned long checksum_offset,
+                         unsigned int offset)
 {
     unsigned long bytes;
     //unsigned int start_time, time;
@@ -145,7 +147,7 @@ static int load_segments(Elf_phdr *phdr, int phnum,
 	    continue;
 	debug("segment %d addr:%#x file:%#x mem:%#x ",
               i, addr_fixup(phdr[i].p_paddr), phdr[i].p_filesz, phdr[i].p_memsz);
-	file_seek(phdr[i].p_offset);
+	file_seek(offset + phdr[i].p_offset);
 	debug("loading... ");
 	if (lfile_read(phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_filesz)
 		!= phdr[i].p_filesz) {
@@ -309,16 +311,24 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     Elf_Bhdr *boot_notes = NULL;
     int retval = -1;
     int image_retval;
+    unsigned int offset;
 
     image_name = image_version = 0;
 
     if (!file_open(filename))
 	goto out;
 
-    if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
-	debug("Can't read ELF header\n");
-	retval = LOADER_NOT_SUPPORT;
-	goto out;
+    for (offset = 0; offset < 16 * 512; offset += 512) {
+        if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
+            debug("Can't read ELF header\n");
+            retval = LOADER_NOT_SUPPORT;
+            goto out;
+        }
+
+        if (ehdr.e_ident[EI_MAG0] == ELFMAG0)
+            break;
+
+        file_seek(offset);
     }
 
     if (ehdr.e_ident[EI_MAG0] != ELFMAG0
@@ -339,7 +349,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     phdr_size = ehdr.e_phnum * sizeof *phdr;
     phdr = malloc(phdr_size);
-    file_seek(ehdr.e_phoff);
+    file_seek(offset + ehdr.e_phoff);
     if (lfile_read(phdr, phdr_size) != phdr_size) {
 	printf("Can't read program header\n");
 	goto out;
@@ -348,14 +358,14 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     if (!check_mem_ranges(info, phdr, ehdr.e_phnum))
 	goto out;
 
-    checksum_offset = process_image_notes(phdr, ehdr.e_phnum, &checksum);
+    checksum_offset = process_image_notes(phdr, ehdr.e_phnum, &checksum, offset);
 
     printf("Loading %s", image_name ? image_name : "image");
     if (image_version)
 	printf(" version %s", image_version);
     printf("...\n");
 
-    if (!load_segments(phdr, ehdr.e_phnum, checksum_offset))
+    if (!load_segments(phdr, ehdr.e_phnum, checksum_offset, offset))
 	goto out;
     
     if (checksum_offset) {
@@ -373,12 +383,13 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 #if 1
     {
         extern unsigned int qemu_mem_size;
+        extern char boot_device;
         void *init_openprom(unsigned long memsize, const char *cmdline, char boot_device);
 
         int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
         const void *romvec;
 
-        romvec = init_openprom(qemu_mem_size, cmdline, 'c');
+        romvec = init_openprom(qemu_mem_size, cmdline, boot_device);
         entry = (void *) addr_fixup(ehdr.e_entry);
         image_retval = entry(romvec, 0, 0, 0, 0);
     }
