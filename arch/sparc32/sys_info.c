@@ -1,5 +1,6 @@
 #include "openbios/config.h"
 #include "openbios/kernel.h"
+#include "elf_boot.h"
 #include "sys_info.h"
 #include "context.h"
 
@@ -19,6 +20,7 @@ void collect_sys_info(struct sys_info *info)
     int i;
     unsigned long long total = 0;
     struct memrange *mmap;
+    extern struct elf_image_note elf_image_notes;
 
     /* Pick up paramters given by bootloader to us */
     //info->boot_type = boot_ctx->eax;
@@ -26,6 +28,8 @@ void collect_sys_info(struct sys_info *info)
     info->boot_arg = boot_ctx->param[0];
     //debug("boot eax = %#lx\n", info->boot_type);
     //debug("boot ebx = %#lx\n", info->boot_data);
+    info->boot_type = ELF_BHDR_MAGIC;
+    info->boot_data = virt_to_phys(&elf_image_notes);
     debug("boot arg = %#lx\n", info->boot_arg);
 
     collect_elfboot_info(info);

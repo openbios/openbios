@@ -92,16 +92,16 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     if (N_MAGIC(ehdr) == NMAGIC) {
         if (lfile_read(start, ehdr.a_text) != ehdr.a_text) {
-            printf("Can't read program text segment (size 0x%x)\n", ehdr.a_text);
+            printf("Can't read program text segment (size 0x%lx)\n", ehdr.a_text);
             goto out;
         }
         if (lfile_read(start + N_DATADDR(ehdr), ehdr.a_data) != ehdr.a_data) {
-            printf("Can't read program data segment (size 0x%x)\n", ehdr.a_data);
+            printf("Can't read program data segment (size 0x%lx)\n", ehdr.a_data);
             goto out;
         }
     } else {
         if (lfile_read(start, size) != size) {
-            printf("Can't read program (size 0x%x)\n", size);
+            printf("Can't read program (size 0x%lx)\n", size);
             goto out;
         }
     }

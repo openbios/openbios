@@ -32,22 +32,11 @@ int printk( const char *fmt, ... )
 	return i;
 }
 
-// dumb quick memory allocator until we get a decent thing here.
-
-#define MEMSIZE 128*1024
-static char memory[MEMSIZE];
-static void *memptr=memory;
-static int memsize=MEMSIZE;
-
 void *malloc(int size)
 {
-	void *ret=(void *)0;
-	if(memsize>=size) {
-		memsize-=size;
-		ret=memptr;
-		memptr+=size;
-	}
-	return ret;
+    extern struct mem cmem;
+
+    return mem_alloc(&cmem, size, 4);
 }
 
 void free(void *ptr)

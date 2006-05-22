@@ -8,6 +8,8 @@
   h# 01800000 encode-int 0 encode-int encode+ 0 encode-int encode+ h# 00000081 encode-int encode+ 
    0 encode-int encode+ 0 encode-int encode+ 0 encode-int encode+ 0 encode-int encode+
    " idprom" property \ XXX
+  " /obio/zs@0,100000:a" encode-string " stdin-path" property
+  " /obio/zs@0,100000:a" encode-string " stdout-path" property
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
 

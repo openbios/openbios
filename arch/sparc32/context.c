@@ -20,8 +20,8 @@ void __exit_context(void); /* assembly routine */
  * It is placed at the bottom of our stack, and loaded by assembly routine
  * to start us up.
  */
-struct context main_ctx __attribute__((section (".initctx"))) = {
-    .regs[REG_SP] = (uint32_t) SP_LOC(&main_ctx),
+struct context main_ctx = {
+    .regs[REG_SP] = (uint32_t) &_estack - 96,
     .pc = (uint32_t) start_main,
     .npc = (uint32_t) start_main + 4,
     .return_addr = (uint32_t) __exit_context,

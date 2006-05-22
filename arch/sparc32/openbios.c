@@ -19,11 +19,10 @@
 void boot(void);
 void ob_ide_init(void);
 
-static char intdict[256 * 1024];
+static unsigned char intdict[256 * 1024];
 
 static void init_memory(void)
 {
-        extern char _heap, _eheap;
 
 	/* push start and end of available memory to the stack
 	 * so that the forth word QUIT can initialize memory 
@@ -36,7 +35,7 @@ static void init_memory(void)
 	PUSH((unsigned int)&_eheap);
 }
 
-void exception(cell no)
+void exception(__attribute__((unused))cell no)
 {
 	/* The exception mechanism is used during bootstrap to catch
 	 * build errors. In a running system this is a noop since we
@@ -68,6 +67,9 @@ arch_init( void )
 int openbios(void)
 {
 	extern struct sys_info sys_info;
+        extern struct mem cmem;
+
+        mem_init(&cmem, (char *) &_vmem, (char *)&_evmem);
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);

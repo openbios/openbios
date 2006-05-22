@@ -21,6 +21,40 @@
 /* XXX: totally bogus for sparc, need to save and restore all windows */
 __switch_context:
 	/* Save everything in current stack */
+	set	__context, %g1
+        st      %g2, [%g1 + 8]
+        st      %g3, [%g1 + 12]
+        st      %g4, [%g1 + 16]
+        st      %g5, [%g1 + 20]
+        st      %g6, [%g1 + 24]
+        st      %g7, [%g1 + 28]
+
+        st      %o0, [%g1 + 32]
+        st      %o1, [%g1 + 36]
+        st      %o2, [%g1 + 40]
+        st      %o3, [%g1 + 44]
+        st      %o4, [%g1 + 48]
+        st      %o5, [%g1 + 52]
+        st      %o6, [%g1 + 56]
+        st      %o7, [%g1 + 60]
+
+        st      %l0, [%g1 + 64]
+        st      %l1, [%g1 + 68]
+        st      %l2, [%g1 + 72]
+        st      %l3, [%g1 + 76]
+        st      %l4, [%g1 + 80]
+        st      %l5, [%g1 + 84]
+        st      %l6, [%g1 + 88]
+        st      %l7, [%g1 + 92]
+
+        st      %i0, [%g1 + 96]
+        st      %i1, [%g1 + 100]
+        st      %i2, [%g1 + 104]
+        st      %i3, [%g1 + 108]
+        st      %i4, [%g1 + 112]
+        st      %i5, [%g1 + 116]
+        st      %i6, [%g1 + 120]
+        st      %i7, [%g1 + 124]
 
 __switch_context_nosave:
 	/* Interrupts are not allowed... */
@@ -28,55 +62,53 @@ __switch_context_nosave:
 	/* Turn on Supervisor, EnableFloating, and all the PIL bits.
 	 * Also puts us in register window zero with traps off.
 	 */
+#if 0
 	set	(PSR_PS | PSR_S | PSR_PIL | PSR_EF), %g2
 	wr	%g2, 0x0, %psr
+#endif
 	
 	/* Load all registers
 	 */
 	set	__context, %g1
-        lda     [%g1] ASI_BP, %g1
-        add     %g1, 8, %g1     /* skip %g0 and %g1*/
+        ld      [%g1], %g1
+        ld      [%g1 + 8], %g2
+        ld      [%g1 + 12], %g3
+        ld      [%g1 + 16], %g4
+        ld      [%g1 + 20], %g5
+        ld      [%g1 + 24], %g6
+        ld      [%g1 + 28], %g7
 
-#define load_reg(reg) lda [%g1] ASI_BP, reg ; add %g1, 4, %g1
+        ld      [%g1 + 32], %o0
+        ld      [%g1 + 36], %o1
+        ld      [%g1 + 40], %o2
+        ld      [%g1 + 44], %o3
+        ld      [%g1 + 48], %o4
+        ld      [%g1 + 52], %o5
+        ld      [%g1 + 56], %o6
+        ld      [%g1 + 60], %o7
 
-        load_reg(%g2)
-        load_reg(%g3)
-        load_reg(%g4)
-        load_reg(%g5)
-        load_reg(%g6)
-        load_reg(%g7)
+        ld      [%g1 + 64], %l0
+        ld      [%g1 + 68], %l1
+        ld      [%g1 + 72], %l2
+        ld      [%g1 + 76], %l3
+        ld      [%g1 + 80], %l4
+        ld      [%g1 + 84], %l5
+        ld      [%g1 + 88], %l6
+        ld      [%g1 + 92], %l7
 
-        load_reg(%o0)
-        load_reg(%o1)
-        load_reg(%o2)
-        load_reg(%o3)
-        load_reg(%o4)
-        load_reg(%o5)
-        load_reg(%o6)
-        load_reg(%o7)
-
-        load_reg(%l0)
-        load_reg(%l1)
-        load_reg(%l2)
-        load_reg(%l3)
-        load_reg(%l4)
-        load_reg(%l5)
-        load_reg(%l6)
-        load_reg(%l7)
-
-        load_reg(%i0)
-        load_reg(%i1)
-        load_reg(%i2)
-        load_reg(%i3)
-        load_reg(%i4)
-        load_reg(%i5)
-        load_reg(%i6)
-        load_reg(%i7)
-
+        ld      [%g1 + 96], %i0
+        ld      [%g1 + 100], %i1
+        ld      [%g1 + 104], %i2
+        ld      [%g1 + 108], %i3
+        ld      [%g1 + 112], %i4
+        ld      [%g1 + 116], %i5
+        ld      [%g1 + 120], %i6
+        ld      [%g1 + 124], %i7
+        
+        ld      [%g1 + 128], %g1
        	/* Finally, load new %pc */
-        lda     [%g1] ASI_BP, %g1
         jmp     %g1
-	 nop
+         clr    %g1
 
 __exit_context:
 	/* Get back to the original context */

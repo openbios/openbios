@@ -8,26 +8,35 @@ static int load_fd=-1;
 int file_open(const char *filename)
 {
 	load_fd=open_io(filename);
-	/* if(load_fd!=-1)  */ seek_io(load_fd, 0);
+	if(load_fd >= 0)
+            seek_io(load_fd, 0);
 	return load_fd>-1;
 }
 
 int lfile_read(void *buf, unsigned long len)
 {
-	int ret;
-	ret=read_io(load_fd, buf, len);
+	int ret = 0;
+
+        if (load_fd >= 0)
+            ret=read_io(load_fd, buf, len);
 	return ret;
 }
 
 int file_seek(unsigned long offset)
 {
-	return seek_io(load_fd, offset);
+        if (load_fd >= 0)
+            return seek_io(load_fd, offset);
+        else
+            return -1;
 }
 
 unsigned long file_size(void)
 {
 	llong fpos, fsize;
 	
+        if (load_fd < 0)
+            return 0;
+
 	/* save current position */
 	fpos=tell(load_fd);
 

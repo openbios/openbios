@@ -1,6 +1,9 @@
 OUTPUT_FORMAT(elf32-sparc)
 OUTPUT_ARCH(sparc)
 
+/* Qemu ELF loader can't handle very complex files, so we put ELFBoot
+info to rodata and put initctx to data.*/
+
 ENTRY(trap_table)
 
 /* Initial load address
@@ -35,6 +38,7 @@ SECTIONS
 	sound_drivers_end = .;
 	*(.rodata)
 	*(.rodata.*)
+        *(.note.ELFBoot)
     }
     .data ALIGN(4096): {
         _data = .;
@@ -68,18 +72,12 @@ SECTIONS
 	_estack = .;
     }
 
-    .initctx : {
-	/* Initial contents of stack. This MUST BE just after the stack. */
-	*(.initctx)
-    }
-    /* Putting ELF notes near beginning of file might help bootloaders.
-     * We discard .note sections other than .note.ELFBoot,
-     * because some versions of GCC generates useless ones. */
-    .note : { *(.note.ELFBoot) }
-
     . = ALIGN(4096);
     _end = .;
     _iomem = _end + IOMEM_SIZE;
 
-    /DISCARD/ : { *(.comment.*) *(.note.*) }
+    /* We discard .note sections other than .note.ELFBoot,
+     * because some versions of GCC generates useless ones. */
+
+    /DISCARD/ : { *(.comment*) *(.note.*) }
 }

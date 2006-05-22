@@ -64,6 +64,7 @@ entry:
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
         add	%g2, 0x4, %g2			! s+0x800
+#if 0
         set     0x40, %g6
         set	((7 << 2) | 2), %g3		! 7 = U: --- S: RWX (main memory)
 1:      sta	%g3, [%g2] ASI_M_BYPASS
@@ -71,6 +72,9 @@ entry:
         deccc   %g6
         bne     1b
          nop
+#else
+        add     %g2, 0x100, %g2
+#endif
                                                 ! s+0x900
         add	%g2, 0xa00 - 0x900, %g3		! l3 table for rom at s+0xa00
         add	%g2, 0x0d0, %g2			! s+0x9d0
@@ -182,7 +186,7 @@ entry:
 
         /* Zero out our BSS section. */
         set	_bss - 4, %o0           ! First address of BSS
-        set	_end, %o1               ! Last address of BSS
+        set	_estack, %o1               ! Last address of BSS
         ba	2f
          nop
 1:
@@ -192,8 +196,6 @@ entry:
         bl	1b
          add	%o0, 0x4, %o0
 
-        set     _estack, %sp
-        mov     0, %fp
         mov     2, %g1
         wr      %g1, 0x0, %wim			! make window 1 invalid
         WRITE_PAUSE
@@ -218,7 +220,7 @@ entry:
         wr	%g3, PSR_ET, %psr
         WRITE_PAUSE
 
-        call    openbios
+        call    __switch_context_nosave
          nop
 
         /* We get here when the main context switches back to

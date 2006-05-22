@@ -65,7 +65,8 @@ static int prop_mem_reg[3];
 static int prop_mem_avail[3];
 static int prop_vmem_avail[6];
 
-static void doublewalk(unsigned ptab1, unsigned va)
+static void doublewalk(__attribute__((unused)) unsigned int ptab1,
+                       __attribute__((unused)) unsigned int va)
 {
 }
 
@@ -215,14 +216,14 @@ static void obp_reboot(char *str)
     for (;;) {}
 }
 
-static void obp_abort()
+static void obp_abort(void)
 {
     printk("abort, power off\n");
     outb(0x71910000, 1);
     for (;;) {}
 }
 
-static void obp_halt()
+static void obp_halt(void)
 {
     printk("halt, power off\n");
     outb(0x71910000, 1);
@@ -278,7 +279,7 @@ static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,
     unsigned int off;
     unsigned int mva;
 
-    DPRINTF("obp_dumb_mmap: virta 0x%x, which_io %d, paddr 0x%x, sz %d\n", va, which_io, pa, size);
+    DPRINTF("obp_dumb_mmap: virta 0x%x, which_io %d, paddr 0x%x, sz %d\n", (unsigned int)va, which_io, pa, size);
     off = pa & (PAGE_SIZE-1);
     npages = (off + size + (PAGE_SIZE-1)) / PAGE_SIZE;
     pa &= ~(PAGE_SIZE-1);
@@ -296,7 +297,7 @@ static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,
 static void obp_dumb_munmap(__attribute__((unused)) char *va,
 			    __attribute__((unused)) unsigned int size)
 {
-    DPRINTF("obp_dumb_munmap: virta 0x%x, sz %d\n", va, size);
+    DPRINTF("obp_dumb_munmap: virta 0x%x, sz %d\n", (unsigned int)va, size);
 }
 
 static int obp_devread(int dev_desc, char *buf, int nbytes)
@@ -360,14 +361,18 @@ static int obp_inst2pkg(int dev_desc)
     return ret;
 }
 
-static int obp_cpustart(unsigned int whichcpu, int ctxtbl_ptr,
-                        int thiscontext, char *prog_counter)
+static int obp_cpustart(__attribute__((unused))unsigned int whichcpu,
+                        __attribute__((unused))int ctxtbl_ptr,
+                        __attribute__((unused))int thiscontext,
+                        __attribute__((unused))char *prog_counter)
 {
     //int cpu, found;
+#ifdef CONFIG_DEBUG_OBP
     struct linux_prom_registers *smp_ctable = (void *)ctxtbl_ptr;
+#endif
 
     DPRINTF("obp_cpustart: cpu %d, ctxptr 0x%x, ctx %d, pc 0x%x\n", whichcpu,
-            smp_ctable->phys_addr, thiscontext, prog_counter);
+            smp_ctable->phys_addr, thiscontext, (unsigned int)prog_counter);
 #if 0
     found = obp_getprop(whichcpu, "mid", (char *)&cpu);
     if (found == -1)

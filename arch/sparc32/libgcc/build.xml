@@ -7,6 +7,7 @@
   <object source="__udivdi3.c"/>
   <object source="__udivmoddi4.c"/>
   <object source="__umoddi3.c"/>
+  <object source="__lshrdi3.c"/>
  </library>
 
 </build>
