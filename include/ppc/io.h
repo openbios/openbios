@@ -143,23 +143,6 @@ static inline void _outsw(volatile uint16_t * port, const void *buf,
 		ns--;
 	}
 }
-#else /* BOOTSTRAP */
-#ifdef FCOMPILER
-#define inb(reg) ((u8)0xff)
-#define inw(reg) ((u16)0xffff)
-#define inl(reg) ((u32)0xffffffff)
-#define outb(reg, val) // nothing
-#define outw(reg, val) // nothing
-#define outl(reg, val) // nothing
-#else
-extern u8 inb(u32 reg);
-extern u16 inw(u32 reg);
-extern u32 inl(u32 reg);
-extern void insw(u32 reg, void *addr, unsigned long count);
-extern void outb(u32 reg, u8 val);
-extern void outw(u32 reg, u16 val);
-extern void outl(u32 reg, u32 val);
-extern void outsw(u32 reg, const void *addr, unsigned long count);
 #endif
-#endif
+
 #endif /* _ASM_IO_H */

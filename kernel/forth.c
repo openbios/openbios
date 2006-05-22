@@ -796,9 +796,11 @@ static void herewrite(void)
 
 static void emit(void)
 {
-	cell tmp = POP();
 #ifndef FCOMPILER
+	cell tmp = POP();
 	putchar(tmp);
+#else
+        (void) POP();
 #endif
 }
 
@@ -834,8 +836,13 @@ static void key(void)
 
 static void iocfetch(void)
 {
+#ifndef FCOMPILER
 	cell reg = POP();
 	PUSH(inb(reg));
+#else
+        (void)POP();
+        PUSH(0);
+#endif
 }
 
 
@@ -845,8 +852,13 @@ static void iocfetch(void)
 
 static void iowfetch(void)
 {
+#ifndef FCOMPILER
 	cell reg = POP();
 	PUSH(inw(reg));
+#else
+        (void)POP();
+        PUSH(0);
+#endif
 }
 
 /*
@@ -855,8 +867,13 @@ static void iowfetch(void)
 
 static void iolfetch(void)
 {
+#ifndef FCOMPILER
 	cell reg = POP();
 	PUSH(inl(reg));
+#else
+        (void)POP();
+        PUSH(0);
+#endif
 }
 
 
@@ -866,10 +883,15 @@ static void iolfetch(void)
 
 static void iocstore(void)
 {
+#ifndef FCOMPILER
 	cell reg = POP();
 	cell val = POP();
 
 	outb(reg, val);
+#else
+        (void)POP();
+        (void)POP();
+#endif
 }
 
 
@@ -879,10 +901,15 @@ static void iocstore(void)
 
 static void iowstore(void)
 {
+#ifndef FCOMPILER
 	cell reg = POP();
 	cell val = POP();
 
 	outw(reg, val);
+#else
+        (void)POP();
+        (void)POP();
+#endif
 }
 
 
@@ -892,10 +919,15 @@ static void iowstore(void)
 
 static void iolstore(void)
 {
+#ifndef FCOMPILER
 	ucell reg = POP();
 	ucell val = POP();
 
 	outl(reg, val);
+#else
+        (void)POP();
+        (void)POP();
+#endif
 }
 
 /*

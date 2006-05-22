@@ -34,14 +34,6 @@ static void init_memory(void)
 	PUSH(0x9FFFF);
 }
 
-void exception(cell no)
-{
-	/* The exception mechanism is used during bootstrap to catch
-	 * build errors. In a running system this is a noop since we
-	 * can't break out to the unix host os anyways.
-	 */
-}
-
 static void
 arch_init( void )
 {

@@ -26,7 +26,6 @@
 
 /* initialization */
 extern int		initialize_forth( void );
-extern void		exception( cell errcode );
 
 /* panic */
 extern int		forth_segv_handler( char *segv_addr );

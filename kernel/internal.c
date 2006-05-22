@@ -179,7 +179,9 @@ static void call(void)
 static void sysdebug(void)
 {
 	cell errorno=POP();
+#ifdef FCOMPILER
 	exception(errorno);
+#endif
 }
 
 static void dodoes(void)
