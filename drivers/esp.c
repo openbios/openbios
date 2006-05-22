@@ -25,8 +25,9 @@
 #include "asm/dma.h"
 #include "esp.h"
 
-#define PHYS_JJ_ESPDMA  0x78400000      /* ESP DMA controller */
-#define PHYS_JJ_ESP     0x78800000      /* ESP SCSI */
+#define MACIO_ESPDMA  0x08400000      /* ESP DMA controller */
+#define MACIO_ESP     0x08800000      /* ESP SCSI */
+
 #define BUFSIZE         4096
 
 #define REGISTER_NAMED_NODE( name, path )   do {                        \
@@ -294,16 +295,14 @@ NODE_METHODS(ob_sd) = {
 
 
 static int
-espdma_init(struct esp_dma *espdma)
+espdma_init(unsigned long base, struct esp_dma *espdma)
 {
-    void *p;
+    espdma->regs = (void *)map_io(base + MACIO_ESPDMA, 0x10);
 
-    /* Hardcode everything for MrCoffee. */
-    if ((p = (void *)map_io(PHYS_JJ_ESPDMA, 0x10)) == 0) {
+    if (espdma->regs == 0) {
         DPRINTF("espdma_init: cannot map registers\n");
         return -1;
     }
-    espdma->regs = p;
 
     DPRINTF("dma1: ");
 
@@ -340,6 +339,21 @@ espdma_init(struct esp_dma *espdma)
     }
     DPRINTF("\n");
 
+    push_str("/iommu/sbus/espdma");
+    fword("find-device");
+
+    /* set reg */
+    PUSH(4);
+    fword("encode-int");
+    PUSH(MACIO_ESPDMA);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x00000010);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
     return 0;
 }
 
@@ -358,7 +372,7 @@ ob_esp_initialize(__attribute__((unused)) esp_private_t **esp)
     /* set reg */
     PUSH(4);
     fword("encode-int");
-    PUSH(0x08800000);
+    PUSH(MACIO_ESP);
     fword("encode-int");
     fword("encode+");
     PUSH(0x00000010);
@@ -407,7 +421,8 @@ add_alias(const char *device, const char *alias)
     fword("property");
 }
 
-int ob_esp_init(void)
+int
+ob_esp_init(unsigned long base)
 {
     int id, diskcount = 0, cdcount = 0, *counter_ptr;
     char nodebuff[256], aliasbuff[256];
@@ -423,11 +438,11 @@ int ob_esp_init(void)
 
     global_esp = esp;
 
-    if (espdma_init(&esp->espdma) != 0) {
+    if (espdma_init(base, &esp->espdma) != 0) {
         return -1;
     }
     /* Get the IO region */
-    esp->ll = (void *)map_io(PHYS_JJ_ESP, sizeof(struct esp_regs));
+    esp->ll = (void *)map_io(base + MACIO_ESP, sizeof(struct esp_regs));
     if (esp->ll == 0) {
         DPRINTF("Can't map ESP registers\n");
         return -1;

@@ -18,7 +18,6 @@
 #include "pgtsrmmu.h"
 #include "iommu.h"
 
-#define PHYS_JJ_IOMMU 0x10000000 /* First page of sun4m IOMMU */
 #define IOPERM        (IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID)
 #define MKIOPTE(phys) (((((phys)>>4) & IOPTE_PAGE) | IOPERM) & ~IOPTE_WAZ)
 #define LOWMEMSZ 32 * 1024 * 1024
@@ -61,7 +60,8 @@ struct iommu ciommu;
 
 #define NCTX_SWIFT  0x100
 
-static void iommu_init(struct iommu *t);
+static void iommu_init(struct iommu *t, unsigned long base);
+
 static void
 iommu_invalidate(struct iommu_regs *regs) {
     regs->tlbflush = 0;
@@ -199,10 +199,71 @@ map_io(unsigned pa, int size)
  * Switch page tables.
  */
 void
-init_mmu_swift(void)
+init_mmu_swift(unsigned long base)
 {
+    extern unsigned int qemu_mem_size;
     unsigned int addr, i;
     unsigned long pa, va;
+
+    push_str("/memory");
+    fword("find-device");
+
+    PUSH(0);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(qemu_mem_size);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    PUSH(0);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(va2pa((unsigned long)&_data) - 1);
+    fword("encode-int");
+    fword("encode+");
+    push_str("available");
+    fword("property");
+
+    push_str("/virtual-memory");
+    fword("find-device");
+
+    PUSH(0);
+    fword("encode-int");
+    PUSH(base);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x300);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    PUSH(0);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(va2pa((unsigned long)&_start) - 1);
+    fword("encode-int");
+    fword("encode+");
+
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(va2pa((unsigned long)&_iomem));
+    fword("encode-int");
+    fword("encode+");
+    PUSH(-va2pa((unsigned long)&_iomem));
+    fword("encode-int");
+    fword("encode+");
+    push_str("available");
+    fword("property");
 
     mem_init(&cio, (char *)&_end, (char *)&_iomem);
 
@@ -249,7 +310,7 @@ init_mmu_swift(void)
     srmmu_set_context(0);
     srmmu_set_ctable_ptr(va2pa((unsigned long)context_table));
     srmmu_flush_whole_tlb();
-    iommu_init(&ciommu);
+    iommu_init(&ciommu, base);
 }
 /*
  * XXX This is a problematic interface. We alloc _memory_ which is uncached.
@@ -311,7 +372,7 @@ dvma_alloc(int size, unsigned int *pphys)
  * the routine is higher in food chain.
  */
 static void
-iommu_init(struct iommu *t)
+iommu_init(struct iommu *t, unsigned long base)
 {
     unsigned int *ptab;
     int ptsize;
@@ -319,7 +380,7 @@ iommu_init(struct iommu *t)
     unsigned int impl, vers;
     unsigned int tmp;
 
-    if ((regs = map_io(PHYS_JJ_IOMMU, sizeof(struct iommu_regs))) == 0) {
+    if ((regs = map_io(base, sizeof(struct iommu_regs))) == 0) {
         DPRINTF("Cannot map IOMMU\n");
         for (;;) { }
     }
