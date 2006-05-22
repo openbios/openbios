@@ -49,7 +49,7 @@ static struct {
 static unsigned int
 nvpart_checksum( nvpart_t* hdr )
 {
-	unsigned char *p = (char*)hdr;
+	unsigned char *p = (unsigned char*)hdr;
 	int i, val = p[0];
 
 	for( i=2; i<16; i++ ) {

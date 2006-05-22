@@ -70,7 +70,7 @@ iommu_invalidate(struct iommu_regs *regs) {
 /*
  * Allocate memory. This is reusable.
  */
-static void
+void
 mem_init(struct mem *t, char *begin, char *limit)
 {
     t->start = begin;
@@ -82,8 +82,14 @@ void *
 mem_alloc(struct mem *t, int size, int align)
 {
     char *p;
+    unsigned long pa;
 
-    p = (char *)((((unsigned int)t->curp) + (align-1)) & ~(align-1));
+    // The alignment restrictions refer to physical, not virtual
+    // addresses
+    pa = va2pa((unsigned long)t->curp) + (align - 1);
+    pa &= ~(align - 1);
+    p = (char *)pa2va(pa);
+    
     if (p >= t->uplim || p + size > t->uplim)
         return 0;
     t->curp = p + size;
@@ -193,12 +199,11 @@ map_io(unsigned pa, int size)
  * Switch page tables.
  */
 void
-init_mmu_swift()
+init_mmu_swift(void)
 {
     unsigned int addr, i;
     unsigned long pa, va;
 
-    mem_init(&cmem, (char *) &_vmem, (char *)&_evmem);
     mem_init(&cio, (char *)&_end, (char *)&_iomem);
 
     context_table = mem_zalloc(&cmem, NCTX_SWIFT * sizeof(int), NCTX_SWIFT * sizeof(int));
@@ -343,11 +348,12 @@ iommu_init(struct iommu *t)
 
     /* flush_cache_all(); */
     /** flush_tlb_all(); **/
-    regs->base = ((unsigned int)va2pa((unsigned long)ptab)) >> 4;
+    tmp = (unsigned int)va2pa((unsigned long)ptab);
+    regs->base = tmp >> 4;
     iommu_invalidate(regs);
 
-    DPRINTF("IOMMU: impl %d vers %d page table at 0x%p of size %d bytes\n",
-            impl, vers, t->page_table, ptsize);
+    DPRINTF("IOMMU: impl %d vers %d page table at 0x%p (pa 0x%x) of size %d bytes\n",
+            impl, vers, t->page_table, tmp, ptsize);
 
     mem_init(&t->bmap, (char*)t->plow, (char *)0xfffff000);
 }

@@ -263,7 +263,10 @@ ob_sd_open(__attribute__((unused))sd_private_t **sd)
     id = POP();
     *sd = &global_esp->sd[id];
 
-    DPRINTF("opening drive %d\n", id);
+#ifdef CONFIG_DEBUG_ESP
+    fword("my-args");
+    DPRINTF("opening drive %d args %s\n", id, pop_fstr_copy());
+#endif
 
     selfword("open-deblocker");
 
@@ -393,7 +396,7 @@ NODE_METHODS(ob_esp) = {
 };
 
 static void
-add_alias(const unsigned char *device, const unsigned char *alias)
+add_alias(const char *device, const char *alias)
 {
     push_str("/aliases");
     fword("find-device");
@@ -413,6 +416,11 @@ int ob_esp_init(void)
     DPRINTF("Initializing SCSI...");
 
     esp = malloc(sizeof(esp_private_t));
+    if (!esp) {
+        DPRINTF("Can't allocate ESP private structure\n");
+        return -1;
+    }
+
     global_esp = esp;
 
     if (espdma_init(&esp->espdma) != 0) {
@@ -433,7 +441,9 @@ int ob_esp_init(void)
 
     // Chip reset
     esp->ll->regs[ESP_CMD] = ESP_CMD_RC;
-
+    
+    DPRINTF("ESP at 0x%lx, buffer va 0x%lx dva 0x%lx\n", (unsigned long)esp,
+            (unsigned long)esp->buffer, (unsigned long)esp->buffer_dvma);
     DPRINTF("done\n");
     DPRINTF("Initializing SCSI devices...");
 
@@ -448,8 +458,7 @@ int ob_esp_init(void)
 #endif
     }
 
-    sprintf(nodebuff, "/iommu/sbus/espdma/esp");
-    REGISTER_NAMED_NODE(ob_esp, nodebuff);
+    REGISTER_NAMED_NODE(ob_esp, "/iommu/sbus/espdma/esp");
     device_end();
 
     for (id = 0; id < 8; id++) {

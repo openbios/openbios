@@ -104,7 +104,7 @@ int init_output( const char *in_name, const char *out_name )
 		oname = (u8 *)strdup( out_name );
 	else {
 		ext=strrchr(in_name, '.');
-		len=ext ? (ext-in_name) : (unsigned int)strlen(in_name) ;
+		len=ext ? (unsigned int)(ext-in_name) : (unsigned int)strlen(in_name) ;
 		oname=malloc(len+4);
 		memcpy(oname, in_name, len);
 		oname[len] = 0;
