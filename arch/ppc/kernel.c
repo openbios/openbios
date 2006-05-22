@@ -36,12 +36,6 @@ static ucell 		*memory;
 /*	F U N C T I O N S						*/
 /************************************************************************/
 
-void
-exception( int errcode )
-{
-	/* no-op */
-}
-
 int
 forth_segv_handler( char *segv_addr )
 {
