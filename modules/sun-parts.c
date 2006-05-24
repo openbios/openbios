@@ -27,6 +27,7 @@
 typedef struct {
 	ullong		offs;
 	ullong		size;
+	int		type;
 } sunparts_info_t;
 
 DECLARE_NODE( sunparts, INSTALL_OPEN, sizeof(sunparts_info_t), "+/packages/sun-parts" );
@@ -93,15 +94,19 @@ sunparts_open( sunparts_info_t *di )
 	int parnum = -1;
 	unsigned char buf[512];
         struct sun_disklabel *p;
-        unsigned int i;
+        unsigned int i, bs;
 
 	DPRINTF("sunparts_open '%s'\n", str );
 
 	if( str ) {
-		parnum = atol(str);
-		if( !strlen(str) )
-			parnum = -1;
-		free( str );
+            if( !strlen(str) )
+                parnum = -1;
+            else if (str[0] >= 'a' && str[0] < ('a' + 8))
+                parnum = str[0] - 'a';
+            else
+                parnum = atol(str);
+       
+            free( str );
 	}
 
 	SEEK( 0 );
@@ -110,10 +115,11 @@ sunparts_open( sunparts_info_t *di )
 
 	/* Check Magic */
 	if (!has_sun_part_magic(buf)) {
-		DPRINTF("sun partition magic not found.\n");
+		DPRINTF("Sun partition magic not found.\n");
 		RET(0);
 	}
-	
+
+	bs = 512; // XXX get real block size?
 	/* get partition data */
 	p = (struct sun_disklabel *)buf;
 
@@ -125,10 +131,16 @@ sunparts_open( sunparts_info_t *di )
                     parnum = i;
             }
         }
-        di->offs = (llong)__be32_to_cpu(p->partitions[parnum].start_cylinder) *
-            __be16_to_cpu(p->ntrks) * __be16_to_cpu(p->nsect);
 
-        di->size = (llong)__be32_to_cpu(p->partitions[parnum].num_sectors) ;
+        if (parnum < 0)
+            parnum = 0;
+
+	DPRINTF("Selected partition %d\n", parnum);
+        di->offs = (llong)__be32_to_cpu(p->partitions[parnum].start_cylinder) *
+            __be16_to_cpu(p->ntrks) * __be16_to_cpu(p->nsect) * bs;
+
+        di->size = (llong)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
+        di->type = __be32_to_cpu(p->infos[parnum].id);
         DPRINTF("Found Sun partition table, offs %d size %d\n", (int)di->offs, (int)di->size);
 
         RET( -1 );
@@ -147,7 +159,8 @@ sunparts_probe( __attribute__((unused))sunparts_info_t *dummy )
 static void
 sunparts_get_info( sunparts_info_t *di )
 {
-	PUSH( -1 );		/* no type */
+	DPRINTF("Sun get_info\n");
+	PUSH( di->type );
 	DPUSH( di->offs );
 	DPUSH( di->size );
 }

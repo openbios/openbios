@@ -63,7 +63,9 @@ dlabel_open( dlabel_info_t *di )
 	s = parstr;
 	filename = NULL;
 	if( s ) {
-		if( *s == '-' || isdigit(*s) ) {
+            if( *s == '-' || isdigit(*s) ||
+                (*s >= 'a' && *s < ('a' + 8)
+                 && (*(s + 1) == ',' || *(s + 1) == '\0'))) {
 			if( (s=strpbrk(parstr,",")) ) {
 				filename = s+1;
 				*s = 0;
