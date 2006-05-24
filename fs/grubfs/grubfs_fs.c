@@ -303,7 +303,7 @@ file_read( void *buf, unsigned long len )
 {
 	if (filepos < 0 || filepos > filemax)
 		filepos = filemax;
-	if (len < 0 || len > filemax-filepos)
+	if (len > filemax-filepos)
 		len = filemax - filepos;
 	errnum = 0;
 	return curfs->fsys->read_func( buf, len );

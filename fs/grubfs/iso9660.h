@@ -158,10 +158,13 @@ typedef	union RR_ptr {
 
 #define	RRMAGIC(c1, c2)	((c1)|(c2) << 8)
 
-#define	CHECK2(ptr, c1, c2) \
-	(*(unsigned short *)(ptr) == (((c1) | (c2) << 8) & 0xFFFF))
-#define	CHECK4(ptr, c1, c2, c3, c4) \
-	(*(unsigned long *)(ptr) == ((c1) | (c2)<<8 | (c3)<<16 | (c4)<<24))
+#define	CHECK2(ptr, c1, c2)                     \
+    (*(ptr) == (c1) && *(ptr + 1) == (c2))
+#define	CHECK4(ptr, c1, c2, c3, c4)                                     \
+    (*(unsigned char *)(ptr) == (c1) &&                                 \
+     *((unsigned char *)(ptr) + 1) == (c2) &&                           \
+     *((unsigned char *)(ptr) + 2) == (c3) &&                           \
+     *((unsigned char *)(ptr) + 3) == (c4))
 
 #endif /* !ASM_FILE */
 

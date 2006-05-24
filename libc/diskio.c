@@ -184,7 +184,7 @@ seek_io( int fd, llong offs )
 
 	DPUSH( offs );
 	call_package( fdp->seek_xt, fdp->ih );
-	return ((POP() >= 0)? 0 : -1);
+	return ((((cell)POP()) >= 0)? 0 : -1);
 }
 
 llong
