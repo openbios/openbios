@@ -344,6 +344,17 @@ no-conf-def " security-mode"        secmode-config
 " true"     " little-endian?"       bool-config
 [THEN]
 
+[IFDEF] CONFIG_SPARC32
+\ ---- SPARC32 ----
+" true"     " tpe-link-test?"        bool-config
+" 9600,8,n,1,-" " ttya-mode"         str-config
+" true"     " ttya-ignore-cd"        bool-config
+" false"    " ttya-rts-dtr-off"      bool-config
+" 9600,8,n,1,-" " ttyb-mode"         str-config
+" true"     " ttyb-ignore-cd"        bool-config
+" false"    " ttyb-rts-dtr-off"      bool-config
+[THEN]
+
 \ --- ??? ---
 " "         " boot-screen"          str-config
 " "         " boot-script"          str-config

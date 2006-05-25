@@ -119,7 +119,7 @@ sunparts_open( sunparts_info_t *di )
 		RET(0);
 	}
 
-	bs = 512; // XXX get real block size?
+	bs = 512;
 	/* get partition data */
 	p = (struct sun_disklabel *)buf;
 

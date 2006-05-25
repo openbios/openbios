@@ -140,9 +140,11 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
 
 // offset is multiple of 512, len in bytes
 static int
-ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest, short len)
+ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest,
+                   short len, short sect_offset)
 {
-    DPRINTF("ob_sd_read_sectors id %d %lx block=%d len=%d\n", sd->id, (unsigned long)dest, offset, len);
+    DPRINTF("ob_sd_read_sectors id %d %lx sector=%d len=%d soff %d\n",
+            sd->id, (unsigned long)dest, offset, len, sect_offset);
 
     // Setup command = Read(10)
     memset(esp->buffer, 0, 10);
@@ -157,10 +159,10 @@ ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest,
     esp->buffer[8] = (len >> 8) & 0xff;
     esp->buffer[9] = len & 0xff;
 
-    if (do_command(esp, sd, 10, len * 512))
+    if (do_command(esp, sd, 10, len * 512 + sect_offset))
         return 0;
 
-    memcpy(dest, esp->buffer, len * 512);
+    memcpy(dest, esp->buffer + sect_offset, len * 512);
 
     return 0;
 }
@@ -179,12 +181,8 @@ read_capacity(esp_private_t *esp, sd_private_t *sd)
 
         return 0;
     }
-    sd->sectors =  (esp->buffer[0] << 24) | (esp->buffer[1] << 16) | (esp->buffer[2] << 8) | esp->buffer[3];
-#if 0
     sd->bs = (esp->buffer[4] << 24) | (esp->buffer[5] << 16) | (esp->buffer[6] << 8) | esp->buffer[7];
-#else
-    sd->bs = 512;
-#endif
+    sd->sectors = ((esp->buffer[0] << 24) | (esp->buffer[1] << 16) | (esp->buffer[2] << 8) | esp->buffer[3]) * (sd->bs / 512);
 
     return 1;
 }
@@ -232,16 +230,20 @@ ob_sd_read_blocks(sd_private_t **sd)
     cell n = POP(), cnt = n;
     ucell blk = POP();
     char *dest = (char*)POP();
+    int pos, spb, sect_offset;
 
     DPRINTF("ob_sd_read_blocks id %d %lx block=%d n=%d\n", (*sd)->id, (unsigned long)dest, blk, n );
 
-    n *= (*sd)->bs / 512;
+    spb = (*sd)->bs / 512;
     while (n) {
-        if (ob_sd_read_sectors(global_esp, *sd, blk, dest, 1)) {
-            DPRINTF("ob_ide_read_blocks: error\n");
+        sect_offset = blk / spb;
+        pos = (blk - sect_offset * spb) * 512;
+
+        if (ob_sd_read_sectors(global_esp, *sd, sect_offset, dest, 1, pos)) {
+            DPRINTF("ob_sd_read_blocks: error\n");
             RET(0);
         }
-        dest += (*sd)->bs;
+        dest += 512;
         n--;
         blk++;
     }
@@ -249,9 +251,9 @@ ob_sd_read_blocks(sd_private_t **sd)
 }
 
 static void
-ob_sd_block_size(sd_private_t **sd)
+ob_sd_block_size(__attribute__((unused))sd_private_t **sd)
 {
-    PUSH((*sd)->bs);
+    PUSH(512);
 }
 
 static void

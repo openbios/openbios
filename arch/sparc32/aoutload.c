@@ -65,6 +65,7 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
 	goto out;
 
     for (offset = 0; offset < 16 * 512; offset += 512) {
+        file_seek(offset);
         if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
             debug("Can't read a.out header\n");
             retval = LOADER_NOT_SUPPORT;
@@ -72,8 +73,6 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
         }
         if (!N_BADMAG(ehdr))
             break;
-
-        file_seek(offset);
     }
 
     if (N_BADMAG(ehdr)) {
