@@ -2,7 +2,8 @@
 \ 
 \ this code implements IEEE 1275-1994 
 \ 
-\ Copyright (C) 2003 Samuel Rydh, Stefan Reinauer
+\ Copyright (C) 2003 Samuel Rydh
+\ Copyright (C) 2003-2006 Stefan Reinauer
 \ 
 \ See the file "COPYING" for further information about
 \ the copyright and warranty status of this work.
@@ -204,7 +205,7 @@
   cr
   ?active-package >dn.child @
   begin dup while
-    dup . dup pnodename type cr
+    dup u. dup pnodename type cr
     >dn.peer @
   repeat
   drop

@@ -350,7 +350,7 @@ read_from_disk( int channel, int unit, int blk, unsigned long mphys, int size )
  * main loop
  */
 
-#define BANNER	"OpenBIOS core. (C) 2003-2005 Patrick Mauritz, Stefan Reinauer\n"\
+#define BANNER	"OpenBIOS core. (C) 2003-2006 Patrick Mauritz, Stefan Reinauer\n"\
 		"This software comes with absolutely no warranty. "\
 		"All rights reserved.\n\n"
 

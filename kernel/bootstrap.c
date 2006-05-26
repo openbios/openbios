@@ -1,6 +1,6 @@
 /* tag: forth bootstrap environment
  *
- * Copyright (C) 2003-2005 Stefan Reinauer, Patrick Mauritz
+ * Copyright (C) 2003-2006 Stefan Reinauer, Patrick Mauritz
  *
  * See the file "COPYING" for further information about
  * the copyright and warranty status of this work.
@@ -920,7 +920,7 @@ static void new_dictionary(const char *source)
  * main loop
  */
 
-#define BANNER	"OpenBIOS bootstrap kernel. (C) 2003-2005 Patrick Mauritz, Stefan Reinauer\n"\
+#define BANNER	"OpenBIOS bootstrap kernel. (C) 2003-2006 Patrick Mauritz, Stefan Reinauer\n"\
 		"This software comes with absolutely no warranty. "\
 		"All rights reserved.\n\n"
 
