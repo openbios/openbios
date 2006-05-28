@@ -224,7 +224,7 @@ init_mmu_swift(unsigned long base)
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH(va2pa((unsigned long)&_data) - 1);
+    PUSH(va2pa((unsigned long)&_data) - PAGE_SIZE);
     fword("encode-int");
     fword("encode+");
     push_str("available");
@@ -249,7 +249,7 @@ init_mmu_swift(unsigned long base)
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH(va2pa((unsigned long)&_start) - 1);
+    PUSH((unsigned long)&_start - PAGE_SIZE);
     fword("encode-int");
     fword("encode+");
 

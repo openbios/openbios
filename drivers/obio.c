@@ -389,9 +389,10 @@ ob_obio_init(unsigned long slavio_base)
     ob_set_obio_ranges(slavio_base);
 #endif
 
-    ob_zs_init(slavio_base, SLAVIO_ZS, ZS_INTR, 1, 1);
-
+    // Must be before zs@0,0 or Linux won't boot
     ob_zs_init(slavio_base, SLAVIO_ZS1, ZS_INTR, 0, 0);
+
+    ob_zs_init(slavio_base, SLAVIO_ZS, ZS_INTR, 1, 1);
 
     ob_nvram_init(slavio_base, SLAVIO_NVRAM);
 

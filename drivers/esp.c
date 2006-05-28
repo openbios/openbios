@@ -197,8 +197,7 @@ inquiry(esp_private_t *esp, sd_private_t *sd)
     esp->buffer[0] = 0x80;
     esp->buffer[1] = INQUIRY;
 
-    esp->buffer[4] = BUFSIZE & 0xff;
-    esp->buffer[5] = (BUFSIZE >> 8) & 0xff;
+    esp->buffer[5] = 36;
 
     if (do_command(esp, sd, 7, 36)) {
         sd->present = 0;

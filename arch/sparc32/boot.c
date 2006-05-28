@@ -25,6 +25,7 @@ char boot_device;
 void boot(void)
 {
 	char *path=pop_fstr_copy(), *param;
+        char altpath[256];
 	
         if (kernel_size) {
             extern unsigned int qemu_mem_size;
@@ -69,8 +70,15 @@ void boot(void)
 
 	if (elf_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
             if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-                if (aout_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-                    printk("Unsupported image format\n");
+                if (aout_load(&sys_info, path, param) == LOADER_NOT_SUPPORT) {
+
+                    sprintf(altpath, "%s:d", path);
+
+                    if (elf_load(&sys_info, altpath, param) == LOADER_NOT_SUPPORT)
+                        if (linux_load(&sys_info, altpath, param) == LOADER_NOT_SUPPORT)
+                            if (aout_load(&sys_info, altpath, param) == LOADER_NOT_SUPPORT)
+                                printk("Unsupported image format\n");
+                }
 
 	free(path);
 }
