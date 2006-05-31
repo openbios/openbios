@@ -2,8 +2,8 @@
 " /" find-device
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
-  " SUNW,SparcStation-5" encode-string " name" property
-  " SparcStation" encode-string " banner-name" property
+  " SUNW,SPARCstation-5" encode-string " name" property
+  " SPARCstation 5" encode-string " banner-name" property
   " sun4m" encode-string " compatible" property
   " /obio/zs@0,100000:a" encode-string " stdin-path" property
   " /obio/zs@0,100000:a" encode-string " stdout-path" property
