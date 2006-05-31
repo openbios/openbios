@@ -144,7 +144,7 @@ ob_sd_read_sectors(esp_private_t *esp, sd_private_t *sd, int offset, void *dest,
                    short len, short sect_offset)
 {
     DPRINTF("ob_sd_read_sectors id %d %lx sector=%d len=%d soff %d\n",
-            sd->id, (unsigned long)dest, offset, len, sect_offset);
+	     sd->id, (unsigned long)dest, offset, len, sect_offset);
 
     // Setup command = Read(10)
     memset(esp->buffer, 0, 10);
@@ -262,7 +262,8 @@ ob_sd_open(__attribute__((unused))sd_private_t **sd)
     phandle_t ph;
 
     fword("my-unit");
-    id = POP();
+    id = POP(); 
+    POP(); // unit id is 2 ints but we only need one.
     *sd = &global_esp->sd[id];
 
 #ifdef CONFIG_DEBUG_ESP
