@@ -13,6 +13,15 @@ int file_open(const char *filename)
 	return load_fd>-1;
 }
 
+void file_close(void)
+{
+	if(load_fd==-1) 
+		return;
+	
+	close_io(load_fd);
+	load_fd=-1;
+}
+
 int lfile_read(void *buf, unsigned long len)
 {
 	int ret = 0;

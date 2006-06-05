@@ -589,8 +589,10 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline)
 	return -1;
 
     kern_addr = load_linux_header(&hdr);
-    if (kern_addr == 0)
+    if (kern_addr == 0) {
+	file_close();
 	return LOADER_NOT_SUPPORT;
+    }
 
     params = phys_to_virt(LINUX_PARAM_LOC);
     init_linux_params(params, &hdr);

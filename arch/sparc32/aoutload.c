@@ -139,5 +139,6 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
     retval = 0;
 
 out:
+    file_close();
     return retval;
 }

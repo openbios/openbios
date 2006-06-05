@@ -127,6 +127,7 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	}
     }
 out:
+    file_close();
     if (buf)
 	free(buf);
     return retval;
@@ -402,6 +403,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     retval = 0;
 
 out:
+    file_close();
     if (phdr)
 	free(phdr);
     if (boot_notes)
