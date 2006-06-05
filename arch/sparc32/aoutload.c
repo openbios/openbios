@@ -87,6 +87,9 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
         size = addr_fixup(ehdr.a_text) + addr_fixup(ehdr.a_data);
     }
 
+    if (size < 7680)
+        size = 7680;
+
     start = 0x4000; // N_TXTADDR(ehdr);
 
     if (!check_mem_ranges(info, start, size))
