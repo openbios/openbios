@@ -49,5 +49,9 @@
 :noname
   " keyboard" input
 ; CONSOLE-IN-initializer
-  
+ 
+device-end
+: rmap@    ( virt -- rmentry )
+  drop 0
+  ;
 
