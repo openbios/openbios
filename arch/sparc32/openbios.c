@@ -18,10 +18,12 @@
 
 void boot(void);
 void ob_ide_init(void);
+void tcx_init(unsigned long base);
 
 #define IOMMU_BASE    0x10000000 /* First page of sun4m IOMMU */
 #define SLAVIO_BASE   0x71000000
 #define MACIO_BASE    0x70000000
+#define TCX_BASE      0x50000000
 
 static unsigned char intdict[256 * 1024];
 
@@ -46,9 +48,12 @@ arch_init( void )
 
 	modules_init();
 #ifdef CONFIG_DRIVER_SBUS
-        init_mmu_swift(IOMMU_BASE);
-   
+        ob_init_mmu(IOMMU_BASE);
 	ob_sbus_init();
+
+#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
+	init_video();
+#endif
 #endif
 #ifdef CONFIG_DRIVER_ESP
 	ob_esp_init(MACIO_BASE);
@@ -68,9 +73,15 @@ int openbios(void)
         extern struct mem cmem;
 
         mem_init(&cmem, (char *) &_vmem, (char *)&_evmem);
+#ifdef CONFIG_DRIVER_SBUS
+        init_mmu_swift(IOMMU_BASE);
+#endif
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);
+#endif
+#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
+	tcx_init(TCX_BASE);
 #endif
 	/* Clear the screen.  */
 	cls();
@@ -83,9 +94,6 @@ int openbios(void)
 			(unsigned long)sys_info.dict_end 
                         - (unsigned long)sys_info.dict_start);
 	
-#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	video_init();
-#endif
 #ifdef CONFIG_DEBUG_BOOT
 	printk("forth started.\n");
 	printk("initializing memory...");
