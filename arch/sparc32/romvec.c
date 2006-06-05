@@ -48,7 +48,7 @@ static int obp_devseek(int dev_desc, int hi, int lo);
 static struct linux_arguments_v0 obp_arg;
 static const struct linux_arguments_v0 * const obp_argp = &obp_arg;
 
-static void (*synch_hook)(void);
+static void (*sync_hook)(void);
 
 static struct linux_romvec romvec0;
 
@@ -332,7 +332,7 @@ static int obp_devwrite(int dev_desc, char *buf, int nbytes)
     fword("$call-method");
     ret = POP();
 
-    DPRINTF("obp_devwrite(fd 0x%x, buf %s, nbytes %d) = %d\n", dev_desc, buf, nbytes, ret);
+    //DPRINTF("obp_devwrite(fd 0x%x, buf %s, nbytes %d) = %d\n", dev_desc, buf, nbytes, ret);
 
     return nbytes;
 }
@@ -413,6 +413,22 @@ static int obp_cpuresume(__attribute__((unused)) unsigned int whichcpu)
     return 0;
 }
 
+void v2_eval(char *str)
+{
+  // for now, move something to the stack so we
+  // don't get a stack underrun.
+  //
+  // FIXME: find out why solaris doesnt put its stuff on the stack
+  // 
+  fword("0");
+  fword("0");
+  DPRINTF("\n---------------\n");
+  DPRINTF("  %s", str);
+  DPRINTF("\n---------------\n");
+  feval(str);
+  DPRINTF("\n---------------\n");
+}
+
 void *
 init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
 {
@@ -438,8 +454,8 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     // Linux wants a R/W romvec table
     romvec0.pv_magic_cookie = LINUX_OPPROM_MAGIC;
     romvec0.pv_romvers = 3;
-    romvec0.pv_plugin_revision = 77;
-    romvec0.pv_printrev = 0x10203;
+    romvec0.pv_plugin_revision = 2;
+    romvec0.pv_printrev = 0x20019;
     romvec0.pv_v0mem.v0_totphys = &ptphys;
     romvec0.pv_v0mem.v0_prommap = &ptmap;
     romvec0.pv_v0mem.v0_available = &ptavail;
@@ -458,8 +474,9 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_printf = (void (*)(const char *fmt, ...))printk;
     romvec0.pv_abort = obp_abort;
     romvec0.pv_halt = obp_halt;
-    romvec0.pv_synchook = &synch_hook;
+    romvec0.pv_synchook = &sync_hook;
     romvec0.pv_v0bootargs = &obp_argp;
+    romvec0.pv_fortheval.v2_eval = v2_eval;
     romvec0.pv_v2devops.v2_inst2pkg = obp_inst2pkg;
     romvec0.pv_v2devops.v2_dumb_mmap = obp_dumb_mmap;
     romvec0.pv_v2devops.v2_dumb_munmap = obp_dumb_munmap;
@@ -482,7 +499,10 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
         break;
     case 'd':
         obp_arg.boot_dev_unit = 2;
-        obp_arg.argv[0] = "sd(0,2,0):d";
+	// FIXME: hardcoding this looks almost definitely wrong.
+	// With sd(0,2,0):b we get to see the solaris kernel though
+        //obp_arg.argv[0] = "sd(0,2,0):d";
+        obp_arg.argv[0] = "sd(0,2,0):b";
         // Fall through
     case 'c':
         obp_arg.boot_dev[0] = 's';
