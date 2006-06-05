@@ -92,6 +92,7 @@
       -21 of s" undefined method." type endof
       -22 of s" no such device." type endof
       dup s" Exception #" type . 
+      0 state !
     endcase
   else
     state @ 0= if

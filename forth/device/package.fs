@@ -10,7 +10,7 @@
 
 \ variable last-package 0 last-package !
 \ 0 value active-package
-
+: current-device active-package ;
   
 \ 
 \ 5.3.4.1 Open/Close packages (part 1)
