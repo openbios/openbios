@@ -38,6 +38,7 @@ void *mem_alloc(struct mem *t, int size, int align);
 void *mem_zalloc(struct mem *t, int size, int align);
 int map_page(unsigned long va, unsigned long epa, int type);
 void *map_io(unsigned pa, int size);
+void ob_init_mmu(unsigned long base);
 void init_mmu_swift(unsigned long base);
 void *dvma_alloc(int size, unsigned int *pphys);
 

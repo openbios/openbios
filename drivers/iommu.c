@@ -195,15 +195,10 @@ map_io(unsigned pa, int size)
     return (void *)((unsigned int)va + off);
 }
 
-/*
- * Switch page tables.
- */
 void
-init_mmu_swift(unsigned long base)
+ob_init_mmu(unsigned long base)
 {
     extern unsigned int qemu_mem_size;
-    unsigned int addr, i;
-    unsigned long pa, va;
 
     push_str("/memory");
     fword("find-device");
@@ -264,6 +259,16 @@ init_mmu_swift(unsigned long base)
     fword("encode+");
     push_str("available");
     fword("property");
+}
+
+/*
+ * Switch page tables.
+ */
+void
+init_mmu_swift(unsigned long base)
+{
+    unsigned int addr, i;
+    unsigned long pa, va;
 
     mem_init(&cio, (char *)&_end, (char *)&_iomem);
 
