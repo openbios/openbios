@@ -286,11 +286,21 @@ ob_interrupt_init(unsigned long base, unsigned long offset)
     push_str("reg");
     fword("property");
 
-    fword("finish-device");
-
     regs = map_io(base + offset, sizeof(*regs));
     regs->set = ~SUN4M_INT_MASKALL;
     regs->cpu_intregs[0].clear = ~0x17fff;
+    
+    // is this really correct?
+    PUSH(regs);
+    fword("encode-int");
+    PUSH(regs);
+    fword("encode-int");
+    fword("encode+");
+    push_str("address");
+    fword("property");
+
+    fword("finish-device");
+
 }
 
 

@@ -511,6 +511,8 @@ ob_esp_init(unsigned long base)
         add_alias(nodebuff, aliasbuff);
         sprintf(aliasbuff, "sd(0,%d,0)", id);
         add_alias(nodebuff, aliasbuff);
+        sprintf(aliasbuff, "sd(0,%d,0)@0,0", id);
+        add_alias(nodebuff, aliasbuff);
         (*counter_ptr)++;
     }
     DPRINTF("done\n");
