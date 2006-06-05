@@ -66,7 +66,12 @@ void boot(void)
             param = (char *)cmdline;
         }
 	
-	printk("[sparc] Booting file '%s' with parameters '%s'\n",path, param);
+	printk("[sparc] Booting file '%s' ", path);
+	if(param) 
+		printk("with parameters '%s'\n", param);
+	else
+		printk("without parameters.\n");
+
 
 	if (elf_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
             if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
