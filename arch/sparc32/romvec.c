@@ -413,7 +413,7 @@ static int obp_cpuresume(__attribute__((unused)) unsigned int whichcpu)
     return 0;
 }
 
-void v2_eval(char *str)
+static void obp_fortheval_v2(char *str)
 {
   // for now, move something to the stack so we
   // don't get a stack underrun.
@@ -422,11 +422,10 @@ void v2_eval(char *str)
   // 
   fword("0");
   fword("0");
-  DPRINTF("\n---------------\n");
-  DPRINTF("  %s", str);
-  DPRINTF("\n---------------\n");
-  feval(str);
-  DPRINTF("\n---------------\n");
+
+  DPRINTF("obp_fortheval_v2(%s)\n", str);
+  push_str(str);
+  fword("eval");
 }
 
 void *
@@ -476,7 +475,7 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_halt = obp_halt;
     romvec0.pv_synchook = &sync_hook;
     romvec0.pv_v0bootargs = &obp_argp;
-    romvec0.pv_fortheval.v2_eval = v2_eval;
+    romvec0.pv_fortheval.v2_eval = obp_fortheval_v2;
     romvec0.pv_v2devops.v2_inst2pkg = obp_inst2pkg;
     romvec0.pv_v2devops.v2_dumb_mmap = obp_dumb_mmap;
     romvec0.pv_v2devops.v2_dumb_munmap = obp_dumb_munmap;
