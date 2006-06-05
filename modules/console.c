@@ -165,7 +165,7 @@ scroll1( void )
 int
 console_draw_str( const char *str )
 {
-	static char *ignore[] = { "[1;37m", "[2;40m", NULL };
+	static const char *ignore[] = { "[1;37m", "[2;40m", NULL };
 	int ch, y, x, i;
 
 	if( !cons.inited && console_init() )

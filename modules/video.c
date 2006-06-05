@@ -172,6 +172,13 @@ set_color( int ind, ulong color )
 #ifdef CONFIG_MOL
 	if( video.fb.depth == 8 )
 		OSI_SetColor( ind, color );
+#elif CONFIG_SPARC32
+	if( video.fb.depth == 8 ) {
+            dac[0] = ind << 24;
+            dac[1] = ((color >> 16) & 0xff) << 24; // Red
+            dac[1] = ((color >> 8) & 0xff) << 24; // Green
+            dac[1] = (color & 0xff) << 24; // Blue
+        }
 #endif
 }
 
