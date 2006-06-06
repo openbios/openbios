@@ -29,35 +29,6 @@ new-device
 finish-device
 
 new-device
-  " FMI,MB86904" device-name
-  " cpu" device-type
-
-  \ 0 encode-int 0 encode-int encode+ 0 encode-int encode+ " context-table" property
-  0 encode-int " implementation" property
-  d# 4 encode-int " version" property
-
-  d# 32 encode-int " cache-line-size" property
-  d# 512 encode-int " cache-nlines" property
-
-  d# 4096 encode-int " page-size" property
-
-  d# 16 encode-int " dcache-line-size" property
-  d# 512 encode-int " dcache-nlines" property
-  d# 1 encode-int " dcache-associativity" property
-
-  d# 16 encode-int " icache-line-size" property
-  d# 512 encode-int " icache-nlines" property
-  d# 1 encode-int " icache-associativity" property
-
-  d# 2 encode-int " ncaches" property
-  d# 256 encode-int " mmu-nctx" property
-  d# 8 encode-int " sparc-version" property
-  d# 37 encode-int " mask_rev" property
-
-  \ 1 encode-int " mid" property
-finish-device
-
-new-device
   " iommu" device-name
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property

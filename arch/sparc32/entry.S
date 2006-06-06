@@ -11,7 +11,8 @@
 #include "asi.h"
 #include "asm/crs.h"
 
-#define PHYS_JJ_EEPROM	0x71200000
+#define PHYS_JJ_EEPROM	0x71200000  /* [2000] MK48T08 */
+#define PHYS_JJ_INTR0	0x71E00000  /* CPU0 interrupt control registers */
 
 #define WRITE_PAUSE    nop; nop; nop; /* Have to do this after %wim/%psr chg */
 
@@ -35,6 +36,35 @@ entry:
         */
         /* XXX no switching yet */
 
+        ! Check if this not the first SMP CPU, if so, bypass PROM entirely
+        set     PHYS_JJ_EEPROM + 0x2E, %g1
+        lduba   [%g1] ASI_M_BYPASS, %g2
+        tst     %g2
+        bz      first_cpu
+         nop
+
+        set     PHYS_JJ_INTR0 + 0x04, %g1
+        sll     %g2, 12, %g2
+        add     %g1, %g2, %g2
+        set     0xffffffff, %g1
+        sta     %g1, [%g2] ASI_M_BYPASS         ! clear softints
+        add     %g2, 4, %g2
+        sta     %g0, [%g2] ASI_M_BYPASS         ! clear softints
+        set     PHYS_JJ_EEPROM + 0x3C, %g1
+        lda     [%g1] ASI_M_BYPASS, %g1
+        set     AC_M_CTPR, %g2
+        sta     %g1, [%g2] ASI_M_MMUREGS        ! set ctx table ptr
+        set     PHYS_JJ_EEPROM + 0x40, %g1
+        lda     [%g1] ASI_M_BYPASS, %g1
+        set     AC_M_CXR, %g2
+        sta     %g1, [%g2] ASI_M_MMUREGS        ! set context
+        set     PHYS_JJ_EEPROM + 0x38, %g1
+        lda     [%g1] ASI_M_BYPASS, %g2
+        set     1, %g1
+        jmp     %g2                             ! jump to kernel
+         sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
+        
+first_cpu:
         set	PHYS_JJ_EEPROM + 0x30, %g1
         lda	[%g1] ASI_M_BYPASS, %g1
         ! map PROLDATA to PROLBASE+PROLSIZE to end of ram

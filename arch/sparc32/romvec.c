@@ -366,30 +366,27 @@ static int obp_inst2pkg(int dev_desc)
     return ret;
 }
 
+extern int start_cpu(unsigned int pc, unsigned int context_ptr,
+                      unsigned int context, int cpu);
+
 static int obp_cpustart(__attribute__((unused))unsigned int whichcpu,
                         __attribute__((unused))int ctxtbl_ptr,
                         __attribute__((unused))int thiscontext,
                         __attribute__((unused))char *prog_counter)
 {
-    //int cpu, found;
-#ifdef CONFIG_DEBUG_OBP
+    int cpu, found;
     struct linux_prom_registers *smp_ctable = (void *)ctxtbl_ptr;
-#endif
 
     DPRINTF("obp_cpustart: cpu %d, ctxptr 0x%x, ctx %d, pc 0x%x\n", whichcpu,
             smp_ctable->phys_addr, thiscontext, (unsigned int)prog_counter);
-#if 0
+
     found = obp_getprop(whichcpu, "mid", (char *)&cpu);
     if (found == -1)
         return -1;
-    st_bypass(PHYS_JJ_EEPROM + 0x38, (unsigned int)prog_counter);
-    st_bypass(PHYS_JJ_EEPROM + 0x3C, ((unsigned int)smp_ctable->phys_addr) >> 4);
-    st_bypass(PHYS_JJ_EEPROM + 0x40, thiscontext);
-    DPRINTF("obp_cpustart: sending interrupt to CPU %d\n", cpu);
-    st_bypass(PHYS_JJ_INTR0 + 0x1000 * cpu + 8, 0x40000000);
-#endif
+    DPRINTF("cpu found, id %d -> cpu %d\n", whichcpu, cpu);
 
-    return 0;
+    return start_cpu((unsigned int)prog_counter, ((unsigned int)smp_ctable->phys_addr) >> 4,
+              thiscontext, cpu);
 }
 
 static int obp_cpustop(__attribute__((unused)) unsigned int whichcpu)

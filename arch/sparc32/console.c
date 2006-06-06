@@ -153,17 +153,7 @@ static void video_cls(void)
 
 void tcx_init(unsigned long base)
 {
-#if 1
-    unsigned int i;
-
-    // Create 1:1 mapping for video memory
-    for (i = 0; i < VMEM_SIZE; i += 4096) {
-        map_page(base + VMEM_BASE + i, base + VMEM_BASE + i, 0);
-    }
-    vmem = (char *)base + VMEM_BASE;
-#else
     vmem = map_io(base + VMEM_BASE, VMEM_SIZE);
-#endif
     dac = map_io(base + DAC_BASE, DAC_SIZE);
 
     console_init();

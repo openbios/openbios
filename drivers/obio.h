@@ -37,6 +37,7 @@ struct qemu_nvram_v1 {
     uint32_t nvram_size; // not used in Sun4m
     char unused1[8];
     char arch[12];
+    char curr_cpu;
     char smp_cpus;
     char unused2;
     char nographic;

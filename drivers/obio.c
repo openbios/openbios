@@ -148,6 +148,8 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     extern uint32_t cmdline_size;
     extern char boot_device;
 
+    unsigned int i;
+
     ob_new_obio_device("eeprom", NULL);
 
     nvram = (char *)ob_reg(base, offset, NVRAM_SIZE, 1);
@@ -170,6 +172,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
 
     fword("finish-device");
 
+    // Add /idprom
     push_str("/");
     fword("find-device");
     
@@ -178,6 +181,103 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     fword("encode-bytes");
     push_str("idprom");
     fword("property");
+
+    // Add cpus
+    printk("CPUs: %x\n", nv_info.smp_cpus);
+    for (i = 0; i < (unsigned int)nv_info.smp_cpus; i++) {
+        push_str("/");
+        fword("find-device");
+
+        fword("new-device");
+        
+        push_str("FMI,MB86904");
+        fword("device-name");
+
+        push_str("cpu");
+        fword("device-type");
+
+        PUSH(0);
+        fword("encode-int");
+        push_str("implementation");
+        fword("property");
+
+        PUSH(4);
+        fword("encode-int");
+        push_str("version");
+        fword("property");
+
+        PUSH(32);
+        fword("encode-int");
+        push_str("cache-line-size");
+        fword("property");
+
+        PUSH(512);
+        fword("encode-int");
+        push_str("cache-nlines");
+        fword("property");
+
+        PUSH(4096);
+        fword("encode-int");
+        push_str("page-size");
+        fword("property");
+
+        PUSH(16);
+        fword("encode-int");
+        push_str("dcache-line-size");
+        fword("property");
+
+        PUSH(512);
+        fword("encode-int");
+        push_str("dcache-nlines");
+        fword("property");
+
+        PUSH(1);
+        fword("encode-int");
+        push_str("dcache-associativity");
+        fword("property");
+
+        PUSH(16);
+        fword("encode-int");
+        push_str("icache-line-size");
+        fword("property");
+
+        PUSH(512);
+        fword("encode-int");
+        push_str("icache-nlines");
+        fword("property");
+
+        PUSH(1);
+        fword("encode-int");
+        push_str("icache-associativity");
+        fword("property");
+
+        PUSH(2);
+        fword("encode-int");
+        push_str("ncaches");
+        fword("property");
+
+        PUSH(256);
+        fword("encode-int");
+        push_str("mmu-nctx");
+        fword("property");
+
+        PUSH(8);
+        fword("encode-int");
+        push_str("sparc-version");
+        fword("property");
+
+        PUSH(37);
+        fword("encode-int");
+        push_str("mask_rev");
+        fword("property");
+
+        PUSH(i << 3);
+        fword("encode-int");
+        push_str("mid");
+        fword("property");
+
+        fword("finish-device");
+    }
 }
 
 static void
@@ -259,10 +359,11 @@ ob_counter_init(unsigned long base, unsigned long offset)
     regs->cpu_timers[0].l14_timer_limit = 0;
 }
 
+static volatile struct sun4m_intregs *intregs;
+
 static void
 ob_interrupt_init(unsigned long base, unsigned long offset)
 {
-    volatile struct sun4m_intregs *regs;
 
     ob_new_obio_device("interrupt", NULL);
 
@@ -286,21 +387,35 @@ ob_interrupt_init(unsigned long base, unsigned long offset)
     push_str("reg");
     fword("property");
 
-    regs = map_io(base + offset, sizeof(*regs));
-    regs->set = ~SUN4M_INT_MASKALL;
-    regs->cpu_intregs[0].clear = ~0x17fff;
-    
-    // is this really correct?
-    PUSH(regs);
+    intregs = map_io(base + offset, sizeof(*intregs));
+    intregs->set = ~SUN4M_INT_MASKALL;
+    intregs->cpu_intregs[0].clear = ~0x17fff;
+
+    PUSH(0);
     fword("encode-int");
-    PUSH(regs);
+    PUSH((int)intregs);
     fword("encode-int");
     fword("encode+");
     push_str("address");
     fword("property");
 
     fword("finish-device");
+}
 
+int
+start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context, int cpu)
+{
+    if (!cpu)
+        return -1;
+
+    nvram[0x38] = pc;
+    nvram[0x3c] = context_ptr;
+    nvram[0x40] = context;
+    nvram[0x2e] = cpu & 0xff;
+
+    intregs->cpu_intregs[cpu].set = SUN4M_SOFT_INT(14);
+
+    return 0;
 }
 
 
