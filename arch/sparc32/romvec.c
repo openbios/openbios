@@ -366,6 +366,21 @@ static int obp_inst2pkg(int dev_desc)
     return ret;
 }
 
+static int obp_dumb_memfree()
+{
+    printk("obp_dumb_memfree\n");
+}
+
+static char * obp_dumb_memalloc(char *va, unsigned size)
+{
+    static char *pa = 0x4000000;
+
+    DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size, pa);
+    obp_dumb_mmap(va, 1, pa, size);
+    pa += size;
+    return va;
+}
+
 extern int start_cpu(unsigned int pc, unsigned int context_ptr,
                       unsigned int context, int cpu);
 
@@ -474,6 +489,8 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_v0bootargs = &obp_argp;
     romvec0.pv_fortheval.v2_eval = obp_fortheval_v2;
     romvec0.pv_v2devops.v2_inst2pkg = obp_inst2pkg;
+    romvec0.pv_v2devops.v2_dumb_mem_alloc = obp_dumb_memalloc;
+    romvec0.pv_v2devops.v2_dumb_mem_free = obp_dumb_memfree;
     romvec0.pv_v2devops.v2_dumb_mmap = obp_dumb_mmap;
     romvec0.pv_v2devops.v2_dumb_munmap = obp_dumb_munmap;
     romvec0.pv_v2devops.v2_dev_open = obp_devopen;
