@@ -391,7 +391,8 @@ ob_interrupt_init(unsigned long base, unsigned long offset)
     intregs->set = ~SUN4M_INT_MASKALL;
     intregs->cpu_intregs[0].clear = ~0x17fff;
 
-    PUSH(0);
+    // Is this correct? It works for NetBSD at least
+    PUSH((int)intregs);
     fword("encode-int");
     PUSH((int)intregs);
     fword("encode-int");
