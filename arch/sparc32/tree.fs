@@ -2,11 +2,17 @@
 " /" find-device
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
+
   " SUNW,SPARCstation-5" encode-string " name" property
   " SPARCstation 5" encode-string " banner-name" property
   " sun4m" encode-string " compatible" property
+  " SUNW,501-3059" encode-string " model" property
+  h# 0a21fe80 encode-int " clock-frequency" property
+  
   " /obio/zs@0,100000:a" encode-string " stdin-path" property
   " /obio/zs@0,100000:a" encode-string " stdout-path" property
+
+  
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
 
@@ -32,6 +38,9 @@ new-device
   " iommu" device-name
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
+  h# 1000 encode-int " page-size" property
+  0 encode-int " cache-coherence?" property
+  h# ffee8000 encode-int " address" property
   h# 0 encode-int h# 10000000 encode-int encode+ h# 00000300 encode-int encode+ " reg" property
   external
   : open ( cr ." opening iommu" cr) true ;
@@ -46,6 +55,10 @@ new-device
   " hierarchical" device-type
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
+  h# 01443fd0 encode-int " clock-frequency" property
+  h# 1c encode-int " slot-address-bits" property
+  h# 3f encode-int " burst-sizes" property
+  h# ffee7000 encode-int " address" property
   h# 0 encode-int h# 0 encode-int encode+ h# 0 encode-int encode+ h# 30000000 encode-int encode+ h# 10000000 encode-int encode+
    h# 1 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 40000000 encode-int encode+ h# 10000000 encode-int encode+
    h# 2 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 50000000 encode-int encode+ h# 10000000 encode-int encode+

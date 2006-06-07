@@ -154,6 +154,11 @@ ob_nvram_init(unsigned long base, unsigned long offset)
 
     nvram = (char *)ob_reg(base, offset, NVRAM_SIZE, 1);
 
+    PUSH((unsigned long)nvram);
+    fword("encode-int");
+    push_str("address");
+    fword("property");
+    
     memcpy(&nv_info, nvram, sizeof(nv_info));
 
     printk("Nvram id %s, version %d\n", nv_info.id_string, nv_info.version);
@@ -251,6 +256,22 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         push_str("icache-associativity");
         fword("property");
 
+
+        PUSH(0x20);
+        fword("encode-int");
+        push_str("ecache-line-size");
+        fword("property");
+
+        PUSH(0x4000);
+        fword("encode-int");
+        push_str("ecache-nlines");
+        fword("property");
+
+        PUSH(1);
+        fword("encode-int");
+        push_str("ecache-associativity");
+        fword("property");
+	
         PUSH(2);
         fword("encode-int");
         push_str("ncaches");
@@ -276,6 +297,8 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         push_str("mid");
         fword("property");
 
+	
+	
         fword("finish-device");
     }
 }
