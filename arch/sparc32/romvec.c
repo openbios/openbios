@@ -285,6 +285,7 @@ static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,
     unsigned int mva;
 
     DPRINTF("obp_dumb_mmap: virta 0x%x, which_io %d, paddr 0x%x, sz %d\n", (unsigned int)va, which_io, pa, size);
+
     off = pa & (PAGE_SIZE-1);
     npages = (off + size + (PAGE_SIZE-1)) / PAGE_SIZE;
     pa &= ~(PAGE_SIZE-1);
@@ -366,9 +367,9 @@ static int obp_inst2pkg(int dev_desc)
     return ret;
 }
 
-static int obp_dumb_memfree()
+static void obp_dumb_memfree(char *va, unsigned sz)
 {
-    printk("obp_dumb_memfree\n");
+    DPRINTF("obp_dumb_memfree 0x%x(%d)\n", va, sz);
 }
 
 static char * obp_dumb_memalloc(char *va, unsigned size)
