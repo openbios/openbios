@@ -352,11 +352,17 @@ ob_counter_init(unsigned long base, unsigned long offset)
     push_str("reg");
     fword("property");
 
-    fword("finish-device");
 
     regs = map_io(base + offset, sizeof(*regs));
     regs->l10_timer_limit = (((1000000/100) + 1) << 10);
     regs->cpu_timers[0].l14_timer_limit = 0;
+
+    PUSH((unsigned long)regs);
+    fword("encode-int");
+    push_str("address");
+    fword("property");
+
+    fword("finish-device");
 }
 
 static volatile struct sun4m_intregs *intregs;
