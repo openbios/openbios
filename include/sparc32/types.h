@@ -14,11 +14,7 @@
 #include <stdint.h>
 
 /* endianess */
-#ifdef HAVE_ENDIAN_H
-#include <endian.h>
-#else
-#include <machine/endian.h>
-#endif
+#include "autoconf.h"
 
 /* cell based types */
 

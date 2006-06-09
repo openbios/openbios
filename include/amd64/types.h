@@ -14,7 +14,7 @@
 #include <stdint.h>
 
 /* endianess */
-#include <endian.h>
+#include "autoconf.h"
 
 /* cell based types */
 
