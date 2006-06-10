@@ -52,6 +52,8 @@ static void (*sync_hook)(void);
 
 static struct linux_romvec romvec0;
 
+static unsigned long free_ram;
+
 static void doublewalk(__attribute__((unused)) unsigned int ptab1,
                        __attribute__((unused)) unsigned int va)
 {
@@ -367,18 +369,18 @@ static int obp_inst2pkg(int dev_desc)
     return ret;
 }
 
-static void obp_dumb_memfree(char *va, unsigned sz)
+static void obp_dumb_memfree(__attribute__((unused))char *va,
+                             __attribute__((unused))unsigned sz)
 {
     DPRINTF("obp_dumb_memfree 0x%x(%d)\n", va, sz);
 }
 
-static char * obp_dumb_memalloc(char *va, unsigned size)
+static char * obp_dumb_memalloc(char *va, unsigned int size)
 {
-    static char *pa = 0x4000000;
+    free_ram -= size;
+    DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size, free_ram);
+    obp_dumb_mmap(va, 1, free_ram, size);
 
-    DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size, pa);
-    obp_dumb_mmap(va, 1, pa, size);
-    pa += size;
     return va;
 }
 
@@ -444,6 +446,8 @@ static void obp_fortheval_v2(char *str)
 void *
 init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
 {
+    free_ram = va2pa((int)&_data) - PAGE_SIZE;
+
     ptphys = totphys;
     ptmap = totmap;
     ptavail = totavail;
@@ -457,7 +461,7 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
 
     totavail[0].theres_more = NULL;
     totavail[0].start_adr = (char *) 0;
-    totavail[0].num_bytes = va2pa((int)&_data) - PAGE_SIZE;
+    totavail[0].num_bytes = free_ram;
 
     totmap[0].theres_more = NULL;
     totmap[0].start_adr = &_start;

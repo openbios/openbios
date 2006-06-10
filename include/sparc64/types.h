@@ -16,8 +16,8 @@
 /* cell based types */
 typedef int64_t		 cell;
 typedef uint64_t	ucell;
-typedef long long	dcell;
-typedef unsigned long long ducell;
+typedef __int128_t	dcell;
+typedef __uint128_t    ducell;
 
 #define bitspercell	(sizeof(cell)<<3)
 #define bitsperdcell	(sizeof(dcell)<<3)

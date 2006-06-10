@@ -3,8 +3,8 @@
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
 
-  : encode-unit encode-unit-sbus ;
-  : decode-unit decode-unit-sbus ;
+  \ : encode-unit encode-unit-sbus ;
+  \ : decode-unit decode-unit-sbus ;
 
 new-device
   " memory" device-name
