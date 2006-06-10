@@ -1,4 +1,4 @@
-<build condition="SPARC32">
+<build>
 
  <library name="gcc" type="static" target="target">
   <object source="ashldi3.c"/>

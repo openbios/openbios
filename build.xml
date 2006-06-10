@@ -5,6 +5,7 @@
   <include href="toke/build.xml"/>
   <include href="forth/build.xml"/>
   <include href="libc/build.xml"/>
+  <include href="libgcc/build.xml"/>
   <include href="modules/build.xml"/>
   <include href="drivers/build.xml"/>
   <include href="fs/build.xml"/>

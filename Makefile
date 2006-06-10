@@ -23,7 +23,7 @@ directories: clean
 	@mkdir -p $(ODIR)/target/arch/ppc/pearpc
 	@mkdir -p $(ODIR)/target/arch/ppc/mol
 	@mkdir -p $(ODIR)/target/arch/x86/xbox
-	@mkdir -p $(ODIR)/target/arch/sparc32/libgcc
+	@mkdir -p $(ODIR)/target/libgcc
 	@mkdir -p $(ODIR)/target/kernel
 	@mkdir -p $(ODIR)/target/modules
 	@mkdir -p $(ODIR)/target/fs/grubfs

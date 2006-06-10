@@ -30,23 +30,6 @@
   ]]></rule>
  </executable>
 
- <executable name="openbios.multiboot" target="target" condition="IMAGE_ELF_MULTIBOOT">
-  <rule>
-	$(LD) -T arch/sparc64/ldscript -o $@.nostrip $^
-	$(NM) $@.nostrip | sort > $(ODIR)/openbios-multiboot.syms
-	cp $@.nostrip $@
-	$(STRIP) $@
-  </rule>
-  <object source="multiboot.c"/>
-  <external-object source="target/arch/sparc64/vectors.o"/>
-  <external-object source="target/arch/sparc64/entry.o"/>
-  <external-object source="libsparc64.a"/>
-  <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
-  <external-object source="libdrivers.a"/>
-  <external-object source="liblibc.a"/>
-  <external-object source="libfs.a"/>
- </executable>
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
   <rule>
@@ -64,6 +47,7 @@
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
 
  <!-- HACK ALERT -->
@@ -103,6 +87,7 @@
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
  
 </build>
