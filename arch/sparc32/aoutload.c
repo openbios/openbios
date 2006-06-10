@@ -81,6 +81,9 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
 	goto out;
     }
 
+    if (ehdr.a_text == 0x30800007)
+	ehdr.a_text=64*1024;
+    
     if (N_MAGIC(ehdr) == NMAGIC) {
         size = addr_fixup(N_DATADDR(ehdr)) + addr_fixup(ehdr.a_data);
     } else {
@@ -89,6 +92,7 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     if (size < 7680)
         size = 7680;
+
 
     start = 0x4000; // N_TXTADDR(ehdr);
 
