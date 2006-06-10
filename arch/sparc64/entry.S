@@ -1,0 +1,250 @@
+/**
+ ** Standalone startup code for Linux PROM emulator.
+ ** Copyright 1999 Pete A. Zaitcev
+ ** This code is licensed under GNU General Public License.
+ **/
+/*
+ * $Id: head.S,v 1.12 2002/07/23 05:47:09 zaitcev Exp $
+ */
+
+#define __ASSEMBLY__
+#include "asi.h"
+#include "pstate.h"
+#include "lsu.h"
+
+        .globl	entry, _entry
+
+	.section ".text", "ax"
+	.align	8
+        .register %g2, #scratch
+        .register %g3, #scratch
+        .register %g6, #scratch
+        .register %g7, #scratch
+
+/*
+ * Entry point
+ * We start execution from here.
+ */
+_entry:
+entry:
+        ! Set up CPU state
+        wrpr    %g0, PSTATE_PRIV, %pstate
+        wr      %g0, 0, %fprs
+        wrpr    %g0, 0x0, %tl
+
+        ! Extract NWINDOWS from %ver
+        rdpr    %ver, %g1
+        and     %g1, 0xf, %g1
+        wrpr    %g1, 0, %cleanwin
+        wrpr    %g1, 0, %cansave
+        wrpr    %g0, 0, %canrestore
+        wrpr    %g0, 0, %otherwin
+        wrpr    %g0, 0, %wstate
+
+        ! Disable I/D MMUs and caches
+        stxa    %g0, [%g0] ASI_LSU_CONTROL
+
+        ! Get memory size from NVRAM
+        setx    0x1fe02000074, %g2, %g5
+        mov     0x30, %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+        add     %g5, 1, %g1
+        stba    %g0, [%g1] ASI_PHYS_BYPASS_EC_E
+        add     %g1, 2, %g1
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g4
+
+        sll     %g4, 8, %g4
+        inc     %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        or      %g3, %g4, %g4
+
+        sll     %g4, 8, %g4
+        inc     %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        or      %g3, %g4, %g4
+
+        sll     %g4, 8, %g4
+        inc     %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        or      %g3, %g4, %g1
+	! %g1 contains end of memory
+        
+        
+        setx    _end, %g7, %g3
+        set     0xffff, %g2
+        add     %g3, %g2, %g3
+        andn    %g3, %g2, %g3
+        setx    _data, %g7, %g2
+        sub     %g3, %g2, %g2
+        sub	%g1, %g2, %g2			! %g2 = start of private memory
+        mov     %g2, %l0
+
+	! setup .data & .bss
+        setx    _data, %g7, %g4
+        sub     %g3, %g4, %g5
+        srlx    %g5, 16, %g6			! %g6 = # of 64k .bss pages
+	set	0xa0000000, %g3
+	sllx	%g3, 32, %g3
+	or	%g3, 0x76, %g3
+	! valid, 64k, locked, cacheable(I/E/C), priv, writable
+	set	48, %g7
+1:	stxa	%g4, [%g7] ASI_DMMU		! vaddr = _data + N * 0x10000, ctx=0
+	or	%g2, %g3, %g5
+	! paddr = start_mem + N * 0x10000
+	stxa	%g5, [%g0] ASI_DTLB_DATA_IN
+	set	0x10000, %g5
+	add	%g2, %g5, %g2
+	add	%g4, %g5, %g4
+	deccc	%g6
+	bne	1b
+	 nop
+
+	! setup .rodata
+	setx	_data, %g7, %g5
+	setx	_rodata, %g7, %g4
+        sub     %g5, %g4, %g5
+        srlx    %g5, 16, %g6			! %g6 = # of 64k .rodata pages
+	set	48, %g7
+	set	0x10000, %g5
+1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = _rodata, ctx=0
+	set	0xa0000000, %g3
+	sllx	%g3, 32, %g3
+	or	%g3, 0x74, %g3
+	or	%g4, %g3, %g3
+	! valid, 64k, locked, cacheable(I/E/C), priv
+	! paddr = _rodata + N * 0x10000
+	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
+	add	%g4, %g5, %g4
+	deccc	%g6
+	bne	1b
+	 nop
+
+	! setup VGA buffer
+	setx	0x1ff004a0000, %g7, %g4
+        mov     2, %g6
+	set	48, %g7
+	set	0x10000, %g5
+1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = 0x1ff004a0000, ctx=0
+	set	0xa0000000, %g3
+	sllx	%g3, 32, %g3
+	or	%g3, 0x76, %g3
+	or	%g4, %g3, %g3
+	! valid, 64k, locked, cacheable(I/E/C), priv, writable
+	! paddr = 0x1ff004a0000
+	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
+	add	%g4, %g5, %g4
+	deccc	%g6
+	bne	1b
+	 nop
+
+#if 0
+	! setup 0-4M
+	set	48, %g7
+	stxa	%g0, [%g7] ASI_DMMU		! vaddr = 0, ctx=0
+	set	0xe0000000, %g3
+	sllx	%g3, 32, %g3
+	or	%g3, 0x36, %g3
+	! valid, 4M, cacheable(I/E/C), priv, writable
+	! paddr = 0
+	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
+#endif
+	
+	membar	#Sync
+
+	setx	_start, %g7, %g4
+	setx	_rodata, %g7, %g5
+        sub     %g5, %g4, %g5
+        srlx    %g5, 16, %g6			! %g6 = # of 64k .text pages
+	set	48, %g7
+1:      stxa	%g4, [%g7] ASI_IMMU		! vaddr = _start, ctx=0
+	set	0xa0000000, %g3
+	sllx	%g3, 32, %g3
+	or	%g3, 0x74, %g3
+	or	%g4, %g3, %g3
+	! valid, 64k, locked, cacheable(I/E/C), priv
+	! paddr = _start + N * 0x10000
+	stxa	%g3, [%g0] ASI_ITLB_DATA_IN
+	set	0x10000, %g5
+	add	%g4, %g5, %g4
+	deccc	%g6
+	bne	1b
+	 nop
+
+#if 0
+	! setup 0-4M
+	stxa	%g0, [%g7] ASI_IMMU		! vaddr = 0, ctx=0
+	set	0xe0000000, %g3
+	sllx	%g3, 32, %g3
+	or	%g3, 0x34, %g3
+	! valid, 4M, cacheable(I/E/C), priv
+	! paddr = 0
+	stxa	%g3, [%g0] ASI_ITLB_DATA_IN
+#endif
+
+	flush	%g4
+
+	mov	%g1, %g3
+
+	set     8, %g2
+	sta     %g0, [%g2] ASI_DMMU		! set primary ctx=0
+
+	! Enable I/D MMUs and caches
+	set	LSU_CONTROL_DM|LSU_CONTROL_IM|LSU_CONTROL_DC|LSU_CONTROL_IC, %g2
+	stxa	%g2, [%g0] ASI_LSU_CONTROL
+
+        /* Copy the DATA section from ROM. */
+        setx	_data - 8, %o7, %o0             ! First address of DATA
+        setx	_bss, %o7, %o1                  ! Last address of DATA
+        ba	2f
+         nop
+1:
+        ldxa    [%o0] ASI_PHYS_BYPASS_EC_E, %g1
+        stx	%g1, [%o0]
+2:
+        subcc	%o0, %o1, %g0
+        bl	1b
+         add	%o0, 0x8, %o0
+
+        /* Zero out our BSS section. */
+        setx    _bss - 8, %o7, %o0              ! First address of BSS
+        setx    _end, %o7, %o1                  ! Last address of BSS
+        ba	2f
+         nop
+1:
+        stx     %g0, [%o0]
+2:
+        subcc	%o0, %o1, %g0
+        bl	1b
+         add	%o0, 0x8, %o0
+
+        setx    trap_table, %g2, %g1
+        wrpr    %g1, %tba
+
+        setx    qemu_mem_size, %g7, %g1
+        stx     %g3, [%g1]
+        
+        setx    _data, %g7, %g1                 ! Store va->pa conversion factor
+        sub     %g1, %l0, %g2
+        setx    va_shift, %g7, %g1
+        stx     %g2, [%g1]
+
+        /* Finally, turn on traps so that we can call c-code. */
+	wrpr    %g0, (PSTATE_PRIV|PSTATE_PEF|PSTATE_IE), %pstate
+
+        /* Switch to our main context.
+         * Main context is statically defined in C.
+         */
+
+        call    __switch_context_nosave
+         nop
+
+        /* We get here when the main context switches back to
+         * the boot context.
+         * Return to previous bootloader.
+         */
+        ret
+         nop
+
