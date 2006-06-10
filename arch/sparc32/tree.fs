@@ -58,14 +58,12 @@ new-device
   h# 01443fd0 encode-int " clock-frequency" property
   h# 1c encode-int " slot-address-bits" property
   h# 3f encode-int " burst-sizes" property
-  h# ffee7000 encode-int " address" property
   h# 0 encode-int h# 0 encode-int encode+ h# 0 encode-int encode+ h# 30000000 encode-int encode+ h# 10000000 encode-int encode+
    h# 1 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 40000000 encode-int encode+ h# 10000000 encode-int encode+
    h# 2 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 50000000 encode-int encode+ h# 10000000 encode-int encode+
    h# 3 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 60000000 encode-int encode+ h# 10000000 encode-int encode+
    h# 4 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 70000000 encode-int encode+ h# 10000000 encode-int encode+
    " ranges" property
-  h# 0 encode-int h# 10001000 encode-int encode+ h# 00000028 encode-int encode+ " reg" property
   external
   : open ( cr ." opening SBus" cr) true ;
   : close ;

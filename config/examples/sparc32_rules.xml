@@ -13,8 +13,8 @@ CROSSCFLAGS := -DNATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH -USWAP_ENDIANNESS
 HOSTCFLAGS := -O2 -g -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 
-CC := gcc -Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc
-AS := as -Wa,-xarch=v8 -Wa,-32 -g
+CC := gcc
+AS := as
 AR := ar
 LD := ld
 NM := nm
@@ -27,9 +27,11 @@ ifeq ($(shell uname), Linux)
 endif
 
 CFLAGS := -Os -Wall -W -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin -g
+CFLAGS+=  -Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
 CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing
 INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
+AS_FLAGS := -Wa,-xarch=v8 -Wa,-32 -g
 
 #
 # pre rules

@@ -30,11 +30,6 @@ entry:
         /* Switch to our main context.
          * Main context is statically defined in C.
          */
-        /*
-        call	__switch_context_nosave
-         nop
-        */
-        /* XXX no switching yet */
 
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
         set     PHYS_JJ_EEPROM + 0x2E, %g1

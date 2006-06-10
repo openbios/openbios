@@ -41,9 +41,12 @@
 #define	BRENAB 	1	/* Baud rate generator enable */
 #define	BRSRC	2	/* Baud rate generator source */
 
+/* Read Register 0 */
+#define	Rx_CH_AV	0x1	/* Rx Character Available */
+
 static int uart_charav(int port)
 {
-	return ((inb(CTRL(port)) & 1) != 0);
+	return ((inb(CTRL(port)) & Rx_CH_AV) != 0);
 }
 
 static char uart_getchar(int port)

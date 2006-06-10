@@ -21,8 +21,8 @@ void ob_ide_init(void);
 void tcx_init(unsigned long base);
 
 #define IOMMU_BASE    0x10000000 /* First page of sun4m IOMMU */
+#define SBUS_BASE     0x10001000
 #define SLAVIO_BASE   0x71000000
-#define MACIO_BASE    0x70000000
 #define TCX_BASE      0x50000000
 
 static unsigned char intdict[256 * 1024];
@@ -49,14 +49,11 @@ arch_init( void )
 	modules_init();
 #ifdef CONFIG_DRIVER_SBUS
         ob_init_mmu(IOMMU_BASE);
-	ob_sbus_init();
+	ob_sbus_init(SBUS_BASE);
 
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
 	init_video();
 #endif
-#endif
-#ifdef CONFIG_DRIVER_ESP
-	ob_esp_init(MACIO_BASE);
 #endif
 #ifdef CONFIG_DRIVER_OBIO
 	ob_obio_init(SLAVIO_BASE);
