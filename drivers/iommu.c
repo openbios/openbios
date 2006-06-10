@@ -18,6 +18,9 @@
 #include "pgtsrmmu.h"
 #include "iommu.h"
 
+#define IOMMU_REGS  0x300
+#define NCTX_SWIFT  0x100
+
 #define IOPERM        (IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID)
 #define MKIOPTE(phys) (((((phys)>>4) & IOPTE_PAGE) | IOPERM) & ~IOPTE_WAZ)
 #define LOWMEMSZ 32 * 1024 * 1024
@@ -57,14 +60,14 @@ struct iommu {
 };
 
 struct iommu ciommu;
-
-#define NCTX_SWIFT  0x100
+static struct iommu_regs *regs;
 
 static void iommu_init(struct iommu *t, unsigned long base);
 
 static void
-iommu_invalidate(struct iommu_regs *regs) {
-    regs->tlbflush = 0;
+iommu_invalidate(struct iommu_regs *iregs)
+{
+    iregs->tlbflush = 0;
 }
 
 /*
@@ -233,7 +236,7 @@ ob_init_mmu(unsigned long base)
     PUSH(base);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x300);
+    PUSH(IOMMU_REGS);
     fword("encode-int");
     fword("encode+");
     push_str("reg");
@@ -259,7 +262,15 @@ ob_init_mmu(unsigned long base)
     fword("encode+");
     push_str("available");
     fword("property");
+
+    push_str("/iommu");
+    fword("find-device");
+    PUSH((unsigned long)regs);
+    fword("encode-int");
+    push_str("address");
+    fword("property");
 }
+
 
 /*
  * Switch page tables.
@@ -381,11 +392,11 @@ iommu_init(struct iommu *t, unsigned long base)
 {
     unsigned int *ptab;
     int ptsize;
-    struct iommu_regs *regs =NULL;
     unsigned int impl, vers;
     unsigned int tmp;
 
-    if ((regs = map_io(base, sizeof(struct iommu_regs))) == 0) {
+    regs = map_io(base, IOMMU_REGS);
+    if (regs == 0) {
         DPRINTF("Cannot map IOMMU\n");
         for (;;) { }
     }

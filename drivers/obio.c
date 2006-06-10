@@ -537,6 +537,9 @@ int
 ob_obio_init(unsigned long slavio_base)
 {
 
+    // All devices were integrated to NCR89C105, see
+    // http://www.ibiblio.org/pub/historic-linux/early-ports/Sparc/NCR/NCR89C105.txt
+
     //printk("Initializing OBIO devices...\n");
 #if 0 // XXX
     REGISTER_NAMED_NODE(ob_obio, "/obio");
@@ -544,13 +547,16 @@ ob_obio_init(unsigned long slavio_base)
     ob_set_obio_ranges(slavio_base);
 #endif
 
+    // Zilog Z8530 serial ports, see http://www.zilog.com
     // Must be before zs@0,0 or Linux won't boot
     ob_zs_init(slavio_base, SLAVIO_ZS1, ZS_INTR, 0, 0);
 
     ob_zs_init(slavio_base, SLAVIO_ZS, ZS_INTR, 1, 1);
 
+    // M48T08 NVRAM, see http://www.st.com
     ob_nvram_init(slavio_base, SLAVIO_NVRAM);
 
+    // 82078 FDC
     ob_fd_init(slavio_base, SLAVIO_FD, FD_INTR);
 
     ob_sconfig_init(slavio_base, SLAVIO_SCONFIG);
