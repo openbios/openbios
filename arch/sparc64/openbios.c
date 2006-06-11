@@ -31,6 +31,14 @@ void arch_nvram_get()
 
 int arch_nvram_size;
 
+void setup_timers()
+{
+}
+
+void udelay()
+{
+}
+
 static void init_memory(void)
 {
 
@@ -51,6 +59,16 @@ arch_init( void )
 	void setup_timers(void);
 
 	modules_init();
+#ifdef CONFIG_DRIVER_PCI
+	ob_pci_init();
+#endif
+#ifdef CONFIG_DRIVER_IDE
+	setup_timers();
+	ob_ide_init();
+#endif
+#ifdef CONFIG_DRIVER_FLOPPY
+	ob_floppy_init();
+#endif
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
 	init_video();
 #endif
