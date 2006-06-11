@@ -9,6 +9,8 @@
   <object source="__udivdi3.c"/>
   <object source="__udivmoddi4.c"/>
   <object source="__umoddi3.c"/>
+
+  <!-- CONDITION="CONFIG_64BITS" -->
   <object source="__divti3.c"/>
   <object source="__udivti3.c"/>
   <object source="__udivmodti4.c"/>

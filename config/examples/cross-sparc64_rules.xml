@@ -20,8 +20,9 @@ LD := sparc64-linux-ld
 NM := sparc64-linux-nm
 STRIP := sparc64-linux-strip
 RANLIB := sparc64-linux-ranlib
-CFLAGS := -Os -Wall -W -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin -g
-CFLAGS+=  -Wa,-xarch=v9 -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany
+CFLAGS := -Os -Wall -W -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -g
+CFLAGS+= -Wa,-xarch=v9 -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany
+CFLAGS+= -fno-builtin -nostdlib -ffreestanding
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
 CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing
 INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
