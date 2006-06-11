@@ -3,11 +3,19 @@
  <library name="gcc" type="static" target="target">
   <object source="ashldi3.c"/>
   <object source="ashrdi3.c"/>
+  <object source="__lshrdi3.c"/>
+
   <object source="__divdi3.c"/>
   <object source="__udivdi3.c"/>
   <object source="__udivmoddi4.c"/>
   <object source="__umoddi3.c"/>
-  <object source="__lshrdi3.c"/>
+  <object source="__divti3.c"/>
+  <object source="__udivti3.c"/>
+  <object source="__udivmodti4.c"/>
+  <object source="__umodti3.c"/>
+
+  <object source="multi3.c"/>
+
  </library>
 
 </build>
