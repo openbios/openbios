@@ -8,6 +8,7 @@
 #include "openbios/config.h"
 #include "openbios/kernel.h"
 #include "openbios.h"
+#include "video_subr.h"
 
 #ifdef CONFIG_DEBUG_CONSOLE
 
@@ -122,7 +123,8 @@ static void serial_cls(void)
 #define ATTRIBUTE		7	/* The attribute of an character.  */
 
 #define APB_MEM_BASE	     0x1ff00000000ULL
-#define VGA_BASE	     (APB_MEM_BASE + 0x4b8000ULL) /* The video memory address.  */
+#define VGA_BASE	     (APB_MEM_BASE + 0x4a0000ULL) /* Beginning of video memory address.  */
+#define TEXT_BASE	     (VGA_BASE + 0x18000ULL) /* The text memory address.  */
 
 /* VGA Index and Data Registers */
 #define VGA_REG_INDEX    0x03D4	/* VGA index register */
@@ -137,7 +139,7 @@ static void serial_cls(void)
 /* Save the X and Y position.  */
 static int xpos, ypos;
 /* Point to the video memory.  */
-static volatile unsigned char *video = (unsigned char *) VGA_BASE;
+static unsigned char *video = (unsigned char *) TEXT_BASE;
 
 static void video_initcursor(void)
 {
@@ -236,9 +238,19 @@ static void video_cls(void)
 	video_poscursor(xpos, ypos);
 }
 
+#ifdef CONFIG_DRIVER_VGA
+#include "../../modules/font_8x16.c"
+#endif
+
 void video_init(void)
 {
-	video=(unsigned char *)VGA_BASE;
+	video=(unsigned char *)TEXT_BASE;
+
+#ifdef CONFIG_DRIVER_VGA
+        vga_load_regs();
+        vga_font_load((unsigned char *)VGA_BASE, fontdata_8x16, 16, 256);
+        vga_set_amode();
+#endif
 }
 
 /*
