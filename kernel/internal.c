@@ -178,9 +178,11 @@ static void call(void)
 
 static void sysdebug(void)
 {
-	cell errorno=POP();
 #ifdef FCOMPILER
+	cell errorno=POP();
 	exception(errorno);
+#else
+        (void) POP();
 #endif
 }
 

@@ -26,7 +26,7 @@ ifeq ($(shell uname), Linux)
 endif
 
 CFLAGS := -Os -Wall -W -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin -g
-CFLAGS+=  -Wa,-xarch=v9 -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany
+CFLAGS+= -Wa,-xarch=v9 -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
 CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing
 INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include

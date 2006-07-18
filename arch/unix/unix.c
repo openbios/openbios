@@ -309,7 +309,7 @@ static void init_memory(void)
 	PUSH((ucell) memory + MEMORY_SIZE);
 }
 
-void exception(cell no)
+void exception(__attribute__((unused)) cell no)
 {
 	/* 
 	 * this is a noop since the dictionary has to take care 

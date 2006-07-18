@@ -168,7 +168,7 @@ dlabel_tell( dlabel_info_t *di )
 
 /* ( addr len -- actual ) */
 static void
-dlabel_write( dlabel_info_t *di )
+dlabel_write( __attribute__((unused)) dlabel_info_t *di )
 {
 	DDROP();
 	PUSH( -1 );
@@ -185,7 +185,7 @@ dlabel_offset( dlabel_info_t *di )
 
 /* ( addr -- size ) */
 static void
-dlabel_load( dlabel_info_t *di )
+dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 {
 	/* XXX: try the load method of the part package */
 

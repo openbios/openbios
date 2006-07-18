@@ -275,7 +275,7 @@ nvram_write( nvram_ibuf_t *nd )
 
 /* ( -- size ) */
 static void
-nvram_size( nvram_ibuf_t *nd )
+nvram_size( __attribute__((unused)) nvram_ibuf_t *nd )
 {
 	PUSH( nvram.size );
 }

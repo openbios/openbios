@@ -47,7 +47,7 @@ blk_open( blk_data_t *pb )
 }
 
 static void
-blk_close( blk_data_t *pb )
+blk_close( __attribute__((unused)) blk_data_t *pb )
 {
 	selfword("close-deblocker");
 }
@@ -80,20 +80,20 @@ blk_read_blocks( blk_data_t *pb )
 
 /* ( -- bs ) */
 static void
-blk_block_size( blk_data_t *pb )
+blk_block_size( __attribute__((unused)) blk_data_t *pb )
 {
 	PUSH( 512 );
 }
 
 /* ( -- maxbytes ) */
 static void
-blk_max_transfer( blk_data_t *pb )
+blk_max_transfer( __attribute__((unused)) blk_data_t *pb )
 {
 	PUSH( 1024*1024 );
 }
 
 static void
-blk_initialize( blk_data_t *pb )
+blk_initialize( __attribute__((unused)) blk_data_t *pb )
 {
 	fword("is-deblocker");
 }
