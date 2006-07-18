@@ -10,6 +10,9 @@ ARCH := sparc64
 ODIR := obj-$(ARCH)
 HOSTCC := gcc
 HOSTCFLAGS := -O2 -g -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
+HOSTCFLAGS+= -Wa,-xarch=v9 -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany
+HOSTCFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
+HOSTCFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 
 CC := gcc

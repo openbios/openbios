@@ -9,6 +9,7 @@
 
 #include "openbios/config.h"
 #include "openbios/stack.h"
+#include "cross.h"
 
 #define dstacksize 512
 int dstackcnt = 0;
@@ -24,7 +25,7 @@ void printdstack(void)
 	int i;
 	printk("dstack:");
 	for (i = 0; i <= dstackcnt; i++) {
-		printk(" 0x%x", dstack[i]);
+		printk(" 0x%" FMT_CELL_x , dstack[i]);
 	}
 	printk("\n");
 }
@@ -35,7 +36,7 @@ void printrstack(void)
 	int i;
 	printk("rstack:");
 	for (i = 0; i <= rstackcnt; i++) {
-		printk(" 0x%x", rstack[i]);
+		printk(" 0x%" FMT_CELL_x , rstack[i]);
 	}
 	printk("\n");
 }

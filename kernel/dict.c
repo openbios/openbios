@@ -119,7 +119,7 @@ void dump_header(dictionary_header_t *header)
 	printk("  relocation:  %s\n", header->relocation?"yes":"no");
 	printk("  checksum:    %08x\n", target_long(header->checksum));
 	printk("  length:      %08x\n", target_long(header->length));
-	printk("  last:        %08x\n", target_cell(header->last));
+	printk("  last:        %0" FMT_CELL_x "\n", target_cell(header->last));
 }
 
 ucell load_dictionary(const char *data, ucell len)

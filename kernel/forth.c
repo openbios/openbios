@@ -330,8 +330,13 @@ static void mudivmod(void)
 {
 	const ucell b = POP();
 	const ducell a = DPOP();
+#ifdef NEED_FAKE_INT128_T
+        fprintf(stderr, "mudivmode called\n");
+        exit(-1);
+#else
 	PUSH(a % b);
 	DPUSH(a / b);
+#endif
 }
 
 
@@ -475,7 +480,12 @@ static void dplus(void)
 {
 	const dcell d2 = DPOP();
 	const dcell d1 = DPOP();
+#ifdef NEED_FAKE_INT128_T
+        fprintf(stderr, "dplus called\n");
+        exit(-1);
+#else
 	DPUSH(d1 + d2);
+#endif
 }
 
 
@@ -487,7 +497,12 @@ static void dminus(void)
 {
 	const dcell d2 = DPOP();
 	const dcell d1 = DPOP();
+#ifdef NEED_FAKE_INT128_T
+        fprintf(stderr, "dminus called\n");
+        exit(-1);
+#else
 	DPUSH(d1 - d2);
+#endif
 }
 
 
@@ -499,7 +514,12 @@ static void mmult(void)
 {
 	const cell u2 = POP();
 	const cell u1 = POP();
+#ifdef NEED_FAKE_INT128_T
+        fprintf(stderr, "mmult called\n");
+        exit(-1);
+#else
 	DPUSH((dcell) u1 * u2);
+#endif
 }
 
 
@@ -511,7 +531,12 @@ static void ummult(void)
 {
 	const ucell u2 = POP();
 	const ucell u1 = POP();
+#ifdef NEED_FAKE_INT128_T
+        fprintf(stderr, "ummult called\n");
+        exit(-1);
+#else
 	DPUSH((ducell) u1 * u2);
+#endif
 }
 
 

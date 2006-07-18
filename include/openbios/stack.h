@@ -52,15 +52,27 @@ static inline void DDROP(void) {
 }
 
 static inline void DPUSH(ducell value) {
+#ifdef NEED_FAKE_INT128_T
+	dstack[++dstackcnt] = (cell) value.lo;
+	dstack[++dstackcnt] = (cell) value.hi;
+#else
 	dstack[++dstackcnt] = (cell) value;
 	dstack[++dstackcnt] = (cell) (value >> bitspercell);
+#endif
 }
 
 static inline ducell DPOP(void) {
+#ifdef NEED_FAKE_INT128_T
+	ducell du;
+	du.hi = (ucell) dstack[dstackcnt--];
+	du.lo = (ucell) dstack[dstackcnt--];
+	return du;
+#else
 	ducell du;
 	du = ((ducell) ((ucell) dstack[dstackcnt--]) << bitspercell);
 	du |= (ucell) dstack[dstackcnt--];
 	return du;
+#endif
 }
 
 static inline ucell GETTOS(void) {

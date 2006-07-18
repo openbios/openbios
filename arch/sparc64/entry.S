@@ -35,6 +35,7 @@ entry:
         ! Extract NWINDOWS from %ver
         rdpr    %ver, %g1
         and     %g1, 0xf, %g1
+        dec     %g1
         wrpr    %g1, 0, %cleanwin
         wrpr    %g1, 0, %cansave
         wrpr    %g0, 0, %canrestore
@@ -102,9 +103,9 @@ entry:
 	bne	1b
 	 nop
 
-	! setup .rodata
+	! setup .rodata, also make .text readable
 	setx	_data, %g7, %g5
-	setx	_rodata, %g7, %g4
+	setx	_start, %g7, %g4
         sub     %g5, %g4, %g5
         srlx    %g5, 16, %g6			! %g6 = # of 64k .rodata pages
 	set	48, %g7

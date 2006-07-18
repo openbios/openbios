@@ -74,13 +74,15 @@ static inline void out_8(volatile unsigned char *addr, int val)
 
 static inline int in_le16(volatile unsigned short *addr)
 {
-    int ret;
+    int ret, tmp;
 
     // XXX
     __asm__ __volatile__("lduha [%1] 0x15, %0\n\t"
                          :"=r"(ret):"r"(addr):"memory");
 
-    return ret;
+    tmp = (ret << 8) & 0xff00;
+    tmp |= (ret >> 8) & 0xff;
+    return tmp;
 }
 
 static inline int in_be16(volatile unsigned short *addr)
@@ -95,9 +97,13 @@ static inline int in_be16(volatile unsigned short *addr)
 
 static inline void out_le16(volatile unsigned short *addr, int val)
 {
+    unsigned tmp;
+
     // XXX
+    tmp = (val << 8) & 0xff00;
+    tmp |= (val >> 8) & 0xff;
     __asm__ __volatile__("stha %0, [%1] 0x15\n\t"
-                         : : "r"(val), "r"(addr):"memory");
+                         : : "r"(tmp), "r"(addr):"memory");
 }
 
 static inline void out_be16(volatile unsigned short *addr, int val)
@@ -108,13 +114,17 @@ static inline void out_be16(volatile unsigned short *addr, int val)
 
 static inline unsigned in_le32(volatile unsigned *addr)
 {
-    unsigned ret;
+    unsigned ret, tmp;
 
     // XXX
     __asm__ __volatile__("lduwa [%1] 0x15, %0\n\t"
                          :"=r"(ret):"r"(addr):"memory");
 
-    return ret;
+    tmp = ret << 24;
+    tmp |= (ret << 8) & 0xff0000;
+    tmp |= (ret >> 8) & 0xff00;
+    tmp |= (ret >> 24) & 0xff;
+    return tmp;
 }
 
 static inline unsigned in_be32(volatile unsigned *addr)
@@ -129,9 +139,14 @@ static inline unsigned in_be32(volatile unsigned *addr)
 
 static inline void out_le32(volatile unsigned *addr, int val)
 {
+    unsigned tmp;
     // XXX
+    tmp = val << 24;
+    tmp |= (val << 8) & 0xff0000;
+    tmp |= (val >> 8) & 0xff00;
+    tmp |= (val >> 24) & 0xff;
     __asm__ __volatile__("stwa %0, [%1] 0x15\n\t"
-                         : : "r"(val), "r"(addr):"memory");
+                         : : "r"(tmp), "r"(addr):"memory");
 }
 
 static inline void out_be32(volatile unsigned *addr, int val)

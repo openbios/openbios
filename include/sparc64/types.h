@@ -13,6 +13,16 @@
 
 #include <stdint.h>
 
+#ifdef NEED_FAKE_INT128_T
+typedef struct {
+    uint64_t hi;
+    uint64_t lo;
+} blob_128_t;
+
+typedef blob_128_t __int128_t;
+typedef blob_128_t __uint128_t;
+#endif
+
 /* cell based types */
 typedef int64_t		 cell;
 typedef uint64_t	ucell;

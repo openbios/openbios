@@ -43,11 +43,11 @@ static int errors = 0;
 static int segfault = 0;
 int verbose = 0;
 
-static FILE *srcfiles[64];
+static FILE *srcfiles[128];
 static unsigned int cursrc = 0;
 
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
-unsigned long base_address;
+ucell base_address;
 #endif
 
 /* include path handling */
@@ -116,7 +116,7 @@ static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, 
 		bit=i&~(-BITS);
 		
 		if(d1[i]==d2[i]) {
-			reloc_table[pos] &= target_ucell(~(1UL<<bit));
+			reloc_table[pos] &= target_ucell(~((ucell)1UL<<bit));
 			
 			// This check might bring false positives in data.
 			//if(d1[i] >= pointer2cell(dict_one) &&
@@ -124,7 +124,7 @@ static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, 
 			//	printk("\nWARNING: inconsistent relocation (%x:%x)!\n", d1[i], d2[i]);
 		} else {
 			/* This is a pointer, it needs relocation, d2==dict */
-			reloc_table[pos] |= target_ucell(1UL<<bit);
+			reloc_table[pos] |= target_ucell((ucell)1UL<<bit);
 			d2[i] = target_ucell(target_ucell(d2[i]) - pointer2cell(d2));
 		}
 	}
@@ -792,9 +792,9 @@ segv_handler(int signo __attribute__ ((unused)),
 		addr = read_cell(cell2pointer(PC));
 
 	printk("panic: segmentation violation at %p\n", (char *)si->si_addr);
-	printk("dict=%p here=%p(dict+0x%x) pc=0x%x(dict+0x%x)\n",
+	printk("dict=%p here=%p(dict+0x%" FMT_CELL_x ") pc=0x%" FMT_CELL_x "(dict+0x%" FMT_CELL_x ")\n",
 	       dict, dict + dicthead, dicthead, PC, PC - pointer2cell(dict));
-	printk("dstackcnt=%d rstackcnt=%d instruction=%x\n",
+	printk("dstackcnt=%d rstackcnt=%d instruction=%" FMT_CELL_x "\n",
 	       dstackcnt, rstackcnt, addr);
 
 	printdstack();
@@ -833,7 +833,7 @@ void exception(cell no)
 		printk(" undefined word.\n");
 		break;
 	default:
-		printk("\nError %d occured.\n", no);
+		printk("\nError %" FMT_CELL_d " occured.\n", no);
 	}
 	exit(1);
 }

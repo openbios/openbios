@@ -49,8 +49,8 @@ static void init_memory(void)
 	 * than that we have serious bloat.
 	 */
 
-	PUSH((unsigned int)&_heap);
-	PUSH((unsigned int)&_eheap);
+	PUSH((ucell)&_heap);
+	PUSH((ucell)&_eheap);
 }
 
 static void
@@ -128,6 +128,5 @@ int openbios(void)
 #endif
 
 	enterforth((xt_t)PC);
-
 	return 0;
 }
