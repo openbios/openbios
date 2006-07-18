@@ -1,5 +1,6 @@
 ARCH= $(shell cat rules.xml |grep "^ARCH" |cut -d\= -f2|tr -d \ )
 HOSTARCH=$(shell config/scripts/archname)
+CROSSCFLAGS=$(shell config/scripts/crosscflags $(HOSTARCH) $(ARCH))
 ODIR=obj-$(ARCH)
 
 all: info build
@@ -53,12 +54,12 @@ xml: directories
 
 build: xml
 	@printf "Building..."
-	@( $(MAKE) -f $(ODIR)/Makefile > $(ODIR)/build.log 2>&1 && echo "ok." ) || \
+	@( $(MAKE) -f $(ODIR)/Makefile CROSSCFLAGS=$(CROSSCFLAGS) > $(ODIR)/build.log 2>&1 && echo "ok." ) || \
 		( echo "error:"; tail -15 $(ODIR)/build.log )
 
 build-verbose:
 	@echo "Building..."
-	$(MAKE) -f $(ODIR)/Makefile
+	$(MAKE) -f $(ODIR)/Makefile "CROSSCFLAGS=$(CROSSCFLAGS)"
 
 run: 
 	@echo "Running..."

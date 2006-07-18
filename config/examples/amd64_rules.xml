@@ -9,7 +9,6 @@
 ARCH := amd64
 ODIR := obj-$(ARCH)
 HOSTCC := gcc
-CROSSCFLAGS := -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS
 HOSTCFLAGS := -O -g -fprofile-arcs -ftest-coverage -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 

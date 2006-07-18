@@ -14,30 +14,6 @@
  * unchanged memory access for performance.
  */
 
-#if 0
-// This is being moved to rules.xml for now.
-
-#ifdef FCOMPILER
-
-/* FIXME these should be automatically determinded. 
- * Manually setting them here is a PITA.
- */
-
-#define NATIVE_BITWIDTH_LARGER_THAN_HOST_BITWIDTH
-//#define NATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH
-//#define NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
-
-//#define SWAP_ENDIANNESS
-#undef SWAP_ENDIANNESS
-
-#else /* FCOMPILER */
-
-#define NATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH
-#undef SWAP_ENDIANNESS
-
-#endif
-#endif 
-
 /* byte swapping */
 
 #ifndef SWAP_ENDIANNESS
