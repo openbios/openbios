@@ -8,8 +8,8 @@ fi
 
 ARCH=$1
 
-rm rules.xml
-rm config.xml
+rm -f rules.xml
+rm -f config.xml
 ln -s config/examples/${ARCH}_rules.xml rules.xml
 ln -s config/examples/${ARCH}_config.xml config.xml
 

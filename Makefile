@@ -1,9 +1,17 @@
-ARCH= $(shell cat rules.xml |grep "^ARCH" |cut -d\= -f2|tr -d \ )
+ARCH= $(shell test -r rules.xml && cat rules.xml |grep "^ARCH" |cut -d\= -f2|tr -d \ )
 HOSTARCH=$(shell config/scripts/archname)
 CROSSCFLAGS=$(shell config/scripts/crosscflags $(HOSTARCH) $(ARCH))
 ODIR=obj-$(ARCH)
 
-all: info build
+all: archtest info build
+
+archtest: prepare
+	@test -r config.xml -a -r rules.xml || \
+		( echo ; echo "Please run the following command first:"; echo ; \
+		  echo "  $$ config/scripts/switch-arch <arch>"; \
+		  echo; echo "<arch> can be one out of x86, amd64, cross-ppc, ppc"; \
+		  echo "       cross-sparc32, sparc32, cross-sparc64, sparc64"; \
+		  echo; exit 1 )
 
 info:
 	@echo "Building OpenBIOS on $(HOSTARCH) for $(ARCH)"
@@ -41,6 +49,14 @@ directories: clean
 	@#ln -s $(PWD)/include/$(HOSTARCH) $(ODIR)/host/include/asm
 	@echo "ok."
 
+# This is needed because viewvc messes with the permissions of executables:
+prepare:
+	@chmod 755 utils/dist/debian/rules
+	@chmod 755 config/scripts/switch-arch
+	@chmod 755 config/scripts/archname
+	@chmod 755 config/scripts/reldir
+	@chmod 755 config/scripts/crosscflags
+
 xml: directories
 	@printf "Creating target Makefile..."
 	@xsltproc config/xml/xinclude.xsl build.xml > $(ODIR)/build-full.xml
@@ -54,7 +70,7 @@ xml: directories
 
 build: xml
 	@printf "Building..."
-	@( $(MAKE) -f $(ODIR)/Makefile CROSSCFLAGS=$(CROSSCFLAGS) > $(ODIR)/build.log 2>&1 && echo "ok." ) || \
+	@( $(MAKE) -f $(ODIR)/Makefile "CROSSCFLAGS=$(CROSSCFLAGS)" > $(ODIR)/build.log 2>&1 && echo "ok." ) || \
 		( echo "error:"; tail -15 $(ODIR)/build.log )
 
 build-verbose:
