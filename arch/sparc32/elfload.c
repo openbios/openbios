@@ -302,7 +302,8 @@ static Elf_Bhdr *build_boot_notes(struct sys_info *info, const char *cmdline)
     return bhdr;
 }
 
-int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
+int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
+             const void *romvec)
 {
     Elf_ehdr ehdr;
     Elf_phdr *phdr = NULL;
@@ -383,14 +384,8 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
 #if 1
     {
-        extern unsigned int qemu_mem_size;
-        extern char boot_device;
-        void *init_openprom(unsigned long memsize, const char *cmdline, char boot_device);
-
         int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
-        const void *romvec;
 
-        romvec = init_openprom(qemu_mem_size, cmdline, boot_device);
         entry = (void *) addr_fixup(ehdr.e_entry);
         image_retval = entry(romvec, 0, 0, 0, 0);
     }

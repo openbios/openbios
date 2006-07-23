@@ -25,6 +25,17 @@
 			path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
 	} while(0)
 
+#define REGISTER_NODE_METHODS( name, path )   do {                      \
+        const char *paths[1];                                                  \
+                                                                        \
+        paths[0] = path;                                                \
+        bind_node( name##_flags_, name##_size_,                         \
+                   paths, 1, name##_m, sizeof(name##_m)/sizeof(method_t)); \
+    } while(0)
+
+#define	PROMDEV_KBD	0		/* input from keyboard */
+#define	PROMDEV_SCREEN	0		/* output to screen */
+#define	PROMDEV_TTYA	1		/* in/out to ttya */
 
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_obio, INSTALL_OPEN, sizeof(int) );
@@ -88,10 +99,145 @@ ob_intr(int intr)
     fword("property");
 }
 
+// XXX move all arch/sparc32/console.c stuff here
+#define CTRL(addr) (*(char *)(addr))
+#define DATA(addr) (*(char *)(addr + 2))
+
+/* Read Register 0 */
+#define	Rx_CH_AV	0x1	/* Rx Character Available */
+#define	Tx_BUF_EMP	0x4	/* Tx Buffer empty */
+
+static int uart_charav(int port)
+{
+    return (CTRL(port) & Rx_CH_AV) != 0;
+}
+
+static char uart_getchar(int port)
+{
+    while (!uart_charav(port));
+
+    return DATA(port) & 0177;
+}
+
+static void uart_putchar(int port, unsigned char c)
+{
+	if (c == '\n')
+		uart_putchar(port, '\r');
+	while (!(CTRL(port) & Tx_BUF_EMP));
+
+        DATA(port) = c;
+}
+
+/* ( addr len -- actual ) */
+static void
+zs_read(unsigned long *address)
+{
+    char *addr;
+    int len;
+
+    len = POP();
+    addr = (char *)POP();
+
+    if (len != 1)
+        printk("zs_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
+
+    if (uart_charav(*address)) {
+        *addr = (char)uart_getchar(*address);
+        PUSH(1);
+    } else {
+        PUSH(0);
+    }
+}
+
+int keyboard_dataready(void);
+unsigned char keyboard_readdata(void);
+
+/* ( addr len -- actual ) */
+static void
+zs_read_keyboard(unsigned long *address)
+{
+    unsigned char *addr;
+    int len;
+
+    len = POP();
+    addr = (unsigned char *)POP();
+
+    if (len != 1)
+        printk("zs_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
+
+    if (keyboard_dataready()) {
+        *addr = keyboard_readdata();
+        PUSH(1);
+    } else {
+        PUSH(0);
+    }
+}
+
+/* ( addr len -- actual ) */
+static void
+zs_write(unsigned long *address)
+{
+    unsigned char *addr;
+    int i, len;
+
+    len = POP();
+    addr = (unsigned char *)POP();
+
+     for (i = 0; i < len; i++) {
+        uart_putchar(*address, addr[i]);
+    }
+    PUSH(len);
+}
+
+static void
+zs_close(void)
+{
+}
+
+static void
+zs_open(unsigned long *address)
+{
+    int len;
+    phandle_t ph;
+    unsigned long *prop;
+    char *args;
+
+    fword("my-self");
+    fword("ihandle>phandle");
+    ph = (phandle_t)POP();
+    prop = (unsigned long *)get_property(ph, "address", &len);
+    *address = *prop;
+    fword("my-args");
+    args = pop_fstr_copy();
+    if (args && args[0] == 'a')
+        *address += 4;
+
+    //printk("zs_open: address %lx, args %s\n", *address, args);
+    RET ( -1 );
+}
+
+DECLARE_UNNAMED_NODE(zs, INSTALL_OPEN, sizeof(unsigned long));
+
+NODE_METHODS(zs) = {
+	{ "open",               zs_open              },
+	{ "close",              zs_close             },
+	{ "read",               zs_read              },
+	{ "write",              zs_write             },
+};
+
+DECLARE_UNNAMED_NODE(zs_keyboard, INSTALL_OPEN, sizeof(unsigned long));
+
+NODE_METHODS(zs_keyboard) = {
+	{ "open",               zs_open              },
+	{ "close",              zs_close             },
+	{ "read",               zs_read_keyboard     },
+};
 
 static void
 ob_zs_init(unsigned long base, unsigned long offset, int intr, int slave, int keyboard)
 {
+    char nodebuff[256];
+
     ob_new_obio_device("zs", "serial");
 
     ob_reg(base, offset, ZS_REGS, 1);
@@ -116,6 +262,13 @@ ob_zs_init(unsigned long base, unsigned long offset, int intr, int slave, int ke
     ob_intr(intr);
 
     fword("finish-device");
+
+    sprintf(nodebuff, "/obio/zs@0,%x", offset);
+    if (keyboard) {
+        REGISTER_NODE_METHODS(zs_keyboard, nodebuff);
+    } else {
+        REGISTER_NODE_METHODS(zs, nodebuff);
+    }
 }
 
 static char *nvram;
@@ -147,8 +300,12 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     extern uint32_t cmdline;
     extern uint32_t cmdline_size;
     extern char boot_device;
+    extern char obp_stdin, obp_stdout;
+    extern const char *obp_stdin_path, *obp_stdout_path;
 
+    const char *stdin, *stdout;
     unsigned int i;
+    char nographic;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -171,6 +328,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     cmdline = nv_info.cmdline;
     cmdline_size = nv_info.cmdline_size;
     boot_device = nv_info.boot_device;
+    nographic = nv_info.nographic;
 
     push_str("mk48t08");
     fword("model");
@@ -301,6 +459,35 @@ ob_nvram_init(unsigned long base, unsigned long offset)
 	
         fword("finish-device");
     }
+
+    if (nographic) {
+        obp_stdin = PROMDEV_TTYA;
+        obp_stdout = PROMDEV_TTYA;
+        stdin = "/obio/zs@0,100000:a";
+        stdout = "/obio/zs@0,100000:a";
+    } else {
+        obp_stdin = PROMDEV_KBD;
+        obp_stdout = PROMDEV_SCREEN;
+        stdin = "/obio/zs@0,0:a";
+        stdout = "/iommu/sbus/SUNW,tcx";
+    }
+
+    push_str("/");
+    fword("find-device");
+    push_str(stdin);
+    fword("encode-string");
+    push_str("stdin-path");
+    fword("encode-string");
+    fword("property");
+
+    push_str(stdout);
+    fword("encode-string");
+    push_str("stdout-path");
+    fword("encode-string");
+    fword("property");
+
+    obp_stdin_path = stdin;
+    obp_stdout_path = stdout;
 }
 
 static void

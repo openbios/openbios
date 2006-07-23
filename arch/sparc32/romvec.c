@@ -33,8 +33,9 @@ static struct linux_mlist_v0 totavail[1];
 static struct linux_mlist_v0 *ptphys;
 static struct linux_mlist_v0 *ptmap;
 static struct linux_mlist_v0 *ptavail;
-static char obp_stdin, obp_stdout;
+char obp_stdin, obp_stdout;
 static int obp_fd_stdin, obp_fd_stdout;
+const char *obp_stdin_path, *obp_stdout_path;
 
 static int obp_nextnode(int node);
 static int obp_child(int node);
@@ -45,7 +46,7 @@ static const char *obp_nextprop(int node, char *name);
 static int obp_devread(int dev_desc, char *buf, int nbytes);
 static int obp_devseek(int dev_desc, int hi, int lo);
 
-static struct linux_arguments_v0 obp_arg;
+struct linux_arguments_v0 obp_arg;
 static const struct linux_arguments_v0 * const obp_argp = &obp_arg;
 
 static void (*sync_hook)(void);
@@ -444,7 +445,7 @@ static void obp_fortheval_v2(char *str)
 }
 
 void *
-init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
+init_openprom(unsigned long memsize)
 {
     free_ram = va2pa((int)&_data) - PAGE_SIZE;
 
@@ -503,50 +504,17 @@ init_openprom(unsigned long memsize, const char *cmdline, char boot_device)
     romvec0.pv_v2devops.v2_dev_read = obp_devread;
     romvec0.pv_v2devops.v2_dev_write = obp_devwrite;
     romvec0.pv_v2devops.v2_dev_seek = obp_devseek;
-    obp_arg.boot_dev_ctrl = 0;
-    obp_arg.boot_dev_unit = 0;
-    obp_arg.dev_partition = 0;
-    obp_arg.argv[0] = "sd(0,0,0):d";
-
-    switch(boot_device) {
-    default:
-    case 'a':
-        obp_arg.argv[0] = "fd()";
-        obp_arg.boot_dev[0] = 'f';
-        obp_arg.boot_dev[1] = 'd';
-        break;
-    case 'd':
-        obp_arg.boot_dev_unit = 2;
-	// FIXME: hardcoding this looks almost definitely wrong.
-	// With sd(0,2,0):b we get to see the solaris kernel though
-        //obp_arg.argv[0] = "sd(0,2,0):d";
-        obp_arg.argv[0] = "sd(0,2,0):b";
-        // Fall through
-    case 'c':
-        obp_arg.boot_dev[0] = 's';
-        obp_arg.boot_dev[1] = 'd';
-        break;
-    case 'n':
-        obp_arg.argv[0] = "le()";
-        obp_arg.boot_dev[0] = 'l';
-        obp_arg.boot_dev[1] = 'e';
-        break;
-    }
-    obp_arg.argv[1] = cmdline;
     romvec0.pv_v2bootargs.bootpath = &obp_arg.argv[0];
     romvec0.pv_v2bootargs.bootargs = &obp_arg.argv[1];
     romvec0.pv_v2bootargs.fd_stdin = &obp_fd_stdin;
     romvec0.pv_v2bootargs.fd_stdout = &obp_fd_stdout;
 
-    push_str("/builtin/console");
+    push_str(obp_stdin_path);
     fword("open-dev");
     obp_fd_stdin = POP();
-    push_str("/builtin/console");
+    push_str(obp_stdout_path);
     fword("open-dev");
     obp_fd_stdout = POP();
-    
-    obp_stdin = PROMDEV_TTYA;
-    obp_stdout = PROMDEV_TTYA;
 
     romvec0.v3_cpustart = obp_cpustart;
     romvec0.v3_cpustop = obp_cpustop;

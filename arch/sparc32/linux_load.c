@@ -578,7 +578,8 @@ static int start_linux(uint32_t kern_addr, struct linux_params *params)
     return ctx->regs[REG_O0];
 }
 
-int linux_load(struct sys_info *info, const char *file, const char *cmdline)
+int linux_load(struct sys_info *info, const char *file, const char *cmdline,
+               const void *romvec)
 {
     struct linux_header hdr;
     struct linux_params *params;

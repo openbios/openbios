@@ -242,11 +242,32 @@ video_fill_rect( void )
 	fill_rect( color_ind, x, y, w, h );
 }
 
+/* ( addr len -- actual ) */
+static void
+video_write(void)
+{
+    char *addr;
+    int i, len;
+
+    len = GETTOS();
+    addr = pop_fstr_copy();
+
+    console_draw_str(addr);
+    PUSH(len);
+}
+
+static void
+video_open(void)
+{
+}
+
 NODE_METHODS( video ) = {
+	{"open",		video_open		},
 	{"dimensions",		video_dimensions	},
 	{"set-colors",		video_set_colors	},
 	{"fill-rectangle",	video_fill_rect		},
 	{"color!",		video_color_bang	},
+	{"write",		video_write		},
 };
 
 

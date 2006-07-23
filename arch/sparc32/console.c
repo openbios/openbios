@@ -192,13 +192,13 @@ static const unsigned char sunkbd_keycode_shifted[128] = {
 
 static int shiftstate;
 
-static int
+int
 keyboard_dataready(void)
 {
     return ((inb(KBD_BASE) & 1) == 1);
 }
 
-static unsigned char
+unsigned char
 keyboard_readdata(void)
 {
     unsigned char ch;

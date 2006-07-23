@@ -9,10 +9,6 @@
   " SUNW,501-3059" encode-string " model" property
   h# 0a21fe80 encode-int " clock-frequency" property
   
-  " /obio/zs@0,100000:a" encode-string " stdin-path" property
-  " /obio/zs@0,100000:a" encode-string " stdout-path" property
-
-  
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
 
