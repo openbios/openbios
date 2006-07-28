@@ -225,22 +225,23 @@ void outl(u32 reg, u32 val)
  * terminal initialization and cleanup.
  */
 
+static struct termios saved_termios;
+
 static void init_terminal(void)
 {
 	struct termios termios;
 
+	tcgetattr(0, &saved_termios);
 	tcgetattr(0, &termios);
 	termios.c_lflag &= ~(ICANON | ECHO);
+        termios.c_cc[VMIN] = 1;
+        termios.c_cc[VTIME] = 3; // 300 ms
 	tcsetattr(0, 0, &termios);
 }
 
 static void exit_terminal(void)
 {
-	struct termios termios;
-
-	tcgetattr(0, &termios);
-	termios.c_lflag |= (ICANON | ECHO);
-	tcsetattr(0, 0, &termios);
+	tcsetattr(0, 0, &saved_termios);
 }
 
 /*
@@ -284,6 +285,21 @@ segv_handler(int signo __attribute__ ((unused)),
       out:
 	exit_terminal();
 	exit(1);
+}
+
+/*
+ *  Interrupt handler. linux specific?
+ *  Restore terminal state on ctrl-C.
+ */
+
+static void
+int_handler(int signo __attribute__ ((unused)),
+            siginfo_t * si __attribute__ ((unused)),
+            void *context __attribute__ ((unused)))
+{
+    printk("\n");
+    exit_terminal();
+    exit(1);
 }
 
 /* 
@@ -461,6 +477,18 @@ int main(int argc, char *argv[])
 
 	/* set terminal to do non blocking reads */
 	init_terminal();
+
+        if (verbose)
+            printk("Installing SIGINT handler...");
+
+        sa.sa_sigaction = int_handler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = SA_SIGINFO | SA_NODEFER;
+        sigaction(SIGINT, &sa, 0);
+
+        if (verbose)
+            printk("done.\n");
+
 	read_dictionary(argv[optind]);
 
 	PUSH_xt( bind_noname_func(arch_init) );

@@ -593,7 +593,7 @@ static void store(void)
 	const ucell *aaddr = (ucell *)cell2pointer(POP());
 	const ucell x = POP();
 #ifdef CONFIG_DEBUG_INTERNAL
-	printf("!: %lx : %lx -> %lx\n", aaddr, read_ucell(aaddr), x);
+	printk("!: %lx : %lx -> %lx\n", aaddr, read_ucell(aaddr), x);
 #endif
 	write_ucell(aaddr,x);
 }
