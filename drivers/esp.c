@@ -113,6 +113,8 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     esp->espdma.regs->cond_reg = 0;
     // Set ATN, issue command
     esp->ll->regs[ESP_CMD] = ESP_CMD_SELA | ESP_CMD_DMA;
+    // Wait for DMA to complete. Can this fail?
+    while ((esp->espdma.regs->cond_reg & DMA_HNDL_INTR) == 0) /* no-op */;
     // Check status
     status = esp->ll->regs[ESP_STATUS];
 
@@ -129,6 +131,8 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     esp->espdma.regs->cond_reg = DMA_ST_WRITE;
     // Transfer
     esp->ll->regs[ESP_CMD] = ESP_CMD_TI | ESP_CMD_DMA;
+    // Wait for DMA to complete
+    while ((esp->espdma.regs->cond_reg & DMA_HNDL_INTR) == 0) /* no-op */;
     // Check status
     status = esp->ll->regs[ESP_STATUS];
 
