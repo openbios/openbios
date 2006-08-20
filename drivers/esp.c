@@ -118,7 +118,12 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     // Check status
     status = esp->ll->regs[ESP_STATUS];
 
-    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT)
+    DPRINTF("do_command: id %d, cmd[0] 0x%x, status 0x%x\n", sd->id, esp->buffer[0], status);
+
+    // Target didn't want all command data or went to status phase
+    // instead of data phase?
+    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT
+        || (status & ESP_STAT_PMASK) == ESP_STATP)
         return status;
     
     // Get reply
@@ -135,6 +140,8 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     while ((esp->espdma.regs->cond_reg & DMA_HNDL_INTR) == 0) /* no-op */;
     // Check status
     status = esp->ll->regs[ESP_STATUS];
+
+    DPRINTF("do_command_reply: status 0x%x\n", status);
 
     if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT)
         return status;
