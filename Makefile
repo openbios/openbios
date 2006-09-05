@@ -3,7 +3,7 @@ HOSTARCH=$(shell config/scripts/archname)
 CROSSCFLAGS=$(shell config/scripts/crosscflags $(HOSTARCH) $(ARCH))
 ODIR=obj-$(ARCH)
 
-all: archtest info build
+all: requirements archtest info build
 
 archtest: prepare
 	@test -r config.xml -a -r rules.xml || \
@@ -12,6 +12,14 @@ archtest: prepare
 		  echo; echo "<arch> can be one out of x86, amd64, cross-ppc, ppc"; \
 		  echo "       cross-sparc32, sparc32, cross-sparc64, sparc64"; \
 		  echo; exit 1 )
+
+requirements:
+	@which toke &>/dev/null || ( echo ; echo "Please install the OpenBIOS fcode utilities."; \
+			echo; echo "Download with :"; \
+			echo "  $$ svn co svn://openbios.org/openbios/fcode-utils"; \
+			echo; exit 1 )
+	@which xsltproc &>/dev/null || ( echo ; echo "Please install libxslt2"; \
+			echo; exit 1 )
 
 info:
 	@echo "Building OpenBIOS on $(HOSTARCH) for $(ARCH)"
@@ -42,7 +50,6 @@ directories: clean
 	@mkdir -p $(ODIR)/target/libc
 	@mkdir -p $(ODIR)/host/include
 	@mkdir -p $(ODIR)/host/kernel
-	@mkdir -p $(ODIR)/host/toke
 	@mkdir -p $(ODIR)/forth
 	@ln -s $(PWD)/include/$(ARCH) $(ODIR)/target/include/asm
 	@#compile the host binary with target settings instead

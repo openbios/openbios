@@ -2,7 +2,6 @@
 <xmlmake>
  <project name="openbios">
   <include href="kernel/build.xml"/>
-  <include href="toke/build.xml"/>
   <include href="forth/build.xml"/>
   <include href="libc/build.xml"/>
   <include href="libgcc/build.xml"/>

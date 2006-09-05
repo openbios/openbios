@@ -71,6 +71,8 @@ Requirements
 ------------
  * gcc
  * gnu make
+ * OpenBIOS FCode Utils
+   Download with svn co svn://openbios.org/openbios/fcode-utils
  * grub or any other multiboot loader to run the multiboot
    binary "openbios.multiboot" with it's module "openbios-<platform>.dict"
  * xsltproc
