@@ -450,7 +450,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         push_str("mask_rev");
         fword("property");
 
-        PUSH(i << 3);
+        PUSH(i);
         fword("encode-int");
         push_str("mid");
         fword("property");
@@ -625,9 +625,9 @@ start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context, int c
     if (!cpu)
         return -1;
 
-    nvram[0x38] = pc;
-    nvram[0x3c] = context_ptr;
-    nvram[0x40] = context;
+    *(uint32_t *)&nvram[0x38] = pc;
+    *(uint32_t *)&nvram[0x3c] = context_ptr;
+    *(uint32_t *)&nvram[0x40] = context;
     nvram[0x2e] = cpu & 0xff;
 
     intregs->cpu_intregs[cpu].set = SUN4M_SOFT_INT(14);
