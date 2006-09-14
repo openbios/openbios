@@ -22,8 +22,8 @@
 typedef struct {
 	int		fd;
 	
-	ullong		offs;
-	ullong		size;
+	ducell		offs;
+	ducell		size;
 	int		type;		/* partition type or -1 */
 
 	ihandle_t	part_ih;

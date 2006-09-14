@@ -84,7 +84,7 @@
 
 #define unaligned_write_long(addr, value) \
 	unaligned_write_word(addr, value & 0xffff); \
-	unaligned_write_word(addr, value >> 16)
+	unaligned_write_word(addr + 2, value >> 16)
 
 #endif
 
@@ -100,7 +100,7 @@
 
 #define unaligned_write_long(addr, value) \
 	unaligned_write_word(addr, value >> 16); \
-	unaligned_write_word(addr, value & 0xffff)
+	unaligned_write_word(addr + 2, value & 0xffff)
 #endif
 
 /* bit width handling */

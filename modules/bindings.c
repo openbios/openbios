@@ -33,18 +33,18 @@ push_str( const char *str )
 }
 
 /* WARNING: sloooow - AVOID */
-int
+cell
 feval( const char *str )
 {
 	push_str( str );
 	return eword("evaluate", 2);
 }
 
-int
+cell
 _eword( const char *word, xt_t *cache_xt, int nargs )
 {
 	static xt_t catch_xt = 0;
-	int ret = -1;
+	cell ret = -1;
 
 	if( !catch_xt )
 		catch_xt = findword("catch");
@@ -285,10 +285,10 @@ set_property( phandle_t ph, const char *name, const char *buf, int len )
 }
 
 void
-set_int_property( phandle_t ph, const char *name, int val )
+set_int_property( phandle_t ph, const char *name, cell val )
 {
-	int swapped=__cpu_to_be32(val);
-	set_property( ph, name, (char*)&swapped, 4 );
+	cell swapped=__cpu_to_becell(val);
+	set_property( ph, name, (char*)&swapped, sizeof(cell) );
 }
 
 char *
@@ -310,14 +310,14 @@ get_property( phandle_t ph, const char *name, int *retlen )
 	return (char*)POP();
 }
 
-int
+cell
 get_int_property( phandle_t ph, const char *name, int *retlen )
 {
-	int *p;
+	cell *p;
 	
-	if( !(p=(int*)get_property(ph, name, retlen)) )
+	if( !(p=(cell *)get_property(ph, name, retlen)) )
 		return 0;
-	return *p;
+	return __becell_to_cpu(*p);
 }
 
 
@@ -423,7 +423,7 @@ make_openable( int only_parents )
 static void
 call1_func( void )
 {
-	void (*func)(int v);
+	void (*func)(cell v);
 	func = (void*)POP();
 
 	(*func)( POP() );

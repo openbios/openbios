@@ -61,8 +61,8 @@ extern void		close_dev( ihandle_t ih );
 extern void		set_property( phandle_t ph, const char *name,
 				      const char *buf, int len );
 extern void		set_int_property( phandle_t ph, const char *name,
-					  int val );
-extern int		get_int_property( phandle_t ph, const char *name,
+					  cell val );
+extern cell		get_int_property( phandle_t ph, const char *name,
 					  int *retlen );
 extern char		*get_property( phandle_t ph, const char *name,
 				       int *retlen );
@@ -76,7 +76,7 @@ static inline phandle_t dt_find_type( const char *type ) {
 }
 
 /* forth bindings */
-extern int		feval( const char *str );
+extern cell		feval( const char *str );
 extern void		bind_xtfunc( const char *name, xt_t xt,
 				     ucell arg, void (*func)(void) );
 extern void		bind_func( const char *name, void (*func)(void) );
@@ -85,7 +85,7 @@ extern void		push_str( const char *str );
 extern char		*pop_fstr_copy( void );
 
 extern int		_fword( const char *word, xt_t *cache_xt );
-extern int		_eword( const char *word, xt_t *cache_xt, int nargs );
+extern cell		_eword( const char *word, xt_t *cache_xt, int nargs );
 extern int		_selfword( const char *method, xt_t *cache_xt );
 extern int		_parword( const char *method, xt_t *cache_xt );
 

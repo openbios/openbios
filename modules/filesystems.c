@@ -203,7 +203,7 @@ static void
 files_seek( files_info_t *mi )
 {
 	llong pos = DPOP();
-	int ret;
+	cell ret;
 	
 	if( mi->file ) {
 		int offs = (int)pos;

@@ -115,14 +115,14 @@ static void lit(void)
 
 static void docon(void)
 {				/* DOCON */
-	ucell tmp = read_cell(cell2pointer(read_ucell(cell2pointer(PC)) + sizeof(ucell)));
+	ucell tmp = read_ucell(cell2pointer(read_ucell(cell2pointer(PC)) + sizeof(ucell)));
 	PUSH(tmp);
 	dbg_interp_printk("docon: PC=%x, value=%x\n", PC, tmp);
 }
 
 static void dovar(void)
 {				/* DOVAR */
-	ucell tmp = read_cell(cell2pointer(PC)) + sizeof(ucell);
+	ucell tmp = read_ucell(cell2pointer(PC)) + sizeof(ucell);
 	PUSH(tmp);		/* returns address to variable */
 	dbg_interp_printk("dovar: PC: %x, %x\n", PC, tmp);
 }

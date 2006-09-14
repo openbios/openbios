@@ -20,7 +20,7 @@
 #include "modules.h"
 
 typedef struct {
-	ullong	mark;
+	ducell	mark;
 	xt_t	read_xt;
 	xt_t	write_xt;
 
@@ -70,14 +70,14 @@ deblk_close( deblk_info_t *di )
 static void
 deblk_seek( deblk_info_t *di )
 {
-	uint pos_hi = POP();
-	uint pos_lo = POP();	
-	ullong mark = ((ullong)pos_hi << 32) | pos_lo;
+	ucell pos_hi = POP();
+	ucell pos_lo = POP();
+	ducell mark = ((ducell)pos_hi << BITS) | pos_lo;
 
 	/* printk("deblk_seek %x %08x\n", pos_hi, pos_lo ); */
 
 	/* -1 means seek to EOF (at least in our implementation) */
-	if( (llong)mark == -1 )
+	if( (dcell)mark == -1 )
 		RET(-1);
 	di->mark = mark;
 	
@@ -102,7 +102,7 @@ typedef struct {
 	int	nblks;
 
 	/* byte operation */
-	int	offs;
+	cell	offs;
 	int	len;
 	char	*data;		/* start of data */
 } work_t;
