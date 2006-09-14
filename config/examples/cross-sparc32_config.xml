@@ -32,7 +32,7 @@
   <option name="CONFIG_DEBUG_OBP" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_IOMMU" type="boolean" value="false"/>
   <option name="CONFIG_SERIAL_PORT" type="integer" value="0"/>
-  <option name="CONFIG_SERIAL_SPEED" type="integer" value="115200"/>
+  <option name="CONFIG_SERIAL_SPEED" type="integer" value="9600"/>
   
  
   <!-- Module Configuration -->

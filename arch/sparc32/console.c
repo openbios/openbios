@@ -33,9 +33,17 @@
 
 /* Write Register 3 */
 #define	RxENAB  	0x1	/* Rx Enable */
+#define	Rx8		0xc0	/* Rx 8 Bits/Character */
+
+/* Write Register 4 */
+#define	SB1		0x4	/* 1 stop bit/char */
+#define	X16CLK		0x40	/* x16 clock mode */
 
 /* Write Register 5 */
+#define	RTS		0x2	/* RTS */
 #define	TxENAB		0x8	/* Tx Enable */
+#define	Tx8		0x60	/* Tx 8 bits/character */
+#define	DTR		0x80	/* DTR */
 
 /* Write Register 14 (Misc control bits) */
 #define	BRENAB 	1	/* Baud rate generator enable */
@@ -65,11 +73,9 @@ static void uart_putchar(int port, unsigned char c)
 
 static void uart_init_line(int port, unsigned long baud)
 {
-        outb(3, CTRL(port)); // reg 3
-        outb(RxENAB, CTRL(port)); // enable rx
-
-        outb(5, CTRL(port)); // reg 5
-        outb(TxENAB, CTRL(port)); // enable tx
+        outb(4, CTRL(port)); // reg 4
+        outb(SB1 | X16CLK, CTRL(port)); // no parity, async, 1 stop
+                                        // bit, 16x clock
 
         baud = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
 
@@ -79,6 +85,15 @@ static void uart_init_line(int port, unsigned long baud)
         outb((baud >> 8) & 0xff, CTRL(port));
         outb(14, CTRL(port)); // reg 14
         outb(BRSRC | BRENAB, CTRL(port));
+
+        outb(3, CTRL(port)); // reg 3
+        outb(RxENAB | Rx8, CTRL(port)); // enable rx, 8 bits/char
+
+        outb(5, CTRL(port)); // reg 5
+        outb(RTS | TxENAB | Tx8 | DTR, CTRL(port)); // enable tx, 8
+                                                    // bits/char, set
+                                                    // RTS & DTR
+
 }
 
 int uart_init(int port, unsigned long speed)
