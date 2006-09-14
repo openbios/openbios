@@ -633,7 +633,7 @@ static void cstore(void)
 static void wstore(void)
 {
 	const u16 *aaddr = (u16 *)cell2pointer(POP());
-	const ucell word = POP();
+	const u16 word = POP();
 	write_word(aaddr, word);
 }
 
@@ -645,7 +645,7 @@ static void wstore(void)
 static void lstore(void)
 {
 	const u32 *aaddr = (u32 *)cell2pointer(POP());
-	const ucell longval = POP();
+	const u32 longval = POP();
 	write_long(aaddr, longval);
 }
 
@@ -750,7 +750,7 @@ static void ffill(void)
 
 static void unalignedwordread(void)
 {
-	unsigned char *addr = (unsigned char *) cell2pointer(POP());
+	const unsigned char *addr = (const unsigned char *) cell2pointer(POP());
 	PUSH(unaligned_read_word(addr));
 }
 
@@ -761,8 +761,8 @@ static void unalignedwordread(void)
 
 static void unalignedwordwrite(void)
 {
-	unsigned char *addr = (unsigned char *) cell2pointer(POP());
-	ucell w = POP();
+	const unsigned char *addr = (const unsigned char *) cell2pointer(POP());
+	u16 w = POP();
 	unaligned_write_word(addr, w);
 }
 
@@ -773,7 +773,7 @@ static void unalignedwordwrite(void)
 
 static void unalignedlongread(void)
 {
-	unsigned char *addr = (unsigned char *) cell2pointer(POP());
+	const unsigned char *addr = (const unsigned char *) cell2pointer(POP());
 	PUSH(unaligned_read_long(addr));
 }
 
@@ -785,7 +785,7 @@ static void unalignedlongread(void)
 static void unalignedlongwrite(void)
 {
 	unsigned char *addr = (unsigned char *) cell2pointer(POP());
-	ucell l = POP();
+	u32 l = POP();
 	unaligned_write_long(addr, l);
 }
 
