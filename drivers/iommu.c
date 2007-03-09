@@ -222,7 +222,7 @@ ob_init_mmu(unsigned long base)
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH(va2pa((unsigned long)&_data) - PAGE_SIZE);
+    PUSH(va2pa((unsigned long)&_start) - PAGE_SIZE);
     fword("encode-int");
     fword("encode+");
     push_str("available");
@@ -295,14 +295,8 @@ init_mmu_swift(unsigned long base)
         l1[i] = SRMMU_ET_INVALID;
     }
 
-    // 1:1 mapping for ROM
-    pa = va = (unsigned long)&_start;
-    for (; va < (unsigned long)&_data; va += PAGE_SIZE, pa += PAGE_SIZE) {
-        map_page(va, pa, 0);
-    }
-
-    // data & bss mapped to end of RAM
-    va = (unsigned long)&_data;
+    // text, rodata, data, and bss mapped to end of RAM
+    va = (unsigned long)&_start;
     for (; va < (unsigned long)&_end; va += PAGE_SIZE) {
         pa = va2pa(va);
         map_page(va, pa, 0);

@@ -108,6 +108,21 @@ static int obp_proplen(int node, char *name)
     }
 }
 
+#if CONFIG_DEBUG_OBP
+static int looks_like_string(char *str, int len)
+{
+    int i;
+    int ret = (str[len-1] == '\0');
+    for (i = 0; i < len-1 && ret; i++)
+    {
+        int ch = str[i] & 0xFF;
+        if (ch < 0x20 || ch > 0x7F)
+            ret = 0;
+    }
+    return ret;
+}
+#endif
+
 static int obp_getprop(int node, char *name, char *value)
 {
     int notfound, found;
@@ -148,7 +163,19 @@ static int obp_getprop(int node, char *name, char *value)
         else
             str = "NULL";
 
-        DPRINTF("obp_getprop(0x%x, %s) = %s\n", node, name, str);
+#if CONFIG_DEBUG_OBP
+        if (looks_like_string(str, len)) {
+            DPRINTF("obp_getprop(0x%x, %s) = %s\n", node, name, str);
+        } else {
+            int i;
+            DPRINTF("obp_getprop(0x%x, %s) = ", node, name);
+            for (i = 0; i < len; i++) {
+                DPRINTF("%02x%s", str[i] & 0xFF, 
+                        (len == 4 || i == len-1) ? "" : " ");
+            }
+            DPRINTF("\n");
+        }
+#endif
 
         return len;
     }
@@ -378,8 +405,22 @@ static void obp_dumb_memfree(__attribute__((unused))char *va,
 
 static char * obp_dumb_memalloc(char *va, unsigned int size)
 {
+    static unsigned int next_free_address = 0xFFEDA000;
+
     free_ram -= size;
     DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size, free_ram);
+
+    // If va is null, the allocator is supposed to pick a "suitable" address.
+    // (See OpenSolaric prom_alloc.c)  There's not any real guidance as
+    // to what might be "suitable".  So we mimic the behavior of a Sun boot
+    // ROM.
+
+    if (va == NULL) {
+        va = next_free_address - size;
+        next_free_address -= size;
+        DPRINTF("obp_dumb_memalloc req null -> 0x%x\n", va);
+    }
+
     obp_dumb_mmap(va, 1, free_ram, size);
 
     return va;
@@ -447,7 +488,7 @@ static void obp_fortheval_v2(char *str)
 void *
 init_openprom(unsigned long memsize)
 {
-    free_ram = va2pa((int)&_data) - PAGE_SIZE;
+    free_ram = va2pa((int)&_start) - PAGE_SIZE;
 
     ptphys = totphys;
     ptmap = totmap;

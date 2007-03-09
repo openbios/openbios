@@ -285,12 +285,24 @@ ob_sd_open(__attribute__((unused))sd_private_t **sd)
 
     selfword("open-deblocker");
 
+#if WHEN_INTERPOSE_IS_FIXED
+    // Buggy implementation of "interpose" breaks SunOS 4.
+    // inst2pkg of the device returned by open() should return
+    // the same phandle regardless of whether any interposition
+    // has happened.  Interpose currently causes inst2pkg to
+    // return the phandle of /packages/misc-files.
+    //
+    // Removing interpose isn't the ideal solution, but it
+    // allows SunOS 4 to load the kernel.  Interpose should
+    // be fixed, then re-enabled.
+
     /* interpose disk-label */
     ph = find_dev("/packages/disk-label");
     fword("my-args");
     PUSH_ph( ph );
     fword("interpose");
-    
+#endif
+
     RET ( -ret );
 }
 

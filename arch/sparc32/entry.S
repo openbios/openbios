@@ -60,15 +60,15 @@ entry:
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
         
 first_cpu:
+        /* Create temporary page tables and map the ROM area to end of
+	RAM. This will be done properly in iommu.c later. */
         set	PHYS_JJ_EEPROM + 0x30, %g1
         lda	[%g1] ASI_M_BYPASS, %g1
-        ! map PROLDATA to PROLBASE+PROLSIZE to end of ram
-        !set	PROLSIZE+0x1000-PROLDATA+PROLBASE, %g2	! add 0x1000 for temp tables
         set     _end, %g3
         set     0xfff, %g2
         add     %g3, %g2, %g3
         andn    %g3, %g2, %g3
-        set     _data, %g2
+        set     _start, %g2
         sub     %g3, %g2, %g3
         set     0x1000, %g4                     ! add 0x1000 for page tables
         add     %g4, %g3, %g2
@@ -128,45 +128,17 @@ first_cpu:
         sta	%g3, [%g2] ASI_M_BYPASS
         add	%g2, 0xa00-0x9e0, %g2			! s+0xa00
 
-        !set	(PROLDATA-PROLBASE)/0x1000, %g6 ! # of .text pages
-        set	_start, %g3
-        set	_data, %g6
-        set	0x1000, %g5
-        sub     %g6, %g3, %g6
-        srl     %g6, 12, %g6                    ! # of .text pages
-1:      srl	%g3, 0x4, %g4
-        or	%g4, ((7 << 2) | 2), %g4	! 4 = U: --X S: --X (rom, execute only)
-        sta	%g4, [%g2] ASI_M_BYPASS
-        add	%g2, 4, %g2
-        add	%g3, %g5, %g3
-        deccc	%g6
-        bne	1b
-         nop
-#if 0
-        !set	(PROLDATA-PROLRODATA)/0x1000, %g6 ! # of .rodata pages
-        set	_data, %g6
-        set	_rodata, %g4
-        sub     %g6, %g4, %g6
-        srl     %g6, 12, %g6                             ! # of .bss pages
-1:      srl	%g3, 0x4, %g4
-        or	%g4, ((0 << 2) | 2), %g4	! 0 = U: R-- S: R-- (rom, read only)
-        sta	%g4, [%g2] ASI_M_BYPASS
-        add	%g2, 4, %g2
-        add	%g3, %g5, %g3
-        deccc	%g6
-        bne	1b
-         nop
-#endif
-        !set	(PROLBASE+PROLSIZE-PROLDATA)/0x1000, %g6 ! # of .bss pages
+        /* Use end of ram for code, rodata, data, and bss
+	sections. SunOS wants to write to trap table... */
         set	_end, %g6
-        set	_data, %g4
+        set	_start, %g4
         sub     %g6, %g4, %g6
-        srl     %g6, 12, %g6                             ! # of .bss pages
-        set	0x1000, %g4
+        srl     %g6, 12, %g6                    ! # of all pages
+        set	0x1000, %g5
         sll	%g7, 0x4, %g3
-        add	%g4, %g3, %g3
+        add	%g5, %g3, %g3                   ! ctx table + 0x1000
 1:      srl	%g3, 0x4, %g4
-        or	%g4, ((7 << 2) | 2), %g4        ! 5 = U: R-- S: RW- (data area, read/write)
+        or	%g4, ((7 << 2) | 2), %g4        ! 7 = U: --- S: RWX
         sta	%g4, [%g2] ASI_M_BYPASS
         add	%g2, 4, %g2
         add	%g3, %g5, %g3
@@ -174,7 +146,25 @@ first_cpu:
         bne	1b
          nop
 
-        mov	%g1, %g3
+        mov	%g1, %g6                        ! %g6 = memory size
+
+        /* Copy the code, rodata and data sections from ROM. */
+        set	0x1000 - 4, %g4
+        sll	%g7, 0x4, %g3
+        add	%g4, %g3, %g3                   ! ctx table + 0x1000 - 4
+        set	_start - 4, %g4                 ! First address of TEXT
+        set	_bss, %g5                       ! Last address of DATA
+        ba	2f
+         nop
+1:
+        lda     [%g4] ASI_M_BYPASS, %g1
+        sta	%g1, [%g3] ASI_M_BYPASS
+2:
+        cmp     %g4, %g5
+        add     %g3, 0x4, %g3
+        bl      1b
+         add    %g4, 0x4, %g4
+
 
         set     AC_M_CTPR, %g2
         sta     %g7, [%g2] ASI_M_MMUREGS	! set ctx table ptr
@@ -196,19 +186,6 @@ first_cpu:
         wr	%g2, 0x0, %psr
         WRITE_PAUSE
 
-        /* Copy the DATA section from ROM. */
-        set	_data - 4, %o0           ! First address of DATA
-        set	_bss, %o1                ! Last address of DATA
-        ba	2f
-         nop
-1:
-        lda      [%o0] ASI_M_BYPASS, %g1
-        st	%g1, [%o0]
-2:
-        subcc	%o0, %o1, %g0
-        bl	1b
-         add	%o0, 0x4, %o0
-
         /* Zero out our BSS section. */
         set	_bss - 4, %o0           ! First address of BSS
         set	_estack, %o1               ! Last address of BSS
@@ -229,10 +206,10 @@ first_cpu:
         wr      %g1, 0x0, %tbr
 
         set     qemu_mem_size, %g1
-        st      %g3, [%g1]
+        st      %g6, [%g1]
         
         sll     %g7, 4, %g7                     ! Store va->pa conversion factor
-        set     _data - 0x1000, %g1
+        set     _start - 0x1000, %g1
         sub     %g1, %g7, %g7
         set     va_shift, %g1
         st      %g7, [%g1]

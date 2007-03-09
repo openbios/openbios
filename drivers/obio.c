@@ -37,6 +37,20 @@
 #define	PROMDEV_SCREEN	0		/* output to screen */
 #define	PROMDEV_TTYA	1		/* in/out to ttya */
 
+/* "NCPU" is an historical name that's now a bit of a misnomer.  The sun4m
+ * architecture registers NCPU CPU-specific interrupts along with one
+ * system-wide interrupt, regardless of the number of actual CPUs installed.
+ * See the comment on "NCPU" at <http://stuff.mit.edu/afs/athena/astaff/
+ * project/opssrc/sys.sunos/sun4m/devaddr.h>.
+ */
+#define SUN4M_NCPU      4
+
+/* The kernel may want to examine the arguments, so hold a copy in OBP's
+ * mapped memory.
+ */
+#define OBIO_CMDLINE_MAX 256
+char obio_cmdline[OBIO_CMDLINE_MAX];
+
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_obio, INSTALL_OPEN, sizeof(int) );
 
@@ -306,6 +320,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     const char *stdin, *stdout;
     unsigned int i;
     char nographic;
+    uint32_t size;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -325,8 +340,14 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     }
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;
-    cmdline = nv_info.cmdline;
-    cmdline_size = nv_info.cmdline_size;
+
+    size = cmdline_size;
+    if (size > OBIO_CMDLINE_MAX) size = OBIO_CMDLINE_MAX;
+    memcpy(obio_cmdline, nv_info.cmdline, size);
+    obio_cmdline[size-1] = '\0';
+    cmdline = obio_cmdline;
+    cmdline_size = size;
+
     boot_device = nv_info.boot_device;
     nographic = nv_info.nographic;
 
@@ -367,6 +388,10 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         PUSH(4);
         fword("encode-int");
         push_str("version");
+        fword("property");
+
+        push_str("");
+        push_str("cache-physical?");
         fword("property");
 
         PUSH(32);
@@ -435,7 +460,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         push_str("ncaches");
         fword("property");
 
-        PUSH(256);
+        PUSH(4096);
         fword("encode-int");
         push_str("mmu-nctx");
         fword("property");
@@ -539,17 +564,22 @@ static void
 ob_counter_init(unsigned long base, unsigned long offset)
 {
     volatile struct sun4m_timer_regs *regs;
+    int i;
 
     ob_new_obio_device("counter", NULL);
 
-    PUSH(0);
-    fword("encode-int");
-    PUSH(offset);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(COUNTER_REGS);
-    fword("encode-int");
-    fword("encode+");
+    for (i = 0; i < SUN4M_NCPU; i++) {
+        PUSH(0);
+        fword("encode-int");
+        if (i != 0) fword("encode+");
+        PUSH(offset + (i * PAGE_SIZE));
+        fword("encode-int");
+        fword("encode+");
+        PUSH(COUNTER_REGS);
+        fword("encode-int");
+        fword("encode+");
+    }
+
     PUSH(0);
     fword("encode-int");
     fword("encode+");
@@ -559,6 +589,7 @@ ob_counter_init(unsigned long base, unsigned long offset)
     PUSH(COUNTER_REGS);
     fword("encode-int");
     fword("encode+");
+
     push_str("reg");
     fword("property");
 
@@ -580,17 +611,22 @@ static volatile struct sun4m_intregs *intregs;
 static void
 ob_interrupt_init(unsigned long base, unsigned long offset)
 {
+    int i;
 
     ob_new_obio_device("interrupt", NULL);
 
-    PUSH(0);
-    fword("encode-int");
-    PUSH(offset);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(INTERRUPT_REGS);
-    fword("encode-int");
-    fword("encode+");
+    for (i = 0; i < SUN4M_NCPU; i++) {
+        PUSH(0);
+        fword("encode-int");
+        if (i != 0) fword("encode+");
+        PUSH(offset + (i * PAGE_SIZE));
+        fword("encode-int");
+        fword("encode+");
+        PUSH(INTERRUPT_REGS);
+        fword("encode-int");
+        fword("encode+");
+    }
+
     PUSH(0);
     fword("encode-int");
     fword("encode+");
@@ -600,6 +636,7 @@ ob_interrupt_init(unsigned long base, unsigned long offset)
     PUSH(INTERRUPT_REGS);
     fword("encode-int");
     fword("encode+");
+
     push_str("reg");
     fword("property");
 

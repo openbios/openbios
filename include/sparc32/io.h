@@ -10,7 +10,7 @@ extern char _start, _data, _heap, _eheap, _stack, _estack, _end,
 static inline unsigned long
 va2pa(unsigned long va)
 {
-    if ((va >= (unsigned long)&_data) &&
+    if ((va >= (unsigned long)&_start) &&
         (va < (unsigned long)&_end))
         return va - va_shift;
     else
@@ -20,8 +20,8 @@ va2pa(unsigned long va)
 static inline unsigned long
 pa2va(unsigned long pa)
 {
-    if ((pa + va_shift >= (unsigned long)&_data) && 
-        (pa + va_shift< (unsigned long)&_end))
+    if ((pa + va_shift >= (unsigned long)&_start) &&
+        (pa + va_shift < (unsigned long)&_end))
         return pa + va_shift;
     else
         return pa;
