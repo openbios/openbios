@@ -14,7 +14,7 @@ else
 fi
 
 # host long bits test
-if test "$host" = "sparc64" -o "$host" = "ia64" -o "$host" = "x86_64" -o "$host" = "alpha"; then
+if test "$host" = "sparc64" -o "$host" = "ia64" -o "$host" = "amd64" -o "$host" = "alpha"; then
     hostlongbits="64"
 else
     hostlongbits="32"
@@ -27,7 +27,7 @@ else
 fi
 
 # target long bits test
-if test "$target" = "sparc64" -o "$target" = "ia64" -o "$target" = "x86_64" -o "$target" = "alpha"; then
+if test "$target" = "sparc64" -o "$target" = "ia64" -o "$target" = "amd64" -o "$target" = "alpha"; then
     targetlongbits="64"
 else
     targetlongbits="32"
