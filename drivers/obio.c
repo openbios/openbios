@@ -340,11 +340,10 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     }
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;
-
-    size = cmdline_size;
+    size = nv_info.cmdline_size;
     if (size > OBIO_CMDLINE_MAX) size = OBIO_CMDLINE_MAX;
     memcpy(obio_cmdline, nv_info.cmdline, size);
-    obio_cmdline[size-1] = '\0';
+    obio_cmdline[size] = '\0';
     cmdline = obio_cmdline;
     cmdline_size = size;
 
