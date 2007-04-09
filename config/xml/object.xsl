@@ -24,22 +24,22 @@
   <!-- create rules for all compile objects -->
   <xsl:for-each select="//object[(ancestor-or-self::*)[@target = $target]]">
   
-   <xsl:param name="path">
+   <xsl:variable name="path">
     <xsl:for-each select="ancestor::build">
      <xsl:call-template name="get-dirname">
       <xsl:with-param select="@base" name="path"/>
      </xsl:call-template>
     </xsl:for-each>
-   </xsl:param>
+   </xsl:variable>
      
-   <xsl:param name="conditions">
+   <xsl:variable name="conditions">
     <xsl:text>0</xsl:text>
     <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
      <xsl:call-template name="resolve-condition">
       <xsl:with-param select="@condition" name="expression"/>
      </xsl:call-template>
     </xsl:for-each>
-   </xsl:param>
+   </xsl:variable>
      
    <xsl:if test="$conditions=0">
 
@@ -78,14 +78,14 @@
   <!-- Create linker targets for all executables -->
   <xsl:for-each select="//executable">
  
-   <xsl:param name="outer-conditions">
+   <xsl:variable name="outer-conditions">
     <xsl:text>0</xsl:text>
     <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
      <xsl:call-template name="resolve-condition">
       <xsl:with-param select="@condition" name="expression"/>
      </xsl:call-template>
     </xsl:for-each>
-   </xsl:param>
+   </xsl:variable>
    
    <xsl:if test="$outer-conditions = 0">
     <xsl:if test="(ancestor-or-self::*)[@target = $target]">
@@ -98,24 +98,24 @@
      <!-- add all objects -->
      <xsl:for-each select="object">
   
-      <xsl:param name="conditions">
+      <xsl:variable name="conditions">
        <xsl:text>0</xsl:text>
        <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
         <xsl:call-template name="resolve-condition">
          <xsl:with-param select="@condition" name="expression"/>
         </xsl:call-template>
        </xsl:for-each>
-      </xsl:param>
+      </xsl:variable>
       
       <xsl:if test="$conditions=0">
        
-       <xsl:param name="path">
+       <xsl:variable name="path">
         <xsl:for-each select="ancestor::build">
          <xsl:call-template name="get-dirname">
           <xsl:with-param select="@base" name="path"/>
          </xsl:call-template>
         </xsl:for-each>
-       </xsl:param>
+       </xsl:variable>
       
        <xsl:text> $(ODIR)/</xsl:text>
        <xsl:value-of select="$target"/>
@@ -130,14 +130,14 @@
      <!-- external objects last -->
      <xsl:for-each select="external-object">
  
-      <xsl:param name="conditions">
+      <xsl:variable name="conditions">
        <xsl:text>0</xsl:text>
        <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
         <xsl:call-template name="resolve-condition">
          <xsl:with-param select="@condition" name="expression"/>
         </xsl:call-template>
        </xsl:for-each>
-      </xsl:param>
+      </xsl:variable>
       
       <xsl:if test="$conditions=0">
        <xsl:text> $(ODIR)/</xsl:text>
@@ -166,14 +166,14 @@
   <xsl:for-each select="//library">
    <xsl:sort select="@name"/>
  
-   <xsl:param name="outer-conditions">
+   <xsl:variable name="outer-conditions">
     <xsl:text>0</xsl:text>
     <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
      <xsl:call-template name="resolve-condition">
       <xsl:with-param select="@condition" name="expression"/>
      </xsl:call-template>
     </xsl:for-each>
-   </xsl:param>
+   </xsl:variable>
    
    <xsl:if test="$outer-conditions = 0">
 
@@ -196,29 +196,29 @@
      </xsl:choose>
      <xsl:text>: </xsl:text>
        
-     <xsl:param name="name"><xsl:value-of select="@name"/></xsl:param>
+     <xsl:variable name="name"><xsl:value-of select="@name"/></xsl:variable>
        
      <!-- enumerate all objects for library target -->
      <xsl:for-each select="//library[@name=$name]/object">
      
-      <xsl:param name="conditions">
+      <xsl:variable name="conditions">
        <xsl:text>0</xsl:text>
        <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
         <xsl:call-template name="resolve-condition">
          <xsl:with-param select="@condition" name="expression"/>
         </xsl:call-template>
        </xsl:for-each>
-      </xsl:param>
+      </xsl:variable>
      
       <xsl:if test="$conditions=0">
         
-       <xsl:param name="path">
+       <xsl:variable name="path">
         <xsl:for-each select="ancestor::build">
          <xsl:call-template name="get-dirname">
           <xsl:with-param select="@base" name="path"/>
          </xsl:call-template>
         </xsl:for-each>
-       </xsl:param>
+       </xsl:variable>
   
        <xsl:text>$(ODIR)/</xsl:text>
        <xsl:value-of select="$target"/>
@@ -234,14 +234,14 @@
      <!-- external objects last -->
      <xsl:for-each select="external-object">
  
-      <xsl:param name="conditions">
+      <xsl:variable name="conditions">
        <xsl:text>0</xsl:text>
        <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
         <xsl:call-template name="resolve-condition">
          <xsl:with-param select="@condition" name="expression"/>
         </xsl:call-template>
        </xsl:for-each>
-      </xsl:param>
+      </xsl:variable>
       
       <xsl:if test="$conditions=0">
        <xsl:text> $(ODIR)/</xsl:text>
@@ -267,14 +267,14 @@
   <xsl:for-each select="//library">
    <xsl:if test="object[(ancestor-or-self::*)[@target = $target]]">
  
-    <xsl:param name="conditions">
+    <xsl:variable name="conditions">
      <xsl:text>0</xsl:text>
      <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
       <xsl:call-template name="resolve-condition">
        <xsl:with-param select="@condition" name="expression"/>
       </xsl:call-template>
      </xsl:for-each>
-    </xsl:param>
+    </xsl:variable>
     <xsl:if test="$conditions=0">
     <xsl:text> $(ODIR)/</xsl:text>
     <xsl:text>lib</xsl:text>
@@ -300,14 +300,14 @@
   <xsl:for-each select="//executable">
    <xsl:if test="(ancestor-or-self::*)[@target = $target]">
 
-    <xsl:param name="conditions">
+    <xsl:variable name="conditions">
      <xsl:text>0</xsl:text>
      <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
       <xsl:call-template name="resolve-condition">
        <xsl:with-param select="@condition" name="expression"/>
       </xsl:call-template>
      </xsl:for-each>
-    </xsl:param>
+    </xsl:variable>
     <xsl:if test="$conditions=0">
      <xsl:text> $(ODIR)/</xsl:text>
      <xsl:value-of select="@name"/>

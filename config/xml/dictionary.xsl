@@ -10,14 +10,14 @@
     <xsl:for-each select="//dictionary">
      <xsl:sort select="@name"/>
     
-     <xsl:param name="conditions">
+     <xsl:variable name="conditions">
       <xsl:text>0</xsl:text>
       <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
        <xsl:call-template name="resolve-condition">
         <xsl:with-param select="@condition" name="expression"/>
        </xsl:call-template>
       </xsl:for-each>
-     </xsl:param>
+     </xsl:variable>
      
     <xsl:if test="$conditions = 0">
      
@@ -31,26 +31,26 @@
     <!-- Add all forth source files to their dictionaries -->
     <xsl:for-each select="//dictionary/object">
     
-     <xsl:param name="path">
+     <xsl:variable name="path">
       <xsl:for-each select="ancestor::build">
        <xsl:call-template name="get-dirname">
         <xsl:with-param select="@base" name="path"/>
        </xsl:call-template>
       </xsl:for-each>
-     </xsl:param>
+     </xsl:variable>
  
-     <xsl:param name="conditions">
+     <xsl:variable name="conditions">
       <xsl:text>0</xsl:text>
       <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
        <xsl:call-template name="resolve-condition">
         <xsl:with-param select="@condition" name="expression"/>
        </xsl:call-template>
       </xsl:for-each>
-     </xsl:param>
+     </xsl:variable>
  
-     <xsl:param name="dictname">
+     <xsl:variable name="dictname">
       <xsl:value-of select="parent::*/@name"/>
-     </xsl:param>
+     </xsl:variable>
 
      <xsl:if test="$conditions=0">
       <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY:=$(</xsl:text>
@@ -68,22 +68,22 @@
     <xsl:for-each select="//dictionary">
     <xsl:sort select="@name"/>
 
-     <xsl:param name="outer-conditions">
+     <xsl:variable name="outer-conditions">
       <xsl:text>0</xsl:text>
       <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
        <xsl:call-template name="resolve-condition">
         <xsl:with-param select="@condition" name="expression"/>
        </xsl:call-template>
       </xsl:for-each>
-     </xsl:param>
+     </xsl:variable>
      
     <xsl:if test="$outer-conditions = 0">
     
     <xsl:if test="not(preceding::dictionary/@name = @name)">
-     <xsl:param name="name"><xsl:value-of select="@name"/></xsl:param>
-     <xsl:param name="init">
+     <xsl:variable name="name"><xsl:value-of select="@name"/></xsl:variable>
+     <xsl:variable name="init">
       <xsl:value-of select="(//dictionary[@name=$name]/attribute::init)[last()]"/>
-     </xsl:param>
+     </xsl:variable>
      <!-- dictionary name and dependencies -->
      <xsl:text>$(ODIR)/</xsl:text>
      <xsl:value-of select="@name"/><xsl:text>.dict: $(</xsl:text>
@@ -97,22 +97,22 @@
      <xsl:text>&#9;$(ODIR)/forthstrap</xsl:text>
      <xsl:for-each select="//dictionary[@name = @name]">
  
-      <xsl:param name="conditions">
+      <xsl:variable name="conditions">
        <xsl:text>0</xsl:text>
        <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
         <xsl:call-template name="resolve-condition">
          <xsl:with-param select="@condition" name="expression"/>
         </xsl:call-template>
        </xsl:for-each>
-      </xsl:param>
+      </xsl:variable>
      
-      <xsl:param name="path">
+      <xsl:variable name="path">
        <xsl:for-each select="ancestor::build">
         <xsl:call-template name="get-dirname">
          <xsl:with-param select="@base" name="path"/>
         </xsl:call-template>
        </xsl:for-each>
-      </xsl:param>
+      </xsl:variable>
       
       <xsl:if test="$conditions = 0">
        <xsl:text> -I</xsl:text>
@@ -139,14 +139,14 @@
     <xsl:for-each select="//dictionary">
     <xsl:sort select="@name"/>
     
-     <xsl:param name="conditions">
+     <xsl:variable name="conditions">
       <xsl:text>0</xsl:text>
       <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
        <xsl:call-template name="resolve-condition">
         <xsl:with-param select="@condition" name="expression"/>
        </xsl:call-template>
       </xsl:for-each>
-     </xsl:param>
+     </xsl:variable>
      
     <xsl:if test="$conditions = 0">
     
