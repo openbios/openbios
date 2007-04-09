@@ -199,7 +199,7 @@ map_io(unsigned pa, int size)
 }
 
 void
-ob_init_mmu(unsigned long base)
+ob_init_mmu(unsigned long bus, unsigned long base)
 {
     extern unsigned int qemu_mem_size;
 
@@ -231,7 +231,7 @@ ob_init_mmu(unsigned long base)
     push_str("/virtual-memory");
     fword("find-device");
 
-    PUSH(0);
+    PUSH(bus);
     fword("encode-int");
     PUSH(base);
     fword("encode-int");
@@ -268,6 +268,17 @@ ob_init_mmu(unsigned long base)
     PUSH((unsigned long)regs);
     fword("encode-int");
     push_str("address");
+    fword("property");
+
+    PUSH(bus);
+    fword("encode-int");
+    PUSH(base);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(IOMMU_REGS);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
     fword("property");
 }
 

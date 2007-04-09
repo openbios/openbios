@@ -25,8 +25,8 @@
 #include "asm/dma.h"
 #include "esp.h"
 
-#define MACIO_ESPDMA  0x08400000      /* ESP DMA controller */
-#define MACIO_ESP     0x08800000      /* ESP SCSI */
+#define MACIO_ESPDMA  0x00400000      /* ESP DMA controller */
+#define MACIO_ESP     0x00800000      /* ESP SCSI */
 
 #define BUFSIZE         4096
 
@@ -321,9 +321,10 @@ NODE_METHODS(ob_sd) = {
 
 
 static int
-espdma_init(unsigned long base, struct esp_dma *espdma)
+espdma_init(unsigned int slot, unsigned long base, unsigned long offset,
+            struct esp_dma *espdma)
 {
-    espdma->regs = (void *)map_io(base + MACIO_ESPDMA, 0x10);
+    espdma->regs = (void *)map_io(base + offset + MACIO_ESPDMA, 0x10);
 
     if (espdma->regs == 0) {
         DPRINTF("espdma_init: cannot map registers\n");
@@ -369,9 +370,9 @@ espdma_init(unsigned long base, struct esp_dma *espdma)
     fword("find-device");
 
     /* set reg */
-    PUSH(4);
+    PUSH(slot);
     fword("encode-int");
-    PUSH(MACIO_ESPDMA);
+    PUSH(offset + MACIO_ESPDMA);
     fword("encode-int");
     fword("encode+");
     PUSH(0x00000010);
@@ -394,18 +395,6 @@ ob_esp_initialize(__attribute__((unused)) esp_private_t **esp)
     /* set device type */
     push_str("scsi");
     fword("device-type");
-
-    /* set reg */
-    PUSH(4);
-    fword("encode-int");
-    PUSH(MACIO_ESP);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x00000010);
-    fword("encode-int");
-    fword("encode+");
-    push_str("reg");
-    fword("property");
 
     PUSH(0x24);
     fword("encode-int");
@@ -448,7 +437,7 @@ add_alias(const char *device, const char *alias)
 }
 
 int
-ob_esp_init(unsigned long base)
+ob_esp_init(unsigned int slot, unsigned long base, unsigned long offset)
 {
     int id, diskcount = 0, cdcount = 0, *counter_ptr;
     char nodebuff[256], aliasbuff[256];
@@ -464,11 +453,11 @@ ob_esp_init(unsigned long base)
 
     global_esp = esp;
 
-    if (espdma_init(base, &esp->espdma) != 0) {
+    if (espdma_init(slot, base, offset, &esp->espdma) != 0) {
         return -1;
     }
     /* Get the IO region */
-    esp->ll = (void *)map_io(base + MACIO_ESP, sizeof(struct esp_regs));
+    esp->ll = (void *)map_io(base + offset + MACIO_ESP, sizeof(struct esp_regs));
     if (esp->ll == 0) {
         DPRINTF("Can't map ESP registers\n");
         return -1;
@@ -501,6 +490,19 @@ ob_esp_init(unsigned long base)
 
     REGISTER_NAMED_NODE(ob_esp, "/iommu/sbus/espdma/esp");
     device_end();
+    /* set reg */
+    push_str("/iommu/sbus/espdma/esp");
+    fword("find-device");
+    PUSH(slot);
+    fword("encode-int");
+    PUSH(offset + MACIO_ESP);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x00000010);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
 
     for (id = 0; id < 8; id++) {
         if (!esp->sd[id].present)

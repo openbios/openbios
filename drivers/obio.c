@@ -285,7 +285,7 @@ ob_zs_init(unsigned long base, unsigned long offset, int intr, int slave, int ke
     }
 }
 
-static char *nvram;
+static unsigned char *nvram;
 struct qemu_nvram_v1 nv_info;
 
 void
@@ -306,6 +306,39 @@ arch_nvram_size(void)
     return NVRAM_SIZE;
 }
 
+struct cpudef {
+    const unsigned char *name;
+    unsigned long iu_version;
+};
+
+static const struct cpudef sparc_defs[] = {
+    {
+        .name = "FMI,MB86904",
+        .iu_version = 0x04 << 24, /* Impl 0, ver 4 */
+    },
+    {
+        .name = "TI,TMS390Z55",
+        .iu_version = 0x40000000,
+    },
+};
+
+static const char *
+id_cpu(void)
+{
+    unsigned long iu_version;
+    unsigned int i;
+
+    asm("rd %%psr, %0\n"
+        : "=r"(iu_version) :);
+    iu_version &= 0xff000000;
+
+    for (i = 0; i < sizeof(sparc_defs)/sizeof(struct cpudef); i++) {
+        if (iu_version == sparc_defs[i].iu_version)
+            return sparc_defs[i].name;
+    }
+    return "CPU,Unknown";
+}
+
 static void
 ob_nvram_init(unsigned long base, unsigned long offset)
 {
@@ -317,10 +350,11 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     extern char obp_stdin, obp_stdout;
     extern const char *obp_stdin_path, *obp_stdout_path;
 
-    const char *stdin, *stdout;
+    const char *stdin, *stdout, *cpuname;
     unsigned int i;
     char nographic;
     uint32_t size;
+    unsigned int machine_id;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -332,12 +366,14 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     fword("property");
     
     memcpy(&nv_info, nvram, sizeof(nv_info));
-
-    printk("Nvram id %s, version %d\n", nv_info.id_string, nv_info.version);
+    machine_id = (unsigned int)nvram[0x1fd9] & 0xff;
+    printk("Nvram id %s, version %d, machine id 0x%2.2x\n", nv_info.id_string,
+           nv_info.version, machine_id);
     if (strcmp(nv_info.id_string, "QEMU_BIOS") || nv_info.version != 1) {
         printk("Unknown nvram, freezing!\n");
         for (;;);
     }
+
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;
     size = nv_info.cmdline_size;
@@ -366,6 +402,33 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     push_str("idprom");
     fword("property");
 
+    switch (machine_id) {
+    case 0x72:
+        push_str("SPARCstation 10 (1 X 390Z55)");
+        push_str("banner-name");
+        fword("property");
+        push_str("SUNW,S10,501-2365");
+        push_str("model");
+        fword("property");
+        push_str("SUNW,SPARCstation-10");
+        push_str("name");
+        fword("property");
+        break;
+    case 0x80:
+        push_str("SPARCstation 5");
+        push_str("name");
+        fword("property");
+        push_str("SUNW,501-3059");
+        push_str("model");
+        fword("property");
+        push_str("SUNW,SPARCstation-5");
+        push_str("name");
+        fword("property");
+        break;
+    default:
+        printk("Unknown machine, freezing!\n");
+        for (;;);
+    }
     // Add cpus
     printk("CPUs: %x\n", nv_info.smp_cpus);
     for (i = 0; i < (unsigned int)nv_info.smp_cpus; i++) {
@@ -373,8 +436,9 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         fword("find-device");
 
         fword("new-device");
-        
-        push_str("FMI,MB86904");
+
+        cpuname = id_cpu();
+        push_str(cpuname);
         fword("device-name");
 
         push_str("cpu");
@@ -713,7 +777,7 @@ ob_obio_initialize(__attribute__((unused))int *idx)
 }
 
 static void
-ob_set_obio_ranges(unsigned long base)
+ob_set_obio_ranges(unsigned long high, unsigned long base)
 {
     push_str("/obio");
     fword("find-device");
@@ -722,7 +786,7 @@ ob_set_obio_ranges(unsigned long base)
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH(0);
+    PUSH(high);
     fword("encode-int");
     fword("encode+");
     PUSH(base);
@@ -758,7 +822,9 @@ NODE_METHODS(ob_obio) = {
 
 
 int
-ob_obio_init(unsigned long slavio_base)
+ob_obio_init(unsigned long slavio_high, unsigned long slavio_base,
+             unsigned long fd_offset, unsigned long counter_offset,
+             unsigned long intr_offset)
 {
 
     // All devices were integrated to NCR89C105, see
@@ -768,8 +834,8 @@ ob_obio_init(unsigned long slavio_base)
 #if 0 // XXX
     REGISTER_NAMED_NODE(ob_obio, "/obio");
     device_end();
-    ob_set_obio_ranges(slavio_base);
 #endif
+    ob_set_obio_ranges(slavio_high, slavio_base);
 
     // Zilog Z8530 serial ports, see http://www.zilog.com
     // Must be before zs@0,0 or Linux won't boot
@@ -781,7 +847,7 @@ ob_obio_init(unsigned long slavio_base)
     ob_nvram_init(slavio_base, SLAVIO_NVRAM);
 
     // 82078 FDC
-    ob_fd_init(slavio_base, SLAVIO_FD, FD_INTR);
+    ob_fd_init(slavio_base, fd_offset, FD_INTR);
 
     ob_sconfig_init(slavio_base, SLAVIO_SCONFIG);
 
@@ -789,9 +855,9 @@ ob_obio_init(unsigned long slavio_base)
 
     ob_power_init(slavio_base, SLAVIO_POWER, POWER_INTR);
 
-    ob_counter_init(slavio_base, SLAVIO_COUNTER);
+    ob_counter_init(slavio_base, counter_offset);
 
-    ob_interrupt_init(slavio_base, SLAVIO_INTERRUPT);
+    ob_interrupt_init(slavio_base, intr_offset);
 
     return 0;
 }

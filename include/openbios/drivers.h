@@ -15,15 +15,17 @@
 int ob_pci_init(void);
 #endif
 #ifdef CONFIG_DRIVER_SBUS
-int ob_sbus_init(unsigned long base);
+int ob_sbus_init(unsigned long bus, unsigned long base, int machine_id);
 #endif
 #ifdef CONFIG_DRIVER_IDE
 int ob_ide_init(void);
 #endif
 #ifdef CONFIG_DRIVER_ESP
-int ob_esp_init(unsigned long base);
+int ob_esp_init(unsigned int slot, unsigned long base, unsigned long offset);
 #endif
 #ifdef CONFIG_DRIVER_OBIO
-int ob_obio_init(unsigned long slavio_base);
+int ob_obio_init(unsigned long slavio_high, unsigned long slavio_base,
+             unsigned long fd_offset, unsigned long counter_offset,
+             unsigned long intr_offset);
 #endif
 

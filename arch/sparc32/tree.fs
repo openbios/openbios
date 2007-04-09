@@ -3,10 +3,7 @@
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
 
-  " SUNW,SPARCstation-5" encode-string " name" property
-  " SPARCstation 5" encode-string " banner-name" property
   " sun4m" encode-string " compatible" property
-  " SUNW,501-3059" encode-string " model" property
   h# 0a21fe80 encode-int " clock-frequency" property
   
   : encode-unit encode-unit-sbus ;
@@ -36,8 +33,6 @@ new-device
   1 encode-int " #size-cells" property
   h# 1000 encode-int " page-size" property
   0 encode-int " cache-coherence?" property
-  h# ffee8000 encode-int " address" property
-  h# 0 encode-int h# 10000000 encode-int encode+ h# 00000300 encode-int encode+ " reg" property
   external
   : open ( cr ." opening iommu" cr) true ;
   : close ;
@@ -54,12 +49,6 @@ new-device
   h# 01443fd0 encode-int " clock-frequency" property
   h# 1c encode-int " slot-address-bits" property
   h# 3f encode-int " burst-sizes" property
-  h# 0 encode-int h# 0 encode-int encode+ h# 0 encode-int encode+ h# 30000000 encode-int encode+ h# 10000000 encode-int encode+
-   h# 1 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 40000000 encode-int encode+ h# 10000000 encode-int encode+
-   h# 2 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 50000000 encode-int encode+ h# 10000000 encode-int encode+
-   h# 3 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 60000000 encode-int encode+ h# 10000000 encode-int encode+
-   h# 4 encode-int encode+ h# 0 encode-int encode+ h# 0 encode-int encode+ h# 70000000 encode-int encode+ h# 10000000 encode-int encode+
-   " ranges" property
   external
   : open ( cr ." opening SBus" cr) true ;
   : close ;
@@ -103,20 +92,6 @@ new-device
   " no" encode-string " tcx-8-bit" property
   5 encode-int 0 encode-int encode+ " intr" property
   5 encode-int " interrupts" property
-  2 encode-int h# 00800000 encode-int encode+ h# 00100000 encode-int encode+
-   2 encode-int encode+ h# 02000000 encode-int encode+ h# 00000001 encode-int encode+
-   2 encode-int encode+ h# 04000000 encode-int encode+ h# 00800000 encode-int encode+
-   2 encode-int encode+ h# 06000000 encode-int encode+ h# 00800000 encode-int encode+
-   2 encode-int encode+ h# 0a000000 encode-int encode+ h# 00000001 encode-int encode+
-   2 encode-int encode+ h# 0c000000 encode-int encode+ h# 00000001 encode-int encode+
-   2 encode-int encode+ h# 0e000000 encode-int encode+ h# 00000001 encode-int encode+
-   2 encode-int encode+ h# 00700000 encode-int encode+ h# 00001000 encode-int encode+
-   2 encode-int encode+ h# 00200000 encode-int encode+ h# 00000004 encode-int encode+
-   2 encode-int encode+ h# 00300000 encode-int encode+ h# 0000081c encode-int encode+
-   2 encode-int encode+ h# 00000000 encode-int encode+ h# 00010000 encode-int encode+
-   2 encode-int encode+ h# 00240000 encode-int encode+ h# 00000004 encode-int encode+
-   2 encode-int encode+ h# 00280000 encode-int encode+ h# 00000001 encode-int encode+
-   " reg" property
 finish-device
 
 " /iommu/sbus" find-device
@@ -130,7 +105,6 @@ finish-device
 " /iommu/sbus" find-device
 new-device
   " ledma" device-name
-  h# 4 encode-int h# 08400010 encode-int encode+ h# 00000020 encode-int encode+ " reg" property
   h# 3f encode-int " burst-sizes" property
   external
   : encode-unit encode-unit-sbus ;
@@ -141,7 +115,6 @@ finish-device
 new-device
   " le" device-name
   " network" device-type
-  h# 4 encode-int h# 08c00000 encode-int encode+ h# 00000004 encode-int encode+ " reg" property
   h# 7 encode-int " busmaster-regval" property
   h# 26 encode-int 0 encode-int encode+ " intr" property
 finish-device
@@ -160,8 +133,6 @@ new-device
   " hierarchical" device-type
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
-  h# 0 encode-int h# 0 encode-int encode+ h# 0 encode-int encode+ h# 71000000 encode-int encode+ h# 01000000 encode-int encode+
-   " ranges" property
   external
   : open ( cr ." opening obio" cr) true ;
   : close ;

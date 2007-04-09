@@ -3,31 +3,33 @@
 host=$1
 target=$2
 
-if test "$host" = "sparc"; then
-    host="sparc32"
-fi
-
-if test "$host" = "powerpc" -o "$host" = "mips" -o "$host" = "s390" -o "$host" = "sparc32" -o "$host" = "sparc64" -o "$host" = "m68k" -o "$host" = "armv4b"; then
+if test "$host" = "powerpc" -o "$host" = "mips" -o "$host" = "s390" \
+	   -o "$host" = "sparc32" -o "$host" = "sparc64" \
+	   -o "$host" = "m68k" -o "$host" = "armv4b"; then
     hostbigendian="yes"
 else
     hostbigendian="no"
 fi
 
 # host long bits test
-if test "$host" = "sparc64" -o "$host" = "ia64" -o "$host" = "amd64" -o "$host" = "alpha"; then
+if test "$host" = "sparc64" -o "$host" = "ia64" \
+	   -o "$host" = "amd64" -o "$host" = "alpha"; then
     hostlongbits="64"
 else
     hostlongbits="32"
 fi
 
-if test "$target" = "powerpc" -o "$target" = "mips" -o "$target" = "s390" -o "$target" = "sparc32" -o "$target" = "sparc64" -o "$target" = "m68k" -o "$target" = "armv4b"; then
+if test "$target" = "powerpc" -o "$target" = "mips" -o "$target" = "s390" \
+	   -o "$target" = "sparc32" -o "$target" = "sparc64" \
+	   -o "$target" = "m68k" -o "$target" = "armv4b"; then
     targetbigendian="yes"
 else
     targetbigendian="no"
 fi
 
 # target long bits test
-if test "$target" = "sparc64" -o "$target" = "ia64" -o "$target" = "amd64" -o "$target" = "alpha"; then
+if test "$target" = "sparc64" -o "$target" = "ia64" \
+	   -o "$target" = "amd64" -o "$target" = "alpha"; then
     targetlongbits="64"
 else
     targetlongbits="32"

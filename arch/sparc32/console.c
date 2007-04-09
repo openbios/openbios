@@ -17,10 +17,10 @@
 
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 
-#define KBD_BASE    0x71000004
-#define SERIAL_BASE 0x71100004
-#define CTRL(port) (SERIAL_BASE + (port) * 2 + 0)
-#define DATA(port) (SERIAL_BASE + (port) * 2 + 2)
+static unsigned long kbd_base, serial_base;
+
+#define CTRL(port) (serial_base + (port) * 2 + 0)
+#define DATA(port) (serial_base + (port) * 2 + 2)
 
 /* Conversion routines to/from brg time constants from/to bits
  * per second.
@@ -98,7 +98,8 @@ static void uart_init_line(int port, unsigned long baud)
 
 int uart_init(int port, unsigned long speed)
 {
-        uart_init_line(port, speed);
+        serial_base = ((unsigned long)port) & ~3;
+        uart_init_line(port & 3, speed);
 	return -1;
 }
 
@@ -177,6 +178,11 @@ void tcx_init(unsigned long base)
     console_init();
 }
 
+void kbd_init(unsigned long base)
+{
+    kbd_base = base + 4;
+}
+
 static const unsigned char sunkbd_keycode[128] = {
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
@@ -210,7 +216,7 @@ static int shiftstate;
 int
 keyboard_dataready(void)
 {
-    return ((inb(KBD_BASE) & 1) == 1);
+    return ((inb(kbd_base) & 1) == 1);
 }
 
 unsigned char
@@ -221,7 +227,7 @@ keyboard_readdata(void)
     while (!keyboard_dataready()) { }
 
     do {
-        ch = inb(KBD_BASE + 2) & 0xff;
+        ch = inb(kbd_base + 2) & 0xff;
         if (ch == 99)
             shiftstate |= 1;
         else if (ch == 110)
