@@ -21,7 +21,7 @@ void __exit_context(void); /* assembly routine */
  * to start us up.
  */
 const struct context main_ctx = {
-    .regs[REG_SP] = (uint64_t) &_estack - 96,
+    .regs[REG_SP] = (uint64_t) &_estack - 2047 - 96,
     .pc = (uint64_t) start_main,
     .npc = (uint64_t) start_main + 4,
     .return_addr = (uint64_t) __exit_context,
