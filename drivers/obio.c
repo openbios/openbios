@@ -405,23 +405,29 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     switch (machine_id) {
     case 0x72:
         push_str("SPARCstation 10 (1 X 390Z55)");
+        fword("encode-string");
         push_str("banner-name");
         fword("property");
         push_str("SUNW,S10,501-2365");
+        fword("encode-string");
         push_str("model");
         fword("property");
         push_str("SUNW,SPARCstation-10");
+        fword("encode-string");
         push_str("name");
         fword("property");
         break;
     case 0x80:
         push_str("SPARCstation 5");
-        push_str("name");
+        fword("encode-string");
+        push_str("banner-name");
         fword("property");
         push_str("SUNW,501-3059");
+        fword("encode-string");
         push_str("model");
         fword("property");
         push_str("SUNW,SPARCstation-5");
+        fword("encode-string");
         push_str("name");
         fword("property");
         break;
@@ -455,6 +461,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         fword("property");
 
         push_str("");
+        fword("encode-string");
         push_str("cache-physical?");
         fword("property");
 
@@ -566,13 +573,11 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     push_str(stdin);
     fword("encode-string");
     push_str("stdin-path");
-    fword("encode-string");
     fword("property");
 
     push_str(stdout);
     fword("encode-string");
     push_str("stdout-path");
-    fword("encode-string");
     fword("property");
 
     obp_stdin_path = stdin;

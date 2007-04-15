@@ -432,7 +432,6 @@ add_alias(const char *device, const char *alias)
     push_str(device);
     fword("encode-string");
     push_str(alias);
-    fword("encode-string");
     fword("property");
 }
 
