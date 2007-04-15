@@ -75,23 +75,23 @@ fat_mount (void)
   if (bpb.sects_per_clust == 0)
     return 0;
   
-  FAT_SUPER->sectsize_bits = log2 (FAT_CVT_U16 (bpb.bytes_per_sect));
+  FAT_SUPER->sectsize_bits = log2 (bpb.bytes_per_sect);
   FAT_SUPER->clustsize_bits
     = FAT_SUPER->sectsize_bits + log2 (bpb.sects_per_clust);
   
   /* Fill in info about super block */
-  FAT_SUPER->num_sectors = FAT_CVT_U16 (bpb.short_sectors) 
-    ? FAT_CVT_U16 (bpb.short_sectors) : bpb.long_sectors;
+  FAT_SUPER->num_sectors = bpb.short_sectors 
+    ? bpb.short_sectors : bpb.long_sectors;
   
   /* FAT offset and length */
-  FAT_SUPER->fat_offset = FAT_CVT_U16 (bpb.reserved_sects);
+  FAT_SUPER->fat_offset = bpb.reserved_sects;
   FAT_SUPER->fat_length = 
     bpb.fat_length ? bpb.fat_length : bpb.fat32_length;
   
   /* Rootdir offset and length for FAT12/16 */
   FAT_SUPER->root_offset = 
     FAT_SUPER->fat_offset + bpb.num_fats * FAT_SUPER->fat_length;
-  FAT_SUPER->root_max = FAT_DIRENTRY_LENGTH * FAT_CVT_U16(bpb.dir_entries);
+  FAT_SUPER->root_max = FAT_DIRENTRY_LENGTH * bpb.dir_entries;
   
   /* Data offset and number of clusters */
   FAT_SUPER->data_offset = 
@@ -105,7 +105,7 @@ fat_mount (void)
   if (!bpb.fat_length)
     {
       /* This is a FAT32 */
-      if (FAT_CVT_U16(bpb.dir_entries))
+      if (bpb.dir_entries)
  	return 0;
       
       if (bpb.flags & 0x0080)
@@ -144,8 +144,8 @@ fat_mount (void)
   
   /* Now do some sanity checks */
   
-  if (FAT_CVT_U16(bpb.bytes_per_sect) != (1 << FAT_SUPER->sectsize_bits)
-      || FAT_CVT_U16(bpb.bytes_per_sect) != SECTOR_SIZE
+  if (bpb.bytes_per_sect != (1 << FAT_SUPER->sectsize_bits)
+      || bpb.bytes_per_sect != SECTOR_SIZE
       || bpb.sects_per_clust != (1 << (FAT_SUPER->clustsize_bits
  				       - FAT_SUPER->sectsize_bits))
       || FAT_SUPER->num_clust <= 2
