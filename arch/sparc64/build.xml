@@ -66,8 +66,9 @@
  <!-- END OF HACK ALERT -->
 
  <executable name="openbios-builtin.elf" target="target" condition="IMAGE_ELF_EMBEDDED">
+ <!-- We use -N to reduce the file size by 1M -->
   <rule>
-	$(LD) -T arch/sparc64/ldscript -o $@.nostrip $^
+	$(LD) -N -T arch/sparc64/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms
 	cp $@.nostrip $@
 	$(STRIP) $@</rule>
