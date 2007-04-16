@@ -210,7 +210,10 @@ __divide_error:
 bug:
         /* Dump the exception and its context */
         ! Set up CPU state
-        wrpr    %g0, PSTATE_PRIV, %pstate
+        ! Don't change the global register set or we lose %g1 (exception level)
+        rdpr    %pstate, %g2
+        or      %g2, PSTATE_PRIV, %g2
+        wrpr    %g2, %pstate
         wr      %g0, 0, %fprs
         wrpr    %g0, 0x0, %tl
 
