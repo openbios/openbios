@@ -95,18 +95,17 @@ arch_init( void )
 	void setup_timers(void);
 
 	modules_init();
-#ifdef CONFIG_DRIVER_SBUS
         ob_init_mmu(hwdef->iommu_high, hwdef->iommu_base);
-	ob_sbus_init(hwdef->iommu_high, hwdef->iommu_base + 0x1000, hwdef->machine_id);
-
-#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	init_video();
-#endif
-#endif
 #ifdef CONFIG_DRIVER_OBIO
 	ob_obio_init(hwdef->slavio_high, hwdef->slavio_base, hwdef->fd_offset,
                      hwdef->counter_offset, hwdef->intr_offset);
         nvram_init();
+#endif
+#ifdef CONFIG_DRIVER_SBUS
+#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
+	init_video();
+#endif
+	ob_sbus_init(hwdef->iommu_high, hwdef->iommu_base + 0x1000, hwdef->machine_id);
 #endif
 	device_end();
 

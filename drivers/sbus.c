@@ -77,6 +77,8 @@ ob_le_init(unsigned int slot, unsigned long base, unsigned long offset)
     fword("property");
 }
 
+uint16_t graphic_depth;
+
 static void
 ob_tcx_init(unsigned int slot, unsigned long base)
 {
@@ -98,7 +100,11 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x02000000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000001);
+    if (graphic_depth == 24) {
+        PUSH(0x00400000);
+    } else {
+        PUSH(0x00000001);
+    }
     fword("encode-int");
     fword("encode+");
 
@@ -108,7 +114,11 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x04000000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000001);
+    if (graphic_depth == 24) {
+        PUSH(0x00400000);
+    } else {
+        PUSH(0x00000001);
+    }
     fword("encode-int");
     fword("encode+");
 
@@ -128,7 +138,11 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x0a000000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000001);
+    if (graphic_depth == 24) {
+        PUSH(0x00400000);
+    } else {
+        PUSH(0x00000001);
+    }
     fword("encode-int");
     fword("encode+");
 
@@ -138,7 +152,11 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x0c000000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000001);
+    if (graphic_depth == 24) {
+        PUSH(0x00800000);
+    } else {
+        PUSH(0x00000001);
+    }
     fword("encode-int");
     fword("encode+");
 
@@ -148,7 +166,11 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x0e000000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000001);
+    if (graphic_depth == 24) {
+        PUSH(0x00800000);
+    } else {
+        PUSH(0x00000001);
+    }
     fword("encode-int");
     fword("encode+");
 
@@ -168,17 +190,29 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x00200000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000004);
+    if (graphic_depth == 24) {
+        PUSH(0x00004000);
+    } else {
+        PUSH(0x00000004);
+    }
     fword("encode-int");
     fword("encode+");
 
     PUSH(slot);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00300000);
+    if (graphic_depth == 24) {
+        PUSH(0x00301000);
+    } else {
+        PUSH(0x00300000);
+    }
     fword("encode-int");
     fword("encode+");
-    PUSH(0x0000081c);
+    if (graphic_depth == 24) {
+        PUSH(0x00001000);
+    } else {
+        PUSH(0x0000081c);
+    }
     fword("encode-int");
     fword("encode+");
 
@@ -198,7 +232,11 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x00240000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000004);
+    if (graphic_depth == 24) {
+        PUSH(0x00004000);
+    } else {
+        PUSH(0x00000004);
+    }
     fword("encode-int");
     fword("encode+");
 
@@ -208,12 +246,28 @@ ob_tcx_init(unsigned int slot, unsigned long base)
     PUSH(0x00280000);
     fword("encode-int");
     fword("encode+");
-    PUSH(0x00000001);
+    if (graphic_depth == 24) {
+        PUSH(0x00008000);
+    } else {
+        PUSH(0x00000001);
+    }
     fword("encode-int");
     fword("encode+");
 
     push_str("reg");
     fword("property");
+
+    PUSH((int)graphic_depth);
+    fword("encode-int");
+    push_str("depth");
+    fword("property");
+
+    if (graphic_depth == 8) {
+        push_str("true");
+        fword("encode-string");
+        push_str("tcx-8-bit");
+        fword("property");
+    }
 }
 
 static void

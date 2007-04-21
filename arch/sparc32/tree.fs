@@ -88,8 +88,6 @@ new-device
   h# 300 encode-int " height" property
   h# 400 encode-int " width" property
   h# 400 encode-int " linebytes" property
-  d# 24 encode-int " depth" property
-  " no" encode-string " tcx-8-bit" property
   5 encode-int 0 encode-int encode+ " intr" property
   5 encode-int " interrupts" property
 finish-device

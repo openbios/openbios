@@ -349,6 +349,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     extern char boot_device;
     extern char obp_stdin, obp_stdout;
     extern const char *obp_stdin_path, *obp_stdout_path;
+    extern uint16_t graphic_depth;
 
     const char *stdin, *stdout, *cpuname;
     unsigned int i;
@@ -386,6 +387,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
 
     boot_device = nv_info.boot_device;
     nographic = nv_info.nographic;
+    graphic_depth = nv_info.depth;
 
     push_str("mk48t08");
     fword("model");
