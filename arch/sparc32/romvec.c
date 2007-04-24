@@ -108,7 +108,7 @@ static int obp_proplen(int node, char *name)
     }
 }
 
-#if CONFIG_DEBUG_OBP
+#ifdef CONFIG_DEBUG_OBP
 static int looks_like_string(char *str, int len)
 {
     int i;
@@ -163,7 +163,7 @@ static int obp_getprop(int node, char *name, char *value)
         else
             str = "NULL";
 
-#if CONFIG_DEBUG_OBP
+#ifdef CONFIG_DEBUG_OBP
         if (looks_like_string(str, len)) {
             DPRINTF("obp_getprop(0x%x, %s) = %s\n", node, name, str);
         } else {
