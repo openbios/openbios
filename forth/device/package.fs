@@ -25,9 +25,17 @@
   ?my-self >in.my-parent @
 ;
 
+: ihandle>non-interposed-phandle ( ihandle -- phandle )
+  begin dup >in.interposed @ while
+    >in.my-parent @
+  repeat
+  >in.device-node @
+;
+
 : ihandle>phandle ( ihandle -- phandle )
   >in.device-node @
 ;
+
 
 \ next-property
 \ defined in property.c
