@@ -306,23 +306,141 @@ arch_nvram_size(void)
     return NVRAM_SIZE;
 }
 
+static void mb86904_init(void)
+{
+    PUSH(32);
+    fword("encode-int");
+    push_str("cache-line-size");
+    fword("property");
+
+    PUSH(512);
+    fword("encode-int");
+    push_str("cache-nlines");
+    fword("property");
+
+    PUSH(0x23);
+    fword("encode-int");
+    push_str("mask_rev");
+    fword("property");
+}
+
+static void tms390z55_init(void)
+{
+    push_str("");
+    fword("encode-string");
+    push_str("ecache-parity?");
+    fword("property");
+
+    push_str("");
+    fword("encode-string");
+    push_str("bfill?");
+    fword("property");
+
+    push_str("");
+    fword("encode-string");
+    push_str("bcopy?");
+    fword("property");
+
+    push_str("");
+    fword("encode-string");
+    push_str("cache-physical?");
+    fword("property");
+
+    PUSH(0xf);
+    fword("encode-int");
+    PUSH(0xf8fffffc);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(4);
+    fword("encode-int");
+    fword("encode+");
+
+    PUSH(0xf);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0xf8c00000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x1000);
+    fword("encode-int");
+    fword("encode+");
+
+    PUSH(0xf);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0xf8000000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x1000);
+    fword("encode-int");
+    fword("encode+");
+
+    PUSH(0xf);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0xf8800000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x1000);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+}
+
 struct cpudef {
-    const unsigned char *name;
     unsigned long iu_version;
+    const char *name;
+    int psr_impl, psr_vers, impl, vers;
+    int dcache_line_size, dcache_lines, dcache_assoc;
+    int icache_line_size, icache_lines, icache_assoc;
+    int ecache_line_size, ecache_lines, ecache_assoc;
+    int mmu_nctx;
+    void (*initfn)(void);
 };
 
 static const struct cpudef sparc_defs[] = {
     {
-        .name = "FMI,MB86904",
         .iu_version = 0x04 << 24, /* Impl 0, ver 4 */
+        .name = "FMI,MB86904",
+        .psr_impl = 0,
+        .psr_vers = 5,
+        .impl = 0,
+        .vers = 5,
+        .dcache_line_size = 0x20,
+        .dcache_lines = 0x200,
+        .dcache_assoc = 1,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x200,
+        .icache_assoc = 1,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x4000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x100,
+        .initfn = mb86904_init,
     },
     {
-        .name = "TI,TMS390Z55",
         .iu_version = 0x40000000,
+        .name = "TI,TMS390Z55",
+        .psr_impl = 4,
+        .psr_vers = 0,
+        .impl = 0,
+        .vers = 4,
+        .dcache_line_size = 0x20,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x40,
+        .icache_lines = 0x40,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = tms390z55_init,
     },
 };
 
-static const char *
+static const struct cpudef *
 id_cpu(void)
 {
     unsigned long iu_version;
@@ -334,9 +452,10 @@ id_cpu(void)
 
     for (i = 0; i < sizeof(sparc_defs)/sizeof(struct cpudef); i++) {
         if (iu_version == sparc_defs[i].iu_version)
-            return sparc_defs[i].name;
+            return &sparc_defs[i];
     }
-    return "CPU,Unknown";
+    printk("Unknown cpu (psr %lx), freezing!\n", iu_version);
+    for (;;);
 }
 
 static void
@@ -351,11 +470,12 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     extern const char *obp_stdin_path, *obp_stdout_path;
     extern uint16_t graphic_depth;
 
-    const char *stdin, *stdout, *cpuname;
+    const char *stdin, *stdout;
     unsigned int i;
     char nographic;
     uint32_t size;
     unsigned int machine_id;
+    struct cpudef *cpu;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -445,36 +565,31 @@ ob_nvram_init(unsigned long base, unsigned long offset)
 
         fword("new-device");
 
-        cpuname = id_cpu();
-        push_str(cpuname);
+        cpu = id_cpu();
+        push_str(cpu->name);
         fword("device-name");
 
         push_str("cpu");
         fword("device-type");
 
-        PUSH(0);
+        PUSH(cpu->psr_impl);
+        fword("encode-int");
+        push_str("psr-implementation");
+        fword("property");
+
+        PUSH(cpu->psr_vers);
+        fword("encode-int");
+        push_str("psr-version");
+        fword("property");
+
+        PUSH(cpu->impl);
         fword("encode-int");
         push_str("implementation");
         fword("property");
 
-        PUSH(4);
+        PUSH(cpu->vers);
         fword("encode-int");
         push_str("version");
-        fword("property");
-
-        push_str("");
-        fword("encode-string");
-        push_str("cache-physical?");
-        fword("property");
-
-        PUSH(32);
-        fword("encode-int");
-        push_str("cache-line-size");
-        fword("property");
-
-        PUSH(512);
-        fword("encode-int");
-        push_str("cache-nlines");
         fword("property");
 
         PUSH(4096);
@@ -482,48 +597,47 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         push_str("page-size");
         fword("property");
 
-        PUSH(16);
+        PUSH(cpu->dcache_line_size);
         fword("encode-int");
         push_str("dcache-line-size");
         fword("property");
 
-        PUSH(512);
+        PUSH(cpu->dcache_lines);
         fword("encode-int");
         push_str("dcache-nlines");
         fword("property");
 
-        PUSH(1);
+        PUSH(cpu->dcache_assoc);
         fword("encode-int");
         push_str("dcache-associativity");
         fword("property");
 
-        PUSH(16);
+        PUSH(cpu->icache_line_size);
         fword("encode-int");
         push_str("icache-line-size");
         fword("property");
 
-        PUSH(512);
+        PUSH(cpu->icache_lines);
         fword("encode-int");
         push_str("icache-nlines");
         fword("property");
 
-        PUSH(1);
+        PUSH(cpu->icache_assoc);
         fword("encode-int");
         push_str("icache-associativity");
         fword("property");
 
-
-        PUSH(0x20);
+        PUSH(cpu->ecache_line_size);
         fword("encode-int");
         push_str("ecache-line-size");
         fword("property");
 
-        PUSH(0x4000);
+        PUSH(cpu->ecache_lines);
         fword("encode-int");
         push_str("ecache-nlines");
         fword("property");
 
-        PUSH(1);
+        PUSH(cpu->ecache_assoc);
         fword("encode-int");
         push_str("ecache-associativity");
         fword("property");
@@ -533,7 +647,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         push_str("ncaches");
         fword("property");
 
-        PUSH(4096);
+        PUSH(cpu->mmu_nctx);
         fword("encode-int");
         push_str("mmu-nctx");
         fword("property");
@@ -543,18 +657,18 @@ ob_nvram_init(unsigned long base, unsigned long offset)
         push_str("sparc-version");
         fword("property");
 
-        PUSH(37);
-        fword("encode-int");
-        push_str("mask_rev");
+        push_str("");
+        fword("encode-string");
+        push_str("cache-coherence?");
         fword("property");
 
         PUSH(i);
         fword("encode-int");
         push_str("mid");
         fword("property");
+	
+        cpu->initfn();
 
-	
-	
         fword("finish-device");
     }
 
