@@ -111,12 +111,8 @@ mem_zalloc(struct mem *t, int size, int align)
     return p;
 }
 
-/*
- * Create a memory mapping from va to epa in page table pgd.
- * highbase is used for v2p translation.
- */
-int
-map_page(unsigned long va, unsigned long epa, int type)
+static unsigned long
+find_pte(unsigned long va, int alloc)
 {
     uint32_t pte;
     void *p;
@@ -124,29 +120,51 @@ map_page(unsigned long va, unsigned long epa, int type)
 
     pte = l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)];
     if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
-        p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PMD * sizeof(int),
-                       SRMMU_PTRS_PER_PMD * sizeof(int));
-        if (p == 0)
-            goto drop;
-        pte = SRMMU_ET_PTD | ((va2pa((unsigned long)p)) >> 4);
-        l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
-        /* barrier() */
+        if (alloc) {
+            p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PMD * sizeof(int),
+                           SRMMU_PTRS_PER_PMD * sizeof(int));
+            if (p == 0)
+                return 1;
+            pte = SRMMU_ET_PTD | ((va2pa((unsigned long)p)) >> 4);
+            l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
+            /* barrier() */
+        } else {
+            return 1;
+        }
     }
 
     pa = (pte & 0xFFFFFFF0) << 4;
     pa += ((va >> SRMMU_PMD_SHIFT) & (SRMMU_PTRS_PER_PMD - 1)) << 2;
     pte = *(uint32_t *)pa2va(pa);
     if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
-        p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PTE * sizeof(void *),
-                       SRMMU_PTRS_PER_PTE * sizeof(void *));
-        if (p == 0)
-            goto drop;
-        pte = SRMMU_ET_PTD | ((va2pa((unsigned int)p)) >> 4);
-        *(uint32_t *)pa2va(pa) = pte;
+        if (alloc) {
+            p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PTE * sizeof(void *),
+                           SRMMU_PTRS_PER_PTE * sizeof(void *));
+            if (p == 0)
+                return 2;
+            pte = SRMMU_ET_PTD | ((va2pa((unsigned int)p)) >> 4);
+            *(uint32_t *)pa2va(pa) = pte;
+        } else {
+            return 2;
+        }
     }
 
     pa = (pte & 0xFFFFFFF0) << 4;
     pa += ((va >> PAGE_SHIFT) & (SRMMU_PTRS_PER_PTE - 1)) << 2;
+
+    return pa2va(pa);
+}
+
+/*
+ * Create a memory mapping from va to epa.
+ */
+int
+map_page(unsigned long va, unsigned long epa, int type)
+{
+    uint32_t pte;
+    unsigned long pa;
+
+    pa = find_pte(va, 1);
 
     pte = SRMMU_ET_PTE | ((epa & PAGE_MASK) >> 4);
     if (type) {		/* I/O */
@@ -157,14 +175,10 @@ map_page(unsigned long va, unsigned long epa, int type)
         pte |= SRMMU_REF | SRMMU_CACHE;
         pte |= SRMMU_PRIV; /* Supervisor only access */
     }
-    *(uint32_t *)pa2va(pa) = pte;
+    *(uint32_t *)pa = pte;
     DPRINTF("map_page: va 0x%lx pa 0x%lx pte 0x%x\n", va, epa, pte);
 
     return 0;
-
- drop:
-
-    return -1;
 }
 
 /*
@@ -197,6 +211,66 @@ map_io(unsigned pa, int size)
 
     return (void *)((unsigned int)va + off);
 }
+
+/*
+ * D5.3 pgmap@ ( va -- pte )
+ */
+static void
+pgmap_fetch(void)
+{
+    uint32_t pte;
+    unsigned long va, pa;
+
+    va = POP();
+
+    pa = find_pte(va, 0);
+    if (pa == 1 || pa == 2)
+        goto error;
+    pte = *(uint32_t *)pa;
+    DPRINTF("pgmap@: va 0x%lx pa 0x%lx pte 0x%x\n", va, pa, pte);
+
+    PUSH(pte);
+    return;
+ error:
+    PUSH(0);
+}
+
+/*
+ * D5.3 pgmap! ( pte va -- )
+ */
+static void
+pgmap_store(void)
+{
+    uint32_t pte;
+    unsigned long va, pa;
+
+    va = POP();
+    pte = POP();
+
+    pa = find_pte(va, 1);
+    *(uint32_t *)pa = pte;
+    DPRINTF("pgmap!: va 0x%lx pa 0x%lx pte 0x%x\n", va, pa, pte);
+}
+
+/*
+ * D5.3 map-pages ( pa space va size -- )
+ */
+static void
+map_pages(void)
+{
+    unsigned long va, pa;
+    int size;
+
+    size = POP();
+    va = POP();
+    (void) POP();
+    pa = POP();
+
+    for (; size > 0; size -= PAGE_SIZE, pa += PAGE_SIZE, va += PAGE_SIZE)
+        map_page(va, pa, 1);
+    DPRINTF("map-page: va 0x%lx pa 0x%lx size 0x%x\n", va, pa, size);
+}
+
 
 void
 ob_init_mmu(unsigned long bus, unsigned long base)
@@ -280,6 +354,12 @@ ob_init_mmu(unsigned long bus, unsigned long base)
     fword("encode+");
     push_str("reg");
     fword("property");
+
+    PUSH(0);
+    fword("active-package!");
+    bind_func("pgmap@", pgmap_fetch);
+    bind_func("pgmap!", pgmap_store);
+    bind_func("map-pages", map_pages);
 }
 
 
