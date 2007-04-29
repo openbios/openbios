@@ -388,6 +388,20 @@ static void tms390z55_init(void)
     fword("property");
 }
 
+static void rt625_init(void)
+{
+    PUSH(32);
+    fword("encode-int");
+    push_str("cache-line-size");
+    fword("property");
+
+    PUSH(512);
+    fword("encode-int");
+    push_str("cache-nlines");
+    fword("property");
+
+}
+
 struct cpudef {
     unsigned long iu_version;
     const char *name;
@@ -407,6 +421,25 @@ static const struct cpudef sparc_defs[] = {
         .psr_vers = 5,
         .impl = 0,
         .vers = 5,
+        .dcache_line_size = 0x10,
+        .dcache_lines = 0x200,
+        .dcache_assoc = 1,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x200,
+        .icache_assoc = 1,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x4000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x100,
+        .initfn = mb86904_init,
+    },
+    {
+        .iu_version = 0x05 << 24, /* Impl 0, ver 5 */
+        .name = "FMI,MB86907",
+        .psr_impl = 0,
+        .psr_vers = 5,
+        .impl = 0,
+        .vers = 5,
         .dcache_line_size = 0x20,
         .dcache_lines = 0x200,
         .dcache_assoc = 1,
@@ -418,6 +451,25 @@ static const struct cpudef sparc_defs[] = {
         .ecache_assoc = 1,
         .mmu_nctx = 0x100,
         .initfn = mb86904_init,
+    },
+    {
+        .iu_version = 0x41000000,
+        .name = "TI,TMS390S10",
+        .psr_impl = 4,
+        .psr_vers = 1,
+        .impl = 4,
+        .vers = 1,
+        .dcache_line_size = 0x10,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x80,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = tms390z55_init,
     },
     {
         .iu_version = 0x40000000,
@@ -437,6 +489,25 @@ static const struct cpudef sparc_defs[] = {
         .ecache_assoc = 1,
         .mmu_nctx = 0x10000,
         .initfn = tms390z55_init,
+    },
+    {
+        .iu_version = 0x1e000000,
+        .name = "Ross,RT625",
+        .psr_impl = 1,
+        .psr_vers = 14,
+        .impl = 1,
+        .vers = 7,
+        .dcache_line_size = 0x20,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x40,
+        .icache_lines = 0x40,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = rt625_init,
     },
 };
 
