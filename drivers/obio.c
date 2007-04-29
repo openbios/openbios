@@ -504,6 +504,9 @@ ob_nvram_init(unsigned long base, unsigned long offset)
     obio_cmdline[size] = '\0';
     cmdline = obio_cmdline;
     cmdline_size = size;
+    ((struct qemu_nvram_v1 *)nvram)->kernel_image = 0;
+    ((struct qemu_nvram_v1 *)nvram)->kernel_size = 0;
+    ((struct qemu_nvram_v1 *)nvram)->cmdline_size = 0;
 
     boot_device = nv_info.boot_device;
     nographic = nv_info.nographic;

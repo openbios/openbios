@@ -245,6 +245,8 @@ first_cpu:
 
         set     AC_M_CTPR, %g2
         sta     %g7, [%g2] ASI_M_MMUREGS	! set ctx table ptr
+        set     AC_M_CXR, %g2
+        sta     %g0, [%g2] ASI_M_MMUREGS	! context 0
         set	1, %g1
         sta     %g1, [%g0] ASI_M_MMUREGS	! enable mmu
 
