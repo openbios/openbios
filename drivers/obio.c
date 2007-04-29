@@ -291,19 +291,21 @@ struct qemu_nvram_v1 nv_info;
 void
 arch_nvram_get(char *data)
 {
-    memcpy(data, nvram, NVRAM_SIZE);
+    memcpy(data, &nvram[sizeof(struct qemu_nvram_v1)],
+           NVRAM_IDPROM - sizeof(struct qemu_nvram_v1));
 }
 
 void
 arch_nvram_put(char *data)
 {
-    memcpy(nvram, data, NVRAM_SIZE);
+    memcpy(&nvram[sizeof(struct qemu_nvram_v1)], data,
+           NVRAM_IDPROM - sizeof(struct qemu_nvram_v1));
 }
 
 int
 arch_nvram_size(void)
 {
-    return NVRAM_SIZE;
+    return (NVRAM_IDPROM - sizeof(struct qemu_nvram_v1)) & ~15;
 }
 
 static void mb86904_init(void)
