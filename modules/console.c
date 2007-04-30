@@ -21,6 +21,13 @@
 #define NCOLS	80
 #define NROWS	48
 
+typedef enum {
+    ESnormal, ESesc, ESsquare, ESgetpars, ESgotpars, ESfunckey,
+    EShash, ESsetG0, ESsetG1, ESpercent, ESignore, ESnonstd,
+    ESpalette
+} vc_state_t;
+
+#define NPAR 16
 static struct {
 	int	inited;
 	int	physw, physh;
@@ -30,6 +37,9 @@ static struct {
 	char	*buf;
 
 	int	cursor_on;
+	vc_state_t vc_state;
+	unsigned int vc_npar,vc_par[NPAR]; /* Parameters of current
+                                              escape sequence */
 } cons;
 
 static int
@@ -115,6 +125,7 @@ console_init( void )
 	cons.buf = malloc( cons.w * cons.h );
 	cons.inited = 1;	
 	cons.x = cons.y = 0;
+        cons.vc_state = ESnormal;
 	return 0;
 }
 
@@ -162,22 +173,148 @@ scroll1( void )
 	draw_line(cons.h-1);
 }
 
+static void
+do_con_trol(int ch)
+{
+    unsigned int i, j;
+
+    switch (ch) {
+    case 8:
+        if (cons.x)
+            cons.x--;
+        return;
+    case 10 ... 12:
+        cons.x = 0;
+        cons.y++;
+        return;
+    case 13:
+        cons.x = 0;
+        return;
+    case 24:
+    case 26:
+        cons.vc_state = ESnormal;
+        return;
+    case 27:
+        cons.vc_state = ESesc;
+        return;
+    }
+
+    switch (cons.vc_state) {
+    case ESesc:
+        cons.vc_state = ESnormal;
+        switch (ch) {
+        case '[':
+            cons.vc_state = ESsquare;
+            return;
+        case 'M':
+            scroll1();
+            return;
+        default:
+            printk("Unhandled escape code '%c'\n", ch);
+            return;
+        }
+        return;
+    case ESsquare:
+        for(cons.vc_npar = 0; cons.vc_npar < NPAR ; cons.vc_npar++)
+            cons.vc_par[cons.vc_npar] = 0;
+        cons.vc_npar = 0;
+        cons.vc_state = ESgetpars;
+        // Fall through
+    case ESgetpars:
+        if (ch == ';' && cons.vc_npar < NPAR - 1) {
+            cons.vc_npar++;
+            return;
+        } else if (ch >= '0' && ch <= '9') {
+            cons.vc_par[cons.vc_npar] *= 10;
+            cons.vc_par[cons.vc_npar] += ch - '0';
+            return;
+        } else
+            cons.vc_state=ESgotpars;
+        // Fall through
+    case ESgotpars:
+        cons.vc_state = ESnormal;
+        switch(ch) {
+        case 'H':
+        case 'f':
+            if (cons.vc_par[0])
+                cons.vc_par[0]--;
+
+            if (cons.vc_par[1])
+                cons.vc_par[1]--;
+
+            cons.x = cons.vc_par[1];
+            cons.y = cons.vc_par[0];
+            return;
+        case 'J':
+            if (cons.vc_par[0] == 0 && (uint)cons.y < (uint)cons.h &&
+                (uint)cons.x < (uint)cons.w) {
+                // erase from cursor to end of display
+                for (i = cons.x; i < cons.w; i++)
+                    cons.buf[cons.y * cons.w + i] = ' ';
+                draw_line(cons.y);
+                for (j = cons.y + 1; j < cons.h; j++) {
+                    for (i = 0; i < cons.w; i++)
+                        cons.buf[j * cons.w + i] = ' ';
+                    draw_line(j);
+                }
+            }
+            return;
+        case 'K':
+            switch (cons.vc_par[0]) {
+            case 0: /* erase from cursor to end of line */
+                for (i = cons.x; i < cons.w; i++)
+                    cons.buf[cons.y * cons.w + i] = ' ';
+                draw_line(cons.y);
+                return;
+            case 1: /* erase from start of line to cursor */
+                for (i = 0; i <= cons.x; i++)
+                    cons.buf[cons.y * cons.w + i] = ' ';
+                draw_line(cons.y);
+                return;
+            case 2: /* erase whole line */
+                for (i = 0; i <= cons.w; i++)
+                    cons.buf[cons.y * cons.w + i] = ' ';
+                draw_line(cons.y);
+                return;
+            default:
+                return;
+            }
+            return;
+        case 'M':
+            scroll1();
+            return;
+        case 'm':
+            return;
+        case '@':
+            return;
+        default:
+            printk("Unhandled escape code '%c', par[%d, %d, %d, %d, %d]\n",
+                   ch, cons.vc_par[0], cons.vc_par[1], cons.vc_par[2],
+                   cons.vc_par[3], cons.vc_par[4]);
+            return;
+        }
+        return;
+    default:
+        cons.vc_state = ESnormal;
+        rec_char(ch, cons.x++, cons.y);
+        return;
+    }
+}
+
 int
 console_draw_str( const char *str )
 {
-	static const char *ignore[] = { "[1;37m", "[2;40m", NULL };
-	int ch, y, x, i;
+	int ch, y, x;
 
 	if( !cons.inited && console_init() )
 		return -1;
 
 	show_cursor(0);
 	while( (ch=*str++) ) {
-		if( ch == 12 )
-			continue;
-		if( ch == '\n' || cons.x >= cons.w ) {
+		do_con_trol(ch);
+
+		if( cons.x >= cons.w ) {
 			cons.x=0, cons.y++;
-			continue;
 		}
 		if( cons.y >= cons.h ) {
 			for( y=0; y<cons.h-1; y++ )
@@ -187,21 +324,6 @@ console_draw_str( const char *str )
 			cons.x = 0;
 			scroll1();
 		}
-		if( ch == '\r' )
-			continue;
-		if( ch == '\e' ) {
-			for( i=0; ignore[i] && strncmp(ignore[i], str, strlen(ignore[i])); i++ )
-				;
-			if( ignore[i] )
-				str += strlen(ignore[i]);
-			continue;
-		}
-		if( ch == 8 ) {
-			if( cons.x )
-				cons.x--;
-			continue;
-		}
-		rec_char( ch, cons.x++, cons.y );
 	}
 	show_cursor(1);
 	return 0;
