@@ -34,31 +34,42 @@ void boot(void)
         const void *romvec;
 
 	if(!path) {
-            switch(boot_device) {
-            case 'a':
-                path = "/obio/SUNW,fdtwo";
-                oldpath = "fd()";
+            push_str("boot-device");
+            push_str("/options");
+            fword("(find-dev)");
+            POP();
+            fword("get-package-property");
+            if (!POP()) {
+                path = pop_fstr_copy();
+                oldpath = path;
                 unit = 0;
-                break;
-            case 'c':
-                path = "disk";
-                oldpath = "sd(0,0,0):d";
-                unit = 0;
-                break;
-            default:
-            case 'd':
-                path = "cdrom";
-                // FIXME: hardcoding this looks almost definitely wrong.
-                // With sd(0,2,0):b we get to see the solaris kernel though
-                //oldpath = "sd(0,2,0):d";
-                oldpath = "sd(0,2,0):b";
-                unit = 2;
-                break;
-            case 'n':
-                path = "net";
-                oldpath = "le()";
-                unit = 0;
-                break;
+            } else {
+                switch (boot_device) {
+                case 'a':
+                    path = "/obio/SUNW,fdtwo";
+                    oldpath = "fd()";
+                    unit = 0;
+                    break;
+                case 'c':
+                    path = "disk";
+                    oldpath = "sd(0,0,0):d";
+                    unit = 0;
+                    break;
+                default:
+                case 'd':
+                    path = "cdrom";
+                    // FIXME: hardcoding this looks almost definitely wrong.
+                    // With sd(0,2,0):b we get to see the solaris kernel though
+                    //oldpath = "sd(0,2,0):d";
+                    oldpath = "sd(0,2,0):b";
+                    unit = 2;
+                    break;
+                case 'n':
+                    path = "net";
+                    oldpath = "le()";
+                    unit = 0;
+                    break;
+                }
             }
 	}
 
@@ -76,8 +87,17 @@ void boot(void)
 		param++;
 	} else if (cmdline_size) {
             param = (char *)cmdline;
+        } else {
+            push_str("boot-args");
+            push_str("/options");
+            fword("(find-dev)");
+            POP();
+            fword("get-package-property");
+            POP();
+            param = pop_fstr_copy();
+            obp_arg.argv[1] = param;
         }
-	
+
         romvec = init_openprom(qemu_mem_size);
 
         if (kernel_size) {
