@@ -28,7 +28,7 @@ extern struct linux_arguments_v0 obp_arg;
 
 void boot(void)
 {
-        char *path = pop_fstr_copy(), *param, *oldpath;
+        char *path = pop_fstr_copy(), *param, *oldpath = path;
         char altpath[256];
         int unit;
         const void *romvec;
@@ -41,7 +41,6 @@ void boot(void)
             fword("get-package-property");
             if (!POP()) {
                 path = pop_fstr_copy();
-                oldpath = path;
                 unit = 0;
             } else {
                 switch (boot_device) {

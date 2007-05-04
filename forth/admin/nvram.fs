@@ -303,7 +303,6 @@ constant config-info.size
 \ fcode-debug? input-device output-device
 " true"     " auto-boot?"           bool-config   \ 7.4.3.5
 " boot"     " boot-command"         str-config    \ 7.4.3.5
-" disk"     " boot-device"          str-config    \ 7.4.3.5
 " "         " boot-file"            str-config    \ 7.4.3.5
 " false"    " diag-switch?"         bool-config   \ 7.4.3.5
 " net"      " diag-device"          str-config    \ 7.4.3.5
@@ -330,6 +329,7 @@ no-conf-def " security-mode"        secmode-config
 
 [IFDEF] CONFIG_PPC
 \ ---- PPC ----
+" disk"     " boot-device"          str-config    \ 7.4.3.5
 " false"    " little-endian?"       bool-config
 " false"    " real-mode?"           bool-config
 " -1"       " real-base"            int-config
@@ -341,6 +341,7 @@ no-conf-def " security-mode"        secmode-config
 
 [IFDEF] CONFIG_X86
 \ ---- X86 ----
+" disk"     " boot-device"          str-config    \ 7.4.3.5
 " true"     " little-endian?"       bool-config
 [THEN]
 
