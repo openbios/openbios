@@ -124,12 +124,12 @@ find_pte(unsigned long va, int alloc)
             p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PMD * sizeof(int),
                            SRMMU_PTRS_PER_PMD * sizeof(int));
             if (p == 0)
-                return 1;
+                return -1;
             pte = SRMMU_ET_PTD | ((va2pa((unsigned long)p)) >> 4);
             l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
             /* barrier() */
         } else {
-            return 1;
+            return -1;
         }
     }
 
@@ -141,11 +141,11 @@ find_pte(unsigned long va, int alloc)
             p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PTE * sizeof(void *),
                            SRMMU_PTRS_PER_PTE * sizeof(void *));
             if (p == 0)
-                return 2;
+                return -2;
             pte = SRMMU_ET_PTD | ((va2pa((unsigned int)p)) >> 4);
             *(uint32_t *)pa2va(pa) = pte;
         } else {
-            return 2;
+            return -2;
         }
     }
 
