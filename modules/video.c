@@ -259,6 +259,7 @@ video_write(void)
 static void
 video_open(void)
 {
+    RET(-1);
 }
 
 NODE_METHODS( video ) = {
