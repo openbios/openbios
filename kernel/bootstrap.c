@@ -106,11 +106,11 @@ static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, 
 	int l=(length+(sizeof(cell)-1))/sizeof(ucell), i;
 	
 	/* prepare relocation table */
-	relocation_length=(l+BITS-1)/BITS;
+	relocation_length=(length+BITS-1)/BITS;
 	reloc_table = malloc(relocation_length*sizeof(cell));
 	memset(reloc_table,0,relocation_length*sizeof(cell));
 	
-	for (i=0; i<=l; i++) {
+	for (i=0; i<l; i++) {
 		
 		pos=i/BITS;
 		bit=i&~(-BITS);
