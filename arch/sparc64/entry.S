@@ -211,7 +211,7 @@ entry:
 
         /* Zero out our BSS section. */
         setx    _bss - 8, %o7, %o0              ! First address of BSS
-        setx    _end, %o7, %o1                  ! Last address of BSS
+        setx    _end - 8, %o7, %o1                  ! Last address of BSS
         ba	2f
          nop
 1:

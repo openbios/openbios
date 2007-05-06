@@ -267,7 +267,7 @@ first_cpu:
 
         /* Zero out our BSS section. */
         set	_bss - 4, %o0           ! First address of BSS
-        set	_estack, %o1               ! Last address of BSS
+        set	_estack - 4, %o1        ! Last address of BSS
         ba	2f
          nop
 1:
