@@ -117,13 +117,6 @@ new-device
   h# 26 encode-int 0 encode-int encode+ " intr" property
 finish-device
 
-" /iommu/sbus" find-device
-new-device
-  " power-management" device-name
-  h# 5 encode-int h# 0a000000 encode-int encode+ h# 00000010 encode-int encode+ " reg" property
-finish-device
-
-
 \ obio (on-board IO)
 " /" find-device
 new-device

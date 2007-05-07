@@ -20,6 +20,8 @@
 
 #define SBUS_REGS        0x28
 #define SBUS_SLOTS       16
+#define POWER_REGS       0x10
+#define POWER_OFFSET     0x0a000000
 
 static void
 ob_sbus_node_init(unsigned long bus, unsigned long base)
@@ -271,6 +273,30 @@ ob_tcx_init(unsigned int slot, unsigned long base)
 }
 
 static void
+ob_power_init(unsigned int slot, unsigned long base)
+{
+    push_str("/iommu/sbus");
+    fword("find-device");
+    fword("new-device");
+
+    push_str("power-management");
+    fword("device-name");
+
+    PUSH(slot);
+    fword("encode-int");
+    PUSH(base);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(POWER_REGS);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    fword("finish-device");
+}
+
+static void
 ob_macio_init(unsigned int slot, unsigned long base, unsigned long offset)
 {
     // All devices were integrated to NCR89C100, see
@@ -289,7 +315,7 @@ ob_macio_init(unsigned int slot, unsigned long base, unsigned long offset)
     //ob_bpp_init(base);
 
     // Power management
-    //ob_power_init(base);
+    ob_power_init(slot, POWER_OFFSET);
 }
 
 static void
