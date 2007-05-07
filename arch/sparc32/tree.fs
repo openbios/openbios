@@ -120,7 +120,7 @@ finish-device
 " /iommu/sbus" find-device
 new-device
   " power-management" device-name
-  h# 4 encode-int h# 0a000000 encode-int encode+ h# 00000010 encode-int encode+ " reg" property
+  h# 5 encode-int h# 0a000000 encode-int encode+ h# 00000010 encode-int encode+ " reg" property
 finish-device
 
 
