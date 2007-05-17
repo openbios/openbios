@@ -491,6 +491,11 @@ ob_esp_init(unsigned int slot, unsigned long base, unsigned long offset)
     push_str("reg");
     fword("property");
 
+    PUSH(0x02625a00);
+    fword("encode-int");
+    push_str("clock-frequency");
+    fword("property");
+
     for (id = 0; id < 8; id++) {
         if (!esp->sd[id].present)
             continue;

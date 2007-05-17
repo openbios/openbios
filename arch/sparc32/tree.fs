@@ -56,22 +56,14 @@ new-device
   : decode-unit decode-unit-sbus ;
 finish-device
 
-" /iommu/sbus" find-device
-new-device
-  " SUNW,CS4231" device-name
-  " serial" device-type
-  5 encode-int 0 encode-int encode+ " intr" property
-  5 encode-int " interrupts" property
-  h# 3 encode-int h# 0c000000 encode-int encode+ h# 00000040 encode-int encode+ " reg" property
-  " audio" encode-string " alias" property
-finish-device
-
+[IFDEF] CONFIG_BPP
 " /iommu/sbus" find-device
 new-device
   " SUNW,bpp" device-name
   h# 4 encode-int h# 0c800000 encode-int encode+ h# 0000001c encode-int encode+ " reg" property
   h# 33 encode-int 0 encode-int encode+ " intr" property
 finish-device
+[THEN]
 
 " /iommu/sbus" find-device
 new-device

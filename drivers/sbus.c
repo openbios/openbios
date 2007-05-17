@@ -22,6 +22,8 @@
 #define SBUS_SLOTS       16
 #define POWER_REGS       0x10
 #define POWER_OFFSET     0x0a000000
+#define CS4231_REGS      0x40
+#define CS4231_OFFSET    0x0c000000
 
 static void
 ob_sbus_node_init(unsigned long bus, unsigned long base)
@@ -297,6 +299,51 @@ ob_power_init(unsigned int slot, unsigned long base)
 }
 
 static void
+ob_cs4231_init(unsigned int slot, unsigned long base)
+{
+    push_str("/iommu/sbus");
+    fword("find-device");
+    fword("new-device");
+
+    push_str("SUNW,CS4231");
+    fword("device-name");
+
+    push_str("serial");
+    fword("device-type");
+
+    PUSH(slot);
+    fword("encode-int");
+    PUSH(CS4231_OFFSET);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(CS4231_REGS);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    PUSH(5);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    push_str("intr");
+    fword("property");
+
+    PUSH(5);
+    fword("encode-int");
+    push_str("interrupts");
+    fword("property");
+
+    push_str("audio");
+    fword("encode-string");
+    push_str("alias");
+    fword("property");
+
+    fword("finish-device");
+}
+
+static void
 ob_macio_init(unsigned int slot, unsigned long base, unsigned long offset)
 {
     // All devices were integrated to NCR89C100, see
@@ -327,7 +374,7 @@ sbus_probe_slot_ss5(unsigned int slot, unsigned long base)
         ob_tcx_init(slot, base);
         break;
     case 4: // SUNW,CS4231
-        //ob_cs4231_init(slot, base);
+        ob_cs4231_init(slot, base);
         break;
     case 5: // MACIO: le, esp, bpp, power-management
         ob_macio_init(slot, base, 0x08000000);

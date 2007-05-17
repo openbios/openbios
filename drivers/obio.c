@@ -859,8 +859,15 @@ ob_counter_init(unsigned long base, unsigned long offset)
     regs->l10_timer_limit = (((1000000/100) + 1) << 10);
     regs->cpu_timers[0].l14_timer_limit = 0;
 
-    PUSH((unsigned long)regs);
+    for (i = 0; i < SUN4M_NCPU; i++) {
+        PUSH((unsigned long)&regs->cpu_timers[i]);
+        fword("encode-int");
+        if (i != 0)
+            fword("encode+");
+    }
+    PUSH((unsigned long)&regs->l10_timer_limit);
     fword("encode-int");
+    fword("encode+");
     push_str("address");
     fword("property");
 
@@ -905,10 +912,13 @@ ob_interrupt_init(unsigned long base, unsigned long offset)
     intregs->set = ~SUN4M_INT_MASKALL;
     intregs->cpu_intregs[0].clear = ~0x17fff;
 
-    // Is this correct? It works for NetBSD at least
-    PUSH((int)intregs);
-    fword("encode-int");
-    PUSH((int)intregs);
+    for (i = 0; i < SUN4M_NCPU; i++) {
+        PUSH((unsigned long)&intregs->cpu_intregs[i]);
+        fword("encode-int");
+        if (i != 0)
+            fword("encode+");
+    }
+    PUSH((unsigned long)&intregs->tbt);
     fword("encode-int");
     fword("encode+");
     push_str("address");
