@@ -25,8 +25,8 @@
 #include "asm/dma.h"
 #include "esp.h"
 
-#define MACIO_ESPDMA  0x00400000      /* ESP DMA controller */
-#define MACIO_ESP     0x00800000      /* ESP SCSI */
+#define MACIO_ESPDMA  0x00400000ULL /* ESP DMA controller */
+#define MACIO_ESP     0x00800000ULL /* ESP SCSI */
 
 #define BUFSIZE         4096
 
@@ -309,10 +309,10 @@ NODE_METHODS(ob_sd) = {
 
 
 static int
-espdma_init(unsigned int slot, unsigned long base, unsigned long offset,
+espdma_init(unsigned int slot, uint64_t base, unsigned long offset,
             struct esp_dma *espdma)
 {
-    espdma->regs = (void *)map_io(base + offset + MACIO_ESPDMA, 0x10);
+    espdma->regs = (void *)map_io(base + (uint64_t)offset + MACIO_ESPDMA, 0x10);
 
     if (espdma->regs == 0) {
         DPRINTF("espdma_init: cannot map registers\n");
@@ -424,7 +424,7 @@ add_alias(const char *device, const char *alias)
 }
 
 int
-ob_esp_init(unsigned int slot, unsigned long base, unsigned long offset)
+ob_esp_init(unsigned int slot, uint64_t base, unsigned long offset)
 {
     int id, diskcount = 0, cdcount = 0, *counter_ptr;
     char nodebuff[256], aliasbuff[256];
@@ -444,7 +444,8 @@ ob_esp_init(unsigned int slot, unsigned long base, unsigned long offset)
         return -1;
     }
     /* Get the IO region */
-    esp->ll = (void *)map_io(base + offset + MACIO_ESP, sizeof(struct esp_regs));
+    esp->ll = (void *)map_io(base + (uint64_t)offset + MACIO_ESP,
+                             sizeof(struct esp_regs));
     if (esp->ll == 0) {
         DPRINTF("Can't map ESP registers\n");
         return -1;

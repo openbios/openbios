@@ -17,10 +17,10 @@
 
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 
-static unsigned long kbd_base, serial_base;
+static volatile unsigned char *kbd_dev, *serial_dev;
 
-#define CTRL(port) (serial_base + (port) * 2 + 0)
-#define DATA(port) (serial_base + (port) * 2 + 2)
+#define CTRL(port) serial_dev[(port) * 2 + 0]
+#define DATA(port) serial_dev[(port) * 2 + 2]
 
 /* Conversion routines to/from brg time constants from/to bits
  * per second.
@@ -54,53 +54,62 @@ static unsigned long kbd_base, serial_base;
 
 static int uart_charav(int port)
 {
-	return ((inb(CTRL(port)) & Rx_CH_AV) != 0);
+    return ((CTRL(port) & Rx_CH_AV) != 0);
 }
 
 static char uart_getchar(int port)
 {
-	while (!uart_charav(port));
-	return ((char) (inb(DATA(port))) & 0177);
+    while (!uart_charav(port))
+        ;
+    return DATA(port) & 0177;
 }
 
 static void uart_putchar(int port, unsigned char c)
 {
-	if (c == '\n')
-		uart_putchar(port, '\r');
-	while (!inb(CTRL(port)) & 4);
-	outb(c, DATA(port));
+    if (!serial_dev)
+        return;
+
+    if (c == '\n')
+        uart_putchar(port, '\r');
+    while (!(CTRL(port) & 4))
+        ;
+    DATA(port) = c;
 }
 
 static void uart_init_line(int port, unsigned long baud)
 {
-        outb(4, CTRL(port)); // reg 4
-        outb(SB1 | X16CLK, CTRL(port)); // no parity, async, 1 stop
-                                        // bit, 16x clock
+    CTRL(port) = 4; // reg 4
+    CTRL(port) = SB1 | X16CLK; // no parity, async, 1 stop bit, 16x
+                               // clock
 
-        baud = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
+    baud = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
 
-        outb(12, CTRL(port)); // reg 12
-        outb(baud & 0xff, CTRL(port));
-        outb(13, CTRL(port)); // reg 13
-        outb((baud >> 8) & 0xff, CTRL(port));
-        outb(14, CTRL(port)); // reg 14
-        outb(BRSRC | BRENAB, CTRL(port));
+    CTRL(port) = 12; // reg 12
+    CTRL(port) = baud & 0xff;
+    CTRL(port) = 13; // reg 13
+    CTRL(port) = (baud >> 8) & 0xff;
+    CTRL(port) = 14; // reg 14
+    CTRL(port) = BRSRC | BRENAB;
 
-        outb(3, CTRL(port)); // reg 3
-        outb(RxENAB | Rx8, CTRL(port)); // enable rx, 8 bits/char
+    CTRL(port) = 3; // reg 3
+    CTRL(port) = RxENAB | Rx8; // enable rx, 8 bits/char
 
-        outb(5, CTRL(port)); // reg 5
-        outb(RTS | TxENAB | Tx8 | DTR, CTRL(port)); // enable tx, 8
-                                                    // bits/char, set
-                                                    // RTS & DTR
+    CTRL(port) = 5; // reg 5
+    CTRL(port) = RTS | TxENAB | Tx8 | DTR; // enable tx, 8 bits/char,
+                                           // set RTS & DTR
 
 }
 
-int uart_init(int port, unsigned long speed)
+int uart_init(uint64_t port, unsigned long speed)
 {
-        serial_base = ((unsigned long)port) & ~3;
-        uart_init_line(port & 3, speed);
-	return -1;
+    int line;
+
+    serial_dev = map_io(port & ~7ULL, 2 * 4);
+    serial_dev += port & 7ULL;
+    line = port & 3ULL;
+    uart_init_line(line, speed);
+
+    return -1;
 }
 
 static void serial_putchar(int c)
@@ -126,9 +135,9 @@ static void serial_cls(void)
 
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
 
-#define VMEM_BASE 0x00800000
+#define VMEM_BASE 0x00800000ULL
 #define VMEM_SIZE (1024*768*1)
-#define DAC_BASE  0x00200000
+#define DAC_BASE  0x00200000ULL
 #define DAC_SIZE  16
 
 static unsigned char *vmem;
@@ -170,7 +179,7 @@ static void video_cls(void)
     memset((void *)vmem, 0, VMEM_SIZE);
 }
 
-void tcx_init(unsigned long base)
+void tcx_init(uint64_t base)
 {
     vmem = map_io(base + VMEM_BASE, VMEM_SIZE);
     dac = map_io(base + DAC_BASE, DAC_SIZE);
@@ -178,9 +187,10 @@ void tcx_init(unsigned long base)
     console_init();
 }
 
-void kbd_init(unsigned long base)
+void kbd_init(uint64_t base)
 {
-    kbd_base = base + 4;
+    kbd_dev = map_io(base, 2 * 4);
+    kbd_dev += 4;
 }
 
 static const unsigned char sunkbd_keycode[128] = {
@@ -216,7 +226,7 @@ static int shiftstate;
 int
 keyboard_dataready(void)
 {
-    return ((inb(kbd_base) & 1) == 1);
+    return ((kbd_dev[0] & 1) == 1);
 }
 
 unsigned char
@@ -227,7 +237,7 @@ keyboard_readdata(void)
     while (!keyboard_dataready()) { }
 
     do {
-        ch = inb(kbd_base + 2) & 0xff;
+        ch = kbd_dev[2] & 0xff;
         if (ch == 99)
             shiftstate |= 1;
         else if (ch == 110)

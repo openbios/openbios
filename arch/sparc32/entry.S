@@ -14,8 +14,8 @@
 #define PHYS_JJ_EEPROM	0x71200000  /* [2000] MK48T08 */
 #define PHYS_JJ_INTR0	0x71E00000  /* CPU0 interrupt control registers */
 
-#define PHYS_SS10_EEPROM	0xf1200000  /* XXX Actually at 0xff1200000ULL (36 bits)*/
-#define PHYS_SS10_INTR0 	0xf1400000  /* 0xff1400000ULL */
+#define PHYS_SS10_EEPROM	0xf1200000
+#define PHYS_SS10_INTR0 	0xf1400000
 
 #define WRITE_PAUSE    nop; nop; nop; /* Have to do this after %wim/%psr chg */
 
@@ -58,6 +58,7 @@ entry:
         set     PHYS_JJ_EEPROM + 0x2E, %g1
         lduba   [%g1] ASI_M_BYPASS, %g2
         set	PHYS_JJ_EEPROM + 0x30, %g1
+        lda	[%g1] ASI_M_BYPASS, %g1
         tst     %g2
         bz      first_cpu
          nop
@@ -89,30 +90,29 @@ bad_nvram:
          nop
 ss10:
         set PHYS_SS10_EEPROM, %g1
-        ! XXX use full 36 bits access
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'Q'
         bne     bad_nvram
          inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'E'
         bne     bad_nvram
          inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'M'
         bne     bad_nvram
          inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'U'
         bne     bad_nvram
         
         ! Ok, this is SS-10
         mov     0x72, %y
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
-        ! XXX use full 36 bits access
         set     PHYS_SS10_EEPROM + 0x2E, %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        lduba   [%g1] ASI_M_CTL, %g2
         set	PHYS_SS10_EEPROM + 0x30, %g1
+        lda	[%g1] ASI_M_CTL, %g1
         tst     %g2
         bz      first_cpu
          nop
@@ -120,19 +120,19 @@ ss10:
         sll     %g2, 12, %g2
         add     %g1, %g2, %g2
         set     0xffffffff, %g1
-        sta     %g1, [%g2] ASI_M_BYPASS         ! clear softints
+        sta     %g1, [%g2] ASI_M_CTL         ! clear softints
         add     %g2, 4, %g2
-        sta     %g0, [%g2] ASI_M_BYPASS         ! clear softints
+        sta     %g0, [%g2] ASI_M_CTL         ! clear softints
         set     PHYS_SS10_EEPROM + 0x3C, %g1
-        lda     [%g1] ASI_M_BYPASS, %g1
+        lda     [%g1] ASI_M_CTL, %g1
         set     AC_M_CTPR, %g2
         sta     %g1, [%g2] ASI_M_MMUREGS        ! set ctx table ptr
         set     PHYS_JJ_EEPROM + 0x40, %g1
-        lda     [%g1] ASI_M_BYPASS, %g1
+        lda     [%g1] ASI_M_CTL, %g1
         set     AC_M_CXR, %g2
         sta     %g1, [%g2] ASI_M_MMUREGS        ! set context
         set     PHYS_SS10_EEPROM + 0x38, %g1
-        lda     [%g1] ASI_M_BYPASS, %g2
+        lda     [%g1] ASI_M_CTL, %g2
         set     1, %g1
         jmp     %g2                             ! jump to kernel
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
@@ -140,7 +140,6 @@ ss10:
 first_cpu:
         /* Create temporary page tables and map the ROM area to end of
 	RAM. This will be done properly in iommu.c later. */
-        lda	[%g1] ASI_M_BYPASS, %g1
         set     _end, %g3
         set     0xfff, %g2
         add     %g3, %g2, %g3

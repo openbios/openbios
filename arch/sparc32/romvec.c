@@ -313,18 +313,20 @@ static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,
     unsigned int npages;
     unsigned int off;
     unsigned int mva;
+    uint64_t mpa = ((uint64_t)which_io << 32) | (uint64_t)pa;
 
-    DPRINTF("obp_dumb_mmap: virta 0x%x, which_io %d, paddr 0x%x, sz %d\n", (unsigned int)va, which_io, pa, size);
+    DPRINTF("obp_dumb_mmap: virta 0x%x, paddr 0x%llx, sz %d\n",
+            (unsigned int)va, mpa, size);
 
     off = pa & (PAGE_SIZE-1);
-    npages = (off + size + (PAGE_SIZE-1)) / PAGE_SIZE;
-    pa &= ~(PAGE_SIZE-1);
+    npages = (off + (size - 1) + (PAGE_SIZE-1)) / PAGE_SIZE;
+    mpa &= ~(uint64_t)(PAGE_SIZE - 1);
 
     mva = (unsigned int) va;
     while (npages-- != 0) {
-        map_page(mva, pa, 1);
+        map_page(mva, mpa, 1);
         mva += PAGE_SIZE;
-        pa += PAGE_SIZE;
+        mpa += (uint64_t)PAGE_SIZE;
     }
 
     return va;

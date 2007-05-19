@@ -71,7 +71,7 @@ ob_new_obio_device(const char *name, const char *type)
 }
 
 static unsigned long
-ob_reg(unsigned long base, unsigned long offset, unsigned long size, int map)
+ob_reg(uint64_t base, uint64_t offset, unsigned long size, int map)
 {
     PUSH(0);
     fword("encode-int");
@@ -248,7 +248,7 @@ NODE_METHODS(zs_keyboard) = {
 };
 
 static void
-ob_zs_init(unsigned long base, unsigned long offset, int intr, int slave, int keyboard)
+ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
 {
     char nodebuff[256];
 
@@ -277,7 +277,7 @@ ob_zs_init(unsigned long base, unsigned long offset, int intr, int slave, int ke
 
     fword("finish-device");
 
-    sprintf(nodebuff, "/obio/zs@0,%x", offset);
+    sprintf(nodebuff, "/obio/zs@0,%x", (int)offset & 0xffffffff);
     if (keyboard) {
         REGISTER_NODE_METHODS(zs_keyboard, nodebuff);
     } else {
@@ -532,7 +532,7 @@ id_cpu(void)
 }
 
 static void
-ob_nvram_init(unsigned long base, unsigned long offset)
+ob_nvram_init(uint64_t base, uint64_t offset)
 {
     extern uint32_t kernel_image;
     extern uint32_t kernel_size;
@@ -777,7 +777,7 @@ ob_nvram_init(unsigned long base, unsigned long offset)
 }
 
 static void
-ob_fd_init(unsigned long base, unsigned long offset, int intr)
+ob_fd_init(uint64_t base, uint64_t offset, int intr)
 {
     ob_new_obio_device("SUNW,fdtwo", "block");
 
@@ -790,7 +790,7 @@ ob_fd_init(unsigned long base, unsigned long offset, int intr)
 
 
 static void
-ob_sconfig_init(unsigned long base, unsigned long offset)
+ob_sconfig_init(uint64_t base, uint64_t offset)
 {
     ob_new_obio_device("slavioconfig", NULL);
 
@@ -800,7 +800,7 @@ ob_sconfig_init(unsigned long base, unsigned long offset)
 }
 
 static void
-ob_auxio_init(unsigned long base, unsigned long offset)
+ob_auxio_init(uint64_t base, uint64_t offset)
 {
     ob_new_obio_device("auxio", NULL);
 
@@ -810,7 +810,7 @@ ob_auxio_init(unsigned long base, unsigned long offset)
 }
 
 static void
-ob_power_init(unsigned long base, unsigned long offset, int intr)
+ob_power_init(uint64_t base, uint64_t offset, int intr)
 {
     ob_new_obio_device("power", NULL);
 
@@ -822,7 +822,7 @@ ob_power_init(unsigned long base, unsigned long offset, int intr)
 }
 
 static void
-ob_counter_init(unsigned long base, unsigned long offset)
+ob_counter_init(uint64_t base, unsigned long offset)
 {
     volatile struct sun4m_timer_regs *regs;
     int i;
@@ -855,7 +855,7 @@ ob_counter_init(unsigned long base, unsigned long offset)
     fword("property");
 
 
-    regs = map_io(base + offset, sizeof(*regs));
+    regs = map_io(base + (uint64_t)offset, sizeof(*regs));
     regs->l10_timer_limit = (((1000000/100) + 1) << 10);
     regs->cpu_timers[0].l14_timer_limit = 0;
 
@@ -877,7 +877,7 @@ ob_counter_init(unsigned long base, unsigned long offset)
 static volatile struct sun4m_intregs *intregs;
 
 static void
-ob_interrupt_init(unsigned long base, unsigned long offset)
+ob_interrupt_init(uint64_t base, unsigned long offset)
 {
     int i;
 
@@ -908,7 +908,7 @@ ob_interrupt_init(unsigned long base, unsigned long offset)
     push_str("reg");
     fword("property");
 
-    intregs = map_io(base + offset, sizeof(*intregs));
+    intregs = map_io(base | (uint64_t)offset, sizeof(*intregs));
     intregs->set = ~SUN4M_INT_MASKALL;
     intregs->cpu_intregs[0].clear = ~0x17fff;
 
@@ -984,7 +984,7 @@ ob_obio_initialize(__attribute__((unused))int *idx)
 }
 
 static void
-ob_set_obio_ranges(unsigned long high, unsigned long base)
+ob_set_obio_ranges(uint64_t base)
 {
     push_str("/obio");
     fword("find-device");
@@ -993,10 +993,10 @@ ob_set_obio_ranges(unsigned long high, unsigned long base)
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH(high);
+    PUSH(base >> 32);
     fword("encode-int");
     fword("encode+");
-    PUSH(base);
+    PUSH(base & 0xffffffff);
     fword("encode-int");
     fword("encode+");
     PUSH(SLAVIO_SIZE);
@@ -1029,9 +1029,8 @@ NODE_METHODS(ob_obio) = {
 
 
 int
-ob_obio_init(unsigned long slavio_high, unsigned long slavio_base,
-             unsigned long fd_offset, unsigned long counter_offset,
-             unsigned long intr_offset)
+ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
+                 unsigned long counter_offset, unsigned long intr_offset)
 {
 
     // All devices were integrated to NCR89C105, see
@@ -1042,7 +1041,7 @@ ob_obio_init(unsigned long slavio_high, unsigned long slavio_base,
     REGISTER_NAMED_NODE(ob_obio, "/obio");
     device_end();
 #endif
-    ob_set_obio_ranges(slavio_high, slavio_base);
+    ob_set_obio_ranges(slavio_base);
 
     // Zilog Z8530 serial ports, see http://www.zilog.com
     // Must be before zs@0,0 or Linux won't boot

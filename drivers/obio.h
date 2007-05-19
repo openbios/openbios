@@ -1,32 +1,32 @@
 /* Addresses, interrupt numbers, register sizes */
 
-#define SLAVIO_ZS        0x00000000
-#define SLAVIO_ZS1       0x00100000
+#define SLAVIO_ZS        0x00000000ULL
+#define SLAVIO_ZS1       0x00100000ULL
 #define ZS_INTR          0x2c
 #define ZS_REGS          8
 
-#define SLAVIO_NVRAM     0x00200000
+#define SLAVIO_NVRAM     0x00200000ULL
 #define NVRAM_SIZE       0x2000
 #define NVRAM_IDPROM     0x1fd8
 
-#define SLAVIO_FD        0x00400000
+#define SLAVIO_FD        0x00400000ULL
 #define FD_REGS          15
 #define FD_INTR          0x2b
 
-#define SLAVIO_SCONFIG   0x00800000
+#define SLAVIO_SCONFIG   0x00800000ULL
 #define SCONFIG_REGS     1
 
-#define SLAVIO_AUXIO     0x00900000
+#define SLAVIO_AUXIO     0x00900000ULL
 #define AUXIO_REGS       1
 
-#define SLAVIO_POWER     0x00910000
+#define SLAVIO_POWER     0x00910000ULL
 #define POWER_REGS       1
 #define POWER_INTR       0x22
 
-#define SLAVIO_COUNTER   0x00d00000
+#define SLAVIO_COUNTER   0x00d00000ULL
 #define COUNTER_REGS     0x10
 
-#define SLAVIO_INTERRUPT 0x00e00000
+#define SLAVIO_INTERRUPT 0x00e00000ULL
 #define INTERRUPT_REGS   0x10
 
 #define SLAVIO_SIZE      0x01000000

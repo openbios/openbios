@@ -21,21 +21,21 @@
 #define SBUS_REGS        0x28
 #define SBUS_SLOTS       16
 #define POWER_REGS       0x10
-#define POWER_OFFSET     0x0a000000
+#define POWER_OFFSET     0x0a000000ULL
 #define CS4231_REGS      0x40
-#define CS4231_OFFSET    0x0c000000
+#define CS4231_OFFSET    0x0c000000ULL
 
 static void
-ob_sbus_node_init(unsigned long bus, unsigned long base)
+ob_sbus_node_init(uint64_t base)
 {
     void *regs;
 
     push_str("/iommu/sbus");
     fword("find-device");
 
-    PUSH(bus);
+    PUSH(base >> 32);
     fword("encode-int");
-    PUSH(base);
+    PUSH(base & 0xffffffff);
     fword("encode-int");
     fword("encode+");
     PUSH(SBUS_REGS);
@@ -344,7 +344,7 @@ ob_cs4231_init(unsigned int slot, unsigned long base)
 }
 
 static void
-ob_macio_init(unsigned int slot, unsigned long base, unsigned long offset)
+ob_macio_init(unsigned int slot, uint64_t base, unsigned long offset)
 {
     // All devices were integrated to NCR89C100, see
     // http://www.ibiblio.org/pub/historic-linux/early-ports/Sparc/NCR/NCR89C100.txt
@@ -366,7 +366,7 @@ ob_macio_init(unsigned int slot, unsigned long base, unsigned long offset)
 }
 
 static void
-sbus_probe_slot_ss5(unsigned int slot, unsigned long base)
+sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
 {
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
@@ -385,7 +385,7 @@ sbus_probe_slot_ss5(unsigned int slot, unsigned long base)
 }
 
 static void
-sbus_probe_slot_ss10(unsigned int slot, unsigned long base)
+sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
 {
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
@@ -425,99 +425,105 @@ NODE_METHODS(ob_sbus_node) = {
 	{ "close",		ob_sbus_close		},
 };
 
-static const unsigned long sbus_offsets_ss5[SBUS_SLOTS][5] = {
-    { 0, 0, 0x0, 0x20000000, 0x10000000,},
-    { 1, 0, 0x0, 0x30000000, 0x10000000,},
-    { 2, 0, 0x0, 0x40000000, 0x10000000,},
-    { 3, 0, 0x0, 0x50000000, 0x10000000,},
-    { 4, 0, 0x0, 0x60000000, 0x10000000,},
-    { 5, 0, 0x0, 0x70000000, 0x10000000,},
+struct sbus_offset {
+    int slot, type;
+    uint64_t base;
+    unsigned long size;
 };
 
-static const unsigned long sbus_offsets_ss10[SBUS_SLOTS][5] = {
-    { 0, 0, 0xe, 0x00000000, 0x10000000,},
-    { 1, 0, 0xe, 0x10000000, 0x10000000,},
-    { 2, 0, 0xe, 0x20000000, 0x10000000,},
-    { 3, 0, 0xe, 0x30000000, 0x10000000,},
-    [0xf] = { 0xf, 0, 0xe, 0xf0000000, 0x10000000,},
+static const struct sbus_offset sbus_offsets_ss5[SBUS_SLOTS] = {
+    { 0, 0, 0x20000000, 0x10000000,},
+    { 1, 0, 0x30000000, 0x10000000,},
+    { 2, 0, 0x40000000, 0x10000000,},
+    { 3, 0, 0x50000000, 0x10000000,},
+    { 4, 0, 0x60000000, 0x10000000,},
+    { 5, 0, 0x70000000, 0x10000000,},
+};
+
+static const struct sbus_offset sbus_offsets_ss10[SBUS_SLOTS] = {
+    { 0, 0, 0xe00000000ULL, 0x10000000,},
+    { 1, 0, 0xe10000000ULL, 0x10000000,},
+    { 2, 0, 0xe20000000ULL, 0x10000000,},
+    { 3, 0, 0xe30000000ULL, 0x10000000,},
+    [0xf] = { 0xf, 0, 0xef0000000ULL, 0x10000000,},
 };
 
 static void
-ob_add_sbus_range(const unsigned long *range, int notfirst)
+ob_add_sbus_range(const struct sbus_offset *range, int notfirst)
 {
     if (!notfirst) {
         push_str("/iommu/sbus");
         fword("find-device");
     }
-    PUSH(range[0]);
+    PUSH(range->slot);
     fword("encode-int");
     if (notfirst)
         fword("encode+");
-    PUSH(range[1]);
+    PUSH(range->type);
     fword("encode-int");
     fword("encode+");
-    PUSH(range[2]);
+    PUSH(range->base >> 32);
     fword("encode-int");
     fword("encode+");
-    PUSH(range[3]);
+    PUSH(range->base & 0xffffffff);
     fword("encode-int");
     fword("encode+");
-    PUSH(range[4]);
+    PUSH(range->size);
     fword("encode-int");
     fword("encode+");
 }
 
 static int
-ob_sbus_init_ss5(unsigned long bus, unsigned long base)
+ob_sbus_init_ss5(uint64_t base)
 {
     unsigned int slot;
     int notfirst = 0;
 
     for (slot = 0; slot < SBUS_SLOTS; slot++) {
-        if (sbus_offsets_ss5[slot][4] > 0)
-            ob_add_sbus_range(sbus_offsets_ss5[slot], notfirst++);
+        if (sbus_offsets_ss5[slot].size > 0)
+            ob_add_sbus_range(&sbus_offsets_ss5[slot], notfirst++);
     }
     push_str("ranges");
     fword("property");
 
     for (slot = 0; slot < SBUS_SLOTS; slot++) {
-        if (sbus_offsets_ss5[slot][4] > 0)
-            sbus_probe_slot_ss5(slot, sbus_offsets_ss5[slot][3]);
+        if (sbus_offsets_ss5[slot].size > 0)
+            sbus_probe_slot_ss5(slot, sbus_offsets_ss5[slot].base);
     }
 
     return 0;
 }
 
 static int
-ob_sbus_init_ss10(unsigned long bus, unsigned long base)
+ob_sbus_init_ss10(uint64_t base)
 {
     unsigned int slot;
     int notfirst = 0;
 
     for (slot = 0; slot < SBUS_SLOTS; slot++) {
-        if (sbus_offsets_ss10[slot][4] > 0)
-            ob_add_sbus_range(sbus_offsets_ss10[slot], notfirst++);
+        if (sbus_offsets_ss10[slot].size > 0)
+            ob_add_sbus_range(&sbus_offsets_ss10[slot], notfirst++);
     }
     push_str("ranges");
     fword("property");
 
     for (slot = 0; slot < SBUS_SLOTS; slot++) {
-        if (sbus_offsets_ss10[slot][4] > 0)
-            sbus_probe_slot_ss10(slot, sbus_offsets_ss10[slot][3]);
+        if (sbus_offsets_ss10[slot].size > 0)
+            sbus_probe_slot_ss10(slot, sbus_offsets_ss10[slot].base);
     }
 
     return 0;
 }
 
-int ob_sbus_init(unsigned long bus, unsigned long base, int machine_id)
+int ob_sbus_init(uint64_t base, int machine_id)
 {
-    ob_sbus_node_init(bus, base);
+    ob_sbus_node_init(base);
 
     switch (machine_id) {
     case 0x72:
-        return ob_sbus_init_ss10(bus, base);
+        return ob_sbus_init_ss10(base);
     case 0x80:
-        return ob_sbus_init_ss5(bus, base);
+        return ob_sbus_init_ss5(base);
     default:
         return -1;
     }

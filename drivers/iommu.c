@@ -62,7 +62,7 @@ struct iommu {
 struct iommu ciommu;
 static struct iommu_regs *regs;
 
-static void iommu_init(struct iommu *t, unsigned long base);
+static void iommu_init(struct iommu *t, uint64_t base);
 
 static void
 iommu_invalidate(struct iommu_regs *iregs)
@@ -159,7 +159,7 @@ find_pte(unsigned long va, int alloc)
  * Create a memory mapping from va to epa.
  */
 int
-map_page(unsigned long va, unsigned long epa, int type)
+map_page(unsigned long va, uint64_t epa, int type)
 {
     uint32_t pte;
     unsigned long pa;
@@ -176,7 +176,7 @@ map_page(unsigned long va, unsigned long epa, int type)
         pte |= SRMMU_PRIV; /* Supervisor only access */
     }
     *(uint32_t *)pa = pte;
-    DPRINTF("map_page: va 0x%lx pa 0x%lx pte 0x%x\n", va, epa, pte);
+    DPRINTF("map_page: va 0x%lx pa 0x%llx pte 0x%x\n", va, epa, pte);
 
     return 0;
 }
@@ -186,7 +186,7 @@ map_page(unsigned long va, unsigned long epa, int type)
  * Returns va of the mapping or 0 if unsuccessful.
  */
 void *
-map_io(unsigned pa, int size)
+map_io(uint64_t pa, int size)
 {
     void *va;
     unsigned int npages;
@@ -202,7 +202,7 @@ map_io(unsigned pa, int size)
         return va;
 
     mva = (unsigned int) va;
-    DPRINTF("map_io: va 0x%p pa 0x%x off 0x%x npages %d\n", va, pa, off, npages); /* P3 */
+    DPRINTF("map_io: va 0x%p pa 0x%llx off 0x%x npages %d\n", va, pa, off, npages); /* P3 */
     while (npages-- != 0) {
         map_page(mva, pa, 1);
         mva += PAGE_SIZE;
@@ -258,13 +258,15 @@ pgmap_store(void)
 static void
 map_pages(void)
 {
-    unsigned long va, pa;
+    unsigned long va;
     int size;
+    uint64_t pa;
 
     size = POP();
     va = POP();
-    (void) POP();
     pa = POP();
+    pa <<= 32;
+    pa |= POP() & 0xffffffff;
 
     for (; size > 0; size -= PAGE_SIZE, pa += PAGE_SIZE, va += PAGE_SIZE)
         map_page(va, pa, 1);
@@ -273,7 +275,7 @@ map_pages(void)
 
 
 void
-ob_init_mmu(unsigned long bus, unsigned long base)
+ob_init_mmu(uint64_t base)
 {
     extern unsigned int qemu_mem_size;
 
@@ -305,9 +307,9 @@ ob_init_mmu(unsigned long bus, unsigned long base)
     push_str("/virtual-memory");
     fword("find-device");
 
-    PUSH(bus);
+    PUSH(base >> 32);
     fword("encode-int");
-    PUSH(base);
+    PUSH(base & 0xffffffff);
     fword("encode-int");
     fword("encode+");
     PUSH(IOMMU_REGS);
@@ -344,9 +346,9 @@ ob_init_mmu(unsigned long bus, unsigned long base)
     push_str("address");
     fword("property");
 
-    PUSH(bus);
+    PUSH(base >> 32);
     fword("encode-int");
-    PUSH(base);
+    PUSH(base & 0xffffffff);
     fword("encode-int");
     fword("encode+");
     PUSH(IOMMU_REGS);
@@ -367,7 +369,7 @@ ob_init_mmu(unsigned long bus, unsigned long base)
  * Switch page tables.
  */
 void
-init_mmu_swift(unsigned long base)
+init_mmu_swift(uint64_t base)
 {
     unsigned int addr, i;
     unsigned long pa, va;
@@ -473,7 +475,7 @@ dvma_alloc(int size, unsigned int *pphys)
  * the routine is higher in food chain.
  */
 static void
-iommu_init(struct iommu *t, unsigned long base)
+iommu_init(struct iommu *t, uint64_t base)
 {
     unsigned int *ptab;
     int ptsize;

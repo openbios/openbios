@@ -36,10 +36,10 @@ struct mem;
 void mem_init(struct mem *t, char *begin, char *limit);
 void *mem_alloc(struct mem *t, int size, int align);
 void *mem_zalloc(struct mem *t, int size, int align);
-int map_page(unsigned long va, unsigned long epa, int type);
-void *map_io(unsigned pa, int size);
-void ob_init_mmu(unsigned long bus, unsigned long base);
-void init_mmu_swift(unsigned long base);
+int map_page(unsigned long va, uint64_t epa, int type);
+void *map_io(uint64_t pa, int size);
+void ob_init_mmu(uint64_t base);
+void init_mmu_swift(uint64_t base);
 void *dvma_alloc(int size, unsigned int *pphys);
 
 #ifndef BOOTSTRAP

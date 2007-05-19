@@ -18,28 +18,25 @@
 
 void boot(void);
 void ob_ide_init(void);
-void tcx_init(unsigned long base);
-void kbd_init(unsigned long base);
+void tcx_init(uint64_t base);
+void kbd_init(uint64_t base);
 
 int qemu_machine_type;
 
 struct hwdef {
-    unsigned long iommu_high, iommu_base;
-    unsigned long slavio_high, slavio_base;
-    unsigned long intctl_base, counter_base, nvram_base, ms_kb_base, serial_base;
+    uint64_t iommu_base, slavio_base;
+    uint64_t intctl_base, counter_base, nvram_base, ms_kb_base, serial_base;
     unsigned long fd_offset, counter_offset, intr_offset;
-    unsigned long dma_base, esp_base, le_base;
-    unsigned long tcx_base;
+    uint64_t dma_base, esp_base, le_base;
+    uint64_t tcx_base;
     int machine_id;
 };
 
 static const struct hwdef hwdefs[] = {
     /* SS-5 */
     {
-        .iommu_high   = 0x0,
         .iommu_base   = 0x10000000,
         .tcx_base     = 0x50000000,
-        .slavio_high  = 0x0,
         .slavio_base  = 0x71000000,
         .ms_kb_base   = 0x71000000,
         .serial_base  = 0x71100000,
@@ -54,20 +51,18 @@ static const struct hwdef hwdefs[] = {
     },
     /* SS-10 */
     {
-        .iommu_high   = 0xf,
-        .iommu_base   = 0xe0000000, // XXX Actually at 0xfe0000000ULL (36 bits)
-        .tcx_base     = 0x20000000, // 0xe20000000ULL,
-        .slavio_high  = 0xf,
-        .slavio_base  = 0xf1000000, // 0xff1000000ULL,
-        .ms_kb_base   = 0xf1000000, // 0xff1000000ULL,
-        .serial_base  = 0xf1100000, // 0xff1100000ULL,
-        .nvram_base   = 0xf1200000, // 0xff1200000ULL,
+        .iommu_base   = 0xfe0000000ULL,
+        .tcx_base     = 0xe20000000ULL,
+        .slavio_base  = 0xff1000000ULL,
+        .ms_kb_base   = 0xff1000000ULL,
+        .serial_base  = 0xff1100000ULL,
+        .nvram_base   = 0xff1200000ULL,
         .fd_offset    = 0x00700000, // 0xff1700000ULL,
         .counter_offset = 0x00300000, // 0xff1300000ULL,
         .intr_offset  = 0x00400000, // 0xff1400000ULL,
-        .dma_base     = 0xf0400000, // 0xef0400000ULL,
-        .esp_base     = 0xf0800000, // 0xef0800000ULL,
-        .le_base      = 0xf0c00000, // 0xef0c00000ULL,
+        .dma_base     = 0xef0400000ULL,
+        .esp_base     = 0xef0800000ULL,
+        .le_base      = 0xef0c00000ULL,
         .machine_id = 0x72,
     },
 };
@@ -95,9 +90,9 @@ arch_init( void )
 	void setup_timers(void);
 
 	modules_init();
-        ob_init_mmu(hwdef->iommu_high, hwdef->iommu_base);
+        ob_init_mmu(hwdef->iommu_base);
 #ifdef CONFIG_DRIVER_OBIO
-	ob_obio_init(hwdef->slavio_high, hwdef->slavio_base, hwdef->fd_offset,
+	ob_obio_init(hwdef->slavio_base, hwdef->fd_offset,
                      hwdef->counter_offset, hwdef->intr_offset);
         nvram_init();
 #endif
@@ -105,7 +100,7 @@ arch_init( void )
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
 	init_video();
 #endif
-	ob_sbus_init(hwdef->iommu_high, hwdef->iommu_base + 0x1000, hwdef->machine_id);
+	ob_sbus_init(hwdef->iommu_base + 0x1000ULL, hwdef->machine_id);
 #endif
 	device_end();
 
@@ -133,7 +128,7 @@ int openbios(void)
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	uart_init(hwdef->serial_base | (CONFIG_SERIAL_PORT? 0: 4),
+	uart_init(hwdef->serial_base | (CONFIG_SERIAL_PORT? 0ULL: 4ULL),
                   CONFIG_SERIAL_SPEED);
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO

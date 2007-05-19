@@ -22,7 +22,7 @@ int openbios(void);
 /* console.c */
 extern void	cls(void);
 #ifdef CONFIG_DEBUG_CONSOLE
-extern int	uart_init(int port, unsigned long speed);
+extern int	uart_init(uint64_t port, unsigned long speed);
 extern void     video_init(void);
 #endif
 
