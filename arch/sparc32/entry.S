@@ -57,6 +57,7 @@ entry:
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
         set     PHYS_JJ_EEPROM + 0x2E, %g1
         lduba   [%g1] ASI_M_BYPASS, %g2
+        stba    %g0, [%g1] ASI_M_BYPASS
         set	PHYS_JJ_EEPROM + 0x30, %g1
         lda	[%g1] ASI_M_BYPASS, %g1
         tst     %g2
@@ -71,15 +72,18 @@ entry:
         add     %g2, 4, %g2
         sta     %g0, [%g2] ASI_M_BYPASS         ! clear softints
         set     PHYS_JJ_EEPROM + 0x3C, %g1
-        lda     [%g1] ASI_M_BYPASS, %g1
-        set     AC_M_CTPR, %g2
-        sta     %g1, [%g2] ASI_M_MMUREGS        ! set ctx table ptr
+        lda     [%g1] ASI_M_BYPASS, %g2
+        sta     %g0, [%g1] ASI_M_BYPASS
+        set     AC_M_CTPR, %g1
+        sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
         set     PHYS_JJ_EEPROM + 0x40, %g1
-        lda     [%g1] ASI_M_BYPASS, %g1
-        set     AC_M_CXR, %g2
-        sta     %g1, [%g2] ASI_M_MMUREGS        ! set context
+        lda     [%g1] ASI_M_BYPASS, %g2
+        sta     %g0, [%g1] ASI_M_BYPASS
+        set     AC_M_CXR, %g1
+        sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
         set     PHYS_JJ_EEPROM + 0x38, %g1
         lda     [%g1] ASI_M_BYPASS, %g2
+        sta     %g0, [%g1] ASI_M_BYPASS
         set     1, %g1
         jmp     %g2                             ! jump to kernel
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
@@ -111,6 +115,7 @@ ss10:
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
         set     PHYS_SS10_EEPROM + 0x2E, %g1
         lduba   [%g1] ASI_M_CTL, %g2
+        stba    %g0, [%g2] ASI_M_CTL
         set	PHYS_SS10_EEPROM + 0x30, %g1
         lda	[%g1] ASI_M_CTL, %g1
         tst     %g2
@@ -124,15 +129,18 @@ ss10:
         add     %g2, 4, %g2
         sta     %g0, [%g2] ASI_M_CTL         ! clear softints
         set     PHYS_SS10_EEPROM + 0x3C, %g1
-        lda     [%g1] ASI_M_CTL, %g1
-        set     AC_M_CTPR, %g2
-        sta     %g1, [%g2] ASI_M_MMUREGS        ! set ctx table ptr
+        lda     [%g1] ASI_M_CTL, %g2
+        sta     %g0, [%g1] ASI_M_CTL
+        set     AC_M_CTPR, %g1
+        sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
         set     PHYS_JJ_EEPROM + 0x40, %g1
-        lda     [%g1] ASI_M_CTL, %g1
-        set     AC_M_CXR, %g2
-        sta     %g1, [%g2] ASI_M_MMUREGS        ! set context
+        lda     [%g1] ASI_M_CTL, %g2
+        sta     %g0, [%g1] ASI_M_CTL
+        set     AC_M_CXR, %g1
+        sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
         set     PHYS_SS10_EEPROM + 0x38, %g1
         lda     [%g1] ASI_M_CTL, %g2
+        sta     %g0, [%g1] ASI_M_CTL
         set     1, %g1
         jmp     %g2                             ! jump to kernel
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu

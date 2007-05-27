@@ -29,6 +29,9 @@
 #define SLAVIO_INTERRUPT 0x00e00000ULL
 #define INTERRUPT_REGS   0x10
 
+#define SLAVIO_RESET     0x00f00000ULL
+#define RESET_REGS       1
+
 #define SLAVIO_SIZE      0x01000000
 
 struct qemu_nvram_v1 {

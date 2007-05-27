@@ -809,12 +809,17 @@ ob_auxio_init(uint64_t base, uint64_t offset)
     fword("finish-device");
 }
 
+volatile int *power_reg, *reset_reg;
+
 static void
 ob_power_init(uint64_t base, uint64_t offset, int intr)
 {
     ob_new_obio_device("power", NULL);
 
-    ob_reg(base, offset, POWER_REGS, 0);
+    power_reg = ob_reg(base, offset, POWER_REGS, 1);
+
+    // Not in device tree
+    reset_reg = map_io(base + (uint64_t)SLAVIO_RESET, RESET_REGS);
 
     ob_intr(intr);
 
