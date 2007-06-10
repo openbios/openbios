@@ -316,8 +316,8 @@ static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
     return ret;
 }
 
-static char *obp_dumb_mmap(char *va, __attribute__((unused)) int which_io,
-			   unsigned int pa, unsigned int size)
+static char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
+                           unsigned int size)
 {
     unsigned int npages;
     unsigned int off;
@@ -432,7 +432,7 @@ static char * obp_dumb_memalloc(char *va, unsigned int size)
         DPRINTF("obp_dumb_memalloc req null -> 0x%x\n", va);
     }
 
-    obp_dumb_mmap(va, 1, free_ram, size);
+    obp_dumb_mmap(va, 0, free_ram, size);
 
     return va;
 }
