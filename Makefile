@@ -33,16 +33,21 @@ clean:
 directories: clean
 	@printf "Initializing build tree..."
 	@mkdir $(ODIR)
+	@mkdir -p $(ODIR)/target
 	@mkdir -p $(ODIR)/target/include
+	@mkdir -p $(ODIR)/target/arch
 	@mkdir -p $(ODIR)/target/arch/unix
 	@mkdir -p $(ODIR)/target/arch/$(ARCH)
+	@mkdir -p $(ODIR)/target/arch/ppc
 	@mkdir -p $(ODIR)/target/arch/ppc/briq # no autodetection of those..
 	@mkdir -p $(ODIR)/target/arch/ppc/pearpc
 	@mkdir -p $(ODIR)/target/arch/ppc/mol
+	@mkdir -p $(ODIR)/target/arch/x86
 	@mkdir -p $(ODIR)/target/arch/x86/xbox
 	@mkdir -p $(ODIR)/target/libgcc
 	@mkdir -p $(ODIR)/target/kernel
 	@mkdir -p $(ODIR)/target/modules
+	@mkdir -p $(ODIR)/target/fs
 	@mkdir -p $(ODIR)/target/fs/grubfs
 	@mkdir -p $(ODIR)/target/fs/hfs
 	@mkdir -p $(ODIR)/target/fs/hfsplus
