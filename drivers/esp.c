@@ -279,8 +279,14 @@ ob_sd_open(__attribute__((unused))sd_private_t **sd)
     *sd = &global_esp->sd[id];
 
 #ifdef CONFIG_DEBUG_ESP
-    fword("my-args");
-    DPRINTF("opening drive %d args %s\n", id, pop_fstr_copy());
+    {
+        char *args;
+
+        fword("my-args");
+        args = pop_fstr_copy();
+        DPRINTF("opening drive %d args %s\n", id, args);
+        free(args);
+    }
 #endif
 
     selfword("open-deblocker");

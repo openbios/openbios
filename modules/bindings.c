@@ -253,6 +253,8 @@ pop_fstr_copy( void )
 	if( !len )
 		return NULL;
 	str = malloc( len + 1 );
+        if( !str )
+                return NULL;
 	memcpy( str, p, len );
 	str[len] = 0;
 	return str;

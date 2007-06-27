@@ -45,18 +45,18 @@ void boot(void)
             } else {
                 switch (boot_device) {
                 case 'a':
-                    path = "/obio/SUNW,fdtwo";
+                    path = strdup("/obio/SUNW,fdtwo");
                     oldpath = "fd()";
                     unit = 0;
                     break;
                 case 'c':
-                    path = "disk";
+                    path = strdup("disk");
                     oldpath = "sd(0,0,0):d";
                     unit = 0;
                     break;
                 default:
                 case 'd':
-                    path = "cdrom";
+                    path = strdup("cdrom");
                     // FIXME: hardcoding this looks almost definitely wrong.
                     // With sd(0,2,0):b we get to see the solaris kernel though
                     //oldpath = "sd(0,2,0):d";
@@ -64,7 +64,7 @@ void boot(void)
                     unit = 2;
                     break;
                 case 'n':
-                    path = "net";
+                    path = strdup("net");
                     oldpath = "le()";
                     unit = 0;
                     break;

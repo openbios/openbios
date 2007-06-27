@@ -253,6 +253,7 @@ video_write(void)
     addr = pop_fstr_copy();
 
     console_draw_str(addr);
+    free(addr);
     PUSH(len);
 }
 

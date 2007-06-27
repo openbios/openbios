@@ -223,10 +223,13 @@ zs_open(unsigned long *address)
     *address = *prop;
     fword("my-args");
     args = pop_fstr_copy();
-    if (args && args[0] == 'a')
-        *address += 4;
+    if (args) {
+        if (args[0] == 'a')
+            *address += 4;
+        //printk("zs_open: address %lx, args %s\n", *address, args);
+        free(args);
+    }
 
-    //printk("zs_open: address %lx, args %s\n", *address, args);
     RET ( -1 );
 }
 
