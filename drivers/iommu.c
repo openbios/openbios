@@ -93,7 +93,8 @@ mem_alloc(struct mem *t, int size, int align)
     pa &= ~(align - 1);
     p = (char *)pa2va(pa);
     
-    if (p >= t->uplim || p + size > t->uplim)
+    if ((unsigned long)p >= (unsigned long)t->uplim ||
+        (unsigned long)p + size > (unsigned long)t->uplim)
         return 0;
     t->curp = p + size;
 
