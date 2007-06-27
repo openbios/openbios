@@ -241,7 +241,7 @@ first_cpu:
         ba	2f
          nop
 1:
-        lda     [%g4] ASI_M_BYPASS, %g1
+        lda     [%g4] ASI_M_KERNELTXT, %g1
         sta	%g1, [%g3] ASI_M_BYPASS
 2:
         cmp     %g4, %g5
@@ -254,9 +254,11 @@ first_cpu:
         sta     %g7, [%g2] ASI_M_MMUREGS	! set ctx table ptr
         set     AC_M_CXR, %g2
         sta     %g0, [%g2] ASI_M_MMUREGS	! context 0
+        set     highmem, %g2
         set	1, %g1
-        sta     %g1, [%g0] ASI_M_MMUREGS	! enable mmu
-
+        jmp     %g2
+         sta    %g1, [%g0] ASI_M_MMUREGS	! enable mmu
+highmem:
         /*
          * The code which enables traps is a simplified version of
          * kernel head.S.
