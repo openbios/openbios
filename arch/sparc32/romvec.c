@@ -53,8 +53,6 @@ static void (*sync_hook)(void);
 
 static struct linux_romvec romvec0;
 
-static unsigned long free_ram;
-
 static void doublewalk(__attribute__((unused)) unsigned int ptab1,
                        __attribute__((unused)) unsigned int va)
 {
@@ -418,8 +416,9 @@ static char * obp_dumb_memalloc(char *va, unsigned int size)
 {
     static unsigned int next_free_address = 0xFFEDA000;
 
-    free_ram -= size;
-    DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size, free_ram);
+    totmap[0].num_bytes -= size;
+    DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size,
+            totmap[0].num_bytes);
 
     // If va is null, the allocator is supposed to pick a "suitable" address.
     // (See OpenSolaric prom_alloc.c)  There's not any real guidance as
@@ -432,7 +431,7 @@ static char * obp_dumb_memalloc(char *va, unsigned int size)
         DPRINTF("obp_dumb_memalloc req null -> 0x%x\n", va);
     }
 
-    obp_dumb_mmap(va, 0, free_ram, size);
+    obp_dumb_mmap(va, 0, totmap[0].num_bytes, size);
 
     return va;
 }
@@ -499,8 +498,6 @@ static void obp_fortheval_v2(char *str)
 void *
 init_openprom(unsigned long memsize)
 {
-    free_ram = va2pa((int)&_start) - PAGE_SIZE;
-
     ptphys = totphys;
     ptmap = totmap;
     ptavail = totavail;
@@ -514,7 +511,7 @@ init_openprom(unsigned long memsize)
 
     totavail[0].theres_more = NULL;
     totavail[0].start_adr = (char *) 0;
-    totavail[0].num_bytes = free_ram;
+    totavail[0].num_bytes = va2pa((int)&_start) - PAGE_SIZE;
 
     totmap[0].theres_more = NULL;
     totmap[0].start_adr = &_start;
