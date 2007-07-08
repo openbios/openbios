@@ -29,7 +29,10 @@ void arch_nvram_get()
 {
 }
 
-int arch_nvram_size;
+int arch_nvram_size()
+{
+    return 8192;
+}
 
 void setup_timers()
 {
@@ -128,5 +131,7 @@ int openbios(void)
 #endif
 
 	enterforth((xt_t)PC);
+        arch_init(); // XXX
+        printk("falling off...\n");
 	return 0;
 }
