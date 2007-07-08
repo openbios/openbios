@@ -35,7 +35,7 @@ entry:
         ! Extract NWINDOWS from %ver
         rdpr    %ver, %g1
         and     %g1, 0xf, %g1
-        sub     %g1, 2, %g1
+        dec     %g1
         wrpr    %g1, 0, %cleanwin
         wrpr    %g1, 0, %cansave
         wrpr    %g0, 0, %canrestore
