@@ -43,8 +43,8 @@ pa2va(unsigned long pa)
  * are arrays of bytes, and byte-swapping is not appropriate in
  * that case.  - paulus
  */
-#define insw(port, buf, ns)	_insw_ns((uint16_t *)((port)+_IO_BASE), (buf), (ns))
-#define outsw(port, buf, ns)	_outsw_ns((uint16_t *)((port)+_IO_BASE), (buf), (ns))
+#define insw(port, buf, ns)	_insw((uint16_t *)((port)+_IO_BASE), (buf), (ns))
+#define outsw(port, buf, ns)	_outsw((uint16_t *)((port)+_IO_BASE), (buf), (ns))
 
 #define inb(port)		in_8((uint8_t *)((port)+_IO_BASE))
 #define outb(val, port)		out_8((uint8_t *)((port)+_IO_BASE), (val))
