@@ -1293,7 +1293,7 @@ int ob_ide_init(void)
 
 	char * nodetemp_chan = "/pci/isa/ide%d";
 	char * nodetemp = "/pci/isa/ide%d/%s";
-	char * nodebuff = "/pci/isa/ide /     ";
+	char nodebuff[32];
 	phandle_t dnode;
 
 	for (i = 0; i < IDE_NUM_CHANNELS; i++) {
