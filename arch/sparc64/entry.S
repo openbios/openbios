@@ -12,6 +12,8 @@
 #include "pstate.h"
 #include "lsu.h"
 
+#define PROM_ADDR 0x1fff0000000
+
         .globl	entry, _entry
 
 	.section ".text", "ax"
@@ -110,18 +112,19 @@ entry:
         srlx    %g5, 16, %g6			! %g6 = # of 64k .rodata pages
 	set	48, %g7
 	set	0x10000, %g5
+        setx    PROM_ADDR, %l1, %l2
 1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = _rodata, ctx=0
 	set	0xa0000000, %g3
 	sllx	%g3, 32, %g3
 	or	%g3, 0x74, %g3
-	or	%g4, %g3, %g3
+	or	%l2, %g3, %g3
 	! valid, 64k, locked, cacheable(I/E/C), priv
 	! paddr = _rodata + N * 0x10000
 	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
 	add	%g4, %g5, %g4
 	deccc	%g6
 	bne	1b
-	 nop
+	 add	%l2, %g5, %l2
 
 	! setup VGA buffer
 	setx	0x1ff004a0000, %g7, %g4
@@ -141,16 +144,24 @@ entry:
 	bne	1b
 	 nop
 
-#if 0
-	! setup 0-4M
+#if 1
+	! setup 0-16M
+        mov     %g0, %g4
+        mov     4, %g6
 	set	48, %g7
-	stxa	%g0, [%g7] ASI_DMMU		! vaddr = 0, ctx=0
+	set	0x400000, %g5
+1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = 0, ctx=0
 	set	0xe0000000, %g3
 	sllx	%g3, 32, %g3
 	or	%g3, 0x36, %g3
+	or	%g4, %g3, %g3
 	! valid, 4M, cacheable(I/E/C), priv, writable
 	! paddr = 0
 	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
+	add	%g4, %g5, %g4
+	deccc	%g6
+	bne	1b
+	 nop
 #endif
 	
 	membar	#Sync
@@ -159,30 +170,39 @@ entry:
 	setx	_rodata, %g7, %g5
         sub     %g5, %g4, %g5
         srlx    %g5, 16, %g6			! %g6 = # of 64k .text pages
+	set	0x10000, %g5
 	set	48, %g7
+        setx    PROM_ADDR, %l1, %l2
 1:      stxa	%g4, [%g7] ASI_IMMU		! vaddr = _start, ctx=0
 	set	0xa0000000, %g3
 	sllx	%g3, 32, %g3
 	or	%g3, 0x74, %g3
-	or	%g4, %g3, %g3
+	or	%l2, %g3, %g3
 	! valid, 64k, locked, cacheable(I/E/C), priv
 	! paddr = _start + N * 0x10000
 	stxa	%g3, [%g0] ASI_ITLB_DATA_IN
-	set	0x10000, %g5
+	add	%g4, %g5, %g4
+	deccc	%g6
+	bne	1b
+	 add	%l2, %g5, %l2
+
+#if 1
+        ! setup 0-16M
+        mov     %g0, %g4
+        mov     4, %g6
+        set	0x400000, %g5
+1:      stxa	%g4, [%g7] ASI_IMMU		! vaddr = 0, ctx=0
+	set	0xe0000000, %g3
+	sllx	%g3, 32, %g3
+	or	%g3, 0x34, %g3
+	or	%g4, %g3, %g3
+	! valid, 4M, cacheable(I/E/C), priv
+	! paddr = 0
+	stxa	%g3, [%g0] ASI_ITLB_DATA_IN
 	add	%g4, %g5, %g4
 	deccc	%g6
 	bne	1b
 	 nop
-
-#if 0
-	! setup 0-4M
-	stxa	%g0, [%g7] ASI_IMMU		! vaddr = 0, ctx=0
-	set	0xe0000000, %g3
-	sllx	%g3, 32, %g3
-	or	%g3, 0x34, %g3
-	! valid, 4M, cacheable(I/E/C), priv
-	! paddr = 0
-	stxa	%g3, [%g0] ASI_ITLB_DATA_IN
 #endif
 
 	flush	%g4
@@ -193,18 +213,26 @@ entry:
 	sta     %g0, [%g2] ASI_DMMU		! set primary ctx=0
 
 	! Enable I/D MMUs and caches
+        setx    lowmem, %g2, %g1
 	set	LSU_CONTROL_DM|LSU_CONTROL_IM|LSU_CONTROL_DC|LSU_CONTROL_IC, %g2
-	stxa	%g2, [%g0] ASI_LSU_CONTROL
+        jmp     %g1
+         stxa	%g2, [%g0] ASI_LSU_CONTROL
 
+lowmem:
         /* Copy the DATA section from ROM. */
         setx	_data - 8, %o7, %o0             ! First address of DATA
         setx	_bss, %o7, %o1                  ! Last address of DATA
+        setx    _start, %o7, %o2
+        sub     %o0, %o2, %o2                   ! _data - _start
+        setx    PROM_ADDR, %o7, %o3
+        add     %o3, %o2, %o2                   ! PROM_ADDR + (_data - _start)
         ba	2f
          nop
 1:
-        ldxa    [%o0] ASI_PHYS_BYPASS_EC_E, %g1
+        ldxa    [%o2] ASI_PHYS_BYPASS_EC_E, %g1
         stx	%g1, [%o0]
 2:
+        add	%o2, 0x8, %o2
         subcc	%o0, %o1, %g0
         bl	1b
          add	%o0, 0x8, %o0

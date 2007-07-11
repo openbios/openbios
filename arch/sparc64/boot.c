@@ -28,11 +28,13 @@ void boot(void)
         char altpath[256];
 	
         if (kernel_size) {
-            int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
+            void (*entry)(unsigned long p1, unsigned long p2, unsigned long p3,
+                          unsigned long p4, unsigned long p5);
+            extern int of_client_interface( int *params );
 
             printk("[sparc64] Kernel already loaded\n");
-            entry = (void *) kernel_image;
-            entry(0, 0, 0, 0, 0);
+            entry = (void *) (unsigned long)kernel_image;
+            entry(0, 0, 0, 0, (unsigned long)&of_client_interface);
         }
 
 	if(!path) {

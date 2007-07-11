@@ -8,7 +8,7 @@ ENTRY(trap_table)
 
 /* Initial load address
  */
-BASE_ADDR = 0x000001fff0000000;
+BASE_ADDR = 0x00000000ffd00000;
 
 /* 16KB heap and stack */
 HEAP_SIZE = 16384;
