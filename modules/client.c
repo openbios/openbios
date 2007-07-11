@@ -28,8 +28,8 @@
 
 typedef struct prom_args {
         const char 	*service;
-        int 		nargs;
-        int 		nret;
+        long 		nargs;
+        long 		nret;
         ulong 		args[10];		/* MAX NUM ARGS! */
 } prom_args_t;
 
