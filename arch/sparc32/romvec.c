@@ -244,7 +244,7 @@ static int obp_nbputchar(int ch)
 
 static void obp_reboot(char *str)
 {
-    extern volatile int *reset_reg;
+    extern volatile unsigned char *reset_reg;
 
     printk("rebooting (%s)\n", str);
     *reset_reg = 1;
@@ -254,7 +254,7 @@ static void obp_reboot(char *str)
 
 static void obp_abort(void)
 {
-    extern volatile int *power_reg;
+    extern volatile unsigned char *power_reg;
 
     printk("abort, power off\n");
     *power_reg = 1;
@@ -264,7 +264,7 @@ static void obp_abort(void)
 
 static void obp_halt(void)
 {
-    extern volatile int *power_reg;
+    extern volatile unsigned char *power_reg;
 
     printk("halt, power off\n");
     *power_reg = 1;

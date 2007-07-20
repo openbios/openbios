@@ -812,7 +812,13 @@ ob_auxio_init(uint64_t base, uint64_t offset)
     fword("finish-device");
 }
 
-volatile int *power_reg, *reset_reg;
+volatile unsigned char *power_reg, *reset_reg;
+
+static void
+sparc32_reset_all(void)
+{
+    *reset_reg = 1;
+}
 
 static void
 ob_power_init(uint64_t base, uint64_t offset, int intr)
@@ -823,6 +829,10 @@ ob_power_init(uint64_t base, uint64_t offset, int intr)
 
     // Not in device tree
     reset_reg = map_io(base + (uint64_t)SLAVIO_RESET, RESET_REGS);
+
+    bind_func("sparc32-reset-all", sparc32_reset_all);
+    push_str("' sparc32-reset-all to reset-all");
+    fword("eval");
 
     ob_intr(intr);
 

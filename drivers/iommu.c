@@ -195,7 +195,7 @@ map_io(uint64_t pa, int size)
     unsigned int mva;
 
     off = pa & (PAGE_SIZE - 1);
-    npages = (off + (size - 1) + (PAGE_SIZE - 1)) / PAGE_SIZE;
+    npages = (off + size - 1) / PAGE_SIZE + 1;
     pa &= ~(PAGE_SIZE - 1);
 
     va = mem_alloc(&cio, npages * PAGE_SIZE, PAGE_SIZE);

@@ -52,12 +52,6 @@
  
 device-end
 
-: sparc32-reset-all
-  h# 71f00000 1 iow!
-  ;
-
-' sparc32-reset-all to reset-all
-
 : rmap@    ( virt -- rmentry )
   drop 0
   ;
