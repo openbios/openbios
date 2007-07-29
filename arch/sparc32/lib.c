@@ -72,8 +72,7 @@ void *malloc(int size)
 	if( !size )
 		return NULL;
 
-	if( size & 3 )
-		size += 4 - (size & 3);
+        size = (size + 7) & ~7;
 	size += sizeof(alloc_desc_t);
 
 	/* look in the freelist */

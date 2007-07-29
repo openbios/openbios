@@ -416,6 +416,7 @@ static char * obp_dumb_memalloc(char *va, unsigned int size)
 {
     static unsigned int next_free_address = 0xFFEDA000;
 
+    size = (size + 7) & ~7;
     totmap[0].num_bytes -= size;
     DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size,
             totmap[0].num_bytes);
