@@ -927,7 +927,7 @@ ob_interrupt_init(uint64_t base, unsigned long offset)
     fword("property");
 
     intregs = map_io(base | (uint64_t)offset, sizeof(*intregs));
-    intregs->set = ~SUN4M_INT_MASKALL;
+    intregs->clear = ~SUN4M_INT_MASKALL;
     intregs->cpu_intregs[0].clear = ~0x17fff;
 
     for (i = 0; i < SUN4M_NCPU; i++) {
