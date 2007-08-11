@@ -86,6 +86,11 @@ static int obp_proplen(int node, char *name)
 {
     int notfound;
 
+    if (!node) {
+        DPRINTF("obp_proplen(0x0, %s) = -1\n", name);
+        return -1;
+    }
+
     push_str(name);
     PUSH(node);
     fword("get-package-property");
@@ -126,6 +131,11 @@ static int obp_getprop(int node, char *name, char *value)
     int notfound, found;
     int len;
     char *str;
+
+    if (!node) {
+        DPRINTF("obp_getprop(0x0, %s) = -1\n", name);
+        return -1;
+    }
 
     if (!name) {
         // NULL name means get first property
