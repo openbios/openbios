@@ -26,8 +26,8 @@
 #define __ASSEMBLY
 #include "psr.h"
 #include "asi.h"
-#define ASI_BP ASI_M_BYPASS
-#define SER_ADDR 0x71100004
+#define SER_ADDR5  0x71100004
+#define SER_ADDR10 0xf1100004
 
         .section ".text.vectors", "ax"
         .align 16384
@@ -91,53 +91,50 @@ bug:
         rd      %psr, %g2
         andn    %g2, PSR_ET, %g2
         wr      %g2, %psr
-        ! Disable mmu
-        call    dump_exception
-         sta    %g0, [%g0] ASI_M_MMUREGS
-_forever:
-        /* Loop forever */
-        b       _forever                                  ;
-         nop
+        ! Disable mmu, re-enable boot mode
+        set     _start, %g3
+        set     dump_exception, %g2
+        sub     %g2, %g3, %g3
+        set     1<<14, %g2
+        jmp    %g3
+         sta    %g2, [%g0] ASI_M_MMUREGS
+
 outstr:
-        /* void outstr (unsigned long port, const unsigned char *str);
+        /* void outstr (unsigned long port5, unsigned long port10,
+         * const unsigned char *str);
          * Writes a string on an IO port.
          */
-1:      ldub    [%o1], %o3
+1:      lduba    [%o2] ASI_M_KERNELTXT, %o3
         cmp     %o3, 0
         be      2f
          nop
-        stba    %o3, [%o0] ASI_BP
+        stba    %o3, [%o0] ASI_M_BYPASS
+        stba    %o3, [%o1] ASI_M_CTL
         b       1b
-         inc    %o1
+         inc    %o2
 2:      retl
          nop
 
-outdigit:
-        /* void outdigit (unsigned long port, uint8_t digit);
-         * Dumps a single digit on serial port.
-         */
-        add     %o1, '0', %o1
-        retl
-         stba   %o1, [%o0] ASI_BP
-
 outhex:
-        /* void outhex (unsigned long port, uint32_t value);
+        /* void outhex (unsigned long port5, unsigned long port10,
+         * uint32_t value);
          * Dumps a 32 bits hex number on serial port
          */
-        mov     %o1, %o2
+        mov     %o2, %o4
         set     28, %o3
-        srl     %o2, %o3, %o1
-1:      and     %o1, 0xf, %o1
-        cmp     %o1, 9
+        srl     %o4, %o3, %o2
+1:      and     %o2, 0xf, %o2
+        cmp     %o2, 9
         bgt     2f
          nop
         b       3f
-         add    %o1, '0', %o1
-2:      add     %o1, 'a' - 10, %o1
-3:      stba    %o1, [%o0] ASI_BP
+         add    %o2, '0', %o2
+2:      add     %o2, 'a' - 10, %o2
+3:      stba    %o2, [%o0] ASI_M_BYPASS
+        stba    %o2, [%o1] ASI_M_CTL
         subcc   %o3, 4, %o3
         bge     1b
-         srl    %o2, %o3, %o1
+         srl    %o4, %o3, %o2
         retl
          nop
 
@@ -146,34 +143,37 @@ outhex:
          * Dump a message when catching an exception
          */
 dump_exception:
-        set     SER_ADDR + 2, %o0
-        set     (_BUG_message_0), %o1
+        set     SER_ADDR5 + 2, %o0
+        set     SER_ADDR10 + 2, %o1
+        set     (_BUG_message_0), %o2
         call    outstr
          nop
 
         call    outhex
-         mov    %g1, %o1
+         mov    %g1, %o2
 
-        set     (_BUG_message_1), %o1
+        set     (_BUG_message_1), %o2
         call    outstr
          nop
 
         call    outhex
-         mov    %l1, %o1
+         mov    %l1, %o2
 
-        set     (_BUG_message_2), %o1
+        set     (_BUG_message_2), %o2
         call    outstr
          nop
 
         call    outhex
-         mov    %l2, %o1
+         mov    %l2, %o2
 
-        set     (_BUG_message_3), %o1
+        set     (_BUG_message_3), %o2
         call    outstr
          nop
-
-        retl
+_forever:
+        /* Loop forever */
+        b       _forever                                  ;
          nop
+
 /* Register window handlers */
 #include "wof.S"
 #include "wuf.S"
@@ -182,8 +182,8 @@ dump_exception:
 _BUG_message_0:
         .string "Unhandled Exception 0x"
 _BUG_message_1:
-        .string "\nPC = 0x"
+        .string "\r\nPC = 0x"
 _BUG_message_2:
         .string " NPC = 0x"
 _BUG_message_3:
-        .string "\nStopping execution\n"
+        .string "\r\nStopping execution\r\n"
