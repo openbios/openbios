@@ -22,8 +22,8 @@
 typedef struct {
 	int		fd;
 	
-	ducell		offs;
-	ducell		size;
+        ucell	        offs_hi, offs_lo;
+        ucell	        size_hi, size_lo;
 	int		type;		/* partition type or -1 */
 
 	ihandle_t	part_ih;
@@ -94,8 +94,10 @@ dlabel_open( dlabel_info_t *di )
 		if( !(xt=find_ih_method("get-info", di->part_ih)) )
 			goto out;
 		call_package( xt , di->part_ih );
-		di->size = DPOP();
-		di->offs = DPOP();
+		di->size_hi = POP();
+		di->size_lo = POP();
+		di->offs_hi = POP();
+		di->offs_lo = POP();
 		di->type = POP();
 	}
 
@@ -139,12 +141,14 @@ dlabel_seek( dlabel_info_t *di )
 {
 	llong pos = DPOP();
 	int ret;
+	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
+	ducell size = ((ducell)di->size_hi << BITS) | di->size_lo;
 
 	if( pos != -1 )
-		pos += di->offs;
-	else if( di->size ) {
+		pos += offs;
+	else if( size ) {
 		/* printk("Seek EOF\n"); */
-		pos = di->offs + di->size;
+		pos = offs + size;
 	} else {
 		/* let parent handle the EOF seek. */
 	}
@@ -159,8 +163,9 @@ static void
 dlabel_tell( dlabel_info_t *di )
 {
 	llong pos = tell( di->fd );
+	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
 	if( pos != -1 )
-		pos -= di->offs;
+		pos -= offs;
 
 	DPUSH( pos );
 }
@@ -179,7 +184,8 @@ static void
 dlabel_offset( dlabel_info_t *di )
 {
 	ullong rel = DPOP();
-	rel += di->offs;
+	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
+	rel += offs;
 	DPUSH( rel );
 }
 

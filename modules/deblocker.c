@@ -20,7 +20,7 @@
 #include "modules.h"
 
 typedef struct {
-	ducell	mark;
+        ucell   mark_hi, mark_lo;
 	xt_t	read_xt;
 	xt_t	write_xt;
 
@@ -79,7 +79,8 @@ deblk_seek( deblk_info_t *di )
 	/* -1 means seek to EOF (at least in our implementation) */
 	if( (dcell)mark == -1 )
 		RET(-1);
-	di->mark = mark;
+        di->mark_hi = pos_hi;
+        di->mark_lo = pos_lo;
 	
 	/* 0,1 == success, -1 == error */
 	PUSH(0);
@@ -89,7 +90,8 @@ deblk_seek( deblk_info_t *di )
 static void
 deblk_tell( deblk_info_t *di )
 {
-	DPUSH( di->mark );
+	PUSH( di->mark_lo );
+	PUSH( di->mark_hi );
 }
 
 
@@ -110,9 +112,10 @@ typedef struct {
 static void
 split( deblk_info_t *di, char *data, int len, work_t w[3] )
 {
+	ducell mark = ((ducell)di->mark_hi << BITS) | di->mark_lo;
 	memset( w, 0, sizeof(work_t[3]) );
 
-	w[0].offs = di->mark % di->blksize;
+	w[0].offs = mark % di->blksize;
 	w[0].blk_buf = di->buf;
 	w[0].data = data;
 	if( w[0].offs ) {
@@ -141,13 +144,14 @@ do_readwrite( deblk_info_t *di, int is_write, xt_t xt )
 	char *dest = (char*)POP();
 	int last=0, retlen=0;
 	work_t w[3];
+	ducell mark = ((ducell)di->mark_hi << BITS) | di->mark_lo;
 
 	/* printk("read: %x %x\n", (int)dest, len ); */
 	
 	if( !xt )
 		return -1;
 
-	blk = di->mark / di->blksize;
+	blk = mark / di->blksize;
 	split( di, dest, len, w );
 
 	for( i=0; !last && i<3; i++ ) {
@@ -174,8 +178,11 @@ do_readwrite( deblk_info_t *di, int is_write, xt_t xt )
 		retlen += w[i].len;
 		blk += n;
 	}
-	if( retlen > 0 )
-		di->mark += retlen;
+	if( retlen > 0 ) {
+		mark += retlen;
+                di->mark_hi = mark >> BITS;
+                di->mark_lo = mark & (ucell) -1;
+        }
 	return retlen;
 }
 

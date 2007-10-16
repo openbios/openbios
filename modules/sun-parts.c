@@ -25,8 +25,8 @@
 #endif
 
 typedef struct {
-	ullong		offs;
-	ullong		size;
+        ucell	        offs_hi, offs_lo;
+        ucell	        size_hi, size_lo;
 	int		type;
 } sunparts_info_t;
 
@@ -95,6 +95,7 @@ sunparts_open( sunparts_info_t *di )
 	unsigned char buf[512];
         struct sun_disklabel *p;
         unsigned int i, bs;
+        ducell offs, size;
 
 	DPRINTF("sunparts_open '%s'\n", str );
 
@@ -136,12 +137,16 @@ sunparts_open( sunparts_info_t *di )
             parnum = 0;
 
 	DPRINTF("Selected partition %d\n", parnum);
-        di->offs = (llong)__be32_to_cpu(p->partitions[parnum].start_cylinder) *
+        offs = (llong)__be32_to_cpu(p->partitions[parnum].start_cylinder) *
             __be16_to_cpu(p->ntrks) * __be16_to_cpu(p->nsect) * bs;
 
-        di->size = (llong)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
+        di->offs_hi = offs >> BITS;
+        di->offs_lo = offs & (ucell) -1;
+        size = (llong)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
+        di->size_hi = size >> BITS;
+        di->size_lo = size & (ucell) -1;
         di->type = __be32_to_cpu(p->infos[parnum].id);
-        DPRINTF("Found Sun partition table, offs %d size %d\n", (int)di->offs, (int)di->size);
+        DPRINTF("Found Sun partition table, offs %lld size %lld\n", offs, size);
 
         RET( -1 );
 }
@@ -161,8 +166,10 @@ sunparts_get_info( sunparts_info_t *di )
 {
 	DPRINTF("Sun get_info\n");
 	PUSH( di->type );
-	DPUSH( di->offs );
-	DPUSH( di->size );
+	PUSH( di->offs_lo );
+	PUSH( di->offs_hi );
+	PUSH( di->size_lo );
+	PUSH( di->size_hi );
 }
 
 static void
