@@ -95,7 +95,7 @@ bug:
         set     _start, %g3
         set     dump_exception, %g2
         sub     %g2, %g3, %g3
-        set     1<<14, %g2
+        set     3 << 13, %g2
         jmp    %g3
          sta    %g2, [%g0] ASI_M_MMUREGS
 
