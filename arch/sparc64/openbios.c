@@ -56,11 +56,98 @@ static struct qemu_nvram_v1 {
 #define OBIO_CMDLINE_MAX 256
 static char obio_cmdline[OBIO_CMDLINE_MAX];
 
+struct cpudef {
+    unsigned long iu_version;
+    const char *name;
+};
+
+static const struct cpudef sparc_defs[] = {
+    {
+        .iu_version = (0x04ULL << 48) | (0x02ULL << 32),
+        .name = "FJSV,GP",
+    },
+    {
+        .iu_version = (0x04ULL << 48) | (0x03ULL << 32),
+        .name = "FJSV,GPUSK",
+    },
+    {
+        .iu_version = (0x04ULL << 48) | (0x04ULL << 32),
+        .name = "FJSV,GPUSC",
+    },
+    {
+        .iu_version = (0x04ULL << 48) | (0x05ULL << 32),
+        .name = "FJSV,GPUZC",
+    },
+    {
+        .iu_version = (0x17ULL << 48) | (0x10ULL << 32),
+        .name = "SUNW,UltraSPARC",
+    },
+    {
+        .iu_version = (0x17ULL << 48) | (0x11ULL << 32),
+        .name = "SUNW,UltraSPARC-II",
+    },
+    {
+        .iu_version = (0x17ULL << 48) | (0x12ULL << 32),
+        .name = "SUNW,UltraSPARC-IIi",
+    },
+    {
+        .iu_version = (0x17ULL << 48) | (0x13ULL << 32),
+        .name = "SUNW,UltraSPARC-IIe",
+    },
+    {
+        .iu_version = (0x3eULL << 48) | (0x14ULL << 32),
+        .name = "SUNW,UltraSPARC-III",
+    },
+    {
+        .iu_version = (0x3eULL << 48) | (0x15ULL << 32),
+        .name = "SUNW,UltraSPARC-III+",
+    },
+    {
+        .iu_version = (0x3eULL << 48) | (0x16ULL << 32),
+        .name = "SUNW,UltraSPARC-IIIi",
+    },
+    {
+        .iu_version = (0x3eULL << 48) | (0x18ULL << 32),
+        .name = "SUNW,UltraSPARC-IV",
+    },
+    {
+        .iu_version = (0x3eULL << 48) | (0x19ULL << 32),
+        .name = "SUNW,UltraSPARC-IV+",
+    },
+    {
+        .iu_version = (0x3eULL << 48) | (0x22ULL << 32),
+        .name = "SUNW,UltraSPARC-IIIi+",
+    },
+    {
+        .iu_version = (0x22ULL << 48) | (0x10ULL << 32),
+        .name = "SUNW,UltraSPARC",
+    },
+};
+
+static const struct cpudef *
+id_cpu(void)
+{
+    unsigned long iu_version;
+    unsigned int i;
+
+    asm("rdpr %%ver, %0\n"
+        : "=r"(iu_version) :);
+    iu_version &= 0xffffffff00000000ULL;
+
+    for (i = 0; i < sizeof(sparc_defs)/sizeof(struct cpudef); i++) {
+        if (iu_version == sparc_defs[i].iu_version)
+            return &sparc_defs[i];
+    }
+    printk("Unknown cpu (psr %lx), freezing!\n", iu_version);
+    for (;;);
+}
+
 void arch_nvram_get(char *data)
 {
     unsigned short i;
     unsigned char *nvptr = &nv_info;
     uint32_t size;
+    struct cpudef *cpu;
     extern uint32_t kernel_image;
     extern uint32_t kernel_size;
     extern uint32_t cmdline;
@@ -91,6 +178,10 @@ void arch_nvram_get(char *data)
         outb((i + NVRAM_OB_OFFSET) >> 8, 0x75);
         data[i] = inb(0x77);
     }
+
+    printk("CPUs: %x", nv_info.smp_cpus);
+    cpu = id_cpu();
+    printk(" x %s\n", cpu->name);
 }
 
 void arch_nvram_put(char *data)
