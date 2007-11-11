@@ -24,6 +24,11 @@
 #define POWER_OFFSET     0x0a000000ULL
 #define CS4231_REGS      0x40
 #define CS4231_OFFSET    0x0c000000ULL
+#define MACIO_ESPDMA     0x00400000ULL /* ESP DMA controller */
+#define MACIO_ESP        0x00800000ULL /* ESP SCSI */
+#define SS600MP_ESPDMA   0x00081000ULL
+#define SS600MP_ESP      0x00080000ULL
+#define SS600MP_LEBUFFER (SS600MP_ESPDMA + 0x10) // XXX should be 0x40000
 
 static void
 ob_sbus_node_init(uint64_t base)
@@ -52,13 +57,14 @@ ob_sbus_node_init(uint64_t base)
 }
 
 static void
-ob_le_init(unsigned int slot, unsigned long base, unsigned long offset)
+ob_le_init(unsigned int slot, unsigned long base, unsigned long leoffset,
+           unsigned long dmaoffset)
 {
     push_str("/iommu/sbus/ledma");
     fword("find-device");
     PUSH(slot);
     fword("encode-int");
-    PUSH(offset + 0x00400010);
+    PUSH(dmaoffset);
     fword("encode-int");
     fword("encode+");
     PUSH(0x00000020);
@@ -71,7 +77,7 @@ ob_le_init(unsigned int slot, unsigned long base, unsigned long offset)
     fword("find-device");
     PUSH(slot);
     fword("encode-int");
-    PUSH(offset + 0x00c00000);
+    PUSH(leoffset);
     fword("encode-int");
     fword("encode+");
     PUSH(0x00000004);
@@ -352,11 +358,11 @@ ob_macio_init(unsigned int slot, uint64_t base, unsigned long offset)
     // NCR 53c9x, aka ESP. See
     // http://www.ibiblio.org/pub/historic-linux/early-ports/Sparc/NCR/NCR53C9X.txt
 #ifdef CONFIG_DRIVER_ESP
-    ob_esp_init(slot, base, offset);
+    ob_esp_init(slot, base, offset + MACIO_ESP, offset + MACIO_ESPDMA);
 #endif
 
     // NCR 92C990, Am7990, Lance. See http://www.amd.com
-    ob_le_init(slot, base, offset);
+    ob_le_init(slot, base, offset + 0x00c00000, offset + 0x00400010);
 
     // Parallel port
     //ob_bpp_init(base);
@@ -394,6 +400,26 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
         break;
     case 0xf: // le, esp, bpp, power-management
         ob_macio_init(slot, base, 0);
+        break;
+    default:
+        break;
+    }
+}
+
+static void
+sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
+{
+    // OpenBIOS and Qemu don't know how to do Sbus probing
+    switch(slot) {
+    case 2: // SUNW,tcx
+        ob_tcx_init(slot, base);
+        break;
+    case 0xf: // le, esp, bpp, power-management
+#ifdef CONFIG_DRIVER_ESP
+        ob_esp_init(slot, base, SS600MP_ESP, SS600MP_ESPDMA);
+#endif
+        // NCR 92C990, Am7990, Lance. See http://www.amd.com
+        ob_le_init(slot, base, 0x00060000, SS600MP_LEBUFFER);
         break;
     default:
         break;
@@ -440,6 +466,7 @@ static const struct sbus_offset sbus_offsets_ss5[SBUS_SLOTS] = {
     { 5, 0, 0x70000000, 0x10000000,},
 };
 
+/* Shared with ss600mp */
 static const struct sbus_offset sbus_offsets_ss10[SBUS_SLOTS] = {
     { 0, 0, 0xe00000000ULL, 0x10000000,},
     { 1, 0, 0xe10000000ULL, 0x10000000,},
@@ -515,11 +542,34 @@ ob_sbus_init_ss10(uint64_t base)
     return 0;
 }
 
+static int
+ob_sbus_init_ss600mp(uint64_t base)
+{
+    unsigned int slot;
+    int notfirst = 0;
+
+    for (slot = 0; slot < SBUS_SLOTS; slot++) {
+        if (sbus_offsets_ss10[slot].size > 0)
+            ob_add_sbus_range(&sbus_offsets_ss10[slot], notfirst++);
+    }
+    push_str("ranges");
+    fword("property");
+
+    for (slot = 0; slot < SBUS_SLOTS; slot++) {
+        if (sbus_offsets_ss10[slot].size > 0)
+            sbus_probe_slot_ss600mp(slot, sbus_offsets_ss10[slot].base);
+    }
+
+    return 0;
+}
+
 int ob_sbus_init(uint64_t base, int machine_id)
 {
     ob_sbus_node_init(base);
 
     switch (machine_id) {
+    case 0x71:
+        return ob_sbus_init_ss600mp(base);
     case 0x72:
         return ob_sbus_init_ss10(base);
     case 0x80:

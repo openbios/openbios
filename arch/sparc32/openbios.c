@@ -65,6 +65,22 @@ static const struct hwdef hwdefs[] = {
         .le_base      = 0xef0c00000ULL,
         .machine_id = 0x72,
     },
+    /* SS-600MP */
+    {
+        .iommu_base   = 0xfe0000000ULL,
+        .tcx_base     = 0xe20000000ULL,
+        .slavio_base  = 0xff1000000ULL,
+        .ms_kb_base   = 0xff1000000ULL,
+        .serial_base  = 0xff1100000ULL,
+        .nvram_base   = 0xff1200000ULL,
+        .fd_offset    = -1,
+        .counter_offset = 0x00300000, // 0xff1300000ULL,
+        .intr_offset  = 0x00400000, // 0xff1400000ULL,
+        .dma_base     = 0xef0081000ULL,
+        .esp_base     = 0xef0080000ULL,
+        .le_base      = 0xef0060000ULL,
+        .machine_id = 0x71,
+    },
 };
 
 static const struct hwdef *hwdef;

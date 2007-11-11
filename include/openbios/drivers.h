@@ -21,7 +21,8 @@ int ob_sbus_init(uint64_t base, int machine_id);
 int ob_ide_init(void);
 #endif
 #ifdef CONFIG_DRIVER_ESP
-int ob_esp_init(unsigned int slot, uint64_t base, unsigned long offset);
+int ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
+                unsigned long dmaoffset);
 #endif
 #ifdef CONFIG_DRIVER_OBIO
 int ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,

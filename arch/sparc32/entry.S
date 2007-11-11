@@ -17,6 +17,8 @@
 #define PHYS_SS10_EEPROM	0xf1200000
 #define PHYS_SS10_INTR0 	0xf1400000
 
+#define SUN_MACHINE_ID 0x1fd9
+
 #define WRITE_PAUSE    nop; nop; nop; /* Have to do this after %wim/%psr chg */
 
         .globl	entry, _entry
@@ -110,9 +112,11 @@ ss10:
         cmp     %g2, 'U'
         bne     bad_nvram
         
-        ! Ok, this is SS-10
-        mov     0x72, %y
+        ! Ok, this is SS-10 or SS-600MP
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
+        set     PHYS_SS10_EEPROM + SUN_MACHINE_ID, %g1
+        lduba   [%g1] ASI_M_CTL, %g2
+        mov     %g2, %y
         set     PHYS_SS10_EEPROM + 0x2E, %g1
         lduba   [%g1] ASI_M_CTL, %g2
         stba    %g0, [%g2] ASI_M_CTL

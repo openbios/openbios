@@ -25,9 +25,6 @@
 #include "asm/dma.h"
 #include "esp.h"
 
-#define MACIO_ESPDMA  0x00400000ULL /* ESP DMA controller */
-#define MACIO_ESP     0x00800000ULL /* ESP SCSI */
-
 #define BUFSIZE         4096
 
 #define REGISTER_NAMED_NODE( name, path )   do {                        \
@@ -318,7 +315,7 @@ static int
 espdma_init(unsigned int slot, uint64_t base, unsigned long offset,
             struct esp_dma *espdma)
 {
-    espdma->regs = (void *)map_io(base + (uint64_t)offset + MACIO_ESPDMA, 0x10);
+    espdma->regs = (void *)map_io(base + (uint64_t)offset, 0x10);
 
     if (espdma->regs == 0) {
         DPRINTF("espdma_init: cannot map registers\n");
@@ -366,7 +363,7 @@ espdma_init(unsigned int slot, uint64_t base, unsigned long offset,
     /* set reg */
     PUSH(slot);
     fword("encode-int");
-    PUSH(offset + MACIO_ESPDMA);
+    PUSH(offset);
     fword("encode-int");
     fword("encode+");
     PUSH(0x00000010);
@@ -430,7 +427,8 @@ add_alias(const char *device, const char *alias)
 }
 
 int
-ob_esp_init(unsigned int slot, uint64_t base, unsigned long offset)
+ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
+            unsigned long dmaoffset)
 {
     int id, diskcount = 0, cdcount = 0, *counter_ptr;
     char nodebuff[256], aliasbuff[256];
@@ -446,11 +444,11 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long offset)
 
     global_esp = esp;
 
-    if (espdma_init(slot, base, offset, &esp->espdma) != 0) {
+    if (espdma_init(slot, base, dmaoffset, &esp->espdma) != 0) {
         return -1;
     }
     /* Get the IO region */
-    esp->ll = (void *)map_io(base + (uint64_t)offset + MACIO_ESP,
+    esp->ll = (void *)map_io(base + (uint64_t)espoffset,
                              sizeof(struct esp_regs));
     if (esp->ll == 0) {
         DPRINTF("Can't map ESP registers\n");
@@ -489,7 +487,7 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long offset)
     fword("find-device");
     PUSH(slot);
     fword("encode-int");
-    PUSH(offset + MACIO_ESP);
+    PUSH(espoffset);
     fword("encode-int");
     fword("encode+");
     PUSH(0x00000010);

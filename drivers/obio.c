@@ -736,6 +736,16 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     fword("property");
 
     switch (machine_id) {
+    case 0x71:
+        push_str("SPARCsystem 600(1 X 390Z55)");
+        fword("encode-string");
+        push_str("banner-name");
+        fword("property");
+        push_str("SUNW,SPARCsystem-600");
+        fword("encode-string");
+        push_str("name");
+        fword("property");
+        break;
     case 0x72:
         push_str("SPARCstation 10 (1 X 390Z55)");
         fword("encode-string");
@@ -1204,7 +1214,8 @@ ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
     ob_nvram_init(slavio_base, SLAVIO_NVRAM);
 
     // 82078 FDC
-    ob_fd_init(slavio_base, fd_offset, FD_INTR);
+    if (fd_offset != (unsigned long) -1)
+        ob_fd_init(slavio_base, fd_offset, FD_INTR);
 
     ob_sconfig_init(slavio_base, SLAVIO_SCONFIG);
 
