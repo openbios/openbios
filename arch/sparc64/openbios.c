@@ -15,6 +15,8 @@
 #include "openbios/stack.h"
 #include "sys_info.h"
 #include "openbios.h"
+#include "openbios/firmware_abi.h"
+#include "boot.h"
 
 void boot(void);
 
@@ -23,35 +25,10 @@ static unsigned char intdict[256 * 1024];
 // XXX
 #define NVRAM_SIZE       0x2000
 #define NVRAM_IDPROM     0x1fd0
-#define NVRAM_OB_OFFSET  256
-#define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_OFFSET) & ~15)
+#define NVRAM_OB_START   (sizeof(ohwcfg_v3_t) + sizeof(struct sparc_arch_cfg))
+#define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_START) & ~15)
 
-static struct qemu_nvram_v1 {
-    char id_string[16];
-    uint32_t version;
-    uint32_t nvram_size; // not used in Sun4m
-    char unused1[8];
-    char arch[12];
-    char curr_cpu;
-    char smp_cpus;
-    char unused2;
-    char nographic;
-    uint32_t ram_size;
-    char boot_device;
-    char unused3[3];
-    uint32_t kernel_image;
-    uint32_t kernel_size;
-    uint32_t cmdline;
-    uint32_t cmdline_size;
-    uint32_t initrd_image;
-    uint32_t initrd_size;
-    uint32_t nvram_image;
-    uint16_t width;
-    uint16_t height;
-    uint16_t depth;
-    char unused4[158];
-    uint16_t crc;
-} nv_info;
+ohwcfg_v3_t nv_info;
 
 #define OBIO_CMDLINE_MAX 256
 static char obio_cmdline[OBIO_CMDLINE_MAX];
@@ -148,16 +125,20 @@ void arch_nvram_get(char *data)
     unsigned char *nvptr = &nv_info;
     uint32_t size;
     struct cpudef *cpu;
-    extern uint32_t kernel_image;
-    extern uint32_t kernel_size;
-    extern uint32_t cmdline;
-    extern uint32_t cmdline_size;
-    extern char boot_device;
 
-    for (i = 0; i < sizeof(struct qemu_nvram_v1); i++) {
+    for (i = 0; i < sizeof(ohwcfg_v3_t); i++) {
         outb(i & 0xff, 0x74);
         outb(i  >> 8, 0x75);
         *nvptr++ = inb(0x77);
+    }
+
+    printk("Nvram id %s, version %d\n", nv_info.struct_ident,
+           nv_info.struct_version);
+    if (strcmp(nv_info.struct_ident, "QEMU_BIOS") ||
+        nv_info.struct_version != 3 ||
+        OHW_compute_crc(&nv_info, 0x00, 0xF8) != nv_info.crc) {
+        printk("Unknown nvram, freezing!\n");
+        for (;;);
     }
 
     kernel_image = nv_info.kernel_image;
@@ -165,21 +146,23 @@ void arch_nvram_get(char *data)
     size = nv_info.cmdline_size;
     if (size > OBIO_CMDLINE_MAX - 1)
         size = OBIO_CMDLINE_MAX - 1;
-    memcpy(obio_cmdline, nv_info.cmdline, size);
+    memcpy(obio_cmdline, (void *)nv_info.cmdline, size);
     obio_cmdline[size] = '\0';
     cmdline = obio_cmdline;
     cmdline_size = size;
+    boot_device = nv_info.boot_devices[0];
+
     printk("kernel addr %x size %x\n", kernel_image, kernel_size);
     if (size)
         printk("kernel cmdline %s\n", obio_cmdline);
 
     for (i = 0; i < NVRAM_OB_SIZE; i++) {
-        outb((i + NVRAM_OB_OFFSET) & 0xff, 0x74);
-        outb((i + NVRAM_OB_OFFSET) >> 8, 0x75);
+        outb((i + NVRAM_OB_START) & 0xff, 0x74);
+        outb((i + NVRAM_OB_START) >> 8, 0x75);
         data[i] = inb(0x77);
     }
 
-    printk("CPUs: %x", nv_info.smp_cpus);
+    printk("CPUs: %x", nv_info.nb_cpus);
     cpu = id_cpu();
     printk(" x %s\n", cpu->name);
 }
@@ -189,8 +172,8 @@ void arch_nvram_put(char *data)
     unsigned short i;
 
     for (i = 0; i < NVRAM_OB_SIZE; i++) {
-        outb((i + NVRAM_OB_OFFSET) & 0xff, 0x74);
-        outb((i + NVRAM_OB_OFFSET) >> 8, 0x75);
+        outb((i + NVRAM_OB_START) & 0xff, 0x74);
+        outb((i + NVRAM_OB_START) >> 8, 0x75);
         outb(data[i], 0x77);
     }
 }
@@ -250,8 +233,6 @@ arch_init( void )
 
 int openbios(void)
 {
-	extern struct sys_info sys_info;
-
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);

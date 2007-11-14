@@ -12,3 +12,9 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 
 unsigned int start_elf(unsigned long entry_point, unsigned long param);
 
+extern uint64_t kernel_image;
+extern uint64_t kernel_size;
+extern uint64_t cmdline;
+extern uint64_t cmdline_size;
+extern char boot_device;
+extern struct sys_info sys_info;

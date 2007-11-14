@@ -34,33 +34,6 @@
 
 #define SLAVIO_SIZE      0x01000000
 
-struct qemu_nvram_v1 {
-    char id_string[16];
-    uint32_t version;
-    uint32_t nvram_size; // not used in Sun4m
-    char unused1[8];
-    char arch[12];
-    char curr_cpu;
-    char smp_cpus;
-    char unused2;
-    char nographic;
-    uint32_t ram_size;
-    char boot_device;
-    char unused3[3];
-    uint32_t kernel_image;
-    uint32_t kernel_size;
-    uint32_t cmdline;
-    uint32_t cmdline_size;
-    uint32_t initrd_image;
-    uint32_t initrd_size;
-    uint32_t nvram_image;
-    uint16_t width;
-    uint16_t height;
-    uint16_t depth;
-    char unused4[158];
-    uint16_t crc;
-};
-
 #define SUN4M_NCPUS      16
 #define PAGE_SIZE        4096
 

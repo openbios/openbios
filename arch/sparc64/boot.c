@@ -16,10 +16,10 @@ int linux_load(struct sys_info *, const char *filename, const char *cmdline);
 void boot(void);
 
 struct sys_info sys_info;                                                       
-uint32_t kernel_image;
-uint32_t kernel_size;
-uint32_t cmdline;
-uint32_t cmdline_size;
+uint64_t kernel_image;
+uint64_t kernel_size;
+uint64_t cmdline;
+uint64_t cmdline_size;
 char boot_device;
 
 void boot(void)

@@ -11,6 +11,8 @@
 #include "asi.h"
 #include "pstate.h"
 #include "lsu.h"
+#define __ASSEMBLY__
+#include "openbios/firmware_abi.h"
 
 #define PROM_ADDR 0x1fff0000000
 
@@ -49,12 +51,36 @@ entry:
 
         ! Get memory size from NVRAM
         setx    0x1fe02000074, %g2, %g5
-        mov     0x30, %g2
+        mov     OHW_RAM_SIZE, %g2
         stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
         add     %g5, 1, %g1
         stba    %g0, [%g1] ASI_PHYS_BYPASS_EC_E
         add     %g1, 2, %g1
 	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g4
+
+        sll     %g4, 8, %g4
+        inc     %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        or      %g3, %g4, %g4
+
+        sll     %g4, 8, %g4
+        inc     %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        or      %g3, %g4, %g4
+
+        sll     %g4, 8, %g4
+        inc     %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        or      %g3, %g4, %g4
+
+        sll     %g4, 8, %g4
+        inc     %g2
+        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        or      %g3, %g4, %g4
 
         sll     %g4, 8, %g4
         inc     %g2

@@ -19,6 +19,7 @@
 #include "openbios/drivers.h"
 #include "openbios/nvram.h"
 #include "obio.h"
+#include "openbios/firmware_abi.h"
 
 #define REGISTER_NAMED_NODE( name, path )   do { \
 	     bind_new_node( name##_flags_, name##_size_, \
@@ -289,26 +290,27 @@ ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
 }
 
 static unsigned char *nvram;
-struct qemu_nvram_v1 nv_info;
+ohwcfg_v3_t nv_info;
+
+#define NVRAM_OB_START   (sizeof(ohwcfg_v3_t) + sizeof(struct sparc_arch_cfg))
+#define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_START) & ~15)
 
 void
 arch_nvram_get(char *data)
 {
-    memcpy(data, &nvram[sizeof(struct qemu_nvram_v1)],
-           NVRAM_IDPROM - sizeof(struct qemu_nvram_v1));
+    memcpy(data, &nvram[NVRAM_OB_START], NVRAM_OB_SIZE);
 }
 
 void
 arch_nvram_put(char *data)
 {
-    memcpy(&nvram[sizeof(struct qemu_nvram_v1)], data,
-           NVRAM_IDPROM - sizeof(struct qemu_nvram_v1));
+    memcpy(&nvram[NVRAM_OB_START], data, NVRAM_OB_SIZE);
 }
 
 int
 arch_nvram_size(void)
 {
-    return (NVRAM_IDPROM - sizeof(struct qemu_nvram_v1)) & ~15;
+    return NVRAM_OB_SIZE;
 }
 
 static void mb86904_init(void)
@@ -684,6 +686,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     uint32_t size;
     unsigned int machine_id;
     struct cpudef *cpu;
+    ohwcfg_v3_t *header;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -696,9 +699,11 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     
     memcpy(&nv_info, nvram, sizeof(nv_info));
     machine_id = (unsigned int)nvram[0x1fd9] & 0xff;
-    printk("Nvram id %s, version %d, machine id 0x%2.2x\n", nv_info.id_string,
-           nv_info.version, machine_id);
-    if (strcmp(nv_info.id_string, "QEMU_BIOS") || nv_info.version != 1) {
+    printk("Nvram id %s, version %d, machine id 0x%2.2x\n",
+           nv_info.struct_ident, nv_info.struct_version, machine_id);
+    if (strcmp(nv_info.struct_ident, "QEMU_BIOS") ||
+        nv_info.struct_version != 3 ||
+        OHW_compute_crc(&nv_info, 0x00, 0xF8) != nv_info.crc) {
         printk("Unknown nvram, freezing!\n");
         for (;;);
     }
@@ -712,12 +717,13 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     obio_cmdline[size] = '\0';
     cmdline = obio_cmdline;
     cmdline_size = size;
-    ((struct qemu_nvram_v1 *)nvram)->kernel_image = 0;
-    ((struct qemu_nvram_v1 *)nvram)->kernel_size = 0;
-    ((struct qemu_nvram_v1 *)nvram)->cmdline_size = 0;
+    header = (ohwcfg_v3_t *)nvram;
+    header->kernel_image = 0;
+    header->kernel_size = 0;
+    header->cmdline_size = 0;
 
-    boot_device = nv_info.boot_device;
-    nographic = nv_info.nographic;
+    boot_device = nv_info.boot_devices[0];
+    nographic = nv_info.graphic_flags & OHW_GF_NOGRAPHICS;
     graphic_depth = nv_info.depth;
 
     push_str("mk48t08");
@@ -779,10 +785,10 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         for (;;);
     }
     // Add cpus
-    printk("CPUs: %x", nv_info.smp_cpus);
+    printk("CPUs: %x", nv_info.nb_cpus);
     cpu = id_cpu();
     printk(" x %s\n", cpu->name);
-    for (i = 0; i < (unsigned int)nv_info.smp_cpus; i++) {
+    for (i = 0; i < (unsigned int)nv_info.nb_cpus; i++) {
         push_str("/");
         fword("find-device");
 
@@ -1091,13 +1097,17 @@ ob_interrupt_init(uint64_t base, unsigned long offset)
 int
 start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context, int cpu)
 {
+    ohwcfg_v3_t *header = (ohwcfg_v3_t *)nvram;
+    struct sparc_arch_cfg *sparc_header;
+
     if (!cpu)
         return -1;
 
-    *(uint32_t *)&nvram[0x38] = pc;
-    *(uint32_t *)&nvram[0x3c] = context_ptr;
-    *(uint32_t *)&nvram[0x40] = context;
-    nvram[0x2e] = cpu & 0xff;
+    sparc_header = &nvram[header->nvram_arch_ptr];
+    sparc_header->smp_entry = pc;
+    sparc_header->smp_ctxtbl = context_ptr;
+    sparc_header->smp_ctx = context;
+    sparc_header->valid = 1;
 
     intregs->cpu_intregs[cpu].set = SUN4M_SOFT_INT(14);
 

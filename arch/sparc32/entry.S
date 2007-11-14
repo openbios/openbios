@@ -10,14 +10,14 @@
 #include "psr.h"
 #include "asi.h"
 #include "asm/crs.h"
+#define __ASSEMBLY__
+#include "openbios/firmware_abi.h"
 
 #define PHYS_JJ_EEPROM	0x71200000  /* [2000] MK48T08 */
 #define PHYS_JJ_INTR0	0x71E00000  /* CPU0 interrupt control registers */
 
 #define PHYS_SS10_EEPROM	0xf1200000
 #define PHYS_SS10_INTR0 	0xf1400000
-
-#define SUN_MACHINE_ID 0x1fd9
 
 #define WRITE_PAUSE    nop; nop; nop; /* Have to do this after %wim/%psr chg */
 
@@ -56,12 +56,17 @@ entry:
 
         ! Ok, this is SS-5
         mov     0x80, %y
+        ! Find architecture specific part
+        set     PHYS_JJ_EEPROM + OHW_ARCH_PTR, %g1
+        lduha   [%g1] ASI_M_BYPASS, %g2
+        set     PHYS_JJ_EEPROM, %g1
+        add     %g1, %g2, %g3
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
-        set     PHYS_JJ_EEPROM + 0x2E, %g1
+        add     %g3, SPARC_SMP_VALID, %g1
         lduba   [%g1] ASI_M_BYPASS, %g2
         stba    %g0, [%g1] ASI_M_BYPASS
-        set	PHYS_JJ_EEPROM + 0x30, %g1
-        lda	[%g1] ASI_M_BYPASS, %g1
+        set	PHYS_JJ_EEPROM + OHW_RAM_SIZE, %g1
+        ldda	[%g1] ASI_M_BYPASS, %g0
         tst     %g2
         bz      first_cpu
          nop
@@ -73,17 +78,17 @@ entry:
         sta     %g1, [%g2] ASI_M_BYPASS         ! clear softints
         add     %g2, 4, %g2
         sta     %g0, [%g2] ASI_M_BYPASS         ! clear softints
-        set     PHYS_JJ_EEPROM + 0x3C, %g1
+        add     %g3, SPARC_SMP_CTXTBL, %g1
         lda     [%g1] ASI_M_BYPASS, %g2
         sta     %g0, [%g1] ASI_M_BYPASS
         set     AC_M_CTPR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
-        set     PHYS_JJ_EEPROM + 0x40, %g1
+        add     %g3, SPARC_SMP_CTX, %g1
         lda     [%g1] ASI_M_BYPASS, %g2
         sta     %g0, [%g1] ASI_M_BYPASS
         set     AC_M_CXR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
-        set     PHYS_JJ_EEPROM + 0x38, %g1
+        add     %g3, SPARC_SMP_ENTRY, %g1
         lda     [%g1] ASI_M_BYPASS, %g2
         sta     %g0, [%g1] ASI_M_BYPASS
         set     1, %g1
@@ -113,15 +118,20 @@ ss10:
         bne     bad_nvram
         
         ! Ok, this is SS-10 or SS-600MP
-        ! Check if this not the first SMP CPU, if so, bypass PROM entirely
-        set     PHYS_SS10_EEPROM + SUN_MACHINE_ID, %g1
+        set     PHYS_SS10_EEPROM + SPARC_MACHINE_ID, %g1
         lduba   [%g1] ASI_M_CTL, %g2
         mov     %g2, %y
-        set     PHYS_SS10_EEPROM + 0x2E, %g1
+        ! Find architecture specific part
+        set     PHYS_SS10_EEPROM + OHW_ARCH_PTR, %g1
+        lduha   [%g1] ASI_M_CTL, %g2
+        set     PHYS_SS10_EEPROM, %g1
+        add     %g1, %g2, %g3
+        ! Check if this not the first SMP CPU, if so, bypass PROM entirely
+        add     %g3, SPARC_SMP_VALID, %g1
         lduba   [%g1] ASI_M_CTL, %g2
         stba    %g0, [%g2] ASI_M_CTL
-        set	PHYS_SS10_EEPROM + 0x30, %g1
-        lda	[%g1] ASI_M_CTL, %g1
+        set     PHYS_SS10_EEPROM + OHW_RAM_SIZE, %g1
+        ldda	[%g1] ASI_M_CTL, %g0
         tst     %g2
         bz      first_cpu
          nop
@@ -132,17 +142,17 @@ ss10:
         sta     %g1, [%g2] ASI_M_CTL         ! clear softints
         add     %g2, 4, %g2
         sta     %g0, [%g2] ASI_M_CTL         ! clear softints
-        set     PHYS_SS10_EEPROM + 0x3C, %g1
+        add     %g3, SPARC_SMP_CTXTBL, %g1
         lda     [%g1] ASI_M_CTL, %g2
         sta     %g0, [%g1] ASI_M_CTL
         set     AC_M_CTPR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
-        set     PHYS_JJ_EEPROM + 0x40, %g1
+        add     %g3, SPARC_SMP_CTX, %g1
         lda     [%g1] ASI_M_CTL, %g2
         sta     %g0, [%g1] ASI_M_CTL
         set     AC_M_CXR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
-        set     PHYS_SS10_EEPROM + 0x38, %g1
+        add     %g3, SPARC_SMP_ENTRY, %g1
         lda     [%g1] ASI_M_CTL, %g2
         sta     %g0, [%g1] ASI_M_CTL
         set     1, %g1

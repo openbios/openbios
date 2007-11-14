@@ -11,8 +11,8 @@
 #define debug(x...) 
 #endif
 
-unsigned long qemu_mem_size;
-unsigned long va_shift;
+uint64_t qemu_mem_size;
+uint64_t va_shift;
 
 void collect_multiboot_info(struct sys_info *);
 
