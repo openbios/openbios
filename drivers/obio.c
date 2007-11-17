@@ -687,7 +687,6 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     unsigned int machine_id;
     struct cpudef *cpu;
     ohwcfg_v3_t *header;
-    uint16_t crc;
 
     ob_new_obio_device("eeprom", NULL);
 
