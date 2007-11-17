@@ -129,7 +129,7 @@ ss10:
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
         add     %g3, SPARC_SMP_VALID, %g1
         lduba   [%g1] ASI_M_CTL, %g2
-        stba    %g0, [%g2] ASI_M_CTL
+        stba    %g0, [%g1] ASI_M_CTL
         set     PHYS_SS10_EEPROM + OHW_RAM_SIZE, %g1
         ldda	[%g1] ASI_M_CTL, %g0
         tst     %g2
