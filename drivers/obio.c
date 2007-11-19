@@ -891,7 +891,15 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         push_str("cache-coherence?");
         fword("property");
 
-        PUSH(i);
+        switch (machine_id) {
+        case 0x71:
+        case 0x72:
+            PUSH(i + 8);
+            break;
+        case 0x80:
+            PUSH(i);
+            break;
+        }
         fword("encode-int");
         push_str("mid");
         fword("property");
@@ -1110,6 +1118,7 @@ start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context, int c
     sparc_header->smp_ctx = context;
     sparc_header->valid = 1;
 
+    cpu &= 7;
     intregs->cpu_intregs[cpu].set = SUN4M_SOFT_INT(14);
 
     return 0;
