@@ -32,6 +32,9 @@
 #define SLAVIO_RESET     0x00f00000ULL
 #define RESET_REGS       1
 
+#define ECC_BASE         0xf00000000ULL
+#define ECC_SIZE         0x20
+
 #define SLAVIO_SIZE      0x01000000
 
 #define SUN4M_NCPUS      16

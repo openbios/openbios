@@ -72,9 +72,10 @@ ob_new_obio_device(const char *name, const char *type)
 }
 
 static unsigned long
-ob_reg(uint64_t base, uint64_t offset, unsigned long size, int map)
+map_reg(uint64_t base, uint64_t offset, unsigned long size, int map,
+        int phys_hi)
 {
-    PUSH(0);
+    PUSH(phys_hi);
     fword("encode-int");
     PUSH(offset);
     fword("encode-int");
@@ -100,6 +101,12 @@ ob_reg(uint64_t base, uint64_t offset, unsigned long size, int map)
         return addr;
     }
     return 0;
+}
+
+static unsigned long
+ob_reg(uint64_t base, uint64_t offset, unsigned long size, int map)
+{
+    return map_reg(base, offset, size, map, 0);
 }
 
 static void
@@ -287,6 +294,47 @@ ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
     } else {
         REGISTER_NODE_METHODS(zs, nodebuff);
     }
+}
+
+static void
+ob_eccmemctl_init(void)
+{
+    uint32_t version, *regs;
+    const char *mc_type;
+
+    push_str("/");
+    fword("find-device");
+    fword("new-device");
+
+    push_str("eccmemctl");
+    fword("device-name");
+
+    PUSH(0x20);
+    fword("encode-int");
+    push_str("width");
+    fword("property");
+
+    regs = map_reg(ECC_BASE, 0, ECC_SIZE, 1, ECC_BASE >> 32);
+
+    version = regs[0];
+    switch (version) {
+    case 0x00000000:
+        mc_type = "MCC";
+        break;
+    case 0x10000000:
+        mc_type = "EMC";
+        break;
+    default:
+    case 0x20000000:
+        mc_type = "SMC";
+        break;
+    }
+    push_str(mc_type);
+    fword("encode-string");
+    push_str("mc-type");
+    fword("property");
+
+    fword("finish-device");
 }
 
 static unsigned char *nvram;
@@ -752,6 +800,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         fword("encode-string");
         push_str("name");
         fword("property");
+        ob_eccmemctl_init();
         break;
     case 0x72:
         push_str("SPARCstation 10 (1 X 390Z55)");
@@ -766,6 +815,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         fword("encode-string");
         push_str("name");
         fword("property");
+        ob_eccmemctl_init();
         break;
     case 0x80:
         push_str("SPARCstation 5");
