@@ -296,7 +296,7 @@ ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
     }
 }
 
-static void
+static uint32_t
 ob_eccmemctl_init(void)
 {
     uint32_t version, *regs;
@@ -335,6 +335,8 @@ ob_eccmemctl_init(void)
     fword("property");
 
     fword("finish-device");
+
+    return version;
 }
 
 static unsigned char *nvram;
@@ -803,19 +805,37 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         ob_eccmemctl_init();
         break;
     case 0x72:
-        push_str("SPARCstation 10 (1 X 390Z55)");
-        fword("encode-string");
-        push_str("banner-name");
-        fword("property");
-        push_str("SUNW,S10,501-2365");
-        fword("encode-string");
-        push_str("model");
-        fword("property");
-        push_str("SUNW,SPARCstation-10");
-        fword("encode-string");
-        push_str("name");
-        fword("property");
-        ob_eccmemctl_init();
+        switch (ob_eccmemctl_init()) {
+        default:
+        case 0x10000000:
+            push_str("SPARCstation 10 (1 X 390Z55)");
+            fword("encode-string");
+            push_str("banner-name");
+            fword("property");
+            push_str("SUNW,S10,501-2365");
+            fword("encode-string");
+            push_str("model");
+            fword("property");
+            push_str("SUNW,SPARCstation-10");
+            fword("encode-string");
+            push_str("name");
+            fword("property");
+            break;
+        case 0x20000000:
+            push_str("SPARCstation 20 (1 X 390Z55)");
+            fword("encode-string");
+            push_str("banner-name");
+            fword("property");
+            push_str("SUNW,S20,501-2324");
+            fword("encode-string");
+            push_str("model");
+            fword("property");
+            push_str("SUNW,SPARCstation-20");
+            fword("encode-string");
+            push_str("name");
+            fword("property");
+            break;
+        }
         break;
     case 0x80:
         push_str("SPARCstation 5");
