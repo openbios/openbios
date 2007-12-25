@@ -1067,10 +1067,11 @@ ob_power_init(uint64_t base, uint64_t offset, int intr)
     fword("finish-device");
 }
 
+volatile struct sun4m_timer_regs *counter_regs;
+
 static void
 ob_counter_init(uint64_t base, unsigned long offset)
 {
-    volatile struct sun4m_timer_regs *regs;
     int i;
 
     ob_new_obio_device("counter", NULL);
@@ -1101,17 +1102,19 @@ ob_counter_init(uint64_t base, unsigned long offset)
     fword("property");
 
 
-    regs = map_io(base + (uint64_t)offset, sizeof(*regs));
-    regs->l10_timer_limit = (((1000000/100) + 1) << 10);
-    regs->cpu_timers[0].l14_timer_limit = 0;
+    counter_regs = map_io(base + (uint64_t)offset, sizeof(*counter_regs));
+    counter_regs->cfg = 0xffffffff;
+    counter_regs->l10_timer_limit = (((1000000/100) + 1) << 10);
+    counter_regs->cpu_timers[0].l14_timer_limit = 0;
+    counter_regs->cpu_timers[0].cntrl = 1;
 
     for (i = 0; i < SUN4M_NCPU; i++) {
-        PUSH((unsigned long)&regs->cpu_timers[i]);
+        PUSH((unsigned long)&counter_regs->cpu_timers[i]);
         fword("encode-int");
         if (i != 0)
             fword("encode+");
     }
-    PUSH((unsigned long)&regs->l10_timer_limit);
+    PUSH((unsigned long)&counter_regs->l10_timer_limit);
     fword("encode-int");
     fword("encode+");
     push_str("address");

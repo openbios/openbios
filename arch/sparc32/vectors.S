@@ -43,6 +43,12 @@ trap_table:
 
 #define BTRAP(lvl) ba bug; mov lvl, %g1; nop; nop;
 #define BTRAPS(x) BTRAP(x) BTRAP(x+1) BTRAP(x+2) BTRAP(x+3) BTRAP(x+4) BTRAP(x+5) BTRAP(x+6) BTRAP(x+7)
+#define TRAP_ENTRY_INTERRUPT(int_level) \
+        sethi %hi(irq_entry ## int_level), %l7; \
+        or %l7, %lo(irq_entry ## int_level), %l7; \
+        jmp %l7; \
+         nop
+
 t_zero:         b entry; nop; nop; nop;
                 BTRAP(0x1) BTRAP(0x2) BTRAP(0x3) BTRAP(0x4)
 t_wovf:         WINDOW_SPILL                        /* Window Overflow               */
@@ -67,7 +73,12 @@ t_irq13:        TRAP_ENTRY_INTERRUPT(13)            /* IRQ Audio Intr.          
 t_irq14:        TRAP_ENTRY_INTERRUPT(14)            /* IRQ Timer #2                  */
 t_nmi:          BAD_TRAP(0x1f)                      /* Level 15 (NMI)                */
 #else
-                BTRAPS(0x10) BTRAPS(0x18)
+                BTRAPS(0x10)
+                BTRAP(0x18) BTRAP(0x19)
+t_irq10:        TRAP_ENTRY_INTERRUPT(10)            /* IRQ Timer #1 (one we use)     */
+                BTRAP(0x1b) BTRAP(0x1c) BTRAP(0x1d)
+t_irq14:        TRAP_ENTRY_INTERRUPT(14)            /* IRQ Timer #2                  */
+                BTRAP(0x1f)
 #endif
                 BTRAPS(0x20) BTRAPS(0x28)
                 BTRAPS(0x30) BTRAPS(0x38)
@@ -173,6 +184,21 @@ _forever:
         /* Loop forever */
         b       _forever                                  ;
          nop
+
+irq_entry10:
+        sethi   %hi(counter_regs), %l7
+        ld      [%l7 + %lo(counter_regs)], %l7
+        sethi   0x10000, %l6
+        ld      [%l7 + %l6], %g0
+        jmp     %l1
+         rett   %l2
+
+irq_entry14:
+        sethi   %hi(counter_regs), %l7
+        ld      [%l7 + %lo(counter_regs)], %l7
+        ld      [%l7], %g0
+        jmp     %l1
+         rett  %l2
 
 /* Register window handlers */
 #include "wof.S"
