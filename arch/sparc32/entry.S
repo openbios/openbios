@@ -19,6 +19,14 @@
 #define PHYS_SS10_EEPROM	0xf1200000
 #define PHYS_SS10_INTR0 	0xf1400000
 
+#define PHYS_SS2_EEPROM	0xf2000000
+#define PHYS_SS2_INTR0 	0xf5000000
+#define SER_ADDR2       0xf1000004
+
+#define PHYS_SS1000_EEPROM      0x00280000
+#define PHYS_SS1000_SBI         0x02800000
+#define SER_ADDR1000            0x00200004
+
 #define WRITE_PAUSE    nop; nop; nop; /* Have to do this after %wim/%psr chg */
 
         .globl	entry, _entry
@@ -95,27 +103,23 @@ entry:
         jmp     %g2                             ! jump to kernel
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
 
-bad_nvram:
-        ! Unknown machine, freeze
-        b       bad_nvram
-         nop
 ss10:
         set PHYS_SS10_EEPROM, %g1
         lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'Q'
-        bne     bad_nvram
+        bne     ss2
          inc    %g1
         lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'E'
-        bne     bad_nvram
+        bne     ss2
          inc    %g1
         lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'M'
-        bne     bad_nvram
+        bne     ss2
          inc    %g1
         lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'U'
-        bne     bad_nvram
+        bne     ss2
         
         ! Ok, this is SS-10 or SS-600MP
         set     PHYS_SS10_EEPROM + SPARC_MACHINE_ID, %g1
@@ -158,6 +162,52 @@ ss10:
         set     1, %g1
         jmp     %g2                             ! jump to kernel
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
+
+ss2:
+        set PHYS_SS2_EEPROM, %g1
+        lduba   [%g1] ASI_M_BYPASS, %g2
+        cmp     %g2, 'Q'
+        bne     ss1000
+         inc    %g1
+        lduba   [%g1] ASI_M_BYPASS, %g2
+        cmp     %g2, 'E'
+        bne     ss1000
+         inc    %g1
+        lduba   [%g1] ASI_M_BYPASS, %g2
+        cmp     %g2, 'M'
+        bne     ss1000
+         inc    %g1
+        lduba   [%g1] ASI_M_BYPASS, %g2
+        cmp     %g2, 'U'
+        bne     ss1000
+
+        ! Ok, this is SS-2
+        set     ss2_error, %o2
+        b       ss2_ss1000_halt
+         nop
+
+ss1000:
+        set     PHYS_SS1000_EEPROM, %g1
+        lduba   [%g1] ASI_M_CTL, %g2
+        cmp     %g2, 'Q'
+        bne     bad_nvram
+         inc    %g1
+        lduba   [%g1] ASI_M_CTL, %g2
+        cmp     %g2, 'E'
+        bne     bad_nvram
+         inc    %g1
+        lduba   [%g1] ASI_M_CTL, %g2
+        cmp     %g2, 'M'
+        bne     bad_nvram
+         inc    %g1
+        lduba   [%g1] ASI_M_CTL, %g2
+        cmp     %g2, 'U'
+        bne     bad_nvram
+
+        ! Ok, this is SS-1000 or SS-2000
+        set     ss1000_error, %o2
+        b       ss2_ss1000_halt
+         nop
 
 first_cpu:
         /* Create temporary page tables and map the ROM area to end of
@@ -338,3 +388,32 @@ highmem:
         ret
          nop
 
+ss2_ss1000_halt:
+        set     SER_ADDR2, %o0
+        set     SER_ADDR1000, %o1
+        mov     0x05, %o3 /* Reg 5, TXCTRL2 */
+        stba    %o3, [%o0] ASI_M_BYPASS
+        stba    %o3, [%o1] ASI_M_CTL
+        mov     0x68, %o3 /* 8 bits, Tx enabled */
+        stba    %o3, [%o0] ASI_M_BYPASS
+        stba    %o3, [%o1] ASI_M_CTL
+        add     %o0, 2, %o0
+        add     %o1, 2, %o1
+
+1:      lduba   [%o2] ASI_M_KERNELTXT, %o3
+        cmp     %o3, 0
+        be      2f
+         nop
+        stba    %o3, [%o0] ASI_M_BYPASS
+        stba    %o3, [%o1] ASI_M_CTL
+        b       1b
+         inc    %o2
+bad_nvram:
+2:      b       2b
+         nop
+
+        .section .rodata
+ss2_error:
+        .string "Sun4c machines are not supported by OpenBIOS yet, freezing\r\n"
+ss1000_error:
+        .string "Sun4d machines are not supported by OpenBIOS yet, freezing\r\n"
