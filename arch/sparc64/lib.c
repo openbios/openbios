@@ -41,6 +41,12 @@ static int memsize=MEMSIZE;
 void *malloc(int size)
 {
 	void *ret=(void *)0;
+
+	if( !size )
+		return NULL;
+
+        size = (size + 7) & ~7;
+
 	if(memsize>=size) {
 		memsize-=size;
 		ret=memptr;
