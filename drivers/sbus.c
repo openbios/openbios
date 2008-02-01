@@ -20,8 +20,8 @@
 
 #define SBUS_REGS        0x28
 #define SBUS_SLOTS       16
-#define POWER_REGS       0x10
-#define POWER_OFFSET     0x0a000000ULL
+#define APC_REGS         0x10
+#define APC_OFFSET       0x0a000000ULL
 #define CS4231_REGS      0x40
 #define CS4231_OFFSET    0x0c000000ULL
 #define MACIO_ESPDMA     0x00400000ULL /* ESP DMA controller */
@@ -281,7 +281,7 @@ ob_tcx_init(unsigned int slot, unsigned long base)
 }
 
 static void
-ob_power_init(unsigned int slot, unsigned long base)
+ob_apc_init(unsigned int slot, unsigned long base)
 {
     push_str("/iommu/sbus");
     fword("find-device");
@@ -295,7 +295,7 @@ ob_power_init(unsigned int slot, unsigned long base)
     PUSH(base);
     fword("encode-int");
     fword("encode+");
-    PUSH(POWER_REGS);
+    PUSH(APC_REGS);
     fword("encode-int");
     fword("encode+");
     push_str("reg");
@@ -366,9 +366,6 @@ ob_macio_init(unsigned int slot, uint64_t base, unsigned long offset)
 
     // Parallel port
     //ob_bpp_init(base);
-
-    // Power management
-    ob_power_init(slot, POWER_OFFSET);
 }
 
 static void
@@ -379,10 +376,13 @@ sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
     case 3: // SUNW,tcx
         ob_tcx_init(slot, base);
         break;
-    case 4: // SUNW,CS4231
+    case 4:
+        // SUNW,CS4231
         ob_cs4231_init(slot, base);
+        // Power management (APC)
+        ob_apc_init(slot, APC_OFFSET);
         break;
-    case 5: // MACIO: le, esp, bpp, power-management
+    case 5: // MACIO: le, esp, bpp
         ob_macio_init(slot, base, 0x08000000);
         break;
     default:
@@ -400,6 +400,8 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
         break;
     case 0xf: // le, esp, bpp, power-management
         ob_macio_init(slot, base, 0);
+        // Power management (APC) XXX should not exist
+        ob_apc_init(slot, APC_OFFSET);
         break;
     default:
         break;
@@ -420,6 +422,8 @@ sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
 #endif
         // NCR 92C990, Am7990, Lance. See http://www.amd.com
         ob_le_init(slot, base, 0x00060000, SS600MP_LEBUFFER);
+        // Power management (APC) XXX should not exist
+        ob_apc_init(slot, APC_OFFSET);
         break;
     default:
         break;

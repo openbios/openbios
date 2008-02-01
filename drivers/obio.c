@@ -1048,12 +1048,13 @@ sparc32_reset_all(void)
     *reset_reg = 1;
 }
 
+// AUX 2 (Software Powerdown Control) and reset
 static void
-ob_power_init(uint64_t base, uint64_t offset, int intr)
+ob_aux2_reset_init(uint64_t base, uint64_t offset, int intr)
 {
     ob_new_obio_device("power", NULL);
 
-    power_reg = ob_reg(base, offset, POWER_REGS, 1);
+    power_reg = ob_reg(base, offset, AUXIO2_REGS, 1);
 
     // Not in device tree
     reset_reg = map_io(base + (uint64_t)SLAVIO_RESET, RESET_REGS);
@@ -1284,7 +1285,8 @@ NODE_METHODS(ob_obio) = {
 
 int
 ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
-                 unsigned long counter_offset, unsigned long intr_offset)
+             unsigned long counter_offset, unsigned long intr_offset,
+             unsigned long aux1_offset, unsigned long aux2_offset)
 {
 
     // All devices were integrated to NCR89C105, see
@@ -1312,9 +1314,10 @@ ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
 
     ob_sconfig_init(slavio_base, SLAVIO_SCONFIG);
 
-    ob_auxio_init(slavio_base, SLAVIO_AUXIO);
+    ob_auxio_init(slavio_base, aux1_offset);
 
-    ob_power_init(slavio_base, SLAVIO_POWER, POWER_INTR);
+    if (aux2_offset != (unsigned long) -1)
+        ob_aux2_reset_init(slavio_base, aux2_offset, AUXIO2_INTR);
 
     ob_counter_init(slavio_base, counter_offset);
 

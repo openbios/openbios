@@ -27,6 +27,7 @@ struct hwdef {
     uint64_t iommu_base, slavio_base;
     uint64_t intctl_base, counter_base, nvram_base, ms_kb_base, serial_base;
     unsigned long fd_offset, counter_offset, intr_offset;
+    unsigned long aux1_offset, aux2_offset;
     uint64_t dma_base, esp_base, le_base;
     uint64_t tcx_base;
     int machine_id;
@@ -44,6 +45,8 @@ static const struct hwdef hwdefs[] = {
         .fd_offset    = 0x00400000,
         .counter_offset = 0x00d00000,
         .intr_offset  = 0x00e00000,
+        .aux1_offset  = 0x00900000,
+        .aux2_offset  = 0x00910000,
         .dma_base     = 0x78400000,
         .esp_base     = 0x78800000,
         .le_base      = 0x78c00000,
@@ -60,6 +63,8 @@ static const struct hwdef hwdefs[] = {
         .fd_offset    = 0x00700000, // 0xff1700000ULL,
         .counter_offset = 0x00300000, // 0xff1300000ULL,
         .intr_offset  = 0x00400000, // 0xff1400000ULL,
+        .aux1_offset  = 0x00800000, // 0xff1800000ULL,
+        .aux2_offset  = 0x00a01000, // 0xff1a01000ULL,
         .dma_base     = 0xef0400000ULL,
         .esp_base     = 0xef0800000ULL,
         .le_base      = 0xef0c00000ULL,
@@ -76,6 +81,8 @@ static const struct hwdef hwdefs[] = {
         .fd_offset    = -1,
         .counter_offset = 0x00300000, // 0xff1300000ULL,
         .intr_offset  = 0x00400000, // 0xff1400000ULL,
+        .aux1_offset  = 0x00800000, // 0xff1800000ULL,
+        .aux2_offset  = 0x00a01000, // 0xff1a01000ULL, XXX should not exist
         .dma_base     = 0xef0081000ULL,
         .esp_base     = 0xef0080000ULL,
         .le_base      = 0xef0060000ULL,
@@ -109,7 +116,8 @@ arch_init( void )
         ob_init_mmu(hwdef->iommu_base);
 #ifdef CONFIG_DRIVER_OBIO
 	ob_obio_init(hwdef->slavio_base, hwdef->fd_offset,
-                     hwdef->counter_offset, hwdef->intr_offset);
+                     hwdef->counter_offset, hwdef->intr_offset,
+                     hwdef->aux1_offset, hwdef->aux2_offset);
         nvram_init();
 #endif
 #ifdef CONFIG_DRIVER_SBUS

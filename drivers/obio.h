@@ -16,12 +16,10 @@
 #define SLAVIO_SCONFIG   0x00800000ULL
 #define SCONFIG_REGS     1
 
-#define SLAVIO_AUXIO     0x00900000ULL
 #define AUXIO_REGS       1
 
-#define SLAVIO_POWER     0x00910000ULL
-#define POWER_REGS       1
-#define POWER_INTR       0x22
+#define AUXIO2_REGS      1
+#define AUXIO2_INTR      0x22
 
 #define SLAVIO_COUNTER   0x00d00000ULL
 #define COUNTER_REGS     0x10
