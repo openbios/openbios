@@ -1040,7 +1040,8 @@ ob_auxio_init(uint64_t base, uint64_t offset)
     fword("finish-device");
 }
 
-volatile unsigned char *power_reg, *reset_reg;
+volatile unsigned char *power_reg;
+volatile unsigned int *reset_reg;
 
 static void
 sparc32_reset_all(void)

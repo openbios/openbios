@@ -254,7 +254,7 @@ static int obp_nbputchar(int ch)
 
 static void obp_reboot(char *str)
 {
-    extern volatile unsigned char *reset_reg;
+    extern volatile unsigned int *reset_reg;
 
     printk("rebooting (%s)\n", str);
     *reset_reg = 1;
