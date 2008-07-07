@@ -6,6 +6,8 @@
 #include "openbios/config.h"
 #include "openbios/kernel.h"
 #include "context.h"
+#include "sys_info.h"
+#include "boot.h"
 
 #define MAIN_STACK_SIZE 16384
 #define IMAGE_STACK_SIZE 4096
@@ -16,11 +18,11 @@ static void start_main(void); /* forward decl. */
 void __exit_context(void); /* assembly routine */
 
 /*
- * Main context structure 
+ * Main context structure
  * It is placed at the bottom of our stack, and loaded by assembly routine
  * to start us up.
  */
-const struct context main_ctx = {
+struct context main_ctx = {
     .regs[REG_SP] = (uint64_t) &_estack - 2047 - 96,
     .pc = (uint64_t) start_main,
     .npc = (uint64_t) start_main + 4,

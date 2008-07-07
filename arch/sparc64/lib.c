@@ -15,7 +15,7 @@
 #include "openbios/kernel.h"
 
 /* Format a string and print it on the screen, just like the libc
- * function printf. 
+ * function printf.
  */
 int printk( const char *fmt, ... )
 {
@@ -50,7 +50,7 @@ void *malloc(int size)
 	if(memsize>=size) {
 		memsize-=size;
 		ret=memptr;
-		memptr+=size;
+		memptr = (void *)((unsigned long)memptr + size);
 	}
 	return ret;
 }
@@ -58,8 +58,4 @@ void *malloc(int size)
 void free(void *ptr)
 {
 	/* Nothing yet */
-}
-
-unsigned long map_page(unsigned long va, unsigned long epa, int type)
-{
 }

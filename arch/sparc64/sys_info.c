@@ -8,7 +8,7 @@
 #ifdef CONFIG_DEBUG_BOOT
 #define debug printk
 #else
-#define debug(x...) 
+#define debug(x...)
 #endif
 
 uint64_t qemu_mem_size;

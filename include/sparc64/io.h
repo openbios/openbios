@@ -20,7 +20,7 @@ va2pa(unsigned long va)
 static inline unsigned long
 pa2va(unsigned long pa)
 {
-    if ((pa + va_shift >= (unsigned long)&_data) && 
+    if ((pa + va_shift >= (unsigned long)&_data) &&
         (pa + va_shift< (unsigned long)&_end))
         return pa + va_shift;
     else

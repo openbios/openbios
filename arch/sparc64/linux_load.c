@@ -14,6 +14,7 @@
 #include "sys_info.h"
 #include "context.h"
 #include "loadfs.h"
+#include "boot.h"
 
 #define printf printk
 #define debug printk
@@ -355,7 +356,7 @@ static char *parse_command_line(const char *orig_cmdline, char *kern_cmdline)
 		    printf("Garbage after mem=<size>, ignored\n");
 		    forced_memsize = 0;
 		}
-		debug("mem=%Lu\n", forced_memsize);
+		debug("mem=%llu\n", (unsigned long long)forced_memsize);
 	    }
 	    /* mem= is for both loader and kernel */
 	    to_kern = 1;
@@ -424,7 +425,7 @@ static int load_linux_kernel(struct linux_header *hdr, uint32_t kern_addr)
 #endif
 
     printf("Loading kernel... ");
-    if (lfile_read(phys_to_virt(kern_addr), kern_size) != kern_size) {
+    if ((uint32_t)lfile_read(phys_to_virt(kern_addr), kern_size) != kern_size) {
 	printf("Can't read kernel\n");
 	return 0;
     }
@@ -433,8 +434,8 @@ static int load_linux_kernel(struct linux_header *hdr, uint32_t kern_addr)
     return kern_size;
 }
 
-static int load_initrd(struct linux_header *hdr, struct sys_info *info,
-	uint32_t kern_end, struct linux_params *params, const char *initrd_file)
+static int load_initrd(struct linux_header *hdr, uint32_t kern_end,
+                       struct linux_params *params, const char *initrd_file)
 {
     uint32_t max;
     uint32_t start, end, size;
@@ -462,7 +463,7 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
 	max = hdr->initrd_addr_max;
     else
 	max = 0x38000000; /* Hardcoded value for older kernels */
-    
+
     /* FILO itself is at the top of RAM. (relocated)
      * So, try putting initrd just below us. */
     end = virt_to_phys(_start);
@@ -497,7 +498,7 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
     }
 
     printf("Loading initrd... ");
-    if (lfile_read(phys_to_virt(start), size) != size) {
+    if ((uint32_t)lfile_read(phys_to_virt(start), size) != size) {
 	printf("Can't read initrd\n");
 	return -1;
     }
@@ -518,9 +519,9 @@ static void hardware_setup(void)
     outb(0, 0xf0);
     outb(0, 0xf1);
 
-    /* we're getting screwed again and again by this problem of the 8259. 
-     * so we're going to leave this lying around for inclusion into 
-     * crt0.S on an as-needed basis. 
+    /* we're getting screwed again and again by this problem of the 8259.
+     * so we're going to leave this lying around for inclusion into
+     * crt0.S on an as-needed basis.
      *
      * well, that went ok, I hope. Now we have to reprogram the interrupts :-(
      * we put them right after the intel-reserved hardware interrupts, at
@@ -548,7 +549,7 @@ static void hardware_setup(void)
 }
 
 /* Start Linux */
-static int start_linux(uint32_t kern_addr, struct linux_params *params)
+static int start_linux(uint32_t kern_addr)
 {
     struct context *ctx;
     //extern int cursor_x, cursor_y;
@@ -568,12 +569,12 @@ static int start_linux(uint32_t kern_addr, struct linux_params *params)
     params->orig_x = cursor_x;
     params->orig_y = cursor_y;
 #endif
-    
+
     /* Go... */
     ctx = switch_to(ctx);
 
     /* It's impossible but... */
-    printf("Returned with o0=%#x\n", ctx->regs[REG_O0]);
+    printf("Returned with o0=%#lx\n", ctx->regs[REG_O0]);
 
     return ctx->regs[REG_O0];
 }
@@ -608,7 +609,7 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline)
     }
 
     if (initrd_file) {
-	if (load_initrd(&hdr, info, kern_addr+kern_size, params, initrd_file)
+	if (load_initrd(&hdr, kern_addr+kern_size, params, initrd_file)
 		!= 0) {
 	    free(initrd_file);
 	    return -1;
@@ -618,6 +619,6 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline)
 
     hardware_setup();
 
-    start_linux(kern_addr, params);
+    start_linux(kern_addr);
     return 0;
 }

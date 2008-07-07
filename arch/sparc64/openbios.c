@@ -13,12 +13,14 @@
 #include "dict.h"
 #include "openbios/kernel.h"
 #include "openbios/stack.h"
+#include "openbios/nvram.h"
 #include "sys_info.h"
 #include "openbios.h"
+#include "libc/byteorder.h"
+#define cpu_to_be16(x) __cpu_to_be16(x)
 #include "openbios/firmware_abi.h"
 #include "boot.h"
-
-void boot(void);
+#include "../../drivers/timer.h" // XXX
 
 static unsigned char intdict[256 * 1024];
 
@@ -122,9 +124,9 @@ id_cpu(void)
 void arch_nvram_get(char *data)
 {
     unsigned short i;
-    unsigned char *nvptr = &nv_info;
+    unsigned char *nvptr = (unsigned char *)&nv_info;
     uint32_t size;
-    struct cpudef *cpu;
+    const struct cpudef *cpu;
 
     for (i = 0; i < sizeof(ohwcfg_v3_t); i++) {
         outb(i & 0xff, 0x74);
@@ -146,13 +148,13 @@ void arch_nvram_get(char *data)
     size = nv_info.cmdline_size;
     if (size > OBIO_CMDLINE_MAX - 1)
         size = OBIO_CMDLINE_MAX - 1;
-    memcpy(obio_cmdline, (void *)nv_info.cmdline, size);
+    memcpy(&obio_cmdline, (void *)(long)nv_info.cmdline, size);
     obio_cmdline[size] = '\0';
-    cmdline = obio_cmdline;
+    qemu_cmdline = (uint64_t)obio_cmdline;
     cmdline_size = size;
     boot_device = nv_info.boot_devices[0];
 
-    printk("kernel addr %x size %x\n", kernel_image, kernel_size);
+    printk("kernel addr %lx size %lx\n", kernel_image, kernel_size);
     if (size)
         printk("kernel cmdline %s\n", obio_cmdline);
 
@@ -178,16 +180,16 @@ void arch_nvram_put(char *data)
     }
 }
 
-int arch_nvram_size()
+int arch_nvram_size(void)
 {
     return NVRAM_OB_SIZE;
 }
 
-void setup_timers()
+void setup_timers(void)
 {
 }
 
-void udelay()
+void udelay(unsigned int usecs)
 {
 }
 
@@ -195,7 +197,7 @@ static void init_memory(void)
 {
 
 	/* push start and end of available memory to the stack
-	 * so that the forth word QUIT can initialize memory 
+	 * so that the forth word QUIT can initialize memory
 	 * management. For now we use hardcoded memory between
 	 * 0x10000 and 0x9ffff (576k). If we need more memory
 	 * than that we have serious bloat.
@@ -208,8 +210,6 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
-	void setup_timers(void);
-
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI
 	ob_pci_init();
@@ -249,7 +249,7 @@ int openbios(void)
 	
 	dict=intdict;
 	load_dictionary((char *)sys_info.dict_start,
-			(unsigned long)sys_info.dict_end 
+			(unsigned long)sys_info.dict_end
                         - (unsigned long)sys_info.dict_start);
 	
 #ifdef CONFIG_DEBUG_BOOT

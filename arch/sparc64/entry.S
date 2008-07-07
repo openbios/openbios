@@ -100,8 +100,8 @@ entry:
 	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
         or      %g3, %g4, %g1
 	! %g1 contains end of memory
-        
-        
+
+
         setx    _end, %g7, %g3
         set     0xffff, %g2
         add     %g3, %g2, %g3
@@ -280,7 +280,7 @@ lowmem:
 
         setx    qemu_mem_size, %g7, %g1
         stx     %g3, [%g1]
-        
+
         setx    _data, %g7, %g1                 ! Store va->pa conversion factor
         sub     %g1, %l0, %g2
         setx    va_shift, %g7, %g1

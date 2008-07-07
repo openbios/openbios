@@ -7,18 +7,14 @@
 #include "openbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
+#include "libc/vsprintf.h"
 #include "sys_info.h"
+#include "boot.h"
 
-int elf_load(struct sys_info *, const char *filename, const char *cmdline);
-int aout_load(struct sys_info *, const char *filename, const char *cmdline);
-int linux_load(struct sys_info *, const char *filename, const char *cmdline);
-
-void boot(void);
-
-struct sys_info sys_info;                                                       
+struct sys_info sys_info;
 uint64_t kernel_image;
 uint64_t kernel_size;
-uint64_t cmdline;
+uint64_t qemu_cmdline;
 uint64_t cmdline_size;
 char boot_device;
 
@@ -60,11 +56,11 @@ void boot(void)
 		*param = '\0';
 		param++;
 	} else if (cmdline_size) {
-            param = (char *)cmdline;
+            param = (char *)qemu_cmdline;
         }
 	
 	printk("[sparc64] Booting file '%s' ", path);
-	if(param) 
+	if (param)
 		printk("with parameters '%s'\n", param);
 	else
 		printk("without parameters.\n");
