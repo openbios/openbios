@@ -2,10 +2,7 @@
  * arch/i386/libgcc/__divti3.c
  */
 
-#include "asm/types.h"
-#define NULL ((void *)0)
-
-extern __uint128_t __udivmodti4(__uint128_t num, __uint128_t den, __uint128_t *rem);
+#include "libgcc.h"
 
 __int128_t __divti3(__int128_t num, __int128_t den)
 {

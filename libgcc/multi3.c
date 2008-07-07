@@ -1,4 +1,4 @@
-/* muldi3.c extracted from gcc-2.7.2.3/libgcc2.c and 
+/* muldi3.c extracted from gcc-2.7.2.3/libgcc2.c and
 			   gcc-2.7.2.3/longlong.h which is: */
 /* Copyright (C) 1989, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License
 along with GNU CC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
+
+#include "libgcc.h"
 
 #define BITS_PER_UNIT 8
 #define DI_TYPE_SIZE 64
@@ -55,11 +57,6 @@ Boston, MA 02111-1307, USA.  */
   ({TIunion __w;							\
     umul_ppmm (__w.s.high, __w.s.low, u, v);				\
     __w.ll; })
-
-typedef 	 int DItype	__attribute__ ((mode (DI)));
-typedef unsigned int UDItype	__attribute__ ((mode (DI)));
-typedef		 int TItype	__attribute__ ((mode (TI)));
-typedef int word_type __attribute__ ((mode (__word__)));
 
 struct TIstruct {DItype high, low;};
 

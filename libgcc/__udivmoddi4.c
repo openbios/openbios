@@ -1,6 +1,4 @@
-#include <stdint.h>
-
-extern void __divide_error();
+#include "libgcc.h"
 
 uint64_t __udivmoddi4(uint64_t num, uint64_t den, uint64_t *rem_p)
 {
