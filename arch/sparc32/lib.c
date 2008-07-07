@@ -15,7 +15,7 @@
 #include "openbios/kernel.h"
 
 /* Format a string and print it on the screen, just like the libc
- * function printf. 
+ * function printf.
  */
 int printk( const char *fmt, ... )
 {
@@ -92,12 +92,13 @@ void *malloc(int size)
                 if (size > ALLOC_BLOCK)
                     alloc_size = size;
                 // Recover possible leftover
-                if (ofmem.left > sizeof(alloc_desc_t) + 4) {
-                    alloc_desc_t *d;
+                if ((size_t)ofmem.left > sizeof(alloc_desc_t) + 4) {
+                    alloc_desc_t *d_leftover;
 
-                    d = (alloc_desc_t*)ofmem.next_malloc;
-                    d->size = ofmem.left - sizeof(alloc_desc_t);
-                    free((unsigned long)d + sizeof(alloc_desc_t));
+                    d_leftover = (alloc_desc_t*)ofmem.next_malloc;
+                    d_leftover->size = ofmem.left - sizeof(alloc_desc_t);
+                    free((void *)((unsigned long)d_leftover +
+                                  sizeof(alloc_desc_t)));
                 }
 
                 ofmem.next_malloc = mem_alloc(&cmem, alloc_size, 4);

@@ -205,7 +205,7 @@ struct linux_prom_ranges {
 
 /* Ranges and reg properties are a bit different for PCI. */
 struct linux_prom_pci_registers {
-	/* 
+	/*
 	 * We don't know what information this field contain.
 	 * We guess, PCI device function is in bits 15:8
 	 * So, ...

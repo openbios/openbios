@@ -20,7 +20,7 @@ SECTIONS
 {
     . = BASE_ADDR;
 
-    /* Start of the program. 
+    /* Start of the program.
      * Now the version string is in the note, we must include it
      * in the program. Otherwise we lose the string after relocation. */
     _start = .;

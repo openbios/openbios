@@ -6,6 +6,8 @@
 #include "openbios/config.h"
 #include "openbios/kernel.h"
 #include "context.h"
+#include "sys_info.h"
+#include "boot.h"
 
 #define MAIN_STACK_SIZE 16384
 #define IMAGE_STACK_SIZE 4096
@@ -16,7 +18,7 @@ static void start_main(void); /* forward decl. */
 void __exit_context(void); /* assembly routine */
 
 /*
- * Main context structure 
+ * Main context structure
  * It is placed at the bottom of our stack, and loaded by assembly routine
  * to start us up.
  */
@@ -93,7 +95,7 @@ struct context *switch_to(struct context *ctx)
 }
 
 /* Start ELF Boot image */
-uint32_t start_elf(uint32_t entry_point, uint32_t param)
+unsigned int start_elf(unsigned long entry_point, unsigned long param)
 {
     struct context *ctx;
 

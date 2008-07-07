@@ -8,6 +8,7 @@
 #include "a.out.h"
 #include "sys_info.h"
 #include "loadfs.h"
+#include "boot.h"
 #define printf printk
 #define debug printk
 
@@ -84,7 +85,7 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline,
 
     if (ehdr.a_text == 0x30800007)
 	ehdr.a_text=64*1024;
-    
+
     if (N_MAGIC(ehdr) == NMAGIC) {
         size = addr_fixup(N_DATADDR(ehdr)) + addr_fixup(ehdr.a_data);
     } else {
@@ -105,21 +106,21 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline,
     file_seek(offset + N_TXTOFF(ehdr));
 
     if (N_MAGIC(ehdr) == NMAGIC) {
-        if (lfile_read(start, ehdr.a_text) != ehdr.a_text) {
+        if ((unsigned long)lfile_read((void *)start, ehdr.a_text) != ehdr.a_text) {
             printf("Can't read program text segment (size 0x%lx)\n", ehdr.a_text);
             goto out;
         }
-        if (lfile_read(start + N_DATADDR(ehdr), ehdr.a_data) != ehdr.a_data) {
+        if ((unsigned long)lfile_read((void *)(start + N_DATADDR(ehdr)), ehdr.a_data) != ehdr.a_data) {
             printf("Can't read program data segment (size 0x%lx)\n", ehdr.a_data);
             goto out;
         }
     } else {
-        if (lfile_read(start, size) != size) {
+        if ((unsigned long)lfile_read((void *)start, size) != size) {
             printf("Can't read program (size 0x%lx)\n", size);
             goto out;
         }
     }
-    
+
     debug("Loaded %lu bytes\n", size);
 
     debug("entry point is %#lx\n", start);
@@ -127,7 +128,7 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline,
 
 #if 1
     {
-        int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
+        int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
 
         entry = (void *) addr_fixup(start);
         image_retval = entry(romvec, 0, 0, 0, 0);

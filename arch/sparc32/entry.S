@@ -120,7 +120,7 @@ ss10:
         lduba   [%g1] ASI_M_CTL, %g2
         cmp     %g2, 'U'
         bne     ss2
-        
+
         ! Ok, this is SS-10 or SS-600MP
         set     PHYS_SS10_EEPROM + SPARC_MACHINE_ID, %g1
         lduba   [%g1] ASI_M_CTL, %g2
@@ -359,7 +359,7 @@ highmem:
 
         set     qemu_mem_size, %g1
         st      %g6, [%g1]
-        
+
         sll     %g7, 4, %g7                     ! Store va->pa conversion factor
         set     _start - 0x1000, %g1
         sub     %g1, %g7, %g7
@@ -369,7 +369,7 @@ highmem:
         set     qemu_machine_type, %g1
         mov     %y, %g2
         st      %g2, [%g1]
-        
+
         /* Finally, turn on traps so that we can call c-code. */
         rd	%psr, %g3
         wr	%g3, 0x0, %psr

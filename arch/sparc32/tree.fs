@@ -5,7 +5,7 @@
 
   " sun4m" encode-string " compatible" property
   h# 0a21fe80 encode-int " clock-frequency" property
-  
+
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
 

@@ -1,6 +1,6 @@
 /*
  *   OpenBIOS ESP driver
- *   
+ *
  *   Copyright (C) 2004 Jens Axboe <axboe@suse.de>
  *   Copyright (C) 2005 Stefan Reinauer <stepan@openbios.org>
  *
@@ -122,7 +122,7 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT
         || (status & ESP_STAT_PMASK) == ESP_STATP)
         return status;
-    
+
     // Get reply
     // Set DMA address
     esp->espdma.regs->st_addr = esp->buffer_dvma;
@@ -211,7 +211,7 @@ inquiry(esp_private_t *esp, sd_private_t *sd)
     }
     sd->present = 1;
     sd->media = esp->buffer[0];
-    
+
     switch (sd->media) {
     case TYPE_DISK:
         media = "disk";
@@ -271,7 +271,7 @@ ob_sd_open(__attribute__((unused))sd_private_t **sd)
     phandle_t ph;
 
     fword("my-unit");
-    id = POP(); 
+    id = POP();
     //POP(); // unit id is 2 ints but we only need one.
     *sd = &global_esp->sd[id];
 
@@ -463,7 +463,7 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
 
     // Chip reset
     esp->ll->regs[ESP_CMD] = ESP_CMD_RC;
-    
+
     DPRINTF("ESP at 0x%lx, buffer va 0x%lx dva 0x%lx\n", (unsigned long)esp,
             (unsigned long)esp->buffer, (unsigned long)esp->buffer_dvma);
     DPRINTF("done\n");

@@ -15,7 +15,7 @@ int file_open(const char *filename)
 
 void file_close(void)
 {
-	if(load_fd==-1) 
+	if(load_fd==-1)
 		return;
 	
 	close_io(load_fd);

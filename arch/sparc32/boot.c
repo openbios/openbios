@@ -7,30 +7,23 @@
 #include "openbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
+#include "libc/vsprintf.h"
 #include "sys_info.h"
 #include "openprom.h"
+#include "boot.h"
 
-int elf_load(struct sys_info *, const char *filename, const char *cmdline, const void *romvec);
-int aout_load(struct sys_info *, const char *filename, const char *cmdline, const void *romvec);
-int linux_load(struct sys_info *, const char *filename, const char *cmdline, const void *romvec);
-
-void boot(void);
-
-struct sys_info sys_info;                                                       
+struct sys_info sys_info;
 uint32_t kernel_image;
 uint32_t kernel_size;
-uint32_t cmdline;
+uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;
-extern unsigned int qemu_mem_size;
-void *init_openprom(unsigned long memsize);
-extern struct linux_arguments_v0 obp_arg;
 
 void boot(void)
 {
         char *path = pop_fstr_copy(), *param, *oldpath = path;
         char altpath[256];
-        int unit;
+        int unit = 0;
         const void *romvec;
 
 	if(!path) {
@@ -41,18 +34,15 @@ void boot(void)
             fword("get-package-property");
             if (!POP()) {
                 path = pop_fstr_copy();
-                unit = 0;
             } else {
                 switch (boot_device) {
                 case 'a':
                     path = strdup("/obio/SUNW,fdtwo");
                     oldpath = "fd()";
-                    unit = 0;
                     break;
                 case 'c':
                     path = strdup("disk");
                     oldpath = "sd(0,0,0):d";
-                    unit = 0;
                     break;
                 default:
                 case 'd':
@@ -66,7 +56,6 @@ void boot(void)
                 case 'n':
                     path = strdup("net");
                     oldpath = "le()";
-                    unit = 0;
                     break;
                 }
             }
@@ -78,14 +67,14 @@ void boot(void)
         obp_arg.boot_dev[0] = oldpath[0];
         obp_arg.boot_dev[1] = oldpath[1];
         obp_arg.argv[0] = oldpath;
-        obp_arg.argv[1] = cmdline;
+        obp_arg.argv[1] = (void *)(long)qemu_cmdline;
 
 	param = strchr(path, ' ');
 	if(param) {
 		*param = '\0';
 		param++;
 	} else if (cmdline_size) {
-            param = (char *)cmdline;
+            param = (char *)qemu_cmdline;
         } else {
             push_str("boot-args");
             push_str("/options");
@@ -100,7 +89,7 @@ void boot(void)
         romvec = init_openprom(qemu_mem_size);
 
         if (kernel_size) {
-            int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
+            int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
 
             printk("[sparc] Kernel already loaded\n");
             entry = (void *) kernel_image;
@@ -108,7 +97,7 @@ void boot(void)
         }
 
 	printk("[sparc] Booting file '%s' ", path);
-	if(param) 
+	if (param)
 		printk("with parameters '%s'\n", param);
 	else
 		printk("without parameters.\n");

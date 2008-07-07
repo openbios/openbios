@@ -1,9 +1,9 @@
 /*
  *   OpenBIOS SBus driver
- *   
+ *
  *   (C) 2004 Stefan Reinauer <stepan@openbios.org>
  *   (C) 2005 Ed Schouten <ed@fxq.nl>
- * 
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
@@ -57,8 +57,7 @@ ob_sbus_node_init(uint64_t base)
 }
 
 static void
-ob_le_init(unsigned int slot, unsigned long base, unsigned long leoffset,
-           unsigned long dmaoffset)
+ob_le_init(unsigned int slot, unsigned long leoffset, unsigned long dmaoffset)
 {
     push_str("/iommu/sbus/ledma");
     fword("find-device");
@@ -90,7 +89,7 @@ ob_le_init(unsigned int slot, unsigned long base, unsigned long leoffset,
 uint16_t graphic_depth;
 
 static void
-ob_tcx_init(unsigned int slot, unsigned long base)
+ob_tcx_init(unsigned int slot)
 {
     push_str("/iommu/sbus/SUNW,tcx");
     fword("find-device");
@@ -305,7 +304,7 @@ ob_apc_init(unsigned int slot, unsigned long base)
 }
 
 static void
-ob_cs4231_init(unsigned int slot, unsigned long base)
+ob_cs4231_init(unsigned int slot)
 {
     push_str("/iommu/sbus");
     fword("find-device");
@@ -362,7 +361,7 @@ ob_macio_init(unsigned int slot, uint64_t base, unsigned long offset)
 #endif
 
     // NCR 92C990, Am7990, Lance. See http://www.amd.com
-    ob_le_init(slot, base, offset + 0x00c00000, offset + 0x00400010);
+    ob_le_init(slot, offset + 0x00c00000, offset + 0x00400010);
 
     // Parallel port
     //ob_bpp_init(base);
@@ -374,11 +373,11 @@ sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
     case 3: // SUNW,tcx
-        ob_tcx_init(slot, base);
+        ob_tcx_init(slot);
         break;
     case 4:
         // SUNW,CS4231
-        ob_cs4231_init(slot, base);
+        ob_cs4231_init(slot);
         // Power management (APC)
         ob_apc_init(slot, APC_OFFSET);
         break;
@@ -396,7 +395,7 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
-        ob_tcx_init(slot, base);
+        ob_tcx_init(slot);
         break;
     case 0xf: // le, esp, bpp, power-management
         ob_macio_init(slot, base, 0);
@@ -414,14 +413,14 @@ sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
-        ob_tcx_init(slot, base);
+        ob_tcx_init(slot);
         break;
     case 0xf: // le, esp, bpp, power-management
 #ifdef CONFIG_DRIVER_ESP
         ob_esp_init(slot, base, SS600MP_ESP, SS600MP_ESPDMA);
 #endif
         // NCR 92C990, Am7990, Lance. See http://www.amd.com
-        ob_le_init(slot, base, 0x00060000, SS600MP_LEBUFFER);
+        ob_le_init(slot, 0x00060000, SS600MP_LEBUFFER);
         // Power management (APC) XXX should not exist
         ob_apc_init(slot, APC_OFFSET);
         break;
@@ -431,20 +430,20 @@ sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
 }
 
 static void
-ob_sbus_open(int *idx)
+ob_sbus_open(void)
 {
 	int ret=1;
 	RET ( -ret );
 }
 
 static void
-ob_sbus_close(int *idx)
+ob_sbus_close(void)
 {
 	selfword("close-deblocker");
 }
 
 static void
-ob_sbus_initialize(int *idx)
+ob_sbus_initialize(void)
 {
 }
 
@@ -505,7 +504,7 @@ ob_add_sbus_range(const struct sbus_offset *range, int notfirst)
 }
 
 static int
-ob_sbus_init_ss5(uint64_t base)
+ob_sbus_init_ss5(void)
 {
     unsigned int slot;
     int notfirst = 0;
@@ -526,7 +525,7 @@ ob_sbus_init_ss5(uint64_t base)
 }
 
 static int
-ob_sbus_init_ss10(uint64_t base)
+ob_sbus_init_ss10(void)
 {
     unsigned int slot;
     int notfirst = 0;
@@ -547,7 +546,7 @@ ob_sbus_init_ss10(uint64_t base)
 }
 
 static int
-ob_sbus_init_ss600mp(uint64_t base)
+ob_sbus_init_ss600mp(void)
 {
     unsigned int slot;
     int notfirst = 0;
@@ -573,11 +572,11 @@ int ob_sbus_init(uint64_t base, int machine_id)
 
     switch (machine_id) {
     case 0x71:
-        return ob_sbus_init_ss600mp(base);
+        return ob_sbus_init_ss600mp();
     case 0x72:
-        return ob_sbus_init_ss10(base);
+        return ob_sbus_init_ss10();
     case 0x80:
-        return ob_sbus_init_ss5(base);
+        return ob_sbus_init_ss5();
     default:
         return -1;
     }

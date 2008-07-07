@@ -14,8 +14,11 @@
 #include "libc/vsprintf.h"
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "openbios/drivers.h"
 #include "openbios/kernel.h"
 #include "openbios/sysinclude.h"
+#include "sys_info.h"
+#include "boot.h"
 
 #ifdef CONFIG_DEBUG_OBP
 #define DPRINTF(fmt, args...)                   \
@@ -178,7 +181,7 @@ static int obp_getprop(int node, char *name, char *value)
             int i;
             DPRINTF("obp_getprop(0x%x, %s) = ", node, name);
             for (i = 0; i < len; i++) {
-                DPRINTF("%02x%s", str[i] & 0xFF, 
+                DPRINTF("%02x%s", str[i] & 0xFF,
                         (len == 4 || i == len-1) ? "" : " ");
             }
             DPRINTF("\n");
@@ -210,7 +213,7 @@ static const char *obp_nextprop(int node, char *name)
     } else {
         int len;
         char *str;
-            
+
         len = POP();
         str = (char *) POP();
 
@@ -437,7 +440,7 @@ static char * obp_dumb_memalloc(char *va, unsigned int size)
     // ROM.
 
     if (va == NULL) {
-        va = next_free_address - size;
+        va = (char *)(next_free_address - size);
         next_free_address -= size;
         DPRINTF("obp_dumb_memalloc req null -> 0x%x\n", va);
     }
@@ -446,9 +449,6 @@ static char * obp_dumb_memalloc(char *va, unsigned int size)
 
     return va;
 }
-
-extern int start_cpu(unsigned int pc, unsigned int context_ptr,
-                      unsigned int context, int cpu);
 
 static int obp_cpustart(__attribute__((unused))unsigned int whichcpu,
                         __attribute__((unused))int ctxtbl_ptr,
@@ -497,7 +497,7 @@ static void obp_fortheval_v2(char *str)
   // don't get a stack underrun.
   //
   // FIXME: find out why solaris doesnt put its stuff on the stack
-  // 
+  //
   fword("0");
   fword("0");
 

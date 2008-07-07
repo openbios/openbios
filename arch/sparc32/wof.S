@@ -3,7 +3,7 @@
  * because we have no user windows.
  *
  *   Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2 as published by the Free Software Foundation.
@@ -12,7 +12,7 @@
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -96,7 +96,7 @@ spnwin_patch3_7win:	and	%twin_tmp, 0x7f, %twin_tmp
 	 * nop
 	 */
 
-	.globl	spill_window_entry 
+	.globl	spill_window_entry
 	.globl	spnwin_patch1, spnwin_patch2
 spill_window_entry:
 	/* LOCATION: Trap Window */

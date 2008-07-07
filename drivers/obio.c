@@ -1,9 +1,9 @@
 /*
  *   OpenBIOS Sparc OBIO driver
- *   
+ *
  *   (C) 2004 Stefan Reinauer <stepan@openbios.org>
  *   (C) 2005 Ed Schouten <ed@fxq.nl>
- * 
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
@@ -19,6 +19,7 @@
 #include "openbios/drivers.h"
 #include "openbios/nvram.h"
 #include "obio.h"
+#define cpu_to_be16(x) __cpu_to_be16(x)
 #include "openbios/firmware_abi.h"
 
 #define REGISTER_NAMED_NODE( name, path )   do { \
@@ -50,7 +51,7 @@
  * mapped memory.
  */
 #define OBIO_CMDLINE_MAX 256
-char obio_cmdline[OBIO_CMDLINE_MAX];
+static char obio_cmdline[OBIO_CMDLINE_MAX];
 
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_obio, INSTALL_OPEN, sizeof(int) );
@@ -171,12 +172,9 @@ zs_read(unsigned long *address)
     }
 }
 
-int keyboard_dataready(void);
-unsigned char keyboard_readdata(void);
-
 /* ( addr len -- actual ) */
 static void
-zs_read_keyboard(unsigned long *address)
+zs_read_keyboard(void)
 {
     unsigned char *addr;
     int len;
@@ -314,7 +312,7 @@ ob_eccmemctl_init(void)
     push_str("width");
     fword("property");
 
-    regs = map_reg(ECC_BASE, 0, ECC_SIZE, 1, ECC_BASE >> 32);
+    regs = (uint32_t *)map_reg(ECC_BASE, 0, ECC_SIZE, 1, ECC_BASE >> 32);
 
     version = regs[0];
     switch (version) {
@@ -723,7 +721,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 {
     extern uint32_t kernel_image;
     extern uint32_t kernel_size;
-    extern uint32_t cmdline;
+    extern uint32_t qemu_cmdline;
     extern uint32_t cmdline_size;
     extern char boot_device;
     extern char obp_stdin, obp_stdout;
@@ -735,7 +733,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     char nographic;
     uint32_t size;
     unsigned int machine_id;
-    struct cpudef *cpu;
+    const struct cpudef *cpu;
     ohwcfg_v3_t *header;
 
     ob_new_obio_device("eeprom", NULL);
@@ -746,7 +744,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     fword("encode-int");
     push_str("address");
     fword("property");
-    
+
     memcpy(&nv_info, nvram, sizeof(nv_info));
     machine_id = (unsigned int)nvram[0x1fd9] & 0xff;
     printk("Nvram id %s, version %d, machine id 0x%2.2x\n",
@@ -763,9 +761,9 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     size = nv_info.cmdline_size;
     if (size > OBIO_CMDLINE_MAX - 1)
         size = OBIO_CMDLINE_MAX - 1;
-    memcpy(obio_cmdline, nv_info.cmdline, size);
+    memcpy(&obio_cmdline, (void *)(long)nv_info.cmdline, size);
     obio_cmdline[size] = '\0';
-    cmdline = obio_cmdline;
+    qemu_cmdline = (uint32_t) &obio_cmdline;
     cmdline_size = size;
     header = (ohwcfg_v3_t *)nvram;
     header->kernel_image = 0;
@@ -785,7 +783,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     // Add /idprom
     push_str("/");
     fword("find-device");
-    
+
     PUSH((long)&nvram[NVRAM_IDPROM]);
     PUSH(32);
     fword("encode-bytes");
@@ -940,7 +938,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         fword("encode-int");
         push_str("ecache-associativity");
         fword("property");
-	
+
         PUSH(2);
         fword("encode-int");
         push_str("ncaches");
@@ -973,7 +971,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         fword("encode-int");
         push_str("mid");
         fword("property");
-	
+
         cpu->initfn();
 
         fword("finish-device");
@@ -1055,7 +1053,7 @@ ob_aux2_reset_init(uint64_t base, uint64_t offset, int intr)
 {
     ob_new_obio_device("power", NULL);
 
-    power_reg = ob_reg(base, offset, AUXIO2_REGS, 1);
+    power_reg = (void *)ob_reg(base, offset, AUXIO2_REGS, 1);
 
     // Not in device tree
     reset_reg = map_io(base + (uint64_t)SLAVIO_RESET, RESET_REGS);
@@ -1187,7 +1185,7 @@ start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context, int c
     if (!cpu)
         return -1;
 
-    sparc_header = &nvram[header->nvram_arch_ptr];
+    sparc_header = (struct sparc_arch_cfg *)&nvram[header->nvram_arch_ptr];
     sparc_header->smp_entry = pc;
     sparc_header->smp_ctxtbl = context_ptr;
     sparc_header->smp_ctx = context;

@@ -14,6 +14,7 @@
 #include "sys_info.h"
 #include "context.h"
 #include "loadfs.h"
+#include "boot.h"
 
 #define printf printk
 #define debug printk
@@ -424,7 +425,7 @@ static int load_linux_kernel(struct linux_header *hdr, uint32_t kern_addr)
 #endif
 
     printf("Loading kernel... ");
-    if (lfile_read(phys_to_virt(kern_addr), kern_size) != kern_size) {
+    if ((uint32_t)lfile_read(phys_to_virt(kern_addr), kern_size) != kern_size) {
 	printf("Can't read kernel\n");
 	return 0;
     }
@@ -462,7 +463,7 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
 	max = hdr->initrd_addr_max;
     else
 	max = 0x38000000; /* Hardcoded value for older kernels */
-    
+
     /* FILO itself is at the top of RAM. (relocated)
      * So, try putting initrd just below us. */
     end = virt_to_phys(_start);
@@ -497,7 +498,7 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
     }
 
     printf("Loading initrd... ");
-    if (lfile_read(phys_to_virt(start), size) != size) {
+    if ((uint32_t)lfile_read(phys_to_virt(start), size) != size) {
 	printf("Can't read initrd\n");
 	return -1;
     }
@@ -518,9 +519,9 @@ static void hardware_setup(void)
     outb(0, 0xf0);
     outb(0, 0xf1);
 
-    /* we're getting screwed again and again by this problem of the 8259. 
-     * so we're going to leave this lying around for inclusion into 
-     * crt0.S on an as-needed basis. 
+    /* we're getting screwed again and again by this problem of the 8259.
+     * so we're going to leave this lying around for inclusion into
+     * crt0.S on an as-needed basis.
      *
      * well, that went ok, I hope. Now we have to reprogram the interrupts :-(
      * we put them right after the intel-reserved hardware interrupts, at
@@ -568,7 +569,7 @@ static int start_linux(uint32_t kern_addr, struct linux_params *params)
     params->orig_x = cursor_x;
     params->orig_y = cursor_y;
 #endif
-    
+
     /* Go... */
     ctx = switch_to(ctx);
 

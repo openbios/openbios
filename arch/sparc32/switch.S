@@ -14,7 +14,7 @@
  * switches the stack, and restores everything from the new stack.
  * This function takes no argument. New stack pointer is
  * taken from global variable __context, and old stack pointer
- * is also saved to __context. This way we can just jump to 
+ * is also saved to __context. This way we can just jump to
  * this routine to get back to the original context.
  */
 
@@ -104,7 +104,7 @@ __switch_context_nosave:
         ld      [%g1 + 116], %i5
         ld      [%g1 + 120], %i6
         ld      [%g1 + 124], %i7
-        
+
         ld      [%g1 + 128], %g1
        	/* Finally, load new %pc */
         jmp     %g1

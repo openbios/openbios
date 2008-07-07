@@ -11,10 +11,10 @@
 #include "sys_info.h"
 #include "ipchecksum.h"
 #include "loadfs.h"
+#include "boot.h"
 #define printf printk
 #define debug printk
 
-extern unsigned int start_elf(unsigned long entry_point, unsigned long param);
 #define addr_fixup(addr) ((addr) & 0x00ffffff)
 
 static char *image_name, *image_version;
@@ -92,7 +92,7 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	    continue;
 	buf = malloc(phdr[i].p_filesz);
 	file_seek(offset + phdr[i].p_offset);
-	if (lfile_read(buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
+	if ((uint32_t)lfile_read(buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
 	    printf("Can't read note segment\n");
 	    goto out;
 	}
@@ -150,14 +150,14 @@ static int load_segments(Elf_phdr *phdr, int phnum,
               i, addr_fixup(phdr[i].p_paddr), phdr[i].p_filesz, phdr[i].p_memsz);
 	file_seek(offset + phdr[i].p_offset);
 	debug("loading... ");
-	if (lfile_read(phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_filesz)
+	if ((uint32_t)lfile_read(phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_filesz)
 		!= phdr[i].p_filesz) {
 	    printf("Can't read program segment %d\n", i);
 	    return 0;
 	}
 	bytes += phdr[i].p_filesz;
 	debug("clearing... ");
-	memset(phys_to_virt(addr_fixup(phdr[i].p_paddr) + phdr[i].p_filesz), 0, 
+	memset(phys_to_virt(addr_fixup(phdr[i].p_paddr) + phdr[i].p_filesz), 0,
 		phdr[i].p_memsz - phdr[i].p_filesz);
 	if (phdr[i].p_offset <= checksum_offset
 		&& phdr[i].p_offset + phdr[i].p_filesz >= checksum_offset+2) {
@@ -352,7 +352,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
     phdr_size = ehdr.e_phnum * sizeof *phdr;
     phdr = malloc(phdr_size);
     file_seek(offset + ehdr.e_phoff);
-    if (lfile_read(phdr, phdr_size) != phdr_size) {
+    if ((uint32_t)lfile_read(phdr, phdr_size) != phdr_size) {
 	printf("Can't read program header\n");
 	goto out;
     }
@@ -369,7 +369,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
 
     if (!load_segments(phdr, ehdr.e_phnum, checksum_offset, offset))
 	goto out;
-    
+
     if (checksum_offset) {
 	if (!verify_image(&ehdr, phdr, ehdr.e_phnum, checksum))
 	    goto out;
@@ -384,7 +384,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
 
 #if 1
     {
-        int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
+        int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
 
         entry = (void *) addr_fixup(ehdr.e_entry);
         image_retval = entry(romvec, 0, 0, 0, 0);

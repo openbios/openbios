@@ -7,6 +7,7 @@
 
 #include "openbios/config.h"
 #include "openbios/kernel.h"
+#include "openbios/drivers.h"
 #include "openbios.h"
 
 #ifdef CONFIG_DEBUG_CONSOLE
@@ -148,13 +149,13 @@ typedef struct osi_fb_info {
 	int             rb, w, h, depth;
 } osi_fb_info_t;
 
-int TCX_GetFBInfo( osi_fb_info_t *fb )
+static int TCX_GetFBInfo( osi_fb_info_t *fb )
 {
     fb->w = 1024;
     fb->h = 768;
     fb->depth = 8;
     fb->rb = 1024;
-    fb->mphys = vmem;
+    fb->mphys = (unsigned long)vmem;
 
     return 0;
 }

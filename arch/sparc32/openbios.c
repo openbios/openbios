@@ -13,13 +13,10 @@
 #include "dict.h"
 #include "openbios/kernel.h"
 #include "openbios/stack.h"
+#include "openbios/nvram.h"
 #include "sys_info.h"
 #include "openbios.h"
-
-void boot(void);
-void ob_ide_init(void);
-void tcx_init(uint64_t base);
-void kbd_init(uint64_t base);
+#include "boot.h"
 
 int qemu_machine_type;
 
@@ -97,7 +94,7 @@ static void init_memory(void)
 {
 
 	/* push start and end of available memory to the stack
-	 * so that the forth word QUIT can initialize memory 
+	 * so that the forth word QUIT can initialize memory
 	 * management. For now we use hardcoded memory between
 	 * 0x10000 and 0x9ffff (576k). If we need more memory
 	 * than that we have serious bloat.
@@ -133,8 +130,6 @@ arch_init( void )
 
 int openbios(void)
 {
-	extern struct sys_info sys_info;
-        extern struct mem cmem;
         unsigned int i;
 
         for (i = 0; i < sizeof(hwdefs) / sizeof(struct hwdef); i++) {
@@ -164,10 +159,10 @@ int openbios(void)
 #endif
 
         collect_sys_info(&sys_info);
-	
+
 	dict=intdict;
 	load_dictionary((char *)sys_info.dict_start,
-			(unsigned long)sys_info.dict_end 
+			(unsigned long)sys_info.dict_end
                         - (unsigned long)sys_info.dict_start);
 	
 #ifdef CONFIG_DEBUG_BOOT
@@ -183,7 +178,7 @@ int openbios(void)
 
 	PUSH_xt( bind_noname_func(arch_init) );
 	fword("PREPOST-initializer");
-	
+
 	PC = (ucell)findword("initialize-of");
 
 	if (!PC) {
