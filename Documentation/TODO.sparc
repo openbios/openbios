@@ -24,9 +24,6 @@ Sparc32:
  - BPP parallel
  - Diagnostic switch
 
-- Optimizations/improvements:
- - Remove debug messages
-
 Sparc64:
 - Unimplemented features/bugs:
  - Debug direct kernel boot
