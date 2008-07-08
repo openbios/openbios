@@ -56,3 +56,7 @@ device-end
   drop 0
   ;
 
+\ D5.3 SBus specific on-board memory address space
+: obmem ( -- space )
+  0
+  ;
