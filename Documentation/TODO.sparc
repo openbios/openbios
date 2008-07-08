@@ -3,7 +3,6 @@ TODO-list:
 Sparc common:
 - Unimplemented features/bugs:
  - Send keycode on keypress
- - Add Make dependencies for .S files
  - Remove compiler warnings
  - Clean up
 
