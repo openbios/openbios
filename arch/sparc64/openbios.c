@@ -40,6 +40,47 @@ struct cpudef {
     const char *name;
 };
 
+static void cpu_generic_init(const struct cpudef *cpu)
+{
+    unsigned long iu_version;
+
+    push_str("/");
+    fword("find-device");
+
+    fword("new-device");
+
+    push_str(cpu->name);
+    fword("device-name");
+
+    push_str("cpu");
+    fword("device-type");
+
+    asm("rdpr %%ver, %0\n"
+        : "=r"(iu_version) :);
+
+    PUSH((iu_version >> 48) & 0xff);
+    fword("encode-int");
+    push_str("manufacturer#");
+    fword("property");
+
+    PUSH((iu_version >> 32) & 0xff);
+    fword("encode-int");
+    push_str("implementation#");
+    fword("property");
+
+    PUSH((iu_version >> 24) & 0xff);
+    fword("encode-int");
+    push_str("mask#");
+    fword("property");
+
+    PUSH(9);
+    fword("encode-int");
+    push_str("sparc-version");
+    fword("property");
+
+    fword("finish-device");
+}
+
 static const struct cpudef sparc_defs[] = {
     {
         .iu_version = (0x04ULL << 48) | (0x02ULL << 32),
@@ -166,6 +207,8 @@ void arch_nvram_get(char *data)
 
     printk("CPUs: %x", nv_info.nb_cpus);
     cpu = id_cpu();
+    //cpu->initfn();
+    cpu_generic_init(cpu);
     printk(" x %s\n", cpu->name);
 }
 

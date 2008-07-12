@@ -2,6 +2,7 @@
 " /" find-device
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
+  " sun4u" encode-string " compatible" property
 
   \ : encode-unit encode-unit-sbus ;
   \ : decode-unit decode-unit-sbus ;
