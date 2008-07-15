@@ -21,3 +21,4 @@ extern uint64_t qemu_cmdline;
 extern uint64_t cmdline_size;
 extern char boot_device;
 extern struct sys_info sys_info;
+void ob_su_init(uint64_t base, uint64_t offset, int intr);

@@ -6,17 +6,32 @@
  */
 
 #include "openbios/config.h"
+#include "openbios/bindings.h"
 #include "openbios/kernel.h"
 #include "openbios.h"
 #include "video_subr.h"
+#include "libc/vsprintf.h"
+#include "sys_info.h"
+#include "boot.h"
 
-#ifdef CONFIG_DEBUG_CONSOLE
+#define REGISTER_NAMED_NODE( name, path )   do { \
+	     bind_new_node( name##_flags_, name##_size_, \
+			path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
+	} while(0)
+
+#define REGISTER_NODE_METHODS( name, path )   do {                      \
+        const char *paths[1];                                                  \
+                                                                        \
+        paths[0] = path;                                                \
+        bind_node( name##_flags_, name##_size_,                         \
+                   paths, 1, name##_m, sizeof(name##_m)/sizeof(method_t)); \
+    } while(0)
 
 /* ******************************************************************
  *                       serial console functions
  * ****************************************************************** */
 
-#ifdef CONFIG_DEBUG_CONSOLE_SERIAL
+#define SER_SIZE 8
 
 #define RBR(x)  x==2?0x2f8:0x3f8
 #define THR(x)  x==2?0x2f8:0x3f8
@@ -84,6 +99,9 @@ static void uart_init_line(int port, unsigned long baud)
 		inb(RBR(port));
 	}
 }
+
+#ifdef CONFIG_DEBUG_CONSOLE
+#ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 
 static void serial_cls(void);
 static void serial_putchar(int c);
@@ -414,5 +432,147 @@ void cls(void)
 #endif
 }
 
+#endif // CONFIG_DEBUG_CONSOLE
 
-#endif				// CONFIG_DEBUG_CONSOLE
+/* ( addr len -- actual ) */
+static void
+su_read(unsigned long *address)
+{
+    char *addr;
+    int len;
+
+    len = POP();
+    addr = (char *)POP();
+
+    if (len != 1)
+        printk("su_read: bad len, addr %lx len %x\n", (unsigned long)addr, len);
+
+    if (uart_charav(*address)) {
+        *addr = (char)uart_getchar(*address);
+        PUSH(1);
+    } else {
+        PUSH(0);
+    }
+}
+
+/* ( addr len -- actual ) */
+static void
+su_read_keyboard(void)
+{
+    unsigned char *addr;
+    int len;
+
+    len = POP();
+    addr = (unsigned char *)POP();
+
+    if (len != 1)
+        printk("su_read: bad len, addr %lx len %x\n", (unsigned long)addr, len);
+
+    if (keyboard_dataready()) {
+        *addr = keyboard_readdata();
+        PUSH(1);
+    } else {
+        PUSH(0);
+    }
+}
+
+/* ( addr len -- actual ) */
+static void
+su_write(unsigned long *address)
+{
+    unsigned char *addr;
+    int i, len;
+
+    len = POP();
+    addr = (unsigned char *)POP();
+
+     for (i = 0; i < len; i++) {
+        uart_putchar(*address, addr[i]);
+    }
+    PUSH(len);
+}
+
+static void
+su_close(void)
+{
+}
+
+static void
+su_open(unsigned long *address)
+{
+    int len;
+    phandle_t ph;
+    unsigned long *prop;
+    char *args;
+
+    fword("my-self");
+    fword("ihandle>phandle");
+    ph = (phandle_t)POP();
+    prop = (unsigned long *)get_property(ph, "address", &len);
+    *address = *prop;
+    fword("my-args");
+    args = pop_fstr_copy();
+
+    RET ( -1 );
+}
+
+DECLARE_UNNAMED_NODE(su, INSTALL_OPEN, sizeof(unsigned long));
+
+NODE_METHODS(su) = {
+    { "open",               su_open              },
+    { "close",              su_close             },
+    { "read",               su_read              },
+    { "write",              su_write             },
+};
+
+DECLARE_UNNAMED_NODE(su_keyboard, INSTALL_OPEN, sizeof(unsigned long));
+
+NODE_METHODS(su_keyboard) = {
+    { "open",               su_open              },
+    { "close",              su_close             },
+    { "read",               su_read_keyboard     },
+};
+
+void
+ob_su_init(uint64_t base, uint64_t offset, int intr)
+{
+    push_str("/pci/isa");
+    fword("find-device");
+    fword("new-device");
+
+    push_str("su");
+    fword("device-name");
+
+    push_str("serial");
+    fword("device-type");
+
+    PUSH((base + offset) >> 32);
+    fword("encode-int");
+    PUSH((base + offset) & 0xffffffff);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(SER_SIZE);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    fword("finish-device");
+
+    REGISTER_NODE_METHODS(su, "/pci/isa/su");
+
+    push_str("/chosen");
+    fword("find-device");
+
+    push_str("/pci/isa/su");
+    fword("open-dev");
+    fword("encode-int");
+    push_str("stdin");
+    fword("property");
+
+    push_str("/pci/isa/su");
+    fword("open-dev");
+    fword("encode-int");
+    push_str("stdout");
+    fword("property");
+}

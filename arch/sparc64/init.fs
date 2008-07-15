@@ -33,8 +33,6 @@
 :noname
   " memory" " /memory" preopen
   " mmu" " /cpus/@0" preopen
-  " stdout" " /builtin/console" preopen
-  " stdin" " /builtin/console" preopen
 
 ; SYSTEM-initializer
 

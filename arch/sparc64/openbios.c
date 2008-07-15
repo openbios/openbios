@@ -345,7 +345,9 @@ arch_init( void )
 #endif
 
         nvram_init();
-	device_end();
+        ob_su_init(0x1fe02000000ULL, 0x3f8ULL, 0);
+
+        device_end();
 
 	bind_func("platform-boot", boot );
 }
