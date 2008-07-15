@@ -35,6 +35,8 @@ ohwcfg_v3_t nv_info;
 #define OBIO_CMDLINE_MAX 256
 static char obio_cmdline[OBIO_CMDLINE_MAX];
 
+static uint8_t idprom[32];
+
 struct cpudef {
     unsigned long iu_version;
     const char *name;
@@ -210,6 +212,22 @@ void arch_nvram_get(char *data)
     //cpu->initfn();
     cpu_generic_init(cpu);
     printk(" x %s\n", cpu->name);
+
+    // Add /idprom
+    push_str("/");
+    fword("find-device");
+
+    for (i = 0; i < 32; i++) {
+        outb((i + 0x1fd8) & 0xff, 0x74);
+        outb((i + 0x1fd8) >> 8, 0x75);
+        idprom[i] = inb(0x77);
+    }
+
+    PUSH((long)&idprom);
+    PUSH(32);
+    fword("encode-bytes");
+    push_str("idprom");
+    fword("property");
 
     push_str("/memory");
     fword("find-device");
