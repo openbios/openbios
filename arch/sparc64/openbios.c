@@ -210,6 +210,64 @@ void arch_nvram_get(char *data)
     //cpu->initfn();
     cpu_generic_init(cpu);
     printk(" x %s\n", cpu->name);
+
+    push_str("/memory");
+    fword("find-device");
+
+    PUSH(0);
+    fword("encode-int");
+    PUSH((int)(nv_info.RAM0_size >> 32));
+    fword("encode-int");
+    fword("encode+");
+    PUSH((int)(nv_info.RAM0_size & 0xffffffff));
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    PUSH(0);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH((unsigned long)&_start - 4096);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(va2pa((unsigned long)&_iomem));
+    fword("encode-int");
+    fword("encode+");
+    PUSH(-va2pa((unsigned long)&_iomem));
+    fword("encode-int");
+    fword("encode+");
+    push_str("available");
+    fword("property");
+
+    // XXX
+    push_str("/virtual-memory");
+    fword("find-device");
+
+    PUSH(0);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    push_str("translations");
+    fword("property");
 }
 
 void arch_nvram_put(char *data)
