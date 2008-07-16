@@ -21,6 +21,21 @@
 #include "openbios/firmware_abi.h"
 #include "boot.h"
 #include "../../drivers/timer.h" // XXX
+#include "asi.h"
+#include "libc/vsprintf.h"
+
+#define REGISTER_NAMED_NODE( name, path )   do {                        \
+        bind_new_node( name##_flags_, name##_size_,                     \
+                       path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
+    } while(0)
+
+#define REGISTER_NODE_METHODS( name, path )   do {                      \
+        const char *paths[1];                                           \
+                                                                        \
+        paths[0] = path;                                                \
+        bind_node( name##_flags_, name##_size_,                         \
+                   paths, 1, name##_m, sizeof(name##_m)/sizeof(method_t)); \
+    } while(0)
 
 static unsigned char intdict[256 * 1024];
 
@@ -42,9 +57,132 @@ struct cpudef {
     const char *name;
 };
 
+static void
+mmu_open(void)
+{
+    RET(-1);
+}
+
+static void
+mmu_close(void)
+{
+}
+
+/*
+  3.6.5 translate
+  ( virt -- false | phys.lo ... phys.hi mode true )
+*/
+static void
+mmu_translate(void)
+{
+    unsigned long virt, phys;
+
+    virt = POP();
+
+    asm("ldxa [%1] %2, %0\n"
+        : "=r"(phys) : "r" (virt), "i" (ASI_DTLB_TAG_READ));
+
+    if (phys & 0x8000000000000000) { // Valid entry?
+        PUSH(phys >> 32);
+        PUSH(phys & 0xffffffff);
+        PUSH(0); // XXX
+        PUSH(-1);
+    } else {
+        PUSH(0);
+    }
+}
+
+/*
+  ( index tte_data vaddr -- ? )
+*/
+static void
+dtlb_load(void)
+{
+    unsigned long vaddr, tte_data, idx;
+
+    vaddr = POP();
+    tte_data = POP();
+    idx = POP();
+
+    asm("stxa %0, [%1] %2\n"
+        "stxa %3, [%%g0] %4\n"
+        : : "r" (vaddr), "r" (48), "i" (ASI_DMMU),
+          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
+}
+
+/*
+  ( index tte_data vaddr -- ? )
+*/
+static void
+itlb_load(void)
+{
+    unsigned long vaddr, tte_data, idx;
+
+    vaddr = POP();
+    tte_data = POP();
+    idx = POP();
+
+    asm("stxa %0, [%1] %2\n"
+        "stxa %3, [%%g0] %4\n"
+        : : "r" (vaddr), "r" (48), "i" (ASI_IMMU),
+          "r" (tte_data), "i" (ASI_ITLB_DATA_IN));
+}
+
+/*
+  3.6.5 map
+  ( phys.lo ... phys.hi virt size mode -- )
+*/
+static void
+mmu_map(void)
+{
+    unsigned long virt, size, mode, phys, tte_data;
+
+    mode = POP();
+    size = POP();
+    virt = POP();
+    phys = POP();
+    phys <<= 32;
+    phys |= POP();
+
+    tte_data = phys | 0x36;
+    switch (size) {
+    case 8192:
+        break;
+    case 65536:
+        tte_data |= 2ULL << 60;
+        break;
+    case 512 * 1024:
+        tte_data |= 4ULL << 60;
+        break;
+    case 4 * 1024 * 1024:
+        tte_data |= 6ULL << 60;
+        break;
+    }
+    asm("stxa %0, [%1] %2\n"
+        "stxa %3, [%%g0] %4\n"
+        : : "r" (virt), "r" (48), "i" (ASI_DMMU),
+          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
+    asm("stxa %0, [%1] %2\n"
+        "stxa %3, [%%g0] %4\n"
+        : : "r" (virt), "r" (48), "i" (ASI_DMMU),
+          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
+}
+
+DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);
+
+NODE_METHODS(mmu) = {
+    { "open",               mmu_open              },
+    { "close",              mmu_close             },
+    { "translate",          mmu_translate         },
+    { "SUNW,dtlb-load",     dtlb_load             },
+    { "SUNW,itlb-load",     itlb_load             },
+    { "map",                mmu_map               },
+};
+
 static void cpu_generic_init(const struct cpudef *cpu)
 {
     unsigned long iu_version;
+    char nodebuff[256];
 
     push_str("/");
     fword("find-device");
@@ -81,6 +219,31 @@ static void cpu_generic_init(const struct cpudef *cpu)
     fword("property");
 
     fword("finish-device");
+
+    // MMU node
+    sprintf(nodebuff, "/%s", cpu->name);
+    push_str(nodebuff);
+    fword("find-device");
+
+    fword("new-device");
+
+    push_str("mmu");
+    fword("device-name");
+
+    fword("finish-device");
+
+    sprintf(nodebuff, "/%s/mmu", cpu->name);
+
+    REGISTER_NODE_METHODS(mmu, nodebuff);
+
+    push_str("/chosen");
+    fword("find-device");
+
+    push_str(nodebuff);
+    fword("open-dev");
+    fword("encode-int");
+    push_str("mmu");
+    fword("property");
 }
 
 static const struct cpudef sparc_defs[] = {
