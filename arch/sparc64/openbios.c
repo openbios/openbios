@@ -179,6 +179,19 @@ NODE_METHODS(mmu) = {
     { "map",                mmu_map               },
 };
 
+/*
+  ( addr -- ? )
+*/
+static void
+set_trap_table(void)
+{
+    unsigned long addr;
+
+    addr = POP();
+    asm("wrpr %0, %%tba\n"
+        : : "r" (addr));
+}
+
 static void cpu_generic_init(const struct cpudef *cpu)
 {
     unsigned long iu_version;
@@ -244,6 +257,11 @@ static void cpu_generic_init(const struct cpudef *cpu)
     fword("encode-int");
     push_str("mmu");
     fword("property");
+
+    // Trap table
+    push_str("/packages/client-iface");
+    fword("find-device");
+    bind_func("SUNW,set-trap-table", set_trap_table);
 }
 
 static const struct cpudef sparc_defs[] = {
