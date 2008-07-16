@@ -83,8 +83,9 @@ mmu_translate(void)
         : "=r"(phys) : "r" (virt), "i" (ASI_DTLB_TAG_READ));
 
     if (phys & 0x8000000000000000) { // Valid entry?
-        PUSH(phys >> 32);
+        phys &= 0x000001fffffff000;
         PUSH(phys & 0xffffffff);
+        PUSH(phys >> 32);
         PUSH(0); // XXX
         PUSH(-1);
     } else {
