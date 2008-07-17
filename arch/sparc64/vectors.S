@@ -27,6 +27,7 @@
 #include "pstate.h"
 #include "asi.h"
 #define ASI_BP ASI_PHYS_BYPASS_EC_E
+#define PROM_ADDR 0x1fff0000000
 #define SER_ADDR 0x1fe020003f8
 
         .section ".text.vectors", "ax"
@@ -303,11 +304,18 @@ bug:
         or      %g2, PSTATE_PRIV, %g2
         wrpr    %g2, %pstate
         wr      %g0, 0, %fprs
-        wrpr    %g0, 0x0, %tl
 
-        ! Disable I/D MMUs and caches
-        stxa    %g0, [%g0] ASI_LSU_CONTROL
+        ! Jump to ROM ...
+        setx    _start, %g2, %g3
+        setx    highmem, %g2, %g4
+        sub     %g4, %g3, %g4
+        setx    PROM_ADDR, %g2, %g3
+        add     %g4, %g3, %g3
+        jmp     %g3
+        ! ... while disabling I/D MMUs and caches
+         stxa    %g0, [%g0] ASI_LSU_CONTROL
 
+highmem:
         ! Extract NWINDOWS from %ver
         rdpr    %ver, %g2
         and     %g2, 0xf, %g2
@@ -317,12 +325,9 @@ bug:
         wrpr    %g0, 0, %otherwin
         wrpr    %g0, 0, %wstate
 
-        call    dump_exception
+        b       dump_exception
          nop
-_forever:
-        /* Loop forever */
-        b       _forever                                  ;
-         nop
+
 outstr:
         /* void outstr (unsigned long port, const unsigned char *str);
          * Writes a string on an IO port.
@@ -372,32 +377,35 @@ outhex:
          */
 dump_exception:
         setx    SER_ADDR, %o3, %o0
-        setx    (_BUG_message_0), %o3, %o1
+        set     _start, %g3
+        set     (_BUG_message_0), %o1
+        sub     %o1, %g3, %g4
+        setx    PROM_ADDR, %g2, %g3
+        add     %g4, %g3, %g3
         call    outstr
-         nop
+         mov    %g3, %o1
 
         call    outhex
          mov    %g1, %o1
 
-        setx    (_BUG_message_1), %o3, %o1
         call    outstr
-         nop
+         add    %g3, (_BUG_message_1 -  _BUG_message_0), %o1
 
         call    outhex
          rdpr   %tpc, %o1
 
-        setx    (_BUG_message_2), %o3, %o1
         call    outstr
-         nop
+         add    %g3, (_BUG_message_2 -  _BUG_message_0), %o1
 
         call    outhex
          rdpr   %tnpc, %o1
 
-        setx    (_BUG_message_3), %o3, %o1
         call    outstr
-         nop
+         add    %g3, (_BUG_message_3 -  _BUG_message_0), %o1
 
-        retl
+_forever:
+        /* Loop forever */
+        b       _forever                                  ;
          nop
 
         .section .rodata
