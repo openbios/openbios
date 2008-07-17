@@ -52,6 +52,8 @@ static char obio_cmdline[OBIO_CMDLINE_MAX];
 
 static uint8_t idprom[32];
 
+static const char *bootpath;
+
 struct cpudef {
     unsigned long iu_version;
     const char *name;
@@ -468,6 +470,18 @@ void arch_nvram_get(char *data)
     fword("encode+");
     push_str("translations");
     fword("property");
+
+    push_str("/chosen");
+    fword("find-device");
+
+    if (nv_info.boot_devices[0] == 'c')
+        bootpath = "/pci/isa/ide0/disk@0,0:a";
+    else
+        bootpath = "/pci/isa/ide1/cdrom@0,0:a";
+    push_str(bootpath);
+    fword("encode-string");
+    push_str("bootpath");
+    fword("property");
 }
 
 void arch_nvram_put(char *data)
@@ -583,7 +597,7 @@ int openbios(void)
 	enterforth((xt_t)PC);
         arch_init(); // XXX
         printk("force boot\n");
-        push_str("/pci/isa/ide0/disk@0,0:a");
+        push_str(bootpath);
         boot(); // XXX
         printk("falling off...\n");
 	return 0;
