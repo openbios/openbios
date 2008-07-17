@@ -26,7 +26,6 @@
 #define __ASSEMBLY__
 #include "pstate.h"
 #include "asi.h"
-#include "ttable.h"
 #define ASI_BP ASI_PHYS_BYPASS_EC_E
 #define SER_ADDR 0x1fe020003f8
 
@@ -39,13 +38,66 @@
         .register %g6, #scratch
         .register %g7, #scratch
 trap_table:
-#undef  TRAP_IRQ
-#define TRAP_IRQ(routine, level)			\
-		ba routine; nop; nop; nop; nop; nop; nop; nop;
-#undef  BTRAP
-#define BTRAP(lvl)					\
-		 ba bug; mov lvl, %g1; nop; nop; nop; nop; nop; nop;
-#undef  BTRAPTL1
+#define SPILL_WINDOW                                    \
+        btst    1, %sp;                                 \
+        be      spill_32bit;                            \
+         nop;                                           \
+        stx     %l0, [%sp + STACK_BIAS + 0x00];         \
+        stx     %l1, [%sp + STACK_BIAS + 0x08];         \
+        stx     %l2, [%sp + STACK_BIAS + 0x10];         \
+        stx     %l3, [%sp + STACK_BIAS + 0x18];         \
+        stx     %l4, [%sp + STACK_BIAS + 0x20];         \
+        stx     %l5, [%sp + STACK_BIAS + 0x28];         \
+        stx     %l6, [%sp + STACK_BIAS + 0x30];         \
+        stx     %l7, [%sp + STACK_BIAS + 0x38];         \
+        stx     %i0, [%sp + STACK_BIAS + 0x40];         \
+        stx     %i1, [%sp + STACK_BIAS + 0x48];         \
+        stx     %i2, [%sp + STACK_BIAS + 0x50];         \
+        stx     %i3, [%sp + STACK_BIAS + 0x58];         \
+        stx     %i4, [%sp + STACK_BIAS + 0x60];         \
+        stx     %i5, [%sp + STACK_BIAS + 0x68];         \
+        stx     %i6, [%sp + STACK_BIAS + 0x70];         \
+        stx     %i7, [%sp + STACK_BIAS + 0x78];         \
+        saved; retry; nop; nop; nop; nop; nop; nop;     \
+        nop; nop; nop; nop; nop;
+
+#define FILL_WINDOW                                     \
+        btst    1, %sp;                                 \
+        be      fill_32bit;                             \
+         nop;                                           \
+        ldx     [%sp + STACK_BIAS + 0x00], %l0;         \
+        ldx     [%sp + STACK_BIAS + 0x08], %l1;         \
+        ldx     [%sp + STACK_BIAS + 0x10], %l2;         \
+        ldx     [%sp + STACK_BIAS + 0x18], %l3;         \
+        ldx     [%sp + STACK_BIAS + 0x20], %l4;         \
+        ldx     [%sp + STACK_BIAS + 0x28], %l5;         \
+        ldx     [%sp + STACK_BIAS + 0x30], %l6;         \
+        ldx     [%sp + STACK_BIAS + 0x38], %l7;         \
+        ldx     [%sp + STACK_BIAS + 0x40], %i0;         \
+        ldx     [%sp + STACK_BIAS + 0x48], %i1;         \
+        ldx     [%sp + STACK_BIAS + 0x50], %i2;         \
+        ldx     [%sp + STACK_BIAS + 0x58], %i3;         \
+        ldx     [%sp + STACK_BIAS + 0x60], %i4;         \
+        ldx     [%sp + STACK_BIAS + 0x68], %i5;         \
+        ldx     [%sp + STACK_BIAS + 0x70], %i6;         \
+        ldx     [%sp + STACK_BIAS + 0x78], %i7;         \
+        restored; retry; nop; nop; nop; nop; nop; nop;  \
+        nop; nop; nop; nop; nop;
+
+#define CLEAN_WINDOW                                                    \
+        rdpr    %cleanwin, %l0;         add     %l0, 1, %l0;            \
+        wrpr    %l0, 0x0, %cleanwin;                                    \
+        clr     %o0;    clr     %o1;    clr     %o2;    clr     %o3;    \
+        clr     %o4;    clr     %o5;    clr     %o6;    clr     %o7;    \
+        clr     %l0;    clr     %l1;    clr     %l2;    clr     %l3;    \
+        clr     %l4;    clr     %l5;    clr     %l6;    clr     %l7;    \
+        retry;                                                          \
+        nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;
+
+#define TRAP_IRQ(routine, level)                        \
+                ba routine; nop; nop; nop; nop; nop; nop; nop;
+#define BTRAP(lvl)                                      \
+                 ba bug; mov lvl, %g1; nop; nop; nop; nop; nop; nop;
 #define BTRAPTL1(lvl) BTRAP(lvl)
 #define BTRAPS(x) BTRAP(x) BTRAP(x+1) BTRAP(x+2) BTRAP(x+3) BTRAP(x+4) BTRAP(x+5) BTRAP(x+6) BTRAP(x+7)
 
@@ -76,38 +128,38 @@ tl0_irq15:	TRAP_IRQ(handler_irq, 15)
 		BTRAPS(0x50) BTRAPS(0x58)
 		BTRAPS(0x60) BTRAPS(0x68)
 		BTRAPS(0x70) BTRAPS(0x78)
-tl0_s0n:	SPILL_0_NORMAL
-tl0_s1n:	SPILL_1_NORMAL
-tl0_s2n:	SPILL_2_NORMAL
-tl0_s3n:	SPILL_3_NORMAL
-tl0_s4n:	SPILL_4_NORMAL
-tl0_s5n:	SPILL_5_NORMAL
-tl0_s6n:	SPILL_6_NORMAL
-tl0_s7n:	SPILL_7_NORMAL
-tl0_s0o:	SPILL_0_OTHER
-tl0_s1o:	SPILL_1_OTHER
-tl0_s2o:	SPILL_2_OTHER
-tl0_s3o:	SPILL_3_OTHER
-tl0_s4o:	SPILL_4_OTHER
-tl0_s5o:	SPILL_5_OTHER
-tl0_s6o:	SPILL_6_OTHER
-tl0_s7o:	SPILL_7_OTHER
-tl0_f0n:	FILL_0_NORMAL
-tl0_f1n:	FILL_1_NORMAL
-tl0_f2n:	FILL_2_NORMAL
-tl0_f3n:	FILL_3_NORMAL
-tl0_f4n:	FILL_4_NORMAL
-tl0_f5n:	FILL_5_NORMAL
-tl0_f6n:	FILL_6_NORMAL
-tl0_f7n:	FILL_7_NORMAL
-tl0_f0o:	FILL_0_OTHER
-tl0_f1o:	FILL_1_OTHER
-tl0_f2o:	FILL_2_OTHER
-tl0_f3o:	FILL_3_OTHER
-tl0_f4o:	FILL_4_OTHER
-tl0_f5o:	FILL_5_OTHER
-tl0_f6o:	FILL_6_OTHER
-tl0_f7o:	FILL_7_OTHER
+tl0_s0n:        SPILL_WINDOW
+tl0_s1n:        SPILL_WINDOW
+tl0_s2n:        SPILL_WINDOW
+tl0_s3n:        SPILL_WINDOW
+tl0_s4n:        SPILL_WINDOW
+tl0_s5n:        SPILL_WINDOW
+tl0_s6n:        SPILL_WINDOW
+tl0_s7n:        SPILL_WINDOW
+tl0_s0o:        SPILL_WINDOW
+tl0_s1o:        SPILL_WINDOW
+tl0_s2o:        SPILL_WINDOW
+tl0_s3o:        SPILL_WINDOW
+tl0_s4o:        SPILL_WINDOW
+tl0_s5o:        SPILL_WINDOW
+tl0_s6o:        SPILL_WINDOW
+tl0_s7o:        SPILL_WINDOW
+tl0_f0n:        FILL_WINDOW
+tl0_f1n:        FILL_WINDOW
+tl0_f2n:        FILL_WINDOW
+tl0_f3n:        FILL_WINDOW
+tl0_f4n:        FILL_WINDOW
+tl0_f5n:        FILL_WINDOW
+tl0_f6n:        FILL_WINDOW
+tl0_f7n:        FILL_WINDOW
+tl0_f0o:        FILL_WINDOW
+tl0_f1o:        FILL_WINDOW
+tl0_f2o:        FILL_WINDOW
+tl0_f3o:        FILL_WINDOW
+tl0_f4o:        FILL_WINDOW
+tl0_f5o:        FILL_WINDOW
+tl0_f6o:        FILL_WINDOW
+tl0_f7o:        FILL_WINDOW
 tl0_resv100:	BTRAPS(0x100) BTRAPS(0x108)
 tl0_resv110:	BTRAPS(0x110) BTRAPS(0x118)
 tl0_resv120:	BTRAPS(0x120) BTRAPS(0x128)
@@ -151,38 +203,38 @@ tl1_irq15:	TRAP_IRQ(handler_irq, 15)
 		BTRAPS(0x50) BTRAPS(0x58)
 		BTRAPS(0x60) BTRAPS(0x68)
 		BTRAPS(0x70) BTRAPS(0x78)
-tl1_s0n:	SPILL_0_NORMAL
-tl1_s1n:	SPILL_1_NORMAL
-tl1_s2n:	SPILL_2_NORMAL
-tl1_s3n:	SPILL_3_NORMAL
-tl1_s4n:	SPILL_4_NORMAL
-tl1_s5n:	SPILL_5_NORMAL
-tl1_s6n:	SPILL_6_NORMAL
-tl1_s7n:	SPILL_7_NORMAL
-tl1_s0o:	SPILL_0_OTHER
-tl1_s1o:	SPILL_1_OTHER
-tl1_s2o:	SPILL_2_OTHER
-tl1_s3o:	SPILL_3_OTHER
-tl1_s4o:	SPILL_4_OTHER
-tl1_s5o:	SPILL_5_OTHER
-tl1_s6o:	SPILL_6_OTHER
-tl1_s7o:	SPILL_7_OTHER
-tl1_f0n:	FILL_0_NORMAL
-tl1_f1n:	FILL_1_NORMAL
-tl1_f2n:	FILL_2_NORMAL
-tl1_f3n:	FILL_3_NORMAL
-tl1_f4n:	FILL_4_NORMAL
-tl1_f5n:	FILL_5_NORMAL
-tl1_f6n:	FILL_6_NORMAL
-tl1_f7n:	FILL_7_NORMAL
-tl1_f0o:	FILL_0_OTHER
-tl1_f1o:	FILL_1_OTHER
-tl1_f2o:	FILL_2_OTHER
-tl1_f3o:	FILL_3_OTHER
-tl1_f4o:	FILL_4_OTHER
-tl1_f5o:	FILL_5_OTHER
-tl1_f6o:	FILL_6_OTHER
-tl1_f7o:	FILL_7_OTHER
+tl1_s0n:        SPILL_WINDOW
+tl1_s1n:        SPILL_WINDOW
+tl1_s2n:        SPILL_WINDOW
+tl1_s3n:        SPILL_WINDOW
+tl1_s4n:        SPILL_WINDOW
+tl1_s5n:        SPILL_WINDOW
+tl1_s6n:        SPILL_WINDOW
+tl1_s7n:        SPILL_WINDOW
+tl1_s0o:        SPILL_WINDOW
+tl1_s1o:        SPILL_WINDOW
+tl1_s2o:        SPILL_WINDOW
+tl1_s3o:        SPILL_WINDOW
+tl1_s4o:        SPILL_WINDOW
+tl1_s5o:        SPILL_WINDOW
+tl1_s6o:        SPILL_WINDOW
+tl1_s7o:        SPILL_WINDOW
+tl1_f0n:        FILL_WINDOW
+tl1_f1n:        FILL_WINDOW
+tl1_f2n:        FILL_WINDOW
+tl1_f3n:        FILL_WINDOW
+tl1_f4n:        FILL_WINDOW
+tl1_f5n:        FILL_WINDOW
+tl1_f6n:        FILL_WINDOW
+tl1_f7n:        FILL_WINDOW
+tl1_f0o:        FILL_WINDOW
+tl1_f1o:        FILL_WINDOW
+tl1_f2o:        FILL_WINDOW
+tl1_f3o:        FILL_WINDOW
+tl1_f4o:        FILL_WINDOW
+tl1_f5o:        FILL_WINDOW
+tl1_f6o:        FILL_WINDOW
+tl1_f7o:        FILL_WINDOW
 tl1_resv100:	BTRAPS(0x100) BTRAPS(0x108)
 tl1_resv110:	BTRAPS(0x110) BTRAPS(0x118)
 tl1_resv120:	BTRAPS(0x120) BTRAPS(0x128)
@@ -200,12 +252,48 @@ tl1_resv1d0:	BTRAPS(0x1d0) BTRAPS(0x1d8)
 tl1_resv1e0:	BTRAPS(0x1e0) BTRAPS(0x1e8)
 tl1_resv1f0:	BTRAPS(0x1f0) BTRAPS(0x1f8)
 
-spill_fixup:
-spill_fixup_dax:
-spill_fixup_mna:
-fill_fixup:
-fill_fixup_dax:
-fill_fixup_mna:
+spill_32bit:
+        srl     %sp, 0, %sp
+        stw     %l0, [%sp + 0x00]
+        stw     %l1, [%sp + 0x04]
+        stw     %l2, [%sp + 0x08]
+        stw     %l3, [%sp + 0x0c]
+        stw     %l4, [%sp + 0x10]
+        stw     %l5, [%sp + 0x14]
+        stw     %l6, [%sp + 0x18]
+        stw     %l7, [%sp + 0x1c]
+        stw     %i0, [%sp + 0x20]
+        stw     %i1, [%sp + 0x24]
+        stw     %i2, [%sp + 0x28]
+        stw     %i3, [%sp + 0x2c]
+        stw     %i4, [%sp + 0x30]
+        stw     %i5, [%sp + 0x34]
+        stw     %i6, [%sp + 0x38]
+        stw     %i7, [%sp + 0x3c]
+        saved
+        retry
+
+fill_32bit:
+        srl     %sp, 0, %sp
+        lduw    [%sp + 0x00], %l0
+        lduw    [%sp + 0x04], %l1
+        lduw    [%sp + 0x08], %l2
+        lduw    [%sp + 0x0c], %l3
+        lduw    [%sp + 0x10], %l4
+        lduw    [%sp + 0x14], %l5
+        lduw    [%sp + 0x18], %l6
+        lduw    [%sp + 0x1c], %l7
+        lduw    [%sp + 0x20], %i0
+        lduw    [%sp + 0x24], %i1
+        lduw    [%sp + 0x28], %i2
+        lduw    [%sp + 0x2c], %i3
+        lduw    [%sp + 0x30], %i4
+        lduw    [%sp + 0x34], %i5
+        lduw    [%sp + 0x38], %i6
+        lduw    [%sp + 0x3c], %i7
+        restored
+        retry
+
 __divide_error:
 bug:
         /* Dump the exception and its context */
@@ -311,8 +399,6 @@ dump_exception:
 
         retl
          nop
-
-//#include "winfixup.S"
 
         .section .rodata
 _BUG_message_0:
