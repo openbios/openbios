@@ -147,7 +147,7 @@ mmu_map(void)
     phys <<= 32;
     phys |= POP();
 
-    tte_data = phys | 0x36;
+    tte_data = phys | 0x8000000000000036ULL;
     switch (size) {
     case 8192:
         break;
@@ -167,8 +167,8 @@ mmu_map(void)
           "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
     asm("stxa %0, [%1] %2\n"
         "stxa %3, [%%g0] %4\n"
-        : : "r" (virt), "r" (48), "i" (ASI_DMMU),
-          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
+        : : "r" (virt), "r" (48), "i" (ASI_IMMU),
+          "r" (tte_data), "i" (ASI_ITLB_DATA_IN));
 }
 
 DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);
