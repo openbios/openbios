@@ -59,6 +59,15 @@ struct cpudef {
     const char *name;
 };
 
+#define PAGE_SIZE_4M   (4 * 1024 * 1024)
+#define PAGE_SIZE_512K (512 * 1024)
+#define PAGE_SIZE_64K  (64 * 1024)
+#define PAGE_SIZE_8K   (8 * 1024)
+#define PAGE_MASK_4M   (4 * 1024 * 1024 - 1)
+#define PAGE_MASK_512K (512 * 1024 - 1)
+#define PAGE_MASK_64K  (64 * 1024 - 1)
+#define PAGE_MASK_8K   (8 * 1024 - 1)
+
 static void
 mmu_open(void)
 {
@@ -95,6 +104,15 @@ mmu_translate(void)
     }
 }
 
+static void
+dtlb_load2(unsigned long vaddr, unsigned long tte_data)
+{
+    asm("stxa %0, [%1] %2\n"
+        "stxa %3, [%%g0] %4\n"
+        : : "r" (vaddr), "r" (48), "i" (ASI_DMMU),
+          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
+}
+
 /*
   ( index tte_data vaddr -- ? )
 */
@@ -106,11 +124,16 @@ dtlb_load(void)
     vaddr = POP();
     tte_data = POP();
     idx = POP();
+    dtlb_load2(vaddr, tte_data);
+}
 
+static void
+itlb_load2(unsigned long vaddr, unsigned long tte_data)
+{
     asm("stxa %0, [%1] %2\n"
         "stxa %3, [%%g0] %4\n"
-        : : "r" (vaddr), "r" (48), "i" (ASI_DMMU),
-          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
+        : : "r" (vaddr), "r" (48), "i" (ASI_IMMU),
+          "r" (tte_data), "i" (ASI_ITLB_DATA_IN));
 }
 
 /*
@@ -124,11 +147,43 @@ itlb_load(void)
     vaddr = POP();
     tte_data = POP();
     idx = POP();
+    itlb_load2(vaddr, tte_data);
+}
 
-    asm("stxa %0, [%1] %2\n"
-        "stxa %3, [%%g0] %4\n"
-        : : "r" (vaddr), "r" (48), "i" (ASI_IMMU),
-          "r" (tte_data), "i" (ASI_ITLB_DATA_IN));
+static void
+map_pages(unsigned long virt, unsigned long size, unsigned long phys)
+{
+    unsigned long tte_data, currsize;
+
+    size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
+    while (size >= PAGE_SIZE_8K) {
+        currsize = size;
+        if (currsize >= PAGE_SIZE_4M &&
+            (virt & PAGE_MASK_4M) == 0 &&
+            (phys & PAGE_MASK_4M) == 0) {
+            currsize = PAGE_SIZE_4M;
+            tte_data = 6ULL << 60;
+        } else if (currsize >= PAGE_SIZE_512K &&
+                   (virt & PAGE_MASK_512K) == 0 &&
+                   (phys & PAGE_MASK_512K) == 0) {
+            currsize = PAGE_SIZE_8K;
+            tte_data = 4ULL << 60;
+        } else if (currsize >= PAGE_SIZE_64K &&
+                   (virt & PAGE_MASK_64K) == 0 &&
+                   (phys & PAGE_MASK_64K) == 0) {
+            currsize = PAGE_SIZE_64K;
+            tte_data = 2ULL << 60;
+        } else {
+            currsize = PAGE_SIZE_8K;
+            tte_data = 0;
+        }
+        tte_data |= phys | 0x8000000000000036ULL;
+        dtlb_load2(virt, tte_data);
+        itlb_load2(virt, tte_data);
+        size -= currsize;
+        phys += currsize;
+        virt += currsize;
+    }
 }
 
 /*
@@ -138,7 +193,7 @@ itlb_load(void)
 static void
 mmu_map(void)
 {
-    unsigned long virt, size, mode, phys, tte_data;
+    unsigned long virt, size, mode, phys;
 
     mode = POP();
     size = POP();
@@ -146,29 +201,21 @@ mmu_map(void)
     phys = POP();
     phys <<= 32;
     phys |= POP();
+    map_pages(virt, size, phys);
+}
 
-    tte_data = phys | 0x8000000000000036ULL;
-    switch (size) {
-    case 8192:
-        break;
-    case 65536:
-        tte_data |= 2ULL << 60;
-        break;
-    case 512 * 1024:
-        tte_data |= 4ULL << 60;
-        break;
-    case 4 * 1024 * 1024:
-        tte_data |= 6ULL << 60;
-        break;
-    }
-    asm("stxa %0, [%1] %2\n"
-        "stxa %3, [%%g0] %4\n"
-        : : "r" (virt), "r" (48), "i" (ASI_DMMU),
-          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
-    asm("stxa %0, [%1] %2\n"
-        "stxa %3, [%%g0] %4\n"
-        : : "r" (virt), "r" (48), "i" (ASI_IMMU),
-          "r" (tte_data), "i" (ASI_ITLB_DATA_IN));
+/*
+  3.6.5 unmap
+  ( virt size -- )
+*/
+static void
+mmu_unmap(void)
+{
+    unsigned long virt, size;
+
+    size = POP();
+    virt = POP();
+    //unmap_pages(virt, size);
 }
 
 DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);
@@ -180,6 +227,7 @@ NODE_METHODS(mmu) = {
     { "SUNW,dtlb-load",     dtlb_load             },
     { "SUNW,itlb-load",     itlb_load             },
     { "map",                mmu_map               },
+    { "unmap",              mmu_unmap             },
 };
 
 /*
@@ -421,8 +469,12 @@ void arch_nvram_get(char *data)
     push_str("/memory");
     fword("find-device");
 
+    // All memory: 0 to RAM_size
     PUSH(0);
     fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
     PUSH((int)(nv_info.RAM0_size >> 32));
     fword("encode-int");
     fword("encode+");
@@ -432,47 +484,105 @@ void arch_nvram_get(char *data)
     push_str("reg");
     fword("property");
 
+    // Available memory: 0 to va2pa(_start)
     PUSH(0);
     fword("encode-int");
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH((unsigned long)&_start - 4096);
+    PUSH((va2pa((unsigned long)&_data) - 8192) >> 32);
     fword("encode-int");
     fword("encode+");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(va2pa((unsigned long)&_iomem));
-    fword("encode-int");
-    fword("encode+");
-    PUSH(-va2pa((unsigned long)&_iomem));
+    PUSH((va2pa((unsigned long)&_data) - 8192) & 0xffffffff);
     fword("encode-int");
     fword("encode+");
     push_str("available");
     fword("property");
 
     // XXX
+    // Translations
     push_str("/virtual-memory");
     fword("find-device");
 
+    // 0 to va2pa(_start): 1:1
     PUSH(0);
     fword("encode-int");
     PUSH(0);
     fword("encode-int");
     fword("encode+");
+    PUSH((va2pa((unsigned long)&_data) - 8192) >> 32);
+    fword("encode-int");
+    fword("encode+");
+    PUSH((va2pa((unsigned long)&_data) - 8192) & 0xffffffff);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x80000000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x00000036);
+    fword("encode-int");
+    fword("encode+");
+
+    // _start to _data: ROM used
     PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH((unsigned long)&_start);
     fword("encode-int");
     fword("encode+");
     PUSH(0);
     fword("encode-int");
     fword("encode+");
+    PUSH((unsigned long)&_data - (unsigned long)&_start);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x800001ff);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0xf0000074);
+    fword("encode-int");
+    fword("encode+");
+
+    // _data to _end: end of RAM
     PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH((unsigned long)&_start);
     fword("encode-int");
     fword("encode+");
     PUSH(0);
     fword("encode-int");
     fword("encode+");
+    PUSH((unsigned long)&_data - (unsigned long)&_start);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(((va2pa((unsigned long)&_data) - 8192) >> 32) | 0x80000000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(((va2pa((unsigned long)&_data) - 8192) & 0xffffffff) | 0x36);
+    fword("encode-int");
+    fword("encode+");
+
+    // VGA buffer (128k): 1:1
+    PUSH(0x1ff);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x004a0000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(128 * 1024);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x800001ff);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x004a0076);
+    fword("encode-int");
+    fword("encode+");
+
     push_str("translations");
     fword("property");
 
