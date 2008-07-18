@@ -45,6 +45,9 @@ entry:
         wrpr    %g0, 0, %canrestore
         wrpr    %g0, 0, %otherwin
         wrpr    %g0, 0, %wstate
+        ! 100 Hz timer
+        set     10 * 1000 * 1000, %g1
+        wr      %g1, 0, %tick_cmpr
 
         ! Disable I/D MMUs and caches
         stxa    %g0, [%g0] ASI_LSU_CONTROL
