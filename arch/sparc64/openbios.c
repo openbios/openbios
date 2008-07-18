@@ -413,6 +413,11 @@ void arch_nvram_get(char *data)
     push_str("idprom");
     fword("property");
 
+    PUSH(500 * 1000 * 1000);
+    fword("encode-int");
+    push_str("clock-frequency");
+    fword("property");
+
     push_str("/memory");
     fword("find-device");
 
