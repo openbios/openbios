@@ -105,9 +105,13 @@ trap_table:
 #define STACK_BIAS		2047
 	.globl	sparc64_ttable_tl0, sparc64_ttable_tl1
 sparc64_ttable_tl0:
-                ba entry; nop; nop; nop; nop; nop; nop; nop;
-		BTRAP(0x01) BTRAP(0x02) BTRAP(0x03) BTRAP(0x04) BTRAP(0x05) BTRAP(0x06) BTRAP(0x07)
-                BTRAPS(0x08)
+                ba entry; nop; nop; nop; nop; nop; nop; nop;! XXX remove
+                ba entry; nop; nop; nop; nop; nop; nop; nop;! Power-on reset
+                ba entry; nop; nop; nop; nop; nop; nop; nop;! Watchdog reset
+                ba entry; nop; nop; nop; nop; nop; nop; nop;! External reset
+                ba entry; nop; nop; nop; nop; nop; nop; nop;! Software reset
+                ba entry; nop; nop; nop; nop; nop; nop; nop;! RED state
+                BTRAP(0x06) BTRAP(0x07) BTRAPS(0x08)
 		BTRAPS(0x10) BTRAPS(0x18)
 		BTRAP(0x20) BTRAP(0x21) BTRAP(0x22) BTRAP(0x23)
 		CLEAN_WINDOW ! 24-27
