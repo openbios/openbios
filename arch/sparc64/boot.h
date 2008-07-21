@@ -10,6 +10,8 @@ int forth_load(struct sys_info *info, const char *filename, const char *cmdline)
 int elf_load(struct sys_info *info, const char *filename, const char *cmdline);
 int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 int aout_load(struct sys_info *info, const char *filename, const char *cmdline);
+int fcode_load(struct sys_info *info, const char *filename,
+               const char *cmdline);
 
 uint64_t start_elf(uint64_t entry_point, uint64_t param);
 
