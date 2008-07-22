@@ -373,6 +373,14 @@ static const struct cpudef sparc_defs[] = {
         .name = "SUNW,UltraSPARC-IIIi+",
     },
     {
+        .iu_version = (0x3eULL << 48) | (0x23ULL << 32),
+        .name = "SUNW,UltraSPARC-T1",
+    },
+    {
+        .iu_version = (0x3eULL << 48) | (0x24ULL << 32),
+        .name = "SUNW,UltraSPARC-T2",
+    },
+    {
         .iu_version = (0x22ULL << 48) | (0x10ULL << 32),
         .name = "SUNW,UltraSPARC",
     },
