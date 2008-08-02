@@ -52,8 +52,6 @@ static char obio_cmdline[OBIO_CMDLINE_MAX];
 
 static uint8_t idprom[32];
 
-static const char *bootpath;
-
 struct cpudef {
     unsigned long iu_version;
     const char *name;
@@ -410,6 +408,7 @@ void arch_nvram_get(char *data)
     unsigned char *nvptr = (unsigned char *)&nv_info;
     uint32_t size;
     const struct cpudef *cpu;
+    const char *bootpath;
 
     for (i = 0; i < sizeof(ohwcfg_v3_t); i++) {
         outb(i & 0xff, 0x74);
@@ -674,6 +673,7 @@ arch_init( void )
         device_end();
 
 	bind_func("platform-boot", boot );
+        printk("\n"); // XXX needed for boot, why?
 }
 
 int openbios(void)
@@ -723,10 +723,6 @@ int openbios(void)
 #endif
 
 	enterforth((xt_t)PC);
-        arch_init(); // XXX
-        printk("force boot\n");
-        push_str(bootpath);
-        boot(); // XXX
         printk("falling off...\n");
 	return 0;
 }

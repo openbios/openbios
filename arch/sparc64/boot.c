@@ -39,11 +39,11 @@ void boot(void)
                 path = "/obio/SUNW,fdtwo";
                 break;
             case 'c':
-                path = "disk";
+                path = "/pci/isa/ide0/disk@0,0:a";
                 break;
             default:
             case 'd':
-                path = "cdrom";
+                path = "/pci/isa/ide1/cdrom@0,0:a";
                 break;
             case 'n':
                 path = "net";
