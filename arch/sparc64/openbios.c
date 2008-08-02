@@ -512,16 +512,16 @@ void arch_nvram_get(char *data)
     push_str("/virtual-memory");
     fword("find-device");
 
-    // 0 to va2pa(_start): 1:1
+    // 0 to 16M: 1:1
     PUSH(0);
     fword("encode-int");
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH((va2pa((unsigned long)&_data) - 8192) >> 32);
+    PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH((va2pa((unsigned long)&_data) - 8192) & 0xffffffff);
+    PUSH(16 * 1024 * 1024);
     fword("encode-int");
     fword("encode+");
     PUSH(0x80000000);
@@ -555,7 +555,7 @@ void arch_nvram_get(char *data)
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH((unsigned long)&_start);
+    PUSH((unsigned long)&_data);
     fword("encode-int");
     fword("encode+");
     PUSH(0);
