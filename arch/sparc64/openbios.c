@@ -605,6 +605,11 @@ void arch_nvram_get(char *data)
     fword("encode-string");
     push_str("bootpath");
     fword("property");
+
+    push_str(obio_cmdline);
+    fword("encode-string");
+    push_str("bootargs");
+    fword("property");
 }
 
 void arch_nvram_put(char *data)
