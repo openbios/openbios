@@ -22,6 +22,7 @@
 #include "boot.h"
 #include "../../drivers/timer.h" // XXX
 #include "asi.h"
+#include "spitfire.h"
 #include "libc/vsprintf.h"
 
 #define REGISTER_NAMED_NODE( name, path )   do {                        \
@@ -84,22 +85,42 @@ mmu_close(void)
 static void
 mmu_translate(void)
 {
-    unsigned long virt, phys;
+    unsigned long virt, phys, tag, data, mask;
+    unsigned int i;
 
     virt = POP();
 
-    asm("ldxa [%1] %2, %0\n"
-        : "=r"(phys) : "r" (virt), "i" (ASI_DTLB_TAG_READ));
-
-    if (phys & 0x8000000000000000) { // Valid entry?
-        phys &= 0x000001fffffff000;
-        PUSH(phys & 0xffffffff);
-        PUSH(phys >> 32);
-        PUSH(0); // XXX
-        PUSH(-1);
-    } else {
-        PUSH(0);
+    for (i = 0; i < 64; i++) {
+        data = spitfire_get_dtlb_data(i);
+        if (data & 0x8000000000000000) { // Valid entry?
+            switch ((data >> 61) & 3) {
+            default:
+            case 0x0: // 8k
+                mask = 0xffffffffffffe000ULL;
+                break;
+            case 0x1: // 64k
+                mask = 0xffffffffffff0000ULL;
+                break;
+            case 0x2: // 512k
+                mask = 0xfffffffffff80000ULL;
+                break;
+            case 0x3: // 4M
+                mask = 0xffffffffffc00000ULL;
+                break;
+            }
+            tag = spitfire_get_dtlb_tag(i);
+            if ((virt & mask) == (tag & mask)) {
+                phys = tag & mask & 0x000001fffffff000;
+                phys |= virt & ~mask;
+                PUSH(phys & 0xffffffff);
+                PUSH(phys >> 32);
+                PUSH(data & 0xfff);
+                PUSH(-1);
+                return;
+            }
+        }
     }
+    PUSH(0);
 }
 
 static void
