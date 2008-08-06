@@ -216,6 +216,21 @@ mmu_unmap(void)
     //unmap_pages(virt, size);
 }
 
+/*
+  3.6.5 claim
+  ( virt size align -- base )
+*/
+static void
+mmu_claim(void)
+{
+    unsigned long virt, size, align;
+
+    align = POP();
+    size = POP();
+    virt = POP();
+    PUSH(virt); // XXX
+}
+
 DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);
 
 NODE_METHODS(mmu) = {
@@ -226,6 +241,7 @@ NODE_METHODS(mmu) = {
     { "SUNW,itlb-load",     itlb_load             },
     { "map",                mmu_map               },
     { "unmap",              mmu_unmap             },
+    { "claim",              mmu_claim             },
 };
 
 /*
