@@ -164,7 +164,7 @@ map_pages(unsigned long virt, unsigned long size, unsigned long phys)
         } else if (currsize >= PAGE_SIZE_512K &&
                    (virt & PAGE_MASK_512K) == 0 &&
                    (phys & PAGE_MASK_512K) == 0) {
-            currsize = PAGE_SIZE_8K;
+            currsize = PAGE_SIZE_512K;
             tte_data = 4ULL << 60;
         } else if (currsize >= PAGE_SIZE_64K &&
                    (virt & PAGE_MASK_64K) == 0 &&
