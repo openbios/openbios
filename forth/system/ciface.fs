@@ -11,6 +11,8 @@ active-package to ciface-ph
 \ private stuff
 \ -------------------------------------------------------------
 
+variable callback-function
+
 : ?phandle ( phandle -- phandle )
   dup 0= if ." NULL phandle" -1 throw then
 ;
@@ -267,7 +269,12 @@ external
   \ ." --- " cr
 ;
 
-\ : set-callback ( newfunc -- oldfunc ) ;
+: set-callback ( newfunc -- oldfunc )
+  callback-function @
+  swap
+  callback-function !
+;
+
 \ : set-symbol-lookup ( sym-to-value -- value-to-sym ) ;
 
 
