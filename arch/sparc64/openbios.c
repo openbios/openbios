@@ -252,6 +252,20 @@ mmu_claim(void)
     PUSH(virt); // XXX
 }
 
+/*
+  3.6.5 release
+  ( virt size -- )
+*/
+static void
+mmu_release(void)
+{
+    unsigned long virt, size;
+
+    size = POP();
+    virt = POP();
+    // XXX
+}
+
 DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);
 
 NODE_METHODS(mmu) = {
@@ -263,6 +277,7 @@ NODE_METHODS(mmu) = {
     { "map",                mmu_map               },
     { "unmap",              mmu_unmap             },
     { "claim",              mmu_claim             },
+    { "release",            mmu_release           },
 };
 
 /*
