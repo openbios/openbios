@@ -309,6 +309,15 @@ static void keyboard_cmd(unsigned char cmd, unsigned char val)
 	while (inb(0x64) & 2);
 }
 
+static void keyboard_controller_cmd(unsigned char cmd, unsigned char val)
+{
+	outb(cmd, 0x64);
+	/* wait until keyboard controller accepts cmds: */
+	while (inb(0x64) & 2);
+	outb(val, 0x60);
+	while (inb(0x64) & 2);
+}
+
 static char keyboard_poll(void)
 {
 	unsigned int c;
@@ -575,4 +584,6 @@ ob_su_init(uint64_t base, uint64_t offset, int intr)
     fword("encode-int");
     push_str("stdout");
     fword("property");
+
+    keyboard_controller_cmd(0x60, 0x40); // Write mode command, translated mode
 }
