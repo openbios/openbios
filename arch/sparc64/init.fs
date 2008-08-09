@@ -27,7 +27,7 @@
 
 :noname
   set-defaults
-; SYSTEM-initializer
+; PREPOST-initializer
 
 \ preopen device nodes (and store the ihandles under /chosen)
 :noname
