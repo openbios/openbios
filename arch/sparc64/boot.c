@@ -34,20 +34,29 @@ void boot(void)
         }
 
 	if(!path) {
-            switch(boot_device) {
-            case 'a':
-                path = "/obio/SUNW,fdtwo";
-                break;
-            case 'c':
-                path = "disk";
-                break;
-            default:
-            case 'd':
-                path = "cdrom";
-                break;
-            case 'n':
-                path = "net";
-                break;
+            push_str("boot-device");
+            push_str("/options");
+            fword("(find-dev)");
+            POP();
+            fword("get-package-property");
+            if (!POP()) {
+                path = pop_fstr_copy();
+            } else {
+                switch (boot_device) {
+                case 'a':
+                    path = "/obio/SUNW,fdtwo";
+                    break;
+                case 'c':
+                    path = "disk";
+                    break;
+                default:
+                case 'd':
+                    path = "cdrom";
+                    break;
+                case 'n':
+                    path = "net";
+                    break;
+                }
             }
 	}
 
@@ -57,6 +66,14 @@ void boot(void)
 		param++;
 	} else if (cmdline_size) {
             param = (char *)qemu_cmdline;
+        } else {
+            push_str("boot-args");
+            push_str("/options");
+            fword("(find-dev)");
+            POP();
+            fword("get-package-property");
+            POP();
+            param = pop_fstr_copy();
         }
 	
 	printk("[sparc64] Booting file '%s' ", path);
