@@ -12,7 +12,7 @@
 #endif
 
 uint64_t qemu_mem_size;
-uint64_t va_shift;
+unsigned long va_shift;
 
 void collect_multiboot_info(struct sys_info *);
 
