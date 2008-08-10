@@ -1,9 +1,9 @@
 
 0 value ciface-ph
 
-dev /packages/
+dev /openprom/
 new-device
-" client-iface" device-name
+" client-services" device-name
 
 active-package to ciface-ph
 

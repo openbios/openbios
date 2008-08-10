@@ -44,12 +44,6 @@ new-device
   : open true ;
   : close ;
 
-  new-device
-    " client-services" device-name
-    : open true ;
-    : close ;
-  finish-device
-
 finish-device
   
 new-device

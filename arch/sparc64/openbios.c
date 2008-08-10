@@ -360,7 +360,7 @@ static void cpu_generic_init(const struct cpudef *cpu)
     fword("property");
 
     // Trap table
-    push_str("/packages/client-iface");
+    push_str("/openprom/client-services");
     fword("find-device");
     bind_func("SUNW,set-trap-table", set_trap_table);
 }
