@@ -1083,7 +1083,7 @@ defer key
 
 false value capital-hex?
 
-: pad       ( -- addr )      here 100 + ;
+: pad       ( -- addr )      here 100 + aligned ;
 
 : todigit   ( num -- ascii ) 
   dup 9 > if 
