@@ -119,17 +119,7 @@ defer find-dev
   " /packages" find-dev 0= if 2drop false exit then
   find-rel-dev 0= if false exit then
 
-  \ Find the most recent node that match. One could make life
-  \ simple and add nodes at the head but I prefer it this way.
-  >r
-  " name" r@ get-package-property if " " then
-  r@ begin >dn.peer @ dup while
-    3dup
-    " name" rot get-package-property if " " then
-    strcmp
-    0= if r> drop dup >r then
-  repeat 3drop
-  r> true
+  true
 ;
 
 : open-package  ( arg-str arg-len phandle -- ihandle | 0 )
