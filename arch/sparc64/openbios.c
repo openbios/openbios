@@ -132,6 +132,16 @@ dtlb_load2(unsigned long vaddr, unsigned long tte_data)
           "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
 }
 
+static void
+dtlb_load3(unsigned long vaddr, unsigned long tte_data,
+           unsigned long tte_index)
+{
+    asm("stxa %0, [%1] %2\n"
+        "stxa %3, [%4] %5\n"
+        : : "r" (vaddr), "r" (48), "i" (ASI_DMMU),
+          "r" (tte_data), "r" (tte_index << 3), "i" (ASI_DTLB_DATA_ACCESS));
+}
+
 /*
   ( index tte_data vaddr -- ? )
 */
@@ -143,7 +153,7 @@ dtlb_load(void)
     vaddr = POP();
     tte_data = POP();
     idx = POP();
-    dtlb_load2(vaddr, tte_data);
+    dtlb_load3(vaddr, tte_data, idx);
 }
 
 static void
@@ -153,6 +163,16 @@ itlb_load2(unsigned long vaddr, unsigned long tte_data)
         "stxa %3, [%%g0] %4\n"
         : : "r" (vaddr), "r" (48), "i" (ASI_IMMU),
           "r" (tte_data), "i" (ASI_ITLB_DATA_IN));
+}
+
+static void
+itlb_load3(unsigned long vaddr, unsigned long tte_data,
+           unsigned long tte_index)
+{
+    asm("stxa %0, [%1] %2\n"
+        "stxa %3, [%4] %5\n"
+        : : "r" (vaddr), "r" (48), "i" (ASI_IMMU),
+          "r" (tte_data), "r" (tte_index << 3), "i" (ASI_ITLB_DATA_ACCESS));
 }
 
 /*
@@ -166,7 +186,7 @@ itlb_load(void)
     vaddr = POP();
     tte_data = POP();
     idx = POP();
-    itlb_load2(vaddr, tte_data);
+    itlb_load3(vaddr, tte_data, idx);
 }
 
 static void
