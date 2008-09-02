@@ -110,7 +110,7 @@ mmu_translate(void)
             }
             tag = spitfire_get_dtlb_tag(i);
             if ((virt & mask) == (tag & mask)) {
-                phys = tag & mask & 0x000001fffffff000;
+                phys = data & mask & 0x000001fffffff000;
                 phys |= virt & ~mask;
                 PUSH(phys & 0xffffffff);
                 PUSH(phys >> 32);
