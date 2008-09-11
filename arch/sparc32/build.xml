@@ -33,7 +33,7 @@
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
   <rule>
-	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^
+	$(LD) --warn-common -N -T arch/sparc32/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms
 	cp $@.nostrip $@
 	$(STRIP) $@</rule>
@@ -69,7 +69,7 @@
 
  <executable name="openbios-builtin.elf" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule>
-	$(LD) -N -T arch/sparc32/ldscript -o $@.nostrip $^
+	$(LD) --warn-common -N -T arch/sparc32/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms
 	cp $@.nostrip $@
 	$(STRIP) $@</rule>
