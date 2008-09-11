@@ -16,7 +16,6 @@
 #define addr_fixup(addr) ((addr) & 0x00ffffff)
 
 static char *image_name, *image_version;
-const char *program_name, *program_version;
 
 static int check_mem_ranges(struct sys_info *info,
                             unsigned long start,

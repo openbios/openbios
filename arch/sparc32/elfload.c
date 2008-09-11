@@ -18,7 +18,6 @@
 #define addr_fixup(addr) ((addr) & 0x00ffffff)
 
 static char *image_name, *image_version;
-const char *program_name, *program_version;
 
 static void *calloc(size_t nmemb, size_t size)
 {
