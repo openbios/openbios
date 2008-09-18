@@ -571,11 +571,11 @@ int ob_sbus_init(uint64_t base, int machine_id)
     ob_sbus_node_init(base);
 
     switch (machine_id) {
-    case 0x71:
+    case 66:
         return ob_sbus_init_ss600mp();
-    case 0x72:
+    case 64 ... 65:
         return ob_sbus_init_ss10();
-    case 0x80:
+    case 32 ... 63:
         return ob_sbus_init_ss5();
     default:
         return -1;

@@ -11,10 +11,11 @@
 #include "asi.h"
 #include "pstate.h"
 #include "lsu.h"
-#define __ASSEMBLY__
-#include "openbios/firmware_abi.h"
+#define NO_QEMU_PROTOS
+#include "openbios/fw_cfg.h"
 
 #define PROM_ADDR 0x1fff0000000
+#define CFG_ADDR  0x1fe02000510
 
         .globl	entry, _entry
 
@@ -52,58 +53,64 @@ entry:
         ! Disable I/D MMUs and caches
         stxa    %g0, [%g0] ASI_LSU_CONTROL
 
-        ! Get memory size from NVRAM
-        setx    0x1fe02000074, %g2, %g5
-        mov     OHW_RAM_SIZE, %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-        add     %g5, 1, %g1
-        stba    %g0, [%g1] ASI_PHYS_BYPASS_EC_E
-        add     %g1, 2, %g1
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g4
+        ! Check signature "QEMU"
+        setx    CFG_ADDR, %g2, %g5
+        mov     FW_CFG_SIGNATURE, %g2
+        stha    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+        inc     %g5
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g2
+        cmp     %g2, 'Q'
+        bne     bad_conf
+         nop
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g2
+        cmp     %g2, 'E'
+        bne     bad_conf
+         nop
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g2
+        cmp     %g2, 'M'
+        bne     bad_conf
+         nop
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g2
+        cmp     %g2, 'U'
+        bne     bad_conf
+         nop
 
-        sll     %g4, 8, %g4
-        inc     %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        ! Get memory size from configuration device
+        ! NB: little endian format
+        mov     FW_CFG_RAM_SIZE, %g2
+        dec     %g5
+        stha    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+        inc     %g5
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g4
+
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g3
+        sllx    %g3, 8, %g3
         or      %g3, %g4, %g4
 
-        sll     %g4, 8, %g4
-        inc     %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g3
+        sllx    %g3, 16, %g3
         or      %g3, %g4, %g4
 
-        sll     %g4, 8, %g4
-        inc     %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g3
+        sllx    %g3, 24, %g3
         or      %g3, %g4, %g4
 
-        sll     %g4, 8, %g4
-        inc     %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g3
+        sllx    %g3, 32, %g3
         or      %g3, %g4, %g4
 
-        sll     %g4, 8, %g4
-        inc     %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g3
+        sllx    %g3, 40, %g3
         or      %g3, %g4, %g4
 
-        sll     %g4, 8, %g4
-        inc     %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g3
+        sllx    %g3, 48, %g3
         or      %g3, %g4, %g4
 
-        sll     %g4, 8, %g4
-        inc     %g2
-        stba    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
-	lduba	[%g1] ASI_PHYS_BYPASS_EC_E, %g3
+        lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g3
+        sllx    %g3, 56, %g3
         or      %g3, %g4, %g1
-	! %g1 contains end of memory
-
+        ! %g1 contains end of memory
 
         setx    _end, %g7, %g3
         set     0xffff, %g2
@@ -301,8 +308,7 @@ lowmem:
 
         /* We get here when the main context switches back to
          * the boot context.
-         * Return to previous bootloader.
          */
-        ret
+bad_conf:
+        b       bad_conf
          nop
-

@@ -27,7 +27,7 @@ struct hwdef {
     unsigned long aux1_offset, aux2_offset;
     uint64_t dma_base, esp_base, le_base;
     uint64_t tcx_base;
-    int machine_id;
+    int machine_id_low, machine_id_high;
 };
 
 static const struct hwdef hwdefs[] = {
@@ -47,7 +47,8 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0x78400000,
         .esp_base     = 0x78800000,
         .le_base      = 0x78c00000,
-        .machine_id = 0x80,
+        .machine_id_low = 32,
+        .machine_id_high = 63,
     },
     /* SS-10 */
     {
@@ -65,7 +66,8 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0xef0400000ULL,
         .esp_base     = 0xef0800000ULL,
         .le_base      = 0xef0c00000ULL,
-        .machine_id = 0x72,
+        .machine_id_low = 64,
+        .machine_id_high = 65,
     },
     /* SS-600MP */
     {
@@ -83,7 +85,8 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0xef0081000ULL,
         .esp_base     = 0xef0080000ULL,
         .le_base      = 0xef0060000ULL,
-        .machine_id = 0x71,
+        .machine_id_low = 66,
+        .machine_id_high = 66,
     },
 };
 
@@ -121,7 +124,7 @@ arch_init( void )
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
 	init_video();
 #endif
-	ob_sbus_init(hwdef->iommu_base + 0x1000ULL, hwdef->machine_id);
+	ob_sbus_init(hwdef->iommu_base + 0x1000ULL, qemu_machine_type);
 #endif
 	device_end();
 
@@ -133,7 +136,8 @@ int openbios(void)
         unsigned int i;
 
         for (i = 0; i < sizeof(hwdefs) / sizeof(struct hwdef); i++) {
-            if (hwdefs[i].machine_id == qemu_machine_type) {
+            if (hwdefs[i].machine_id_low <= qemu_machine_type &&
+                hwdefs[i].machine_id_high >= qemu_machine_type) {
                 hwdef = &hwdefs[i];
                 break;
             }

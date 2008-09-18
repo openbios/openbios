@@ -21,6 +21,8 @@
 #include "obio.h"
 #define cpu_to_be16(x) __cpu_to_be16(x)
 #include "openbios/firmware_abi.h"
+#define NO_QEMU_PROTOS
+#include "openbios/fw_cfg.h"
 
 #define REGISTER_NAMED_NODE( name, path )   do { \
 	     bind_new_node( name##_flags_, name##_size_, \
@@ -294,7 +296,7 @@ ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
     }
 }
 
-static uint32_t
+static void
 ob_eccmemctl_init(void)
 {
     uint32_t version, *regs;
@@ -333,8 +335,6 @@ ob_eccmemctl_init(void)
     fword("property");
 
     fword("finish-device");
-
-    return version;
 }
 
 static unsigned char *nvram;
@@ -716,6 +716,67 @@ id_cpu(void)
     for (;;);
 }
 
+static void dummy_mach_init(void)
+{
+}
+
+struct machdef {
+    uint16_t machine_id;
+    const char *banner_name;
+    const char *model;
+    const char *name;
+    int mid_offset;
+    void (*initfn)(void);
+};
+
+static const struct machdef sun4m_defs[] = {
+    {
+        .machine_id = 32,
+        .banner_name = "SPARCstation 5",
+        .model = "SUNW,501-3059",
+        .name = "SUNW,SPARCstation-5",
+        .mid_offset = 0,
+        .initfn = dummy_mach_init,
+    },
+    {
+        .machine_id = 64,
+        .banner_name = "SPARCstation 10 (1 X 390Z55)",
+        .model = "SUNW,S10,501-2365",
+        .name = "SUNW,SPARCstation-10",
+        .mid_offset = 8,
+        .initfn = ob_eccmemctl_init,
+    },
+    {
+        .machine_id = 65,
+        .banner_name = "SPARCstation 20 (1 X 390Z55)",
+        .model = "SUNW,S20,501-2324",
+        .name = "SUNW,SPARCstation-20",
+        .mid_offset = 8,
+        .initfn = ob_eccmemctl_init,
+    },
+    {
+        .machine_id = 66,
+        .banner_name = "SPARCsystem 600(1 X 390Z55)",
+        .model = NULL,
+        .name = "SUNW,SPARCsystem-600",
+        .mid_offset = 8,
+        .initfn = ob_eccmemctl_init,
+    },
+};
+
+static const struct machdef *
+id_machine(uint16_t machine_id)
+{
+    unsigned int i;
+
+    for (i = 0; i < sizeof(sun4m_defs)/sizeof(struct machdef); i++) {
+        if (machine_id == sun4m_defs[i].machine_id)
+            return &sun4m_defs[i];
+    }
+    printk("Unknown machine (ID %d), freezing!\n", machine_id);
+    for (;;);
+}
+
 static void
 ob_nvram_init(uint64_t base, uint64_t offset)
 {
@@ -732,9 +793,14 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     unsigned int i;
     char nographic;
     uint32_t size;
-    unsigned int machine_id;
+    uint16_t machine_id;
     const struct cpudef *cpu;
+    const struct machdef *mach;
     ohwcfg_v3_t *header;
+    volatile uint8_t *fw_cfg_data;
+    volatile uint16_t *fw_cfg_cmd;
+    char buf[256];
+    uint32_t temp;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -745,17 +811,30 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     push_str("address");
     fword("property");
 
-    memcpy(&nv_info, nvram, sizeof(nv_info));
-    machine_id = (unsigned int)nvram[0x1fd9] & 0xff;
-    printk("Nvram id %s, version %d, machine id 0x%2.2x\n",
-           nv_info.struct_ident, nv_info.struct_version, machine_id);
-    if (strcmp(nv_info.struct_ident, "QEMU_BIOS") ||
-        nv_info.struct_version != 3 ||
-        OHW_compute_crc(&nv_info, 0x00, 0xF8) != nv_info.crc) {
-        printk("Unknown nvram, freezing!\n");
-        for (;;);
-    }
+    fw_cfg_cmd = map_io(CFG_ADDR, CFG_SIZE);
+    fw_cfg_data = (uint8_t *)fw_cfg_cmd + 2;
 
+    *fw_cfg_cmd = FW_CFG_SIGNATURE;
+    for (i = 0; i < 4; i++)
+        buf[i] = *fw_cfg_data;
+    buf[4] = '\0';
+    printk("Configuration device id %s", buf);
+
+    *fw_cfg_cmd = FW_CFG_ID;
+    for (i = 0; i < 4; i++)
+        buf[i] = *fw_cfg_data;
+
+    temp = __le32_to_cpu(*(uint32_t *)buf);
+    printk(" version %d", temp);
+
+    *fw_cfg_cmd = FW_CFG_MACHINE_ID;
+    for (i = 0; i < 2; i++)
+        buf[i] = *fw_cfg_data;
+
+    machine_id = __le16_to_cpu(*(uint16_t *)buf);
+    printk(" machine id %d\n", machine_id);
+
+    memcpy(&nv_info, nvram, sizeof(nv_info));
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;
     size = nv_info.cmdline_size;
@@ -772,8 +851,10 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     header->crc = OHW_compute_crc(header, 0x00, 0xF8);
 
     boot_device = nv_info.boot_devices[0];
-    nographic = nv_info.graphic_flags & OHW_GF_NOGRAPHICS;
-    graphic_depth = nv_info.depth;
+    *fw_cfg_cmd = FW_CFG_NOGRAPHIC;
+    nographic = *fw_cfg_data;
+    *fw_cfg_cmd = FW_CFG_SUN4M_DEPTH;
+    graphic_depth = *fw_cfg_data;
 
     push_str("mk48t08");
     fword("model");
@@ -790,74 +871,37 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     push_str("idprom");
     fword("property");
 
-    switch (machine_id) {
-    case 0x71:
-        push_str("SPARCsystem 600(1 X 390Z55)");
-        fword("encode-string");
-        push_str("banner-name");
-        fword("property");
-        push_str("SUNW,SPARCsystem-600");
-        fword("encode-string");
-        push_str("name");
-        fword("property");
-        ob_eccmemctl_init();
-        break;
-    case 0x72:
-        switch (ob_eccmemctl_init()) {
-        default:
-        case 0x10000000:
-            push_str("SPARCstation 10 (1 X 390Z55)");
-            fword("encode-string");
-            push_str("banner-name");
-            fword("property");
-            push_str("SUNW,S10,501-2365");
-            fword("encode-string");
-            push_str("model");
-            fword("property");
-            push_str("SUNW,SPARCstation-10");
-            fword("encode-string");
-            push_str("name");
-            fword("property");
-            break;
-        case 0x20000000:
-            push_str("SPARCstation 20 (1 X 390Z55)");
-            fword("encode-string");
-            push_str("banner-name");
-            fword("property");
-            push_str("SUNW,S20,501-2324");
-            fword("encode-string");
-            push_str("model");
-            fword("property");
-            push_str("SUNW,SPARCstation-20");
-            fword("encode-string");
-            push_str("name");
-            fword("property");
-            break;
-        }
-        break;
-    case 0x80:
-        push_str("SPARCstation 5");
-        fword("encode-string");
-        push_str("banner-name");
-        fword("property");
-        push_str("SUNW,501-3059");
+    mach = id_machine(machine_id);
+
+    mach->initfn();
+
+    push_str(mach->banner_name);
+    fword("encode-string");
+    push_str("banner-name");
+    fword("property");
+
+    if (mach->model) {
+        push_str(mach->model);
         fword("encode-string");
         push_str("model");
         fword("property");
-        push_str("SUNW,SPARCstation-5");
-        fword("encode-string");
-        push_str("name");
-        fword("property");
-        break;
-    default:
-        printk("Unknown machine, freezing!\n");
-        for (;;);
     }
+    push_str(mach->name);
+    fword("encode-string");
+    push_str("name");
+    fword("property");
+
     // Add cpus
-    printk("CPUs: %x", nv_info.nb_cpus);
+    *fw_cfg_cmd = FW_CFG_NB_CPUS;
+    for (i = 0; i < 4; i++)
+        buf[i] = *fw_cfg_data;
+
+    temp = __le32_to_cpu(*(uint32_t *)buf);
+
+    printk("CPUs: %x", temp);
     cpu = id_cpu();
     printk(" x %s\n", cpu->name);
-    for (i = 0; i < (unsigned int)nv_info.nb_cpus; i++) {
+    for (i = 0; i < temp; i++) {
         push_str("/");
         fword("find-device");
 
@@ -959,15 +1003,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         push_str("cache-coherence?");
         fword("property");
 
-        switch (machine_id) {
-        case 0x71:
-        case 0x72:
-            PUSH(i + 8);
-            break;
-        case 0x80:
-            PUSH(i);
-            break;
-        }
+        PUSH(i + mach->mid_offset);
         fword("encode-int");
         push_str("mid");
         fword("property");

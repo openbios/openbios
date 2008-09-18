@@ -12,6 +12,11 @@
 #include "asm/crs.h"
 #define __ASSEMBLY__
 #include "openbios/firmware_abi.h"
+#define NO_QEMU_PROTOS
+#include "openbios/fw_cfg.h"
+
+#define CFG_ADDR 0x00000510
+#define CFG_ASI  0x2d
 
 #define PHYS_JJ_EEPROM	0x71200000  /* [2000] MK48T08 */
 #define PHYS_JJ_INTR0	0x71E00000  /* CPU0 interrupt control registers */
@@ -44,41 +49,84 @@ entry:
          * Main context is statically defined in C.
          */
 
-        ! Check if this is QEMU for SS-5
-        set PHYS_JJ_EEPROM, %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        ! Check signature "QEMU"
+        set     CFG_ADDR, %g5
+        mov     FW_CFG_SIGNATURE, %g2
+        stha    %g2, [%g5] CFG_ASI
+        add     %g5, 2, %g5
+        lduba   [%g5] CFG_ASI, %g2
         cmp     %g2, 'Q'
-        bne     ss10
-         inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        bne     bad_conf
+         nop
+        lduba   [%g5] CFG_ASI, %g2
         cmp     %g2, 'E'
-        bne     ss10
-         inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        bne     bad_conf
+         nop
+        lduba   [%g5] CFG_ASI, %g2
         cmp     %g2, 'M'
-        bne     ss10
-         inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
+        bne     bad_conf
+         nop
+        lduba   [%g5] CFG_ASI, %g2
         cmp     %g2, 'U'
-        bne     ss10
+        bne     bad_conf
+         nop
+
+        ! Get memory size from configuration device
+        ! NB: little endian format
+        mov     FW_CFG_RAM_SIZE, %g2
+        sub     %g5, 2, %g5
+        stha    %g2, [%g5] CFG_ASI
+        add     %g5, 2, %g5
+        lduba   [%g5] CFG_ASI, %g4
+
+        lduba   [%g5] CFG_ASI, %g3
+        sll     %g3, 8, %g3
+        or      %g3, %g4, %g4
+
+        lduba   [%g5] CFG_ASI, %g3
+        sll     %g3, 16, %g3
+        or      %g3, %g4, %g4
+
+        lduba   [%g5] CFG_ASI, %g3
+        sll     %g3, 24, %g3
+        or      %g3, %g4, %g1
+        ! %g1 contains end of memory
+
+        ! Get machine ID from configuration device
+        mov     FW_CFG_MACHINE_ID, %g2
+        sub     %g5, 2, %g5
+        stha    %g2, [%g5] CFG_ASI
+        add     %g5, 2, %g5
+        lduba   [%g5] CFG_ASI, %g4
+
+        lduba   [%g5] CFG_ASI, %g3
+        sll     %g3, 8, %g3
+        or      %g3, %g4, %g4
+        mov     %g4, %y
+
+        cmp     %g4, 96
+        bgeu    ss1000
+         cmp    %g4, 64
+        bgeu    ss10
+         cmp    %g4, 32
+        blu     ss2
+         nop
 
         ! Ok, this is SS-5
-        mov     0x80, %y
         ! Find architecture specific part
-        set     PHYS_JJ_EEPROM + OHW_ARCH_PTR, %g1
-        lduha   [%g1] ASI_M_BYPASS, %g2
-        set     PHYS_JJ_EEPROM, %g1
-        add     %g1, %g2, %g3
+        set     PHYS_JJ_EEPROM + OHW_ARCH_PTR, %g5
+        lduha   [%g5] ASI_M_BYPASS, %g2
+        set     PHYS_JJ_EEPROM, %g5
+        add     %g5, %g2, %g3
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
-        add     %g3, SPARC_SMP_VALID, %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
-        stba    %g0, [%g1] ASI_M_BYPASS
-        set	PHYS_JJ_EEPROM + OHW_RAM_SIZE, %g1
-        ldda	[%g1] ASI_M_BYPASS, %g0
+        add     %g3, SPARC_SMP_VALID, %g5
+        lduba   [%g5] ASI_M_BYPASS, %g2
+        stba    %g0, [%g5] ASI_M_BYPASS
         tst     %g2
         bz      first_cpu
          nop
 
+        ! SMP init, jump to user specified address
         set     PHYS_JJ_INTR0 + 0x04, %g1
         sll     %g2, 12, %g2
         add     %g1, %g2, %g2
@@ -104,41 +152,21 @@ entry:
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
 
 ss10:
-        set PHYS_SS10_EEPROM, %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'Q'
-        bne     ss2
-         inc    %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'E'
-        bne     ss2
-         inc    %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'M'
-        bne     ss2
-         inc    %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'U'
-        bne     ss2
-
         ! Ok, this is SS-10 or SS-600MP
-        set     PHYS_SS10_EEPROM + SPARC_MACHINE_ID, %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        mov     %g2, %y
         ! Find architecture specific part
-        set     PHYS_SS10_EEPROM + OHW_ARCH_PTR, %g1
-        lduha   [%g1] ASI_M_CTL, %g2
-        set     PHYS_SS10_EEPROM, %g1
-        add     %g1, %g2, %g3
+        set     PHYS_SS10_EEPROM + OHW_ARCH_PTR, %g5
+        lduha   [%g5] ASI_M_CTL, %g2
+        set     PHYS_SS10_EEPROM, %g5
+        add     %g5, %g2, %g3
         ! Check if this not the first SMP CPU, if so, bypass PROM entirely
-        add     %g3, SPARC_SMP_VALID, %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        stba    %g0, [%g1] ASI_M_CTL
-        set     PHYS_SS10_EEPROM + OHW_RAM_SIZE, %g1
-        ldda	[%g1] ASI_M_CTL, %g0
+        add     %g3, SPARC_SMP_VALID, %g5
+        lduba   [%g5] ASI_M_CTL, %g2
+        stba    %g0, [%g5] ASI_M_CTL
         tst     %g2
         bz      first_cpu
          nop
+
+        ! SMP init, jump to user specified address
         set     PHYS_SS10_INTR0 + 0x04, %g1
         sll     %g2, 12, %g2
         add     %g1, %g2, %g2
@@ -164,46 +192,12 @@ ss10:
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
 
 ss2:
-        set PHYS_SS2_EEPROM, %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
-        cmp     %g2, 'Q'
-        bne     ss1000
-         inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
-        cmp     %g2, 'E'
-        bne     ss1000
-         inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
-        cmp     %g2, 'M'
-        bne     ss1000
-         inc    %g1
-        lduba   [%g1] ASI_M_BYPASS, %g2
-        cmp     %g2, 'U'
-        bne     ss1000
-
         ! Ok, this is SS-2
         set     ss2_error, %o2
         b       ss2_ss1000_halt
          nop
 
 ss1000:
-        set     PHYS_SS1000_EEPROM, %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'Q'
-        bne     bad_nvram
-         inc    %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'E'
-        bne     bad_nvram
-         inc    %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'M'
-        bne     bad_nvram
-         inc    %g1
-        lduba   [%g1] ASI_M_CTL, %g2
-        cmp     %g2, 'U'
-        bne     bad_nvram
-
         ! Ok, this is SS-1000 or SS-2000
         set     ss1000_error, %o2
         b       ss2_ss1000_halt
@@ -408,7 +402,7 @@ ss2_ss1000_halt:
         stba    %o3, [%o1] ASI_M_CTL
         b       1b
          inc    %o2
-bad_nvram:
+bad_conf:
 2:      b       2b
          nop
 

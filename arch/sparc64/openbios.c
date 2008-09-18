@@ -24,6 +24,11 @@
 #include "asi.h"
 #include "spitfire.h"
 #include "libc/vsprintf.h"
+#define NO_QEMU_PROTOS
+#include "openbios/fw_cfg.h"
+
+#define BIOS_CFG_CMD  0x510
+#define BIOS_CFG_DATA 0x511
 
 #define REGISTER_NAMED_NODE( name, path )   do {                        \
         bind_new_node( name##_flags_, name##_size_,                     \
@@ -66,6 +71,8 @@ struct cpudef {
 #define PAGE_MASK_512K (512 * 1024 - 1)
 #define PAGE_MASK_64K  (64 * 1024 - 1)
 #define PAGE_MASK_8K   (8 * 1024 - 1)
+
+#define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
 static void
 mmu_open(void)
@@ -474,6 +481,8 @@ id_cpu(void)
     for (;;);
 }
 
+static uint8_t qemu_uuid[16];
+
 void arch_nvram_get(char *data)
 {
     unsigned short i;
@@ -481,6 +490,9 @@ void arch_nvram_get(char *data)
     uint32_t size;
     const struct cpudef *cpu;
     const char *bootpath;
+    char buf[256];
+    uint32_t temp;
+    uint64_t ram_size;
 
     for (i = 0; i < sizeof(ohwcfg_v3_t); i++) {
         outb(i & 0xff, 0x74);
@@ -488,14 +500,20 @@ void arch_nvram_get(char *data)
         *nvptr++ = inb(0x77);
     }
 
-    printk("Nvram id %s, version %d\n", nv_info.struct_ident,
-           nv_info.struct_version);
-    if (strcmp(nv_info.struct_ident, "QEMU_BIOS") ||
-        nv_info.struct_version != 3 ||
-        OHW_compute_crc(&nv_info, 0x00, 0xF8) != nv_info.crc) {
-        printk("Unknown nvram, freezing!\n");
-        for (;;);
-    }
+    outw(__cpu_to_le16(FW_CFG_SIGNATURE), BIOS_CFG_CMD);
+    for (i = 0; i < 4; i++)
+        buf[i] = inb(BIOS_CFG_DATA);
+
+    buf[4] = '\0';
+
+    printk("Configuration device id %s", buf);
+
+    outw(__cpu_to_le16(FW_CFG_ID), BIOS_CFG_CMD);
+    for (i = 0; i < 4; i++)
+        buf[i] = inb(BIOS_CFG_DATA);
+
+    temp = __le32_to_cpu(*(uint32_t *)buf);
+    printk(" version %d\n", temp);
 
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;
@@ -518,16 +536,40 @@ void arch_nvram_get(char *data)
         data[i] = inb(0x77);
     }
 
-    printk("CPUs: %x", nv_info.nb_cpus);
+    outw(__cpu_to_le16(FW_CFG_NB_CPUS), BIOS_CFG_CMD);
+    for (i = 0; i < 4; i++)
+        buf[i] = inb(BIOS_CFG_DATA);
+
+    temp = __le32_to_cpu(*(uint32_t *)buf);
+
+    printk("CPUs: %x", temp);
+
     cpu = id_cpu();
     //cpu->initfn();
     cpu_generic_init(cpu);
     printk(" x %s\n", cpu->name);
 
-    // Add /idprom
+    // Add /uuid
+    outw(__cpu_to_le16(FW_CFG_UUID), BIOS_CFG_CMD);
+    for (i = 0; i < 16; i++)
+        qemu_uuid[i] = inb(BIOS_CFG_DATA);
+
+    printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
+           qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
+           qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
+           qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
+           qemu_uuid[15]);
+
     push_str("/");
     fword("find-device");
 
+    PUSH((long)&qemu_uuid);
+    PUSH(16);
+    fword("encode-bytes");
+    push_str("uuid");
+    fword("property");
+
+    // Add /idprom
     for (i = 0; i < 32; i++) {
         outb((i + 0x1fd8) & 0xff, 0x74);
         outb((i + 0x1fd8) >> 8, 0x75);
@@ -548,16 +590,22 @@ void arch_nvram_get(char *data)
     push_str("/memory");
     fword("find-device");
 
+    outw(__cpu_to_le16(FW_CFG_RAM_SIZE), BIOS_CFG_CMD);
+    for (i = 0; i < 8; i++)
+        buf[i] = inb(BIOS_CFG_DATA);
+
+    ram_size = __le64_to_cpu(*(uint64_t *)buf);
+
     // All memory: 0 to RAM_size
     PUSH(0);
     fword("encode-int");
     PUSH(0);
     fword("encode-int");
     fword("encode+");
-    PUSH((int)(nv_info.RAM0_size >> 32));
+    PUSH((int)(ram_size >> 32));
     fword("encode-int");
     fword("encode+");
-    PUSH((int)(nv_info.RAM0_size & 0xffffffff));
+    PUSH((int)(ram_size & 0xffffffff));
     fword("encode-int");
     fword("encode+");
     push_str("reg");

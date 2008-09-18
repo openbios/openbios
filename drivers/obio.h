@@ -38,6 +38,10 @@
 #define SUN4M_NCPUS      16
 #define PAGE_SIZE        4096
 
+#define CFG_ADDR         0xd00000510ULL
+#define CFG_SIZE         3
+#define FW_CFG_SUN4M_DEPTH   (FW_CFG_ARCH_LOCAL + 0x00)
+
 /* linux/include/asm-sparc/timer.h */
 
 /* A sun4m has two blocks of registers which are probably of the same
