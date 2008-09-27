@@ -413,6 +413,11 @@ static void cpu_generic_init(const struct cpudef *cpu)
     push_str("sparc-version");
     fword("property");
 
+    PUSH(1);
+    fword("encode-int");
+    push_str("cpuid");
+    fword("property");
+
     fword("finish-device");
 
     // MMU node
