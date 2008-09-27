@@ -85,17 +85,12 @@ mmu_close(void)
 {
 }
 
-/*
-  3.6.5 translate
-  ( virt -- false | phys.lo ... phys.hi mode true )
-*/
-static void
-mmu_translate(void)
+static int
+spitfire_translate(unsigned long virt, unsigned long *p_phys,
+                   unsigned long *p_data, unsigned long *p_size)
 {
-    unsigned long virt, phys, tag, data, mask;
+    unsigned long phys, tag, data, mask, size;
     unsigned int i;
-
-    virt = POP();
 
     for (i = 0; i < 64; i++) {
         data = spitfire_get_dtlb_data(i);
@@ -104,28 +99,53 @@ mmu_translate(void)
             default:
             case 0x0: // 8k
                 mask = 0xffffffffffffe000ULL;
+                size = PAGE_SIZE_8K;
                 break;
             case 0x1: // 64k
                 mask = 0xffffffffffff0000ULL;
+                size = PAGE_SIZE_64K;
                 break;
             case 0x2: // 512k
                 mask = 0xfffffffffff80000ULL;
+                size = PAGE_SIZE_512K;
                 break;
             case 0x3: // 4M
                 mask = 0xffffffffffc00000ULL;
+                size = PAGE_SIZE_4M;
                 break;
             }
             tag = spitfire_get_dtlb_tag(i);
             if ((virt & mask) == (tag & mask)) {
                 phys = data & mask & 0x000001fffffff000;
                 phys |= virt & ~mask;
-                PUSH(phys & 0xffffffff);
-                PUSH(phys >> 32);
-                PUSH(data & 0xfff);
-                PUSH(-1);
-                return;
+                *p_phys = phys;
+                *p_data = data & 0xfff;
+                *p_size = size;
+                return -1;
             }
         }
+    }
+
+    return 0;
+}
+
+/*
+  3.6.5 translate
+  ( virt -- false | phys.lo ... phys.hi mode true )
+*/
+static void
+mmu_translate(void)
+{
+    unsigned long virt, phys, data, size;
+
+    virt = POP();
+
+    if (spitfire_translate(virt, &phys, &data, &size)) {
+        PUSH(phys & 0xffffffff);
+        PUSH(phys >> 32);
+        PUSH(data);
+        PUSH(-1);
+        return;
     }
     PUSH(0);
 }
@@ -250,6 +270,40 @@ mmu_map(void)
     map_pages(virt, size, phys);
 }
 
+static void
+itlb_demap(unsigned long vaddr)
+{
+    asm("stxa %0, [%0] %1\n"
+        : : "r" (vaddr), "i" (ASI_IMMU_DEMAP));
+}
+
+static void
+dtlb_demap(unsigned long vaddr)
+{
+    asm("stxa %0, [%0] %1\n"
+        : : "r" (vaddr), "i" (ASI_DMMU_DEMAP));
+}
+
+static void
+unmap_pages(unsigned long virt, unsigned long size)
+{
+    unsigned long phys, data;
+
+    unsigned long tte_data, currsize;
+
+    // align size
+    size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
+
+    while (spitfire_translate(virt, &phys, &data, &currsize)) {
+
+        itlb_demap(virt & ~0x1fffULL);
+        dtlb_demap(virt & ~0x1fffULL);
+
+        size -= currsize;
+        virt += currsize;
+    }
+}
+
 /*
   3.6.5 unmap
   ( virt size -- )
@@ -261,7 +315,7 @@ mmu_unmap(void)
 
     size = POP();
     virt = POP();
-    //unmap_pages(virt, size);
+    unmap_pages(virt, size);
 }
 
 /*
