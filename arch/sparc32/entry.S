@@ -344,10 +344,6 @@ highmem:
         bl	1b
          add	%o0, 0x4, %o0
 
-        mov     2, %g1
-        wr      %g1, 0x0, %wim			! make window 1 invalid
-        WRITE_PAUSE
-
         set     trap_table, %g1
         wr      %g1, 0x0, %tbr
 
