@@ -96,7 +96,7 @@
 	 *      I == this window will be the invalid one when we
 	 *           are done and return from trap if successful
 	 */
-#if 0
+
 	/* BEGINNING OF PATCH INSTRUCTIONS */
 
 	/* On 7-window Sparc the boot code patches fnwin_patch1
@@ -106,7 +106,7 @@
 fnwin_patch1_7win:	srl	%t_wim, 6, %twin_tmp2
 fnwin_patch2_7win:	and	%twin_tmp1, 0x7f, %twin_tmp1
 	/* END OF PATCH INSTRUCTIONS */
-#endif
+
 
 	.globl	fill_window_entry, fnwin_patch1, fnwin_patch2
 fill_window_entry:

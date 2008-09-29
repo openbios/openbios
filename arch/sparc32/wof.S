@@ -77,7 +77,7 @@
 
 	.text
 	.align	4
-#if 0
+
 	/* BEGINNING OF PATCH INSTRUCTIONS */
 	/* On a 7-window Sparc the boot code patches spnwin_*
 	 * instructions with the following ones.
@@ -87,7 +87,7 @@ spnwin_patch1_7win:	sll	%t_wim, 6, %glob_tmp
 spnwin_patch2_7win:	and	%glob_tmp, 0x7f, %glob_tmp
 spnwin_patch3_7win:	and	%twin_tmp, 0x7f, %twin_tmp
 	/* END OF PATCH INSTRUCTIONS */
-#endif
+
 	/* The trap entry point has done the following:
 	 *
 	 * rd    %psr, %l0

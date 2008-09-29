@@ -364,6 +364,49 @@ highmem:
         mov     %y, %g2
         st      %g2, [%g1]
 
+        /* Compute NWINDOWS and stash it away. Now uses %wim trick explained
+         * in the V8 manual. Ok, this method seems to work, Sparc is cool...
+         * No, it doesn't work, have to play the save/readCWP/restore trick.
+         */
+
+        wr      %g0, 0x0, %wim                  ! so we do not get a trap
+        WRITE_PAUSE
+
+        save
+
+        rd      %psr, %g3
+
+        restore
+
+        and     %g3, 0x1f, %g3
+        add     %g3, 0x1, %g3
+
+        mov     2, %g1
+        wr      %g1, 0x0, %wim                  ! make window 1 invalid
+        WRITE_PAUSE
+
+        cmp     %g3, 0x7
+        bne     1f
+         nop
+
+        /* Adjust our window handling routines to
+         * do things correctly on 7 window Sparcs.
+         */
+#define PATCH_INSN(src, dest) \
+        set     src, %g5; \
+        set     dest, %g2; \
+        ld      [%g5], %g4; \
+        st      %g4, [%g2];
+
+        /* Patch for window spills... */
+        PATCH_INSN(spnwin_patch1_7win, spnwin_patch1)
+        PATCH_INSN(spnwin_patch2_7win, spnwin_patch2)
+
+        /* Patch for window fills... */
+        PATCH_INSN(fnwin_patch1_7win, fnwin_patch1)
+        PATCH_INSN(fnwin_patch2_7win, fnwin_patch2)
+
+1:
         /* Finally, turn on traps so that we can call c-code. */
         rd	%psr, %g3
         wr	%g3, 0x0, %psr
