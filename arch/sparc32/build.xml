@@ -27,8 +27,8 @@
 	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
  </executable>
  <executable name="target/arch/sparc32/vectors.o" target="target">
-  <rule><![CDATA[ arch/sparc32/vectors.S
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
+  <rule><![CDATA[ arch/sparc32/vectors.S arch/sparc32/wof.S arch/sparc32/wuf.S
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ arch/sparc32/vectors.S]]></rule>
  </executable>
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
