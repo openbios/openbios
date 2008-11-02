@@ -41,12 +41,12 @@ void boot(void)
                     oldpath = "fd()";
                     break;
                 case 'c':
-                    path = strdup("disk");
+                    path = strdup("disk:d");
                     oldpath = "sd(0,0,0):d";
                     break;
                 default:
                 case 'd':
-                    path = strdup("cdrom");
+                    path = strdup("cdrom:b");
                     // FIXME: hardcoding this looks almost definitely wrong.
                     // With sd(0,2,0):b we get to see the solaris kernel though
                     //oldpath = "sd(0,2,0):d";
@@ -86,7 +86,7 @@ void boot(void)
             obp_arg.argv[1] = param;
         }
 
-        romvec = init_openprom(qemu_mem_size);
+        romvec = init_openprom(qemu_mem_size, path);
 
         if (kernel_size) {
             int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);

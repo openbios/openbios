@@ -16,7 +16,7 @@ int linux_load(struct sys_info *, const char *filename, const char *cmdline,
 
 unsigned int start_elf(unsigned long entry_point, unsigned long param);
 
-void *init_openprom(unsigned long memsize);
+void *init_openprom(unsigned long memsize, const char *path);
 void boot(void);
 
 extern struct sys_info sys_info;
