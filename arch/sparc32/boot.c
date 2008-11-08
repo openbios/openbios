@@ -41,12 +41,12 @@ void boot(void)
                     oldpath = "fd()";
                     break;
                 case 'c':
-                    path = strdup("disk:d");
+                    path = strdup("disk");
                     oldpath = "sd(0,0,0):d";
                     break;
                 default:
                 case 'd':
-                    path = strdup("cdrom:b");
+                    path = strdup("cdrom");
                     // FIXME: hardcoding this looks almost definitely wrong.
                     // With sd(0,2,0):b we get to see the solaris kernel though
                     //oldpath = "sd(0,2,0):d";
