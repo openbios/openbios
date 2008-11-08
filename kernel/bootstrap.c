@@ -177,6 +177,9 @@ static void write_dictionary(char *filename)
 		.relocation	= -1,
 		.length		= target_ulong(dicthead),
 		.last		= target_ucell(((unsigned long)last-(unsigned long)dict)),
+                .reserved[0]    = 0,
+                .reserved[1]    = 0,
+                .reserved[2]    = 0,
 	};
 
 	/*

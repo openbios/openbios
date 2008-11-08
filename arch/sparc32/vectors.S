@@ -25,7 +25,7 @@
 
 #define __ASSEMBLY
 #include "psr.h"
-#include "asi.h"
+#include "asm/asi.h"
 #define SER_ADDR5  0x71100004
 #define SER_ADDR10 0xf1100004
 

@@ -8,7 +8,7 @@
  */
 
 #include "psr.h"
-#include "asi.h"
+#include "asm/asi.h"
 #include "asm/crs.h"
 #define __ASSEMBLY__
 #include "openbios/firmware_abi.h"
