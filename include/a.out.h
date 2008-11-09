@@ -128,9 +128,10 @@ enum machine_type {
 #endif
 
 #ifdef linux
-#include <asm/page.h>
 #if defined(__i386__) || defined(__mc68000__)
 #define SEGMENT_SIZE	1024
+#elif defined(__sparc__)
+#define SEGMENT_SIZE    4096
 #else
 #ifndef SEGMENT_SIZE
 #define SEGMENT_SIZE	PAGE_SIZE
