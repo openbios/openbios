@@ -1,6 +1,5 @@
 #include "asm/io.h"
 #include "video_subr.h"
-#include "string.h"
 #include "vga.h"
 
 /*

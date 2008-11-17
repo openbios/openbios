@@ -7,7 +7,7 @@
  */
 
 #include "openbios/config.h"
-#include <asm/types.h>
+#include "asm/types.h"
 #include "sys_info.h"
 
 /*

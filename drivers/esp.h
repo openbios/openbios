@@ -9,7 +9,7 @@
 #define _SPARC_ESP_H
 
 /* For dvma controller register definitions. */
-#include <asm/dma.h>
+#include "asm/dma.h"
 
 /* The ESP SCSI controllers have their register sets in three
  * "classes":

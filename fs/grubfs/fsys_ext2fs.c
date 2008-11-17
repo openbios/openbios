@@ -22,7 +22,7 @@
 #include "openbios/config.h"
 #include "shared.h"
 #include "filesys.h"
-#include <libc/byteorder.h>
+#include "libc/byteorder.h"
 
 #ifdef CONFIG_DEBUG_EXT2FS
 #define E2DEBUG

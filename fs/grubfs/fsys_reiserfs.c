@@ -40,7 +40,7 @@ typedef unsigned long long __u64;
 /* linux/posix_type.h */
 typedef long linux_off_t;
 
-#include <libc/byteorder.h>
+#include "libc/byteorder.h"
 
 /* include/linux/reiser_fs.h */
 /* This is the new super block of a journaling reiserfs system */

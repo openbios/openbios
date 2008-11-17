@@ -21,7 +21,6 @@
 
 #if !defined (__OHW_KBD_H__)
 #define __OHW_KBD_H__
-#include <stdint.h>
 typedef struct kbd_t kbd_t;
 typedef struct keymap_t keymap_t;
 struct kbd_t {

@@ -23,6 +23,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "asm/types.h"
 #include "adb.h"
 #include "kbd.h"
 #include "cuda.h"

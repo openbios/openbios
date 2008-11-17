@@ -8,7 +8,6 @@
  */
 
 #include "openprom.h"
-#include "stdint.h"
 #include "asm/io.h"
 #include "asm/types.h"
 #include "libc/vsprintf.h"

@@ -20,8 +20,6 @@
 #if !defined(__OHW_ADB_H__)
 #define __OHW_ADB_H__
 
-#include <stdint.h>
-
 typedef struct adb_bus_t adb_bus_t;
 typedef struct adb_dev_t adb_dev_t;
 

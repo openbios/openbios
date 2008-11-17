@@ -53,7 +53,7 @@
  */
 #ifdef FSYS_UFS
 
-#include <stdint.h>
+#include "asm/types.h"
 
 #include "shared.h"
 #include "filesys.h"
