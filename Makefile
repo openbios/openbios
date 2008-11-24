@@ -41,6 +41,7 @@ directories: clean
 	@mkdir -p $(ODIR)/target/arch/ppc
 	@mkdir -p $(ODIR)/target/arch/ppc/briq # no autodetection of those..
 	@mkdir -p $(ODIR)/target/arch/ppc/pearpc
+	@mkdir -p $(ODIR)/target/arch/ppc/qemu
 	@mkdir -p $(ODIR)/target/arch/ppc/mol
 	@mkdir -p $(ODIR)/target/arch/x86
 	@mkdir -p $(ODIR)/target/arch/x86/xbox

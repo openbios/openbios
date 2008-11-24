@@ -1,0 +1,137 @@
+/*
+ *   Creation Date: <2004/08/28 18:38:22 greg>
+ *   Time-stamp: <2004/08/28 18:38:22 greg>
+ *
+ *	<init.c>
+ *
+ *	Initialization for qemu
+ *
+ *   Copyright (C) 2004 Greg Watson
+ *   Copyright (C) 2005 Stefan Reinauer
+ *
+ *   based on mol/init.c:
+ *
+ *   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Samuel & David Rydh
+ *      (samuel@ibrium.se, dary@lindesign.se)
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU General Public License
+ *   as published by the Free Software Foundation
+ *
+ */
+
+#include "openbios/config.h"
+#include "openbios/bindings.h"
+#include "openbios/nvram.h"
+#include "qemu/qemu.h"
+#include "ofmem.h"
+#include "openbios-version.h"
+
+extern void unexpected_excep( int vector );
+extern void ob_ide_init( void );
+extern void ob_pci_init( void );
+extern void ob_adb_init( void );
+extern void setup_timers( void );
+
+#if 0
+int
+get_bool_res( const char *res )
+{
+	char buf[8], *p;
+
+	p = BootHGetStrRes( res, buf, sizeof(buf) );
+	if( !p )
+		return -1;
+	if( !strcasecmp(p,"true") || !strcasecmp(p,"yes") || !strcasecmp(p,"1") )
+		return 1;
+	return 0;
+}
+#endif
+
+void
+unexpected_excep( int vector )
+{
+	printk("openbios panic: Unexpected exception %x\n", vector );
+	for( ;; )
+		;
+}
+
+void
+entry( void )
+{
+	printk("\n");
+	printk("=============================================================\n");
+	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
+
+	ofmem_init();
+	initialize_forth();
+	/* won't return */
+
+	printk("of_startup returned!\n");
+	for( ;; )
+		;
+}
+
+static void
+setenv( char *env, char *value )
+{
+	push_str( value );
+	push_str( env );
+	fword("$setenv");
+}
+
+void
+arch_of_init( void )
+{
+#if USE_RTAS
+	phandle_t ph;
+#endif
+	int autoboot;
+
+	devtree_init();
+	nvram_init();
+	modules_init();
+#ifdef CONFIG_DRIVER_PCI
+	ob_pci_init();
+#endif
+#ifdef CONFIG_DRIVER_IDE
+        setup_timers();
+        ob_ide_init();
+#endif
+#ifdef CONFIG_DRIVER_ADB
+	ob_adb_init();
+#endif
+
+	node_methods_init();
+	init_video();
+
+#if USE_RTAS
+	if( !(ph=find_dev("/rtas")) )
+		printk("Warning: No /rtas node\n");
+	else {
+		ulong size = 0x1000;
+		while( size < (ulong)of_rtas_end - (ulong)of_rtas_start )
+			size *= 2;
+		set_property( ph, "rtas-size", (char*)&size, sizeof(size) );
+	}
+#endif
+
+#if 0
+	/* tweak boot settings */
+	autoboot = !!get_bool_res("autoboot");
+#endif
+	autoboot = 0;
+	if( !autoboot )
+		printk("Autobooting disabled - dropping into OpenFirmware\n");
+	setenv("auto-boot?", autoboot ? "true" : "false" );
+	setenv("boot-command", "qemuboot");
+
+#if 0
+	if( get_bool_res("tty-interface") == 1 )
+#endif
+		fword("activate-tty-interface");
+
+	/* hack */
+	device_end();
+	bind_func("qemuboot", boot );
+}

@@ -6,7 +6,8 @@
   <option name="CONFIG_PPC" type="boolean" value="true"/>
   <!--<option name="CONFIG_MOL" type="boolean" value="true"/>-->
   <!--<option name="CONFIG_BRIQ" type="boolean" value="true"/>-->
-  <option name="CONFIG_PEARPC" type="boolean" value="true"/>
+  <!--<option name="CONFIG_PEARPC" type="boolean" value="true"/>-->
+  <option name="CONFIG_QEMU" type="boolean" value="true"/>
   <option name="CONFIG_BIG_ENDIAN" type="boolean" value="true"/>
 
   <!-- Build hosted UNIX Binary -->
@@ -57,7 +58,7 @@
   <option name="CONFIG_DEBUG_FS" type="boolean" value="true"/>
   
   <!-- Miscellaneous -->
-  <option name="CONFIG_LINUXBIOS" type="boolean" value="true"/>
+  <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>
  
   <!-- Drivers -->
   <option name="CONFIG_DRIVER_PCI" type="boolean" value="true"/>

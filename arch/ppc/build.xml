@@ -13,6 +13,12 @@
   <object source="pearpc/pearpc.fs"/>
  </dictionary>
  
+  <dictionary name="openbios-qemu" init="openbios" target="forth" condition="QEMU">
+  <object source="ppc.fs"/>
+  <object source="qemu/tree.fs"/>
+  <object source="qemu/qemu.fs"/>
+ </dictionary>
+
  <dictionary name="openbios-mol" init="openbios" target="forth" condition="MOL">
   <object source="ppc.fs"/>
   <object source="mol/tree.fs"/>
@@ -54,6 +60,23 @@
 	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/pearpc/kernel.c
   ]]></rule>
   <external-object source="target/include/pearpc-dict.h"/>
+ </executable>
+
+ <executable name="target/include/qemu-dict.h" target="target" condition="QEMU">
+  <rule><![CDATA[
+	@echo "static const char forth_dictionary[] = {" > $@
+	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
+					| sed 's/0x  ,//g' >> $@
+	@echo "};" >> $@
+  ]]></rule>
+  <external-object source="openbios-qemu.dict"/>
+ </executable>
+
+ <executable name="target/arch/ppc/qemu/kernel.o" target="target" condition="QEMU">
+  <rule><![CDATA[
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/qemu/kernel.c
+  ]]></rule>
+  <external-object source="target/include/qemu-dict.h"/>
  </executable>
 
  
@@ -112,6 +135,24 @@
   <object source="pearpc/console.c" flags="-Iarch/ppc"/>
  </library>
  
+ <library name="qemu" target="target" type="static" condition="QEMU">
+  <object source="misc.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <object source="ofmem.c"/>
+  <object source="qemu/qemu.c" flags="-Iarch/ppc"/>
+  <object source="qemu/init.c" flags="-Iarch/ppc"/>
+  <external-object source="target/arch/ppc/qemu/kernel.o"/>
+  <object source="qemu/main.c" flags="-Iarch/ppc"/>
+  <object source="qemu/methods.c" flags="-Iarch/ppc"/>
+  <object source="qemu/tree.c" flags="-Iarch/ppc"/>
+  <object source="qemu/vfd.c" flags="-Iarch/ppc"/>
+  <object source="qemu/console.c" flags="-Iarch/ppc"/>
+ </library>
+
  
  <library name="mol" target="target" type="static" condition="MOL">
   <object source="misc.S">
@@ -188,6 +229,34 @@
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
  </executable>
+
+ <executable name="openbios-qemu.elf" target="target" condition="QEMU">
+  <rule>
+	$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@
+	$(NM) $@ | sort > $(ODIR)/openbios-qemu.syms
+	cp $@ $@.nostrip
+	$(STRIP) $@
+  </rule>
+  <object source="start.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <object source="timebase.S">
+   <rule><![CDATA[
+	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
+	$(AS) $@.s $(AS_FLAGS) -o $@
+   ]]></rule>
+  </object>
+  <external-object source="libqemu.a"/>
+  <external-object source="libbootstrap.a"/>
+  <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
+  <external-object source="liblibc.a"/>
+  <external-object source="libfs.a"/>
+ </executable>
+
  
 
  
