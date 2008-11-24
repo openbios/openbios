@@ -9,20 +9,21 @@
 ARCH := ppc
 ODIR := obj-$(ARCH)
 HOSTCC := gcc
-HOSTCFLAGS := -Os -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
+HOSTCFLAGS := -Os -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS) -DSWAP_ENDIANNESS
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 #
 # MOLPATH is needed if you want to build openbios-mol.elf
 # 
 MOLPATH=$(HOME)/mol-0.9.71
 
-CC := powerpc-linux-gcc
-AS := powerpc-linux-as
-AR := powerpc-linux-ar
-LD := powerpc-linux-ld
-NM := powerpc-linux-nm
-STRIP := powerpc-linux-strip
-RANLIB := powerpc-linux-ranlib
+TARGET=powerpc-linux-gnu-
+CC     := $(TARGET)gcc
+AS     := $(TARGET)as
+AR     := $(TARGET)ar
+LD     := $(TARGET)ld
+NM     := $(TARGET)nm
+STRIP  := $(TARGET)strip
+RANLIB := $(TARGET)ranlib
 CFLAGS := -Os -Wall -W -msoft-float -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin-bcopy -fno-builtin-log2
 INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 

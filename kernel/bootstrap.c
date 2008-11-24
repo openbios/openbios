@@ -47,7 +47,7 @@ static FILE *srcfiles[128];
 static unsigned int cursrc = 0;
 
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
-ucell base_address;
+unsigned long base_address;
 #endif
 
 /* include path handling */

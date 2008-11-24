@@ -113,7 +113,7 @@
 #endif
 
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
-extern ucell base_address;
+extern unsigned long base_address;
 #define pointer2cell(x) ((ucell)(((unsigned long)(x))-base_address))
 #define cell2pointer(x) ((u8 *)(((unsigned long)(x))+base_address))
 #define FMT_CELL_x "x"
