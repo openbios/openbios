@@ -10,9 +10,7 @@ extern unsigned long virt_offset;
 
 #ifndef BOOTSTRAP
 
-#ifndef _IO_BASE
-#define _IO_BASE	0x80000000
-#endif
+extern uint32_t isa_io_base;
 
 /*
  * The insw/outsw/insl/outsl macros don't do byte-swapping.
@@ -20,15 +18,15 @@ extern unsigned long virt_offset;
  * are arrays of bytes, and byte-swapping is not appropriate in
  * that case.  - paulus
  */
-#define insw(port, buf, ns)	_insw_ns((uint16_t *)((port)+_IO_BASE), (buf), (ns))
-#define outsw(port, buf, ns)	_outsw_ns((uint16_t *)((port)+_IO_BASE), (buf), (ns))
+#define insw(port, buf, ns)	_insw((uint16_t *)((port)+isa_io_base), (buf), (ns))
+#define outsw(port, buf, ns)	_outsw((uint16_t *)((port)+isa_io_base), (buf), (ns))
 
-#define inb(port)		in_8((uint8_t *)((port)+_IO_BASE))
-#define outb(val, port)		out_8((uint8_t *)((port)+_IO_BASE), (val))
-#define inw(port)		in_le16((uint16_t *)((port)+_IO_BASE))
-#define outw(val, port)		out_le16((uint16_t *)((port)+_IO_BASE), (val))
-#define inl(port)		in_le32((uint32_t *)((port)+_IO_BASE))
-#define outl(val, port)		out_le32((uint32_t *)((port)+_IO_BASE), (val))
+#define inb(port)		in_8((uint8_t *)((port)+isa_io_base))
+#define outb(val, port)		out_8((uint8_t *)((port)+isa_io_base), (val))
+#define inw(port)		in_le16((uint16_t *)((port)+isa_io_base))
+#define outw(val, port)		out_le16((uint16_t *)((port)+isa_io_base), (val))
+#define inl(port)		in_le32((uint32_t *)((port)+isa_io_base))
+#define outl(val, port)		out_le32((uint32_t *)((port)+isa_io_base), (val))
 
 /*
  * 8, 16 and 32 bit, big and little endian I/O operations, with barrier.

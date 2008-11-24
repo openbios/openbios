@@ -53,9 +53,13 @@ unexpected_excep( int vector )
 		;
 }
 
+uint32_t isa_io_base;
+
 void
 entry( void )
 {
+	isa_io_base = 0x80000000;
+
 	printk("\n");
 	printk("=============================================================\n");
 	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );

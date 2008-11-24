@@ -22,6 +22,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "openbios/pci.h"
 #include "openbios/nvram.h"
 #include "qemu/qemu.h"
 #include "ofmem.h"
@@ -33,21 +34,6 @@ extern void ob_pci_init( void );
 extern void ob_adb_init( void );
 extern void setup_timers( void );
 
-#if 0
-int
-get_bool_res( const char *res )
-{
-	char buf[8], *p;
-
-	p = BootHGetStrRes( res, buf, sizeof(buf) );
-	if( !p )
-		return -1;
-	if( !strcasecmp(p,"true") || !strcasecmp(p,"yes") || !strcasecmp(p,"1") )
-		return 1;
-	return 0;
-}
-#endif
-
 void
 unexpected_excep( int vector )
 {
@@ -56,9 +42,34 @@ unexpected_excep( int vector )
 		;
 }
 
+enum {
+    ARCH_PREP = 0,
+    ARCH_MAC99,
+    ARCH_HEATHROW,
+};
+
+pci_arch_t known_arch[] = {
+	[ARCH_PREP] = { "PREP", 0x1057, 0x4801, 0x80800000, 0x800c0000,
+			0x80000000, 0x00100000, 0xf0000000, 0x10000000,
+			0x80000000, 0x00010000, 0x00000000, 0x00400000,
+		      },
+	[ARCH_MAC99] = { "MAC99", 0x106b, 0x001F, 0xf2800000, 0xf2c00000,
+			  0xf2000000, 0x02000000, 0x80000000, 0x10000000,
+			  0xf2000000, 0x00800000, 0x00000000, 0x01000000,
+		       },
+	[ARCH_HEATHROW] = { "HEATHROW", 0x1057, 0x0002, 0xfec00000, 0xfee00000,
+			    0x80000000, 0x7f000000, 0x80000000, 0x01000000,
+			    0xfe000000, 0x00800000, 0xfd000000, 0x01000000,
+			  },
+};
+pci_arch_t *arch;
+uint32_t isa_io_base;
+
 void
 entry( void )
 {
+	arch = &known_arch[ARCH_HEATHROW];
+	isa_io_base = arch->io_base;
 	printk("\n");
 	printk("=============================================================\n");
 	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
@@ -115,10 +126,9 @@ arch_of_init( void )
 		set_property( ph, "rtas-size", (char*)&size, sizeof(size) );
 	}
 #endif
-
 #if 0
 	/* tweak boot settings */
-	autoboot = !!get_bool_res("autoboot");
+	autoboot = !!getbool("autoboot?");
 #endif
 	autoboot = 0;
 	if( !autoboot )
@@ -127,7 +137,7 @@ arch_of_init( void )
 	setenv("boot-command", "qemuboot");
 
 #if 0
-	if( get_bool_res("tty-interface") == 1 )
+	if( getbool("tty-interface?") == 1 )
 #endif
 		fword("activate-tty-interface");
 
