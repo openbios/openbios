@@ -1,10 +1,13 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "libc/byteorder.h"
+#include "libc/vsprintf.h"
+
 #include "adb.h"
 
 
 #include "cuda.h"
-#define DEBUG_CUDA
+//#define DEBUG_CUDA
 #ifdef DEBUG_CUDA
 #define CUDA_DPRINTF(fmt, args...) \
 	do { printk("CUDA - %s: " fmt, __func__ , ##args); } while (0)
@@ -12,6 +15,9 @@
 #define CUDA_DPRINTF(fmt, args...) do { } while (0)
 #endif
 #define ADB_DPRINTF CUDA_DPRINTF
+
+#define IO_CUDA_OFFSET	0x00016000
+#define IO_CUDA_SIZE	0x00002000
 
 /* VIA registers - spaced 0x200 bytes apart */
 #define RS              0x200           /* skip between registers */
@@ -145,26 +151,157 @@ static int cuda_adb_req (void *host, const uint8_t *snd_buf, int len,
 }
 
 
-cuda_t *cuda_init (uint32_t base)
+DECLARE_UNNAMED_NODE(ob_cuda, INSTALL_OPEN, sizeof(int));
+
+static void
+ob_cuda_initialize (int *idx)
+{
+	extern phandle_t pic_handle;
+	phandle_t ph=get_cur_dev();
+	int props[2];
+
+	push_str("via-cuda");
+	fword("device-type");
+
+	set_int_property(ph, "#address-cells", 1);
+        set_int_property(ph, "#size-cells", 0);
+
+	set_property(ph, "compatible", "cuda", 5);
+
+	props[0] = __cpu_to_be32(IO_CUDA_OFFSET);
+	props[1] = __cpu_to_be32(IO_CUDA_SIZE);
+
+	set_property(ph, "reg", &props, sizeof(props));
+	set_int_property(ph, "interrupt-parent", pic_handle);
+	// HEATHROW
+	set_int_property(ph, "interrupts", 0x12);
+}
+
+static void
+ob_cuda_open(int *idx)
+{
+	RET(-1);
+}
+
+static void
+ob_cuda_close(int *idx)
+{
+}
+
+static void
+ob_cuda_decode_unit(void *private)
+{
+	PUSH(0);
+	fword("decode-unit-pci-bus");
+}
+
+static void
+ob_cuda_encode_unit(void *private)
+{
+	fword("encode-unit-pci");
+}
+
+NODE_METHODS(ob_cuda) = {
+	{ NULL,			ob_cuda_initialize	},
+	{ "open",		ob_cuda_open		},
+	{ "close",		ob_cuda_close		},
+	{ "decode-unit",	ob_cuda_decode_unit	},
+	{ "encode-unit",	ob_cuda_encode_unit	},
+};
+
+DECLARE_UNNAMED_NODE(rtc, INSTALL_OPEN, sizeof(int));
+
+static void
+rtc_open(int *idx)
+{
+	RET(-1);
+}
+
+NODE_METHODS(rtc) = {
+	{ "open",		rtc_open		},
+};
+
+static void
+rtc_init(char *path)
+{
+	phandle_t ph, aliases;
+	char buf[64];
+
+	sprintf(buf, "%s/rtc", path);
+	REGISTER_NAMED_NODE(rtc, buf);
+
+	ph = find_dev(buf);
+	set_property(ph, "device_type", "rtc", 4);
+	set_property(ph, "compatible", "rtc", 4);
+
+	aliases = find_dev("/aliases");
+	set_property(aliases, "rtc", buf, strlen(buf) + 1);
+
+}
+
+cuda_t *cuda_init (char *path, uint32_t base)
 {
     cuda_t *cuda;
+    char buf[64];
 
-    //CUDA_DPRINTF(" base=%08x\n", base);
+    base += IO_CUDA_OFFSET;
+    CUDA_DPRINTF(" base=%08x\n", base);
     cuda = malloc(sizeof(cuda_t));
     if (cuda == NULL)
         return NULL;
+
+    sprintf(buf, "%s/via-cuda", path);
+    REGISTER_NAMED_NODE(ob_cuda, buf);
+
     cuda->base = base;
     cuda_writeb(cuda, B, cuda_readb(cuda, B) | TREQ | TIP);
+#ifdef CONFIG_DRIVER_ADB
     cuda->adb_bus = adb_bus_new(cuda, &cuda_adb_req);
     if (cuda->adb_bus == NULL) {
         free(cuda);
         return NULL;
     }
-    adb_bus_init(cuda->adb_bus);
+    adb_bus_init(buf, cuda->adb_bus);
+#endif
+
+    rtc_init(buf);
 
     return cuda;
 }
 
+#ifdef CONFIG_DRIVER_ADB
+
+DECLARE_UNNAMED_NODE( adb, INSTALL_OPEN, sizeof(int));
+
+static void
+adb_initialize (int *idx)
+{
+	phandle_t ph=get_cur_dev();
+
+	push_str("adb");
+	fword("device-type");
+
+	set_property(ph, "compatible", "adb", 4);
+	set_int_property(ph, "#address-cells", 1);
+	set_int_property(ph, "#size-cells", 0);
+}
+
+static void
+adb_open(int *idx)
+{
+	RET(-1);
+}
+
+static void
+adb_close(int *idx)
+{
+}
+
+NODE_METHODS( adb ) = {
+	{ NULL,			adb_initialize		},
+	{ "open",		adb_open		},
+	{ "close",		adb_close		},
+};
 
 adb_bus_t *adb_bus_new (void *host,
                         int (*req)(void *host, const uint8_t *snd_buf,
@@ -184,8 +321,9 @@ adb_bus_t *adb_bus_new (void *host,
 /* Check and relocate all ADB devices as suggested in
  *  * ADB_manager Apple documentation
  *   */
-int adb_bus_init (adb_bus_t *bus)
+int adb_bus_init (char *path, adb_bus_t *bus)
 {
+	char buf[64];
     uint8_t buffer[ADB_BUF_SIZE];
     uint8_t adb_addresses[16] =
         { 8, 9, 10, 11, 12, 13, 14, -1, -1, -1, -1, -1, -1, -1, 0, };
@@ -194,6 +332,8 @@ int adb_bus_init (adb_bus_t *bus)
     int reloc = 0, next_free = 7;
     int keep;
 
+	sprintf(buf, "%s/adb", path);
+    REGISTER_NAMED_NODE( adb, buf);
     /* Reset the bus */
     // ADB_DPRINTF("\n");
     adb_reset(bus);
@@ -258,11 +398,11 @@ int adb_bus_init (adb_bus_t *bus)
                     break;
                 case ADB_KEYBD:
                     ADB_DPRINTF("Found one keyboard on address %d\n", address);
-                    adb_kbd_new(*cur);
+                    adb_kbd_new(buf, *cur);
                     break;
                 case ADB_MOUSE:
                     ADB_DPRINTF("Found one mouse on address %d\n", address);
-                    //chardev_register(CHARDEV_MOUSE, &adb_mouse_ops, *cur);
+                    adb_mouse_new(buf, *cur);
                     break;
                 case ADB_ABS:
                     ADB_DPRINTF("Found one absolute positioning device\n");
@@ -294,4 +434,4 @@ int adb_bus_init (adb_bus_t *bus)
 
     return 0;
 }
-
+#endif

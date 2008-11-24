@@ -15,6 +15,6 @@ enum {
 };
 
 
-cuda_t *cuda_init (uint32_t base);
+cuda_t *cuda_init (char *path, uint32_t base);
 
 

@@ -31,7 +31,6 @@
 extern void unexpected_excep( int vector );
 extern void ob_ide_init( void );
 extern void ob_pci_init( void );
-extern void ob_adb_init( void );
 extern void setup_timers( void );
 
 void
@@ -112,9 +111,6 @@ arch_of_init( void )
 #endif
 #ifdef CONFIG_DRIVER_IDE
         ob_ide_init();
-#endif
-#ifdef CONFIG_DRIVER_ADB
-	ob_adb_init();
 #endif
 
 	node_methods_init();

@@ -35,12 +35,12 @@
 
 \ preopen device nodes (and store the ihandles under /chosen)
 :noname
-  " rtc" " /pci/isa/rtc" preopen
+  " rtc" " rtc" preopen
   " memory" " /memory" preopen
   " mmu" " /cpu@0" preopen
   \ " stdout" " /packages/terminal-emulator" preopen
-  " stdout" " /pci/pci6666,6666" preopen
-  " stdin" " /pci/via-cuda/adb" preopen
+  " stdout" " screen" preopen
+  " stdin" " adb-keyboard" preopen
 
 ; SYSTEM-initializer
 
@@ -93,8 +93,8 @@
 \ use the tty interface if available
 : activate-tty-interface
   " /packages/terminal-emulator" find-dev if drop
-    " /pci/via-cuda/adb" " input-device" $setenv
-    " /pci/pci6666,6666" " output-device" $setenv
+    " adb-keyboard" " input-device" $setenv
+    " screen" " output-device" $setenv
   then
 ;
 

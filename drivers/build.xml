@@ -6,7 +6,7 @@
   <object source="timer.c" condition="DRIVER_IDE"/>
   <object source="kbd.c"   condition="DRIVER_ADB"/>
   <object source="adb.c"   condition="DRIVER_ADB"/>
-  <object source="cuda.c"  condition="DRIVER_ADB"/>
+  <object source="cuda.c"  condition="DRIVER_PCI"/>
   <object source="floppy.c" condition="DRIVER_FLOPPY"/>
   <object source="iommu.c" condition="DRIVER_SBUS"/>
   <object source="sbus.c"  condition="DRIVER_SBUS"/>
@@ -20,7 +20,6 @@
  <dictionary name="openbios" target="forth">
   <object source="pci.fs" condition="DRIVER_PCI"/>
   <object source="ide.fs" condition="DRIVER_IDE"/>
-  <object source="adb.fs" condition="DRIVER_ADB"/>
   <object source="sbus.fs" condition="DRIVER_SBUS"/>
   <object source="esp.fs" condition="DRIVER_ESP"/>
  </dictionary>

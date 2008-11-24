@@ -71,7 +71,7 @@ void adb_bus_reset (adb_bus_t *bus);
 adb_bus_t *adb_bus_new (void *host,
                         int (*req)(void *host, const uint8_t *snd_buf,
                                    int len, uint8_t *rcv_buf));
-int adb_bus_init (adb_bus_t *bus);
+int adb_bus_init (char *path, adb_bus_t *bus);
 
 static inline int adb_reset (adb_bus_t *bus)
 {
@@ -99,7 +99,7 @@ static inline int adb_reg_set (adb_dev_t *dev, uint8_t reg,
     return adb_cmd(dev, ADB_LISTEN, reg, buf, len);
 }
 
-void *adb_kbd_new (void *private);
+void *adb_kbd_new (char *path, void *private);
 
 
 #endif /* !defined(__OHW_ADB_H__) */

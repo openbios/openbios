@@ -27,8 +27,10 @@
 #include "adb.h"
 #include "kbd.h"
 #include "cuda.h"
+#include "libc/byteorder.h"
+#include "libc/vsprintf.h"
 
-#define DEBUG_ADB 1
+//#define DEBUG_ADB 1
 
 #ifdef DEBUG_ADB
 #define ADB_DPRINTF(fmt, args...) \
@@ -37,7 +39,28 @@ do { printk("ADB - %s: " fmt, __func__ , ##args); } while (0)
 #define ADB_DPRINTF(fmt, args...) do { } while (0)
 #endif
 
-DECLARE_NODE( adb, INSTALL_OPEN, 0, "/pci/via-cuda/adb" );
+static void adb_read(void);
+
+DECLARE_UNNAMED_NODE( keyboard, INSTALL_OPEN, sizeof(int));
+
+static void
+keyboard_open(int *idx)
+{
+	RET(-1);
+}
+
+static void
+keyboard_close(int *idx)
+{
+}
+
+static void keyboard_read(void);
+
+NODE_METHODS( keyboard ) = {
+	{ "open",		keyboard_open		},
+	{ "close",		keyboard_close		},
+	{ "read",               keyboard_read		},
+};
 
 /* ADB US keyboard translation map
  * XXX: for now, only shift modifier is defined
@@ -424,13 +447,8 @@ struct adb_kbd_t {
     int next_key;
 };
 
-
-
-
-
-static adb_kbd_t *my_adb_kbd;
-adb_dev_t *my_adb_dev;
-//={ NULL, NULL, 2, 1, (unsigned int)0x80816000 };
+static adb_kbd_t *my_adb_kbd = NULL;
+static adb_dev_t *my_adb_dev = NULL;
 
 static int adb_kbd_read (void *private)
 {
@@ -441,7 +459,6 @@ static int adb_kbd_read (void *private)
     int ret;
 
     kbd = (void *)dev->state;
-    //ADB_DPRINTF("enter\n");
     /* Get saved state */
     ret = -1;
     for (key = -1; key == -1; ) {
@@ -449,9 +466,8 @@ static int adb_kbd_read (void *private)
             key = kbd->next_key;
             kbd->next_key = -1;
         } else {
-            if (adb_reg_get(dev, 0, buffer) != 2) {
-                goto out;
-            }
+            if (adb_reg_get(dev, 0, buffer) != 2)
+		break;
             kbd->next_key = buffer[1] == 0xFF ? -1 : buffer[1];
             key = buffer[0];
         }
@@ -459,42 +475,99 @@ static int adb_kbd_read (void *private)
         ADB_DPRINTF("Translated %d (%02x) into %d (%02x)\n",
                     key, key, ret, ret);
     }
- out:
 
     return ret;
 }
 
 
-void *adb_kbd_new (void *private)
+void *adb_kbd_new (char *path, void *private)
 {
-    adb_kbd_t *kbd=my_adb_kbd;
+	char buf[64];
+	int props[1];
+	phandle_t ph, aliases;
+    adb_kbd_t *kbd;
+    adb_dev_t *dev = private;
+    kbd = (adb_kbd_t*)malloc(sizeof(adb_kbd_t));
+    if (kbd != NULL) {
+        memset(kbd, 0, sizeof(adb_kbd_t));
+        kbd_set_keymap(&kbd->kbd, sizeof(ADB_kbd_us) / sizeof(keymap_t),
+			ADB_kbd_us);
+        kbd->next_key = -1;
+	dev->state = (int32_t)kbd;
+	my_adb_dev = dev;
+    }
 
-    memset(kbd, 0, sizeof(adb_kbd_t));
-    kbd_set_keymap(&kbd->kbd, sizeof(ADB_kbd_us) / sizeof(keymap_t), ADB_kbd_us);
-    kbd->next_key = -1;
-    
-    //my_adb_dev.state=(unsigned int)my_adb_kbd;
-    my_adb_dev=private;
-    return NULL;
+	sprintf(buf, "%s/keyboard", path);
+	REGISTER_NAMED_NODE( keyboard, buf);
+
+	ph = find_dev(buf);
+
+	set_property(ph, "device_type", "keyboard", 9);
+	props[0] = __cpu_to_be32(dev->addr);
+	set_property(ph, "reg", &props, sizeof(props));
+
+	aliases = find_dev("/aliases");
+	set_property(aliases, "adb-keyboard", buf, strlen(buf) + 1);
+
+    return kbd;
 }
 
 /* ( addr len -- actual ) */
-void adb_read(void) 
+static void keyboard_read(void)
 {
 	char *addr;
-	int len, key;
+	int len, key, i;
 	len=POP();
 	addr=(char *)POP();
 	
-	if(len!=1) printk("adb_read: %x %x\n", (unsigned int)addr , len);
-	
-	key=adb_kbd_read(my_adb_dev);
-	//key=-1;
-	if (key!=-1) {
-		*addr=(char)key;
-		PUSH(1);
-	} else
-		PUSH(0);
+	for (i = 0; i < len; i++) {
+		key = adb_kbd_read(my_adb_dev);
+		if (key == -1 || key == -2)
+			break;
+		*addr++ = (char)key;
+	}
+	PUSH(i);
+}
+
+DECLARE_UNNAMED_NODE( mouse, INSTALL_OPEN, sizeof(int));
+
+static void
+mouse_open(int *idx)
+{
+	RET(-1);
+}
+
+static void
+mouse_close(int *idx)
+{
+}
+
+static void mouse_read(void);
+
+NODE_METHODS( mouse ) = {
+	{ "open",		mouse_open		},
+	{ "close",		mouse_close		},
+};
+
+void *adb_mouse_new (char *path, void *private)
+{
+	char buf[64];
+	int props[1];
+	phandle_t ph, aliases;
+	adb_dev_t *dev = private;
+
+	sprintf(buf, "%s/mouse", path);
+	REGISTER_NAMED_NODE( mouse, buf);
+
+	ph = find_dev(buf);
+
+	set_property(ph, "device_type", "mouse", 6);
+	props[0] = __cpu_to_be32(dev->addr);
+	set_property(ph, "reg", &props, sizeof(props));
+	set_int_property(ph, "#buttons", 3);
+
+	aliases = find_dev("/aliases");
+	set_property(aliases, "adb-mouse", buf, strlen(buf) + 1);
 }
 
 
@@ -561,18 +634,3 @@ int adb_cmd (adb_dev_t *dev, uint8_t cmd, uint8_t reg,
 
     return len;
 }
-
-
-NODE_METHODS( adb ) = {
-	{ "read",               adb_read              },
-};
-
-int ob_adb_init(void)
-{
-	printk("Initializing ADB driver\n");
-	cuda_init(0x80800000 + 0x16000);
-	REGISTER_NODE( adb );
-	//adb_kbd_new();
-	return 0;
-}
-
