@@ -146,7 +146,7 @@ fill_rect( int col_ind, int x, int y, int w, int h )
 			while( ww-- )
 				*p++ = col;
 		} else {
-			char *p = (ushort*)pp + x;
+			char *p = (char*)pp + x;
 			while( ww-- )
 				*p++ = col;
 		}
@@ -179,32 +179,9 @@ set_color( int ind, ulong color )
             dac[1] = ((color >> 8) & 0xff) << 24; // Green
             dac[1] = (color & 0xff) << 24; // Blue
         }
-#else
-	vga_set_color(ind, ((color >> 16) & 0xff),
-			   ((color >> 8) & 0xff),
-			   (color & 0xff));
 #endif
 }
 
-void
-video_scroll( int height )
-{
-	int i, x, offs, size, *dest, *src;
-
-	offs = video.fb.rb * height;
-	size = (video.fb.h * video.fb.rb - offs)/16;
-	dest = (int*)video.fb.mphys;
-	src = (int*)(video.fb.mphys + offs);
-
-	for( i=0; i<size; i++ ) {
-		dest[0] = src[0];
-		dest[1] = src[1];
-		dest[2] = src[2];
-		dest[3] = src[3];
-		dest += 4;
-		src += 4;
-	}
-}
 
 /************************************************************************/
 /*	OF methods							*/
@@ -280,18 +257,14 @@ video_write(void)
     PUSH(len);
 }
 
-#if 0
 static void
 video_open(void)
 {
     RET(-1);
 }
-#endif
 
 NODE_METHODS( video ) = {
-#if 0
 	{"open",		video_open		},
-#endif
 	{"dimensions",		video_dimensions	},
 	{"set-colors",		video_set_colors	},
 	{"fill-rectangle",	video_fill_rect		},
@@ -305,15 +278,22 @@ NODE_METHODS( video ) = {
 /************************************************************************/
 
 void
-init_video( uint32_t fb,  int width, int height, int depth, int rb )
+init_video( void )
 {
 	int i, s, size;
-
-	video.fb.mphys = fb;
-	video.fb.w = width;
-	video.fb.h = height;
-	video.fb.depth = depth;
-	video.fb.rb = rb;
+	phandle_t ph=0;
+	
+	if( openbios_GetFBInfo(&video.fb) ) {
+		printk("init_video: No video display\n");
+		return;
+	}
+	while( (ph=dt_iterate_type(ph, "display")) ) {
+		set_property( ph, "width", (char*)&video.fb.w, 4 );
+		set_property( ph, "height", (char*)&video.fb.h, 4 );
+		set_property( ph, "depth", (char*)&video.fb.depth, 4 );
+		set_property( ph, "linebytes", (char*)&video.fb.rb, 4 );
+		set_property( ph, "address", (char*)&video.fb.mphys, 4 );
+	}
 	video.has_video = 1;
 	video.pal = malloc( 256 * sizeof(int) );
 
@@ -326,7 +306,7 @@ init_video( uint32_t fb,  int width, int height, int depth, int rb )
 	ofmem_claim_virt( video.fb.mphys, size, 0 );
 	ofmem_map( video.fb.mphys, video.fb.mphys, size, -1 );
 #endif
-
+		
 	for( i=0; i<256; i++ )
 		set_color( i, i * 0x010101 );
 	
