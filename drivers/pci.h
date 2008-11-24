@@ -4,6 +4,10 @@
 #define PCI_VENDOR_ID		0x00
 #define PCI_DEVICE_ID		0x02
 
+#define PCI_COMMAND		0x04
+#define  PCI_COMMAND_IO		0x01
+#define  PCI_COMMAND_MEMORY	0x02
+
 #define PCI_STATUS              0x06    /* 16 bits */
 #define  PCI_STATUS_CAP_LIST    0x10    /* Support Capability List */
 #define  PCI_STATUS_66MHZ       0x20    /* Support 66 Mhz PCI 2.1 bus */
@@ -46,6 +50,7 @@
 #define PCI_ROM_ADDRESS_MASK	(~0x7ffUL)
 
 #define PCI_INTERRUPT_LINE      0x3c    /* 8 bits */
+#define PCI_INTERRUPT_PIN       0x3d    /* 8 bits */
 #define PCI_MIN_GNT             0x3e    /* 8 bits */
 #define PCI_MAX_LAT             0x3f    /* 8 bits */
 
