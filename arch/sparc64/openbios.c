@@ -30,19 +30,6 @@
 #define BIOS_CFG_CMD  0x510
 #define BIOS_CFG_DATA 0x511
 
-#define REGISTER_NAMED_NODE( name, path )   do {                        \
-        bind_new_node( name##_flags_, name##_size_,                     \
-                       path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-    } while(0)
-
-#define REGISTER_NODE_METHODS( name, path )   do {                      \
-        const char *paths[1];                                           \
-                                                                        \
-        paths[0] = path;                                                \
-        bind_node( name##_flags_, name##_size_,                         \
-                   paths, 1, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-    } while(0)
-
 static unsigned char intdict[256 * 1024];
 
 // XXX

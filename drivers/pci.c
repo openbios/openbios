@@ -23,11 +23,6 @@
 #include "timer.h"
 #include "pci.h"
 
-#define REGISTER_NAMED_NODE( name, path )   do { \
-	     bind_new_node( name##_flags_, name##_size_, \
-			path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-	} while(0)
-
 #define set_bool_property(ph, name) set_property(ph, name, NULL, 0);
 
 /* DECLARE data structures for the nodes.  */

@@ -24,19 +24,6 @@
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 
-#define REGISTER_NAMED_NODE( name, path )   do { \
-	     bind_new_node( name##_flags_, name##_size_, \
-			path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-	} while(0)
-
-#define REGISTER_NODE_METHODS( name, path )   do {                      \
-        const char *paths[1];                                                  \
-                                                                        \
-        paths[0] = path;                                                \
-        bind_node( name##_flags_, name##_size_,                         \
-                   paths, 1, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-    } while(0)
-
 #define	PROMDEV_KBD	0		/* input from keyboard */
 #define	PROMDEV_SCREEN	0		/* output to screen */
 #define	PROMDEV_TTYA	1		/* in/out to ttya */

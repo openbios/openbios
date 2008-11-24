@@ -29,12 +29,6 @@
 #include "hdreg.h"
 #include "timer.h"
 
-#define REGISTER_NAMED_NODE( name, path )   do { \
-	     bind_new_node( name##_flags_, name##_size_, \
-			path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-	} while(0)
-
-
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_ide, INSTALL_OPEN, 2*sizeof(int) );
 DECLARE_UNNAMED_NODE( ob_ide_ctrl, INSTALL_OPEN, sizeof(int));
