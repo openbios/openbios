@@ -131,23 +131,25 @@ typedef struct osi_fb_info {
 } osi_fb_info_t;
 
 
+#define openbios_GetFBInfo(x) Qemu_GetFBInfo(x)
+
+#include "../../../modules/font_8x16.c"
+#include "../../../modules/video.c"
+#include "../../../modules/console.c"
+
+static uint32_t vga_phys_mem;
+static int vga_width, vga_height, vga_depth;
+
 int Qemu_GetFBInfo( osi_fb_info_t *fb )
 {
-
-        fb->w=1024;
-        fb->h=768;
-        fb->depth=15;
-        fb->rb=2048;
-        fb->mphys=0x84000000;
+	fb->mphys = vga_phys_mem;
+	fb->w = vga_width;
+	fb->h = vga_height;
+	fb->depth = vga_depth;
+	fb->rb = fb->w * ((fb->depth + 7) / 8);
 
 	return 0;
 }
-
-#define openbios_GetFBInfo(x) Qemu_GetFBInfo(x)
-
-#include "../../../modules/video.c"
-
-#include "../../../modules/console.c"
 
 /* ******************************************************************
  *      common functions, implementing simple concurrent console

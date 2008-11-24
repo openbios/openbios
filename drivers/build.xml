@@ -14,6 +14,7 @@
   <object source="obio.c"   condition="DRIVER_OBIO"/>
   <object source="vga_load_regs.c" condition="DRIVER_VGA"/>
   <object source="vga_set_mode.c" condition="DRIVER_VGA"/>
+  <object source="vga_vbe.c" condition="DRIVER_VGA"/>
  </library>
 
  <dictionary name="openbios" target="forth">

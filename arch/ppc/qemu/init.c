@@ -118,7 +118,6 @@ arch_of_init( void )
 #endif
 
 	node_methods_init();
-	init_video();
 
 #if USE_RTAS
 	if( !(ph=find_dev("/rtas")) )

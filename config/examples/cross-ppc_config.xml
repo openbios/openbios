@@ -25,7 +25,7 @@
   <option name="CONFIG_DEBUG_INTERPRETER" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_CONSOLE" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_CONSOLE_SERIAL" type="boolean" value="true"/>
-  <option name="CONFIG_SERIAL_PORT" type="boolean" value="true"/>
+  <option name="CONFIG_SERIAL_PORT" type="integer" value="1"/>
   <option name="CONFIG_SERIAL_SPEED" type="integer" value="115200"/>
   <option name="CONFIG_DEBUG_CONSOLE_VGA" type="boolean" value="true"/>
   
@@ -67,6 +67,7 @@
   <option name="CONFIG_IDE_NUM_CHANNELS" type="integer" value="4"/>
   <option name="CONFIG_DEBUG_IDE" type="boolean" value="false"/>
   <option name="CONFIG_DRIVER_ADB" type="boolean" value="true"/>
+  <option name="CONFIG_DRIVER_VGA" type="boolean" value="true"/>
 
 </config>
 

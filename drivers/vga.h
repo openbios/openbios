@@ -90,6 +90,8 @@ void vga_hardware_fixup(void);
 #define SEQ_I   0x3C4           /* Sequencer Index */
 #define PEL_IW  0x3C8           /* PEL Write Index */
 #define PEL_IR  0x3C7           /* PEL Read Index */
+#define DAC_REG 0x3C8		/* DAC register */
+#define DAC_VAL 0x3C9		/* DAC value */
 
 /* standard VGA indexes max counts */
 #define CRTC_C   25              /* 25 CRT Controller Registers sequentially set*/

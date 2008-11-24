@@ -301,11 +301,9 @@ static pci_dev_t vga_devices[] = {
 
 static int vga_config_cb (pci_config_t *config)
 {
-#if 0
 	if (config->regions[0] != 0x00000000)
 		vga_vbe_init(config->path, config->regions[0], config->sizes[0],
 			     config->regions[1], config->sizes[1]);
-#endif
 	return 0;
 }
 

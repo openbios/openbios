@@ -22,6 +22,8 @@
  *
  */
 
+static int depth;
+
 // prototypes
 static int vga_decode_var(const struct screeninfo *var, struct vga_par *par);
 static int vga_set_regs(const struct vga_par *par);
@@ -124,11 +126,7 @@ static const struct screeninfo vga_settings = {
         0,				// activate now
         -1,-1,	// height and width in mm
         0,	// accel flags
-        39721, 	// pixclock: 79442 -> 12.587 Mhz (NOT USED)
-		//  70616 -> 14.161
-		//  39721 -> 25.175
-		//  35308 -> 28.322
-
+        39721, 	// pixclock
 	48, 16, 39, 8, 	// margins left,right,upper,lower
         96, 	// hsync length
 	2,	// vsync length 
