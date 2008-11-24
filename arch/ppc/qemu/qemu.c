@@ -19,13 +19,12 @@
 #include "openbios/config.h"
 #include "openbios/kernel.h"
 #include "openbios/nvram.h"
+#include "openbios/bindings.h"
 #include "libc/vsprintf.h"
 #include "libc/string.h"
 #include "libc/byteorder.h"
 #include "qemu/qemu.h"
 #include <stdarg.h>
-
-#define UART_BASE 0x3f8
 
 // FIXME
 unsigned long virt_offset = 0;
@@ -33,10 +32,10 @@ unsigned long virt_offset = 0;
 //#define DUMP_NVRAM
 
 void
-exit( int status )
+exit( int status __attribute__ ((unused)))
 {
 	for (;;);
-}
+} __attribute__ ((noreturn))
 
 void
 fatal_error( const char *err )
@@ -50,10 +49,6 @@ panic( const char *err )
 {
 	printk("Panic: %s\n", err );
 	exit(0);
-
-	/* won't come here... this keeps the gcc happy */
-	for( ;; )
-		;
 }
 
 
@@ -91,62 +86,6 @@ printk( const char *fmt, ... )
 /************************************************************************/
 /*	TTY iface							*/
 /************************************************************************/
-
-static int ttychar = -1;
-
-static int
-tty_avail( void )
-{
-	return 1;
-}
-
-static int
-tty_putchar( int c )
-{
-	if( tty_avail() ) {
-		while (!(inb(UART_BASE + 0x05) & 0x20))
-			;
-		outb(c, UART_BASE);
-		while (!(inb(UART_BASE + 0x05) & 0x40))
-			;
-	}
-	return c;
-}
-
-int
-availchar( void )
-{
-	if( !tty_avail() )
-		return 0;
-
-	if( ttychar < 0 )
-		ttychar = inb(UART_BASE);
-	return (ttychar >= 0);
-}
-
-int
-getchar( void )
-{
-	int ch;
-
-	if( !tty_avail() )
-		return 0;
-
-	if( ttychar < 0 )
-		return inb(UART_BASE);
-	ch = ttychar;
-	ttychar = -1;
-	return ch;
-}
-
-int
-putchar( int c )
-{
-	if (c == '\n')
-		tty_putchar('\r');
-	return tty_putchar(c);
-}
-
 
 /************************************************************************/
 /*	briQ specific stuff						*/

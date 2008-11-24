@@ -70,6 +70,11 @@ entry( void )
 {
 	arch = &known_arch[ARCH_HEATHROW];
 	isa_io_base = arch->io_base;
+#ifdef CONFIG_DEBUG_CONSOLE
+#ifdef CONFIG_DEBUG_CONSOLE_SERIAL
+	serial_init();
+#endif
+#endif
 	printk("\n");
 	printk("=============================================================\n");
 	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
