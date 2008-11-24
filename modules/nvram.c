@@ -18,6 +18,13 @@
 #include "openbios/bindings.h"
 #include "openbios/nvram.h"
 
+#ifdef CONFIG_DEBUG_NVRAM
+#define DPRINTF(fmt, args...) \
+do { printk("NVRAM: " fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...) do {} while(0)
+#endif
+
 #define DEF_SYSTEM_SIZE	0xc10
 
 #define NV_SIG_SYSTEM	0x70
@@ -77,10 +84,12 @@ next_nvpart( nvpart_t **p )
 		return 1;
 	}
 
-	if( !(len=nvpart_size(*p)) ) {
+	len=nvpart_size(*p);
+	if( len == 0) {
 		printk("invalid nvram partition length\n");
 		return -1;
 	}
+
 	*p = (nvpart_t*)((char*)*p + len);
 	if( *p < end )
 		return 1;
@@ -219,7 +228,7 @@ typedef struct {
 	uint   mark_lo;
 } nvram_ibuf_t;
 
-DECLARE_NODE( nvram, INSTALL_OPEN, sizeof(nvram_ibuf_t), "Tnvram" );
+DECLARE_UNNAMED_NODE( nvram, INSTALL_OPEN, sizeof(nvram_ibuf_t ));
 
 /* ( pos_lo pos_hi -- status ) */
 static void
@@ -228,7 +237,7 @@ nvram_seek( nvram_ibuf_t *nd )
 	int pos_hi = POP();
 	int pos_lo = POP();
 
-	/* printk("NVRAM: seek %08x %08x\n", pos_hi, pos_lo ); */
+	DPRINTF("seek %08x %08x\n", pos_hi, pos_lo );
 	nd->mark_lo = pos_lo;
 	nd->mark_hi = pos_hi;
 
@@ -254,7 +263,7 @@ nvram_read( nvram_ibuf_t *nd )
 		n++;
 	}
 	PUSH(n);
-	/* printk("NVRAM: read %08x %x -- %x\n", (int)p, len, n); */
+	DPRINTF("read %08x %x -- %x\n", (int)p, len, n);
 }
 
 /* ( addr len -- actual ) */
@@ -270,13 +279,14 @@ nvram_write( nvram_ibuf_t *nd )
 		n++;
 	}
 	PUSH(n);
-	/* printk("NVRAM: write %08x %x -- %x\n", (int)p, len, n ); */
+	DPRINTF("write %08x %x -- %x\n", (int)p, len, n );
 }
 
 /* ( -- size ) */
 static void
 nvram_size( __attribute__((unused)) nvram_ibuf_t *nd )
 {
+	DPRINTF("nvram_size %d\n", nvram.size);
 	PUSH( nvram.size );
 }
 
@@ -289,9 +299,9 @@ NODE_METHODS( nvram ) = {
 
 
 void
-nvram_init( void )
+nvram_init( char *path )
 {
 	nvconf_init();
 	
-	REGISTER_NODE( nvram );	
+	REGISTER_NAMED_NODE( nvram, path );
 }

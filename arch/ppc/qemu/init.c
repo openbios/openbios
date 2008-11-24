@@ -100,13 +100,12 @@ arch_of_init( void )
 	int autoboot;
 
 	devtree_init();
-	nvram_init();
 	modules_init();
+	setup_timers();
 #ifdef CONFIG_DRIVER_PCI
 	ob_pci_init();
 #endif
 #ifdef CONFIG_DRIVER_IDE
-        setup_timers();
         ob_ide_init();
 #endif
 #ifdef CONFIG_DRIVER_ADB

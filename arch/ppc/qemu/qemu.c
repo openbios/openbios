@@ -21,6 +21,7 @@
 #include "openbios/nvram.h"
 #include "libc/vsprintf.h"
 #include "libc/string.h"
+#include "libc/byteorder.h"
 #include "qemu/qemu.h"
 #include <stdarg.h>
 
@@ -29,6 +30,7 @@
 // FIXME
 unsigned long virt_offset = 0;
 
+//#define DUMP_NVRAM
 
 void
 exit( int status )
@@ -150,57 +152,84 @@ putchar( int c )
 /*	briQ specific stuff						*/
 /************************************************************************/
 
-#define IO_NVRAM_PA_START 0x80860000
-#define IO_NVRAM_PA_END 0x80880000
+#define IO_NVRAM_SIZE   0x00020000
+#define IO_NVRAM_OFFSET 0x00060000
 
-static char *nvram=(char *)IO_NVRAM_PA_START;
+static char *nvram;
 
+void macio_nvram_init(char *path, uint32_t addr)
+{
+	phandle_t chosen, aliases;
+	phandle_t dnode;
+	int props[2];
+	char buf[64];
+
+	nvram = (char*)addr + IO_NVRAM_OFFSET;
+	sprintf(buf, "%s/nvram", path);
+	nvram_init(buf);
+	dnode = find_dev(buf);
+	set_int_property(dnode, "#bytes", IO_NVRAM_SIZE >> 4);
+	set_property(dnode, "compatible", "nvram,flash", 12);
+	props[0] = __cpu_to_be32(IO_NVRAM_OFFSET);
+	props[1] = __cpu_to_be32(IO_NVRAM_SIZE);
+	set_property(dnode, "reg", &props, sizeof(props));
+	set_property(dnode, "device_type", "nvram", 6);
+
+	chosen = find_dev("/chosen");
+	set_int_property(chosen, "nvram", dnode);
+
+	aliases = find_dev("/aliases");
+	set_property(aliases, "nvram", buf, strlen(buf) + 1);
+}
+
+#ifdef DUMP_NVRAM
 void
 dump_nvram(void)
 {
-  static char hexdigit[] = "0123456789abcdef";
-  int i;
-  for (i = 0; i < 16*4; i++)
+  int i, j;
+  for (i = 0; i < 10; i++)
     {
-      printk ("%c", hexdigit[nvram[i<<4] >> 4]);
-      printk ("%c", hexdigit[nvram[i<<4] % 16]);
-      if (!((i + 1) % 16))
-        {
-          printk ("\n");
-        }
-      else
-        {
-          printk (" ");
-        }
-    }
+      for (j = 0; j < 16; j++)
+      printk ("%02x ", nvram[(i*16+j)<<4]);
+      printk (" ");
+      for (j = 0; j < 16; j++)
+        if (isprint(nvram[(i*16+j)<<4]))
+            printk("%c", nvram[(i*16+j)<<4]);
+        else
+          printk(".");
+      printk ("\n");
+      }
 }
+#endif
 
 
 int
 arch_nvram_size( void )
 {
-	return (IO_NVRAM_PA_END-IO_NVRAM_PA_START)>>4;
+	return IO_NVRAM_SIZE>>4;
 }
 
 void
 arch_nvram_put( char *buf )
 {
 	int i;
-	for (i=0; i<(IO_NVRAM_PA_END-IO_NVRAM_PA_START)>>4; i++)
+	for (i=0; i<IO_NVRAM_SIZE>>4; i++)
 		nvram[i<<4]=buf[i];
-	// memcpy(nvram, buf, IO_NVRAM_PA_END-IO_NVRAM_PA_START);
+#ifdef DUMP_NVRAM
 	printk("new nvram:\n");
 	dump_nvram();
+#endif
 }
 
 void
 arch_nvram_get( char *buf )
 {
 	int i;
-	for (i=0; i<(IO_NVRAM_PA_END-IO_NVRAM_PA_START)>>4; i++)
+	for (i=0; i<IO_NVRAM_SIZE>>4; i++)
 		buf[i]=nvram[i<<4];
 
-	//memcpy(buf, nvram, IO_NVRAM_PA_END-IO_NVRAM_PA_START);
+#ifdef DUMP_NVRAM
 	printk("current nvram:\n");
 	dump_nvram();
+#endif
 }
