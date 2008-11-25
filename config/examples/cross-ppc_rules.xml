@@ -9,7 +9,7 @@
 ARCH := ppc
 ODIR := obj-$(ARCH)
 HOSTCC := gcc
-HOSTCFLAGS := -Os -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS) -DSWAP_ENDIANNESS
+HOSTCFLAGS := -Os -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 #
 # MOLPATH is needed if you want to build openbios-mol.elf
