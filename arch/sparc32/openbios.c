@@ -118,7 +118,7 @@ arch_init( void )
 	ob_obio_init(hwdef->slavio_base, hwdef->fd_offset,
                      hwdef->counter_offset, hwdef->intr_offset,
                      hwdef->aux1_offset, hwdef->aux2_offset);
-        nvram_init();
+        nvconf_init();
 #endif
 #ifdef CONFIG_DRIVER_SBUS
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO

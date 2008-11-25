@@ -21,7 +21,8 @@ extern int	arch_nvram_size( void );
 extern void	arch_nvram_get( char *buf );
 extern void	arch_nvram_put( char *buf );
 
-extern void	nvram_init( void );
+extern void	nvconf_init( void );
+extern void	nvram_init( char *path );
 extern void	update_nvram( void );
 
 #endif   /* _H_NVRAM */

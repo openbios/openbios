@@ -163,7 +163,7 @@ update_nvram( void )
 	arch_nvram_put( nvram.data );
 }
 
-static void
+void
 nvconf_init( void )
 {
 	int once=0;
@@ -219,7 +219,7 @@ typedef struct {
 	uint   mark_lo;
 } nvram_ibuf_t;
 
-DECLARE_NODE( nvram, INSTALL_OPEN, sizeof(nvram_ibuf_t), "Tnvram" );
+DECLARE_UNNAMED_NODE( nvram, INSTALL_OPEN, sizeof(nvram_ibuf_t ));
 
 /* ( pos_lo pos_hi -- status ) */
 static void
@@ -289,9 +289,9 @@ NODE_METHODS( nvram ) = {
 
 
 void
-nvram_init( void )
+nvram_init( char *path )
 {
 	nvconf_init();
 	
-	REGISTER_NODE( nvram );	
+	REGISTER_NAMED_NODE( nvram, path );
 }

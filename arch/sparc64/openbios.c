@@ -833,7 +833,7 @@ arch_init( void )
 	init_video();
 #endif
 
-        nvram_init();
+        nvconf_init();
         ob_su_init(0x1fe02000000ULL, 0x3f8ULL, 0);
 
         device_end();
