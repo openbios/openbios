@@ -19,6 +19,13 @@
 #include "mac-parts.h"
 #include "modules.h"
 
+#ifdef CONFIG_DEBUG_MAC_PARTS
+#define DPRINTF(fmt, args...) \
+do { printk("MAC-PARTS: " fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...) do {} while(0)
+#endif
+
 typedef struct {
 	ullong		offs;
 	ullong		size;
@@ -41,8 +48,6 @@ macparts_open( macparts_info_t *di )
 	desc_map_t dmap;
 	part_entry_t par;
 
-	/* printk("macparts_open '%s'\n", str ); */
-
 	if( str ) {
 		parnum = atol(str);
 		if( !strlen(str) )
@@ -52,6 +57,7 @@ macparts_open( macparts_info_t *di )
 	if( parnum < 0 )
 		parnum = 1;
 
+	DPRINTF("macparts_open %d\n", parnum);
 	SEEK( 0 );
 	if( READ(&dmap, sizeof(dmap)) != sizeof(dmap) )
 		RET(0);
@@ -65,6 +71,12 @@ macparts_open( macparts_info_t *di )
 		READ( &par, sizeof(par) );
 		if( par.pmSig == 0x504d /* 'PM' */ )
 			bs = 512;
+	}
+	if (parnum == 0) {
+		di->offs = (llong)0;
+		di->size = (llong)dmap.sbBlkCount * bs;
+		PUSH( -1 );
+		return;
 	}
 	SEEK( bs );
 	if( READ(&par, sizeof(par)) != sizeof(par) )
@@ -89,7 +101,8 @@ static void
 macparts_probe( macparts_info_t *dummy )
 {
 	desc_map_t *dmap = (desc_map_t*)POP();
-	
+
+	DPRINTF("macparts_probe %x ?= %x\n", dmap->sbSig, DESC_MAP_SIGNATURE);
 	if( dmap->sbSig != DESC_MAP_SIGNATURE )
 		RET(0);
 	RET(-1);
@@ -102,6 +115,7 @@ macparts_get_info( macparts_info_t *di )
 	PUSH( -1 );		/* no type */
 	DPUSH( di->offs );
 	DPUSH( di->size );
+	DPRINTF("macparts_get_info %lld %lld\n", di->offs, di->size);
 }
 
 static void
