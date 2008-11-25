@@ -93,7 +93,7 @@ arch_of_init( void )
 	int autoboot;
 	
 	devtree_init();
-	nvram_init();
+	nvram_init("/pci/mac-io/nvram");
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI
 	ob_pci_init();
