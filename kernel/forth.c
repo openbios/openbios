@@ -6,8 +6,6 @@
  * the copyright and warranty status of this work.
  */
 
-extern uint32_t isa_io_base;
-
 /*
  *  dup         ( x -- x x )
  */
