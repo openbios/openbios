@@ -21,6 +21,7 @@
 
 #include "openbios/drivers.h"
 #include "timer.h"
+#include "openbios/pci.h"
 #include "pci.h"
 
 #define set_bool_property(ph, name) set_property(ph, name, NULL, 0);
