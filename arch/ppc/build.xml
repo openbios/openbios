@@ -102,9 +102,7 @@
  <library name="briq" target="target" type="static" condition="BRIQ">
   <object source="misc.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="ofmem.c"/>
   <object source="briq/briq.c" flags="-Iarch/ppc"/>
@@ -119,9 +117,7 @@
  <library name="pearpc" target="target" type="static" condition="PEARPC">
   <object source="misc.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="ofmem.c"/>
   <object source="pearpc/pearpc.c" flags="-Iarch/ppc"/>
@@ -138,9 +134,7 @@
  <library name="qemu" target="target" type="static" condition="QEMU">
   <object source="misc.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="ofmem.c"/>
   <object source="qemu/qemu.c" flags="-Iarch/ppc"/>
@@ -157,9 +151,7 @@
  <library name="mol" target="target" type="static" condition="MOL">
   <object source="misc.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="ofmem.c"/>
   <object source="mol/init.c" flags="-Iarch/ppc"/>
@@ -184,15 +176,11 @@
   </rule>
   <object source="start.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="timebase.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <external-object source="libbriq.a"/>
   <external-object source="libbootstrap.a"/>
@@ -212,15 +200,11 @@
   </rule>
   <object source="start.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="timebase.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <external-object source="libpearpc.a"/>
   <external-object source="libbootstrap.a"/>
@@ -239,15 +223,11 @@
   </rule>
   <object source="start.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="timebase.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <external-object source="libqemu.a"/>
   <external-object source="libbootstrap.a"/>
@@ -270,9 +250,7 @@
   </rule>
   <object source="start.S">
    <rule><![CDATA[
-	$(CPP) -D__ASSEMBLY__ $(INCLUDES) $< | $(M4) -s $(M4_NO_GNU) | tr ';' '\n' > $@.s
-	$(AS) $@.s $(AS_FLAGS) -o $@
-   ]]></rule>
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <external-object source="libmol.a"/>
   <external-object source="libbootstrap.a"/>

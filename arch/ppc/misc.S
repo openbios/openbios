@@ -20,7 +20,6 @@
  *   
  */
 
-changequote([[[[[,]]]]]) [[[[[  /* shield includes from m4-expansion */
 #include "asm/asmdefs.h"
 #include "asm/processor.h"
 
