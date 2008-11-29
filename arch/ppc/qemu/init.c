@@ -61,7 +61,6 @@ pci_arch_t known_arch[] = {
 			    0xfe000000, 0x00800000, 0xfd000000, 0x01000000,
 			  },
 };
-pci_arch_t *arch;
 uint32_t isa_io_base;
 
 void

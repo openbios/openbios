@@ -54,8 +54,6 @@
 #define PCI_MIN_GNT             0x3e    /* 8 bits */
 #define PCI_MAX_LAT             0x3f    /* 8 bits */
 
-typedef uint32_t pci_addr;
-
 typedef struct {
         u16     signature;
         u8      reserved[0x16];

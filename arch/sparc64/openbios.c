@@ -16,6 +16,8 @@
 #include "openbios/nvram.h"
 #include "sys_info.h"
 #include "openbios.h"
+#include "openbios/pci.h"
+#include "asm/pci.h"
 #include "libc/byteorder.h"
 #define cpu_to_be16(x) __cpu_to_be16(x)
 #include "openbios/firmware_abi.h"
@@ -29,6 +31,10 @@
 
 #define BIOS_CFG_CMD  0x510
 #define BIOS_CFG_DATA 0x511
+
+#define APB_SPECIAL_BASE     0x1fe00000000ULL
+#define PCI_CONFIG           (APB_SPECIAL_BASE + 0x1000000ULL)
+#define APB_MEM_BASE         0x1ff00000000ULL
 
 static unsigned char intdict[256 * 1024];
 
@@ -44,6 +50,26 @@ ohwcfg_v3_t nv_info;
 static char obio_cmdline[OBIO_CMDLINE_MAX];
 
 static uint8_t idprom[32];
+
+struct hwdef {
+    pci_arch_t pci;
+    uint8_t machine_id_low, machine_id_high;
+};
+
+static const struct hwdef hwdefs[] = {
+    {
+        .pci.cfg_addr = PCI_CONFIG,
+        .pci.cfg_data = 0,
+        .pci.cfg_base = 0x80000000ULL,
+        .pci.cfg_len = 0,
+        .pci.mem_base = 0,
+        .pci.mem_len = 0,
+        .pci.io_base = 0,
+        .pci.io_len = 0,
+        .machine_id_low = 0,
+        .machine_id_high = 255,
+    },
+};
 
 struct cpudef {
     unsigned long iu_version;
@@ -818,9 +844,26 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
+        unsigned int i;
+        uint8_t qemu_machine_type;
+        const struct hwdef *hwdef;
+
+        outw(__cpu_to_le16(FW_CFG_MACHINE_ID), BIOS_CFG_CMD);
+        qemu_machine_type = inb(BIOS_CFG_DATA);
+
+        for (i = 0; i < sizeof(hwdefs) / sizeof(struct hwdef); i++) {
+            if (hwdefs[i].machine_id_low <= qemu_machine_type &&
+                hwdefs[i].machine_id_high >= qemu_machine_type) {
+                hwdef = &hwdefs[i];
+                break;
+            }
+        }
+        if (!hwdef)
+            for(;;); // Internal inconsistency, hang
+
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI
-	ob_pci_init();
+        //ob_pci_init();
 #endif
 #ifdef CONFIG_DRIVER_IDE
 	setup_timers();

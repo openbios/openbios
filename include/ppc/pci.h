@@ -3,15 +3,13 @@
 
 #include "asm/io.h"
 
-#if !(PCI_CONFIG_1 || PCI_CONFIG_2)
+#if !(defined(PCI_CONFIG_1) || defined(PCI_CONFIG_2))
 #define PCI_CONFIG_1 1 /* default */
 #endif
 
 #ifdef PCI_CONFIG_1
 
 /* PCI Configuration Mechanism #1 */
-
-extern pci_arch_t *arch;
 
 #define PCI_ADDR(bus, dev, fn) \
     ((pci_addr) (arch->cfg_base \
