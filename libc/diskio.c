@@ -108,7 +108,7 @@ reopen( int fd, const char *filename )
 	
 	push_str( filename );
 	call_package( fdp->reopen_xt, fdp->ih );
-	ret = (POP() == -1)? 0:-1;
+        ret = (POP() == (ucell)-1)? 0 : -1;
 
 	return ret;
 }
@@ -121,7 +121,7 @@ reopen_nwrom( int fd )
 	if( lookup_xt(fdp->ih, "open-nwrom", &fdp->open_nwrom_xt) )
 		return -1;
 	call_package( fdp->open_nwrom_xt, fdp->ih );
-	return (POP() == -1)? 0:-1;
+        return (POP() == (ucell)-1)? 0 : -1;
 }
 
 ihandle_t

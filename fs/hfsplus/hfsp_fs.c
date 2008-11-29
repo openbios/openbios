@@ -98,7 +98,7 @@ root_search_files( fs_ops_t *fs, int recursive, match_proc_t proc, const void *m
 static int 
 match_file( record *r, record *parent, const void *match_data, hfsp_file_t *pt )
 {
-	unsigned char *p = (char*)match_data;
+        const char *p = (const char*)match_data;
 	char name[256];
 	int ret=1;
 	
@@ -340,7 +340,7 @@ file_read( file_desc_t *fd, void *buf, size_t count )
 			max -= t->pos - curpos;
 		}
 		size = (count-act_count > max)? max : count-act_count;
-		memcpy( buf + act_count, &buf2[add], size );
+		memcpy( (char *)buf + act_count, &buf2[add], size );
 		
 		curpos += blksize;
 		act_count += size;

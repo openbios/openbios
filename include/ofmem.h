@@ -29,10 +29,4 @@ extern int 	ofmem_map( ulong phys, ulong virt, ulong size, int mode );
 extern void  	ofmem_release( ulong virt, ulong size );
 extern ulong 	ofmem_translate( ulong virt, ulong *ret_mode );
 
-/* allocations from the private pool */
-extern void	*malloc( int size );
-extern void	free( void *ptr );
-extern void	*realloc( void *ptr, size_t size );
-
-
 #endif   /* _H_OFMEM */

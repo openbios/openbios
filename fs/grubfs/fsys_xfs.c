@@ -97,7 +97,7 @@ ino2offset (xfs_ino_t ino)
 	return ino & XFS_INO_MASK(XFS_INO_OFFSET_BITS);
 }
 
-static inline __const__ __uint16_t
+static inline __uint16_t
 le16 (__uint16_t x)
 {
 #ifdef __i386__
@@ -110,7 +110,7 @@ le16 (__uint16_t x)
 #endif	
 }
 
-static inline __const__ __uint32_t
+static inline __uint32_t
 le32 (__uint32_t x)
 {
 #ifdef __i386__
@@ -130,7 +130,7 @@ le32 (__uint32_t x)
 #endif
 }
 
-static inline __const__ __uint64_t
+static inline __uint64_t
 le64 (__uint64_t x)
 {
 	__uint32_t h = x >> 32;
@@ -195,7 +195,7 @@ fsb2daddr (xfs_fsblock_t fsbno)
 }
 
 #undef offsetof
-#define offsetof(t,m)	((int)&(((t *)0)->m))
+#define offsetof(t,m)	((long)&(((t *)0)->m))
 
 static inline int
 btroot_maxrecs (void)

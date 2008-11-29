@@ -265,9 +265,9 @@ static void obp_reboot(char *str)
     for (;;) {}
 }
 
+extern volatile unsigned char *power_reg;
 static void obp_abort(void)
 {
-    extern volatile unsigned char *power_reg;
 
     printk("abort, power off\n");
     *power_reg = 1;
@@ -277,8 +277,6 @@ static void obp_abort(void)
 
 static void obp_halt(void)
 {
-    extern volatile unsigned char *power_reg;
-
     printk("halt, power off\n");
     *power_reg = 1;
     printk("power off failed\n");

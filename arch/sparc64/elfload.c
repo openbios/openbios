@@ -307,7 +307,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     Elf_phdr *phdr = NULL;
     unsigned long phdr_size;
     unsigned long checksum_offset;
-    unsigned short checksum;
+    unsigned short checksum = 0;
     Elf_Bhdr *boot_notes = NULL;
     int retval = -1;
     int image_retval;

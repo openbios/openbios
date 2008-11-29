@@ -227,4 +227,8 @@ struct screeninfo {
         __u32 reserved[6];              /* Reserved for future compatibility */
 };
 
+void vga_set_gmode (void);
+void vga_set_amode (void);
+void vga_font_load(unsigned char *vidmem, const unsigned char *font, int height,
+                   int num_chars);
 #endif

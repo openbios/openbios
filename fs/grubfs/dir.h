@@ -137,11 +137,5 @@ DIR;
 #ifndef NULL
 #define NULL 0
 #endif
-extern DIR *opendir ();
-extern struct direct *readdir ();
-extern int telldir ();
-extern void seekdir ();
-#define rewinddir(dirp)	seekdir((dirp), (long)0)
-extern void closedir ();
 #endif /* not KERNEL */
 #endif /* _BOOT_UFS_DIR_H_ */

@@ -223,7 +223,7 @@ static void show_floppy(void);
 static void floppy_reset(void);
 
 
-static int set_dor(int fdc, char mask, char data)
+static int set_dor(char mask, char data)
 {
 	unsigned char newdor,olddor;
 
@@ -235,15 +235,6 @@ static int set_dor(int fdc, char mask, char data)
 	}
 	return olddor;
 }
-
-
-static void bounce_motor(void)
-{
-	/* Bounce the drive motor... */
-	outb(fdc_state.dor & ~(0x10<<FD_DRIVE), FD_DOR);
-	outb(fdc_state.dor, FD_DOR);
-}
-
 
 /* waits until the fdc becomes ready */
 static int wait_til_ready(void)
@@ -408,7 +399,7 @@ static void set_drive(int drive)
 #endif
 	new_dor |= (1 << (drive + 4)); /* Spinup the selected drive */
 	new_dor |= drive; /* Select the drive for commands as well */
-	set_dor(fdc, 0xc, new_dor);
+        set_dor(0xc, new_dor);
 
 	mdelay(DRIVE_H1440_SPINUP);
 
@@ -432,7 +423,7 @@ static void floppy_motor_off(int drive)
 	mask = 0xff;
 	mask &= ~(1 << (drive +4));
 	/* Now clear the bit in the Digital Output Register */
-	set_dor(0, mask, 0);
+        set_dor(mask, 0);
 }
 
 /* Set the FDC's data transfer rate on behalf of the specified drive.
@@ -523,7 +514,6 @@ static void fdc_specify(
 		case 1:
 			dtr = 300;
 			if (fdc_state.version >= FDC_82078) {
-				unsigned char cmd[3];
 				/* chose the default rate table, not the one
 				 * where 1 = 2 Mbps */
 				cmd[0] = FD_DRIVESPEC;
@@ -553,9 +543,6 @@ static void fdc_specify(
 	if (srt > 0xf) {
 		srt = 0xf;
 	} 
-	if (srt < 0 ) {
-		srt = 0;
-	}
 
 	hlt = (head_load_time*scale_dtr/2 + NOMINAL_DTR - 1)/NOMINAL_DTR;
 	if (hlt < 0x01)
@@ -726,7 +713,6 @@ static int floppy_seek(unsigned track)
 	if (success)
 		drive_state[FD_DRIVE].track = track;
 	else {
-		int i;
 		printk_debug("seek failed\n");
 		printk_debug("nr = %d\n", nr);
 		printk_debug("ST0 = %02x\n", reply[0]);
@@ -906,21 +892,23 @@ static int __floppy_read(char *dest, unsigned long offset, unsigned long length)
 	return -1;
 }
 
-int floppy_read(char *dest, unsigned long offset, unsigned long length)
+static int floppy_read(char *dest, unsigned long offset, unsigned long length)
 {
-	int result, bytes_read;;
+        int fr_result, bytes_read;;
+
 	printk_debug("floppy_read\n");
 	bytes_read = 0;
 	do {
 		int max_errors = 3;
 		do {
-			result = __floppy_read(dest + bytes_read, offset, length - bytes_read);
+                        fr_result = __floppy_read(dest + bytes_read, offset,
+                                                  length - bytes_read);
 			if (max_errors-- == 0) {
 				return (bytes_read)?bytes_read: -1;
 			}
-		} while (result <= 0);
-		offset += result;
-		bytes_read += result;
+                } while (fr_result <= 0);
+                offset += fr_result;
+                bytes_read += fr_result;
 	} while(bytes_read < length);
 	return bytes_read;
 }
@@ -1005,7 +993,7 @@ static char get_fdc_version(void)
 } /* get_fdc_version */
 
 
-int floppy_init(void)
+static int floppy_init(void)
 {
 	printk_debug("floppy_init\n");
 	fdc_state.in_sync = 0;
@@ -1041,13 +1029,6 @@ static void floppy_reset(void)
 	fdc_state.in_sync = 1;
 }
 
-void floppy_fini(void)
-{
-	/* Disable the floppy and the floppy drive controller */
-	set_dor(0, 0, 0);
-}
-
-
 static void
 ob_floppy_initialize(int *idx)
 {
@@ -1068,7 +1049,7 @@ ob_floppy_initialize(int *idx)
 static void
 ob_floppy_open(int *idx)
 {
-        int ret=1, len;
+        int ret = 1;
         phandle_t ph;
 
         fword("my-unit");

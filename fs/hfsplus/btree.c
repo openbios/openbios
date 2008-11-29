@@ -38,7 +38,7 @@
  *
  * return pointer after reading the structure
  */
-static void* btree_readnode(btree* bt, btree_node_desc* node, void *p)
+static void* btree_readnode(btree_node_desc* node, void *p)
 {
     node->next	    = bswabU32_inc(p);
     node->prev	    = bswabU32_inc(p);
@@ -53,7 +53,7 @@ static void* btree_readnode(btree* bt, btree_node_desc* node, void *p)
  *
  * return pointer after reading the structure
  */
-static void* btree_readhead(btree* bt, btree_head* head, void *p)
+static void* btree_readhead(btree_head* head, void *p)
 {
 	UInt32 *q;
         head->depth	    = bswabU16_inc(p);
@@ -153,7 +153,7 @@ static node_buf* node_cache_load_buf
 	return NULL;	// evil ...
 
     result->index   = node_index;
-    btree_readnode(bt, &result->desc, p);
+    btree_readnode(&result->desc, p);
 
     e -> priority   = result->desc.height * DEPTH_FACTOR;
     e -> index	    = node_index;
@@ -229,10 +229,10 @@ static int btree_init(btree* bt, volume* vol, hfsp_fork_raw* fork)
 		 HFSP_EXTENT_DATA, bt->cnid);
     if (!p)
 	return -1;
-    p = btree_readnode(bt, &node, p);
+    p = btree_readnode(&node, p);
     if (node.kind != HFSP_NODE_HEAD)
 	return -1;   // should not happen ?
-    p = btree_readhead(bt, &bt->head, p);
+    p = btree_readhead(&bt->head, p);
 
     node_size = bt->head.node_size;
     bt->blkpernode = node_size / vol->blksize;

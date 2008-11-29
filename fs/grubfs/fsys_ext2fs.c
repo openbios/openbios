@@ -587,7 +587,7 @@ ext2fs_dir (char *dirname)
 	 log2 (EXT2_BLOCK_SIZE (SUPERBLOCK) / sizeof (struct ext2_inode)));
       printf ("ext2fs_dir: inode table fsblock=%d\n", ino_blk);
 #endif /* E2DEBUG */
-      if (!ext2_rdfsb (ino_blk, INODE))
+      if (!ext2_rdfsb (ino_blk, (char *)INODE))
 	{
 	  return 0;
 	}

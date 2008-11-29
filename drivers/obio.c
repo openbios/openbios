@@ -831,7 +831,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 
     ob_new_obio_device("eeprom", NULL);
 
-    nvram = (char *)ob_reg(base, offset, NVRAM_SIZE, 1);
+    nvram = (unsigned char *)ob_reg(base, offset, NVRAM_SIZE, 1);
 
     PUSH((unsigned long)nvram);
     fword("encode-int");

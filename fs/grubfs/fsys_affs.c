@@ -56,7 +56,7 @@ struct PartitionBlock
     unsigned long   pb_Flags;
     unsigned long   pb_Reserved1[2];
     unsigned long   pb_DevFlags;
-    unsigned char   pb_DriveName[32];
+    char            pb_DriveName[32];
     unsigned long   pb_Reserved2[15];
     unsigned long   pb_Environment[20];
     unsigned long   pb_EReserved[12];
@@ -201,7 +201,7 @@ struct ReadData {
 	unsigned int filesize;
 };
 
-#warning "Big vs. little endian for configure needed"
+//#warning "Big vs. little endian for configure needed"
 #define AROS_BE2LONG(l)	\
 	(                                  \
 	    ((((unsigned long)(l)) >> 24) & 0x000000FFUL) | \
@@ -240,7 +240,8 @@ int blockoffset; /* offset if there is an embedded RDB partition */
 int rootb;       /* block number of root block */
 int rdbb;        /* block number of rdb block */
 
-void initCache() {
+static void initCache(void)
+{
 int i;
 
 	for (i=0;i<MAX_CACHE_BLOCKS;i++)
@@ -251,7 +252,8 @@ int i;
 	}
 }
 
-struct CacheBlock *getBlock(unsigned int block) {
+static struct CacheBlock *getBlock(unsigned int block)
+{
 struct CacheBlock *freeblock;
 int i;
 
@@ -278,7 +280,8 @@ int i;
 	return freeblock;
 }
 
-unsigned int calcChkSum(unsigned short SizeBlock, unsigned int *buffer) {
+static unsigned int calcChkSum(unsigned short SizeBlock, unsigned int *buffer)
+{
 unsigned int sum=0,count=0;
 
 	for (count=0;count<SizeBlock;count++)
@@ -337,7 +340,8 @@ int i;
 	return 1;
 }
 
-int seek(unsigned long offset) {
+static int seek(unsigned long offset)
+{
 struct CacheBlock *cblock;
 unsigned long block;
 unsigned long togo;
@@ -391,7 +395,7 @@ unsigned int readbytes = 0;
 			{
 				cblock = getBlock(fsysb->file.current.block);
 			}
-#warning "else shouldn't occour"
+                        //#warning "else shouldn't occour"
 		}
 		size = 512;
 		size -= fsysb->file.current.byte;
@@ -405,7 +409,7 @@ unsigned int readbytes = 0;
 						extensionBlock(cblock)->filekey_table
 							[fsysb->file.current.filekey]
 					)+blockoffset,
-					fsysb->file.current.byte, size, (char *)((int)buf+readbytes)
+					fsysb->file.current.byte, size, (char *)((long)buf+readbytes)
 				);
 			fsysb->file.current.byte += size;
 		}
@@ -418,7 +422,7 @@ unsigned int readbytes = 0;
 						extensionBlock(cblock)->filekey_table
 							[fsysb->file.current.filekey]
 					)+blockoffset,
-					fsysb->file.current.byte, size, (char *)((int)buf+readbytes)
+					fsysb->file.current.byte, size, (char *)((long)buf+readbytes)
 				);
 			fsysb->file.current.byte = 0;
 			fsysb->file.current.filekey--;
@@ -432,7 +436,8 @@ unsigned int readbytes = 0;
 	return readbytes;
 }
 
-unsigned char capitalch(unsigned char ch, unsigned char flags) {
+static unsigned char capitalch(unsigned char ch, unsigned char flags)
+{
 
 	if ((flags==0) || (flags==1))
 		return (unsigned char)((ch>='a') && (ch<='z') ? ch-('a'-'A') : ch);
@@ -442,7 +447,8 @@ unsigned char capitalch(unsigned char ch, unsigned char flags) {
 }
 
 // str2 is a BCPL string
-int noCaseStrCmp(char *str1, char *str2, unsigned char flags) {
+static int noCaseStrCmp(char *str1, char *str2, unsigned char flags)
+{
 unsigned char length;
 
 	length=str2++[0];
@@ -456,7 +462,8 @@ unsigned char length;
 	return (*str1) ? 1 : -1;
 }
 
-unsigned int getHashKey(char *name,unsigned int tablesize, unsigned char flags) {
+static unsigned int getHashKey(char *name,unsigned int tablesize, unsigned char flags)
+{
 unsigned int length;
 	
 	length=0;
@@ -467,7 +474,8 @@ unsigned int length;
 	return length%tablesize;
 }
 
-grub_error_t getHeaderBlock(char *name, struct CacheBlock **dirh) {
+static grub_error_t getHeaderBlock(char *name, struct CacheBlock **dirh)
+{
 int key;
 
 	key = getHashKey(name, 72, 1);
@@ -501,8 +509,8 @@ printf("ghb2: %d\n", (*dirh)->blocknum);
 	return 0;
 }
 
-char *copyPart(char *src, char *dst) {
-
+static char *copyPart(char *src, char *dst)
+{
 	while ((*src != '/') && (*src))
 		*dst++ = *src++;
 	if (*src == '/')
@@ -514,7 +522,8 @@ char *copyPart(char *src, char *dst) {
 	return src;
 }
 
-grub_error_t findBlock(char *name, struct CacheBlock **dirh) {
+static grub_error_t findBlock(char *name, struct CacheBlock **dirh)
+{
 char dname[32];
 int block;
 
@@ -571,7 +580,8 @@ int block;
 	return 0;
 }
 
-void checkPossibility(char *filename, char *bstr) {
+static void checkPossibility(char *filename, char *bstr)
+{
 
 #ifndef STAGE1_5
 	char cstr[32];
@@ -668,7 +678,7 @@ int affs_dir(char *dirname)
 	fname = filename;
 	while (*fname)
 	    *current++ = *fname++;
-#warning "TODO: add some more chars until posibilities differ"
+        //#warning "TODO: add some more chars until possibilities differ"
 	if (print_possibilities>0)
 	    errnum = ERR_FILE_NOT_FOUND;
 	return (print_possibilities<0);

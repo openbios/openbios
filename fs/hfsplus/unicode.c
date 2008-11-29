@@ -79,8 +79,8 @@ SInt32 fast_unicode_compare ( const hfsp_unistr255 *ustr1,
     register UInt16	length1 = ustr1->strlen;
     register UInt16	length2 = ustr2->strlen;
     register const UInt16* lowerCaseTable = gLowerCaseTable;
-    register UInt16*	str1 = ustr1->name;
-    register UInt16*	str2 = ustr2->name;
+    register const UInt16* str1 = ustr1->name;
+    register const UInt16* str2 = ustr2->name;
 
     while (1) {
         //  Set default values for c1, c2 in case there are no more valid chars

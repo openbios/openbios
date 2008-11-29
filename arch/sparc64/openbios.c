@@ -58,14 +58,12 @@ struct hwdef {
 
 static const struct hwdef hwdefs[] = {
     {
-        .pci.cfg_addr = PCI_CONFIG,
-        .pci.cfg_data = 0,
-        .pci.cfg_base = 0x80000000ULL,
-        .pci.cfg_len = 0,
-        .pci.mem_base = 0,
-        .pci.mem_len = 0,
-        .pci.io_base = 0,
-        .pci.io_len = 0,
+        .pci = {
+            .cfg_addr = PCI_CONFIG,
+            .cfg_data = 0,
+            .cfg_base = 0x80000000ULL,
+            .cfg_len = 0,
+        },
         .machine_id_low = 0,
         .machine_id_high = 255,
     },

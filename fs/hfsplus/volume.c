@@ -115,7 +115,7 @@ volume_readfork(void *p, hfsp_fork_raw* f)
  * ToDo: add more consitency checks. 
  */
 static int 
-volume_readbuf(volume * vol, hfsp_vh* vh, void* p)
+volume_readbuf(volume * vol, hfsp_vh* vh, char * p)
 {
 	if(  (vh->signature = bswabU16_inc(p)) != HFSP_VOLHEAD_SIG) 
 		HFSP_ERROR(-1, "This is not a HFS+ volume");
@@ -168,7 +168,7 @@ volume_read_wrapper(volume * vol, hfsp_vh* vh)
 {
 	UInt16  signature;
 	char	buf[vol->blksize];
-	void	*p = buf;
+        char    *p = buf;
 
 	if( volume_readinbuf(vol, buf, 2) ) // Wrapper or volume header starts here
 		return -1;

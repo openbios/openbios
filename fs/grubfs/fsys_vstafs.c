@@ -30,8 +30,8 @@ static struct dir_entry *vstafs_nextdir (void);
 
 
 #define FIRST_SECTOR	((struct first_sector *) FSYS_BUF)
-#define FILE_INFO	((struct fs_file *) (int) FIRST_SECTOR + 8192)
-#define DIRECTORY_BUF	((struct dir_entry *) (int) FILE_INFO + 512)
+#define FILE_INFO       ((struct fs_file *) (long) FIRST_SECTOR + 8192)
+#define DIRECTORY_BUF   ((struct dir_entry *) (long) FILE_INFO + 512)
 
 #define ROOT_SECTOR	1
 
@@ -39,7 +39,6 @@ static struct dir_entry *vstafs_nextdir (void);
  * In f_sector we store the sector number in which the information about
  * the found file is.
  */
-extern int filepos;
 static int f_sector;
 
 int 
@@ -63,7 +62,7 @@ get_file_info (int sector)
 }
 
 static int curr_ext, current_direntry, current_blockpos;
-static struct alloc *a;
+static struct alloc *a1;
 
 static struct dir_entry *
 vstafs_readdir (long sector)
@@ -78,9 +77,9 @@ vstafs_readdir (long sector)
       return 0;
     }
   
-  a = FILE_INFO->blocks;
+  a1 = FILE_INFO->blocks;
   curr_ext = 0;
-  devread (a[curr_ext].a_start, 0, 512, (char *) DIRECTORY_BUF);
+  devread (a1[curr_ext].a_start, 0, 512, (char *) DIRECTORY_BUF);
   current_direntry = 11;
   current_blockpos = 0;
   
@@ -93,7 +92,7 @@ vstafs_nextdir (void)
   if (current_direntry > 15)
     {
       current_direntry = 0;
-      if (++current_blockpos > (a[curr_ext].a_len - 1))
+      if (++current_blockpos > (a1[curr_ext].a_len - 1))
 	{
 	  current_blockpos = 0;
 	  curr_ext++;
@@ -101,8 +100,8 @@ vstafs_nextdir (void)
       
       if (curr_ext < FILE_INFO->extents)
 	{
-	  devread (a[curr_ext].a_start + current_blockpos, 0,
-		   512, (char *) DIRECTORY_BUF);
+            devread (a1[curr_ext].a_start + current_blockpos, 0,
+                     512, (char *) DIRECTORY_BUF);
 	}
       else
 	{
@@ -188,35 +187,35 @@ vstafs_dir (char *dirname)
 int 
 vstafs_read (char *addr, int len)
 {
-  struct alloc *a;
+  struct alloc *a2;
   int size, ret = 0, offset, curr_len = 0;
-  int curr_ext;
+  int curr_ext2;
   char extent;
   int ext_size;
   char *curr_pos;
   
   get_file_info (f_sector);
   size = FILE_INFO->len-VSTAFS_START_DATA;
-  a = FILE_INFO->blocks;
+  a2 = FILE_INFO->blocks;
   
   if (filepos > 0)
     {
-      if (filepos < a[0].a_len * 512 - VSTAFS_START_DATA)
+      if (filepos < a2[0].a_len * 512 - VSTAFS_START_DATA)
 	{
 	  offset = filepos + VSTAFS_START_DATA;
 	  extent = 0;
-	  curr_len = a[0].a_len * 512 - offset - filepos; 
+          curr_len = a2[0].a_len * 512 - offset - filepos;
 	}
       else
 	{
-	  ext_size = a[0].a_len * 512 - VSTAFS_START_DATA;
+          ext_size = a2[0].a_len * 512 - VSTAFS_START_DATA;
 	  offset = filepos - ext_size;
 	  extent = 1;
 	  do
 	    {
 	      curr_len -= ext_size;
 	      offset -= ext_size;
-	      ext_size = a[extent+1].a_len * 512;
+              ext_size = a2[extent+1].a_len * 512;
 	    }
 	  while (extent < FILE_INFO->extents && offset>ext_size);
 	}
@@ -225,16 +224,16 @@ vstafs_read (char *addr, int len)
     {
       offset = VSTAFS_START_DATA;
       extent = 0;
-      curr_len = a[0].a_len * 512 - offset;
+      curr_len = a2[0].a_len * 512 - offset;
     }
   
   curr_pos = addr;
   if (curr_len > len)
     curr_len = len;
   
-  for (curr_ext=extent;
-       curr_ext < FILE_INFO->extents; 
-       curr_len = a[curr_ext].a_len * 512, curr_pos += curr_len, curr_ext++)
+  for (curr_ext2=extent;
+       curr_ext2 < FILE_INFO->extents;
+       curr_len = a2[curr_ext].a_len * 512, curr_pos += curr_len, curr_ext2++)
     {
       ret += curr_len;
       size -= curr_len;
@@ -244,7 +243,7 @@ vstafs_read (char *addr, int len)
 	  curr_len += size;
 	}
       
-      devread (a[curr_ext].a_start,offset, curr_len, curr_pos);
+      devread (a2[curr_ext2].a_start,offset, curr_len, curr_pos);
       offset = 0;
     }
   
