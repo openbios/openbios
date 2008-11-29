@@ -598,7 +598,7 @@ void arch_nvram_get(char *data)
     cmdline_size = size;
     boot_device = nv_info.boot_devices[0];
 
-    printk("kernel addr %lx size %lx\n", kernel_image, kernel_size);
+    printk("kernel addr %llx size %llx\n", kernel_image, kernel_size);
     if (size)
         printk("kernel cmdline %s\n", obio_cmdline);
 

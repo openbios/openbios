@@ -938,7 +938,7 @@ static char get_fdc_version(void)
 	if ((bytes = result(reply_buffer, MAX_REPLIES)) <= 0x00)
 		return FDC_NONE;	/* No FDC present ??? */
 	if ((bytes==1) && (reply_buffer[0] == 0x80)){
-		printk_info("FDC %d is an 8272A\n");
+		printk_info("FDC is an 8272A\n");
 		return FDC_8272A;	/* 8272a/765 don't know DUMPREGS */
 	}
 	if (bytes != 10) {

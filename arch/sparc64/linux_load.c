@@ -574,7 +574,7 @@ static int start_linux(uint32_t kern_addr)
     ctx = switch_to(ctx);
 
     /* It's impossible but... */
-    printf("Returned with o0=%#lx\n", ctx->regs[REG_O0]);
+    printf("Returned with o0=%#llx\n", ctx->regs[REG_O0]);
 
     return ctx->regs[REG_O0];
 }

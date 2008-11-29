@@ -43,8 +43,8 @@
 #define target_ulong(value) (target_long(value))
 
 #if BITS==32
-#define target_ucell(value) (target_long(value))
-#define target_cell(value) (target_long(value))
+#define target_ucell(value) ((ucell)target_long(value))
+#define target_cell(value) ((cell)target_long(value))
 #elif BITS==64
 #ifdef NATIVE_BITWIDTH_LARGER_THAN_HOST_BITWIDTH
 #define target_ucell(value) ( ((ucell)target_long((value)&0xffffffff))<<32 )
@@ -108,8 +108,13 @@
 #ifdef NATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH
 #define pointer2cell(x) ((ucell)(x))
 #define cell2pointer(x) ((u8 *)(x))
+#if BITS==32
 #define FMT_CELL_x "x"
 #define FMT_CELL_d "d"
+#else
+#define FMT_CELL_x "lx"
+#define FMT_CELL_d "ld"
+#endif
 #endif
 
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH

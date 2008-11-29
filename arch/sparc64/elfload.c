@@ -145,7 +145,7 @@ static int load_segments(Elf_phdr *phdr, int phnum,
     for (i = 0; i < phnum; i++) {
 	if (phdr[i].p_type != PT_LOAD)
 	    continue;
-	debug("segment %d addr:%#lx file:%#lx mem:%#lx ",
+	debug("segment %d addr:%#llx file:%#llx mem:%#llx ",
               i, addr_fixup(phdr[i].p_paddr), phdr[i].p_filesz, phdr[i].p_memsz);
 	file_seek(offset + phdr[i].p_offset);
 	debug("loading... ");
@@ -377,7 +377,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     //debug("current time: %lu\n", currticks());
 
-    debug("entry point is %#lx\n", addr_fixup(ehdr.e_entry));
+    debug("entry point is %#llx\n", addr_fixup(ehdr.e_entry));
     printf("Jumping to entry point...\n");
 
 #if 0

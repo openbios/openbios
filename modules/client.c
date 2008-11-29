@@ -97,7 +97,7 @@ of_client_interface( int *params )
 	if( (val=POP()) ) {
 		dstackcnt = dstacksave;
 		if( val == -1 )
-			printk("Unimplemented service %s ([%d] -- [%d])\n",
+			printk("Unimplemented service %s ([%ld] -- [%ld])\n",
 			       pb->service, pb->nargs, pb->nret );
 		return -1;
 	}
