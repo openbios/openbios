@@ -411,7 +411,7 @@ static void buildconstant(char *name, cell defval)
 static void builddefer(char *name)
 {
 	fcreate(name, DODFR);	/* see dict.h for DODFR and other CFA ids */
-	writecell(0);
+        writecell((ucell)0);
 	writecell((ucell)findword("(semis)"));
 }
 
@@ -611,7 +611,7 @@ static int interpret_source(char *fil)
 			writecell(LIT);
 			writecell(pointer2cell(dict) + loco);
 			writecell(LIT);
-			writecell(cnt);
+                        writecell((ucell)cnt);
 			writecell(DOBRANCH);
 			loco = cnt + sizeof(cell) - 1;
 			loco &= ~(sizeof(cell) - 1);
