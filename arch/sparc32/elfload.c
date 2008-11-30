@@ -26,7 +26,7 @@ static void *calloc(size_t nmemb, size_t size)
 
     if (alloc_size < nmemb || alloc_size < size) {
         printf("calloc overflow: %u, %u\n", nmemb, size);
-        return 0;
+        return NULL;
     }
 
     mem = malloc(alloc_size);
@@ -314,7 +314,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
     int image_retval;
     unsigned int offset;
 
-    image_name = image_version = 0;
+    image_name = image_version = NULL;
 
     if (!file_open(filename))
 	goto out;

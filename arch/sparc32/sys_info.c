@@ -3,6 +3,7 @@
 #include "elf_boot.h"
 #include "sys_info.h"
 #include "context.h"
+#include "boot.h"
 
 #define printf printk
 #ifdef CONFIG_DEBUG_BOOT
@@ -20,7 +21,6 @@ void collect_sys_info(struct sys_info *info)
     int i;
     unsigned long long total = 0;
     struct memrange *mmap;
-    extern struct elf_image_note elf_image_notes;
 
     /* Pick up paramters given by bootloader to us */
     //info->boot_type = boot_ctx->eax;

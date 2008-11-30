@@ -156,7 +156,7 @@ struct linux_params {
     uint8_t  reserved17[1792];		/* 0x900 - 0x1000 */
 };
 
-uint64_t forced_memsize;
+static uint64_t forced_memsize;
 
 /* Load the first part the file and check if it's Linux */
 static uint32_t load_linux_header(struct linux_header *hdr)
@@ -293,14 +293,14 @@ static char *parse_command_line(const char *orig_cmdline, char *kern_cmdline)
     unsigned long len;
     int k_len;
     int to_kern;
-    char *initrd = 0;
+    char *initrd = NULL;
     int toolong = 0;
 
     forced_memsize = 0;
 
     if (!orig_cmdline) {
-	*kern_cmdline = 0;
-	return 0;
+        *kern_cmdline = '\0';
+        return NULL;
     }
 
     k_len = 0;
@@ -327,7 +327,7 @@ static char *parse_command_line(const char *orig_cmdline, char *kern_cmdline)
 	    val = sep + 1;
 	    len = end - val;
 	} else {
-	    val = 0;
+            val = NULL;
 	    len = 0;
 	}
 
@@ -434,8 +434,8 @@ static int load_linux_kernel(struct linux_header *hdr, uint32_t kern_addr)
     return kern_size;
 }
 
-static int load_initrd(struct linux_header *hdr, struct sys_info *info,
-	uint32_t kern_end, struct linux_params *params, const char *initrd_file)
+static int load_initrd(struct linux_header *hdr, uint32_t kern_end,
+                       struct linux_params *params, const char *initrd_file)
 {
     uint32_t max;
     uint32_t start, end, size;
@@ -549,7 +549,7 @@ static void hardware_setup(void)
 }
 
 /* Start Linux */
-static int start_linux(uint32_t kern_addr, struct linux_params *params)
+static int start_linux(uint32_t kern_addr)
 {
     struct context *ctx;
     //extern int cursor_x, cursor_y;
@@ -579,13 +579,12 @@ static int start_linux(uint32_t kern_addr, struct linux_params *params)
     return ctx->regs[REG_O0];
 }
 
-int linux_load(struct sys_info *info, const char *file, const char *cmdline,
-               const void *romvec)
+int linux_load(struct sys_info *info, const char *file, const char *cmdline)
 {
     struct linux_header hdr;
     struct linux_params *params;
     uint32_t kern_addr, kern_size;
-    char *initrd_file = 0;
+    char *initrd_file = NULL;
 
     if (!file_open(file))
 	return -1;
@@ -610,7 +609,7 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline,
     }
 
     if (initrd_file) {
-	if (load_initrd(&hdr, info, kern_addr+kern_size, params, initrd_file)
+        if (load_initrd(&hdr, kern_addr+kern_size, params, initrd_file)
 		!= 0) {
 	    free(initrd_file);
 	    return -1;
@@ -620,6 +619,6 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline,
 
     hardware_setup();
 
-    start_linux(kern_addr, params);
+    start_linux(kern_addr);
     return 0;
 }

@@ -11,8 +11,7 @@
 #define printf printk
 #define debug printk
 
-int fcode_load(struct sys_info *info, const char *filename,
-               const char *cmdline)
+int fcode_load(const char *filename)
 {
     int retval = -1;
     uint8_t fcode_header[8];

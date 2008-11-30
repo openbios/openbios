@@ -13,6 +13,7 @@
 
 #ifdef CONFIG_DRIVER_PCI
 int ob_pci_init(void);
+void macio_nvram_init(char *path, uint32_t addr);
 #endif
 #ifdef CONFIG_DRIVER_SBUS
 int ob_sbus_init(uint64_t base, int machine_id);
@@ -38,6 +39,17 @@ int ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
 int start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context,
               int cpu);
 extern struct mem cmem;
+extern uint16_t graphic_depth;
+extern volatile unsigned char *power_reg;
+extern volatile unsigned int *reset_reg;
+extern const char *obp_stdin_path, *obp_stdout_path;
+extern char obp_stdin, obp_stdout;
+extern volatile struct sun4m_timer_regs *counter_regs;
+extern uint32_t kernel_image;
+extern uint32_t kernel_size;
+extern uint32_t qemu_cmdline;
+extern uint32_t cmdline_size;
+extern char boot_device;
 #endif
 #ifdef CONFIG_DRIVER_FLOPPY
 int ob_floppy_init(void);

@@ -41,11 +41,13 @@ video_get_res( int *w, int *h )
 static void
 startup_splash( void )
 {
+#ifdef CONFIG_MOL
 	int fd, s, i, y, x, dx, dy;
 	int width, height;
 	char *pp, *p;
 	char buf[64];
-	
+#endif
+
 	/* only draw logo in 24-bit mode (for now) */
 	if( video.fb.depth < 15 )
 		return;
@@ -247,7 +249,7 @@ static void
 video_write(void)
 {
     char *addr;
-    int i, len;
+    int len;
 
     len = GETTOS();
     addr = pop_fstr_copy();

@@ -85,9 +85,8 @@ void boot(void)
 
 	if (elf_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
             if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-                if (aout_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-                    if (fcode_load(&sys_info, path, param)
-                        == LOADER_NOT_SUPPORT) {
+                if (aout_load(&sys_info, path) == LOADER_NOT_SUPPORT)
+                    if (fcode_load(path) == LOADER_NOT_SUPPORT) {
 
                         sprintf(altpath, "%s:d", path);
 
@@ -95,9 +94,9 @@ void boot(void)
                             == LOADER_NOT_SUPPORT)
                             if (linux_load(&sys_info, altpath, param)
                                 == LOADER_NOT_SUPPORT)
-                                if (aout_load(&sys_info, altpath, param)
+                                if (aout_load(&sys_info, altpath)
                                     == LOADER_NOT_SUPPORT)
-                                    if (fcode_load(&sys_info, path, param)
+                                    if (fcode_load(altpath)
                                         == LOADER_NOT_SUPPORT)
                                         printk("Unsupported image format\n");
                     }

@@ -16,6 +16,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "qemu.h"
 
 void devtree_init( void )
 {

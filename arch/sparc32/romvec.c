@@ -257,18 +257,14 @@ static int obp_nbputchar(int ch)
 
 static void obp_reboot(char *str)
 {
-    extern volatile unsigned int *reset_reg;
-
     printk("rebooting (%s)\n", str);
     *reset_reg = 1;
     printk("reboot failed\n");
     for (;;) {}
 }
 
-extern volatile unsigned char *power_reg;
 static void obp_abort(void)
 {
-
     printk("abort, power off\n");
     *power_reg = 1;
     printk("power off failed\n");

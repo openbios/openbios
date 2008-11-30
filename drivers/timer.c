@@ -79,7 +79,7 @@ void setup_timers(void)
  * TODO: pass via lb table
  */
 
-unsigned long get_timer_freq()
+unsigned long get_timer_freq(void)
 {
 	return 100000000 / 4;
 }

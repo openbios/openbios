@@ -100,5 +100,6 @@ typedef struct Elf_Nhdr
 #define EB_IA64_IMAGE_HANDLE	0x00000007
 #define EB_I386_MEMMAP		0x00000008
 
+extern const struct elf_image_note elf_image_notes;
 
 #endif /* ELF_BOOT_H */

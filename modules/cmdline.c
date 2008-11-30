@@ -120,7 +120,7 @@ history_get( cmdline_info_t *ci, int n )
 
 	ci->buf[0] = 0;
 	if( !p )
-		return 0;
+                return NULL;
 
 	for( len=0; len <= ci->ncol && p[len] != '\n' && p[len] ; len++ )
 		;

@@ -74,7 +74,7 @@ vstafs_readdir (long sector)
   if (FILE_INFO->type != 2)
     {
       errnum = ERR_FILE_NOT_FOUND;
-      return 0;
+      return NULL;
     }
   
   a1 = FILE_INFO->blocks;
@@ -105,8 +105,8 @@ vstafs_nextdir (void)
 	}
       else
 	{
-	  /* errnum =ERR_FILE_NOT_FOUND; */
-	  return 0;
+            /* errnum =ERR_FILE_NOT_FOUND; */
+            return NULL;
 	}
     }
   

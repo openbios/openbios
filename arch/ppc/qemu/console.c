@@ -58,7 +58,7 @@ static char uart_getchar(int port)
 static void uart_putchar(int port, unsigned char c)
 {
 	if (!port)
-		return -1;
+		return;
         while (!(inb(LSR(port)) & 0x20));
         outb(c, THR(port));
 }
@@ -134,6 +134,7 @@ typedef struct osi_fb_info {
 #define openbios_GetFBInfo(x) Qemu_GetFBInfo(x)
 
 #include "../../../modules/font_8x16.c"
+#undef FONTDATAMAX
 #include "../../../modules/video.c"
 #include "../../../modules/console.c"
 

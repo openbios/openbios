@@ -20,6 +20,7 @@
 #include "openbios/kernel.h"
 #include "openbios/nvram.h"
 #include "openbios/bindings.h"
+#include "openbios/drivers.h"
 #include "libc/vsprintf.h"
 #include "libc/string.h"
 #include "libc/byteorder.h"
@@ -111,7 +112,7 @@ void macio_nvram_init(char *path, uint32_t addr)
 	set_property(dnode, "compatible", "nvram,flash", 12);
 	props[0] = __cpu_to_be32(IO_NVRAM_OFFSET);
 	props[1] = __cpu_to_be32(IO_NVRAM_SIZE);
-	set_property(dnode, "reg", &props, sizeof(props));
+	set_property(dnode, "reg", (char *)&props, sizeof(props));
 	set_property(dnode, "device_type", "nvram", 6);
 
 	chosen = find_dev("/chosen");

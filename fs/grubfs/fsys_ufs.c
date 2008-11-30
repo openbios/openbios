@@ -94,7 +94,7 @@ struct dmadat {
 	char sbbuf[SBLOCKSIZE];	/* superblock */
 	char secbuf[DEV_BSIZE];	/* for MBR/disklabel */
 };
-struct dmadat *dmadat = (struct dmadat*)FSYS_BUF;
+static struct dmadat *dmadat = (struct dmadat*)FSYS_BUF;
 
 #define SUPERBLOCK ((struct fs*)dmadat->sbbuf)
 

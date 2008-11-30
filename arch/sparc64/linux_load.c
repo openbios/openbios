@@ -156,7 +156,7 @@ struct linux_params {
     uint8_t  reserved17[1792];		/* 0x900 - 0x1000 */
 };
 
-uint64_t forced_memsize;
+static uint64_t forced_memsize;
 
 /* Load the first part the file and check if it's Linux */
 static uint32_t load_linux_header(struct linux_header *hdr)
@@ -293,14 +293,14 @@ static char *parse_command_line(const char *orig_cmdline, char *kern_cmdline)
     unsigned long len;
     int k_len;
     int to_kern;
-    char *initrd = 0;
+    char *initrd = NULL;
     int toolong = 0;
 
     forced_memsize = 0;
 
     if (!orig_cmdline) {
-	*kern_cmdline = 0;
-	return 0;
+        *kern_cmdline = '\0';
+        return NULL;
     }
 
     k_len = 0;
@@ -327,7 +327,7 @@ static char *parse_command_line(const char *orig_cmdline, char *kern_cmdline)
 	    val = sep + 1;
 	    len = end - val;
 	} else {
-	    val = 0;
+            val = NULL;
 	    len = 0;
 	}
 
@@ -584,7 +584,7 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline)
     struct linux_header hdr;
     struct linux_params *params;
     uint32_t kern_addr, kern_size;
-    char *initrd_file = 0;
+    char *initrd_file = NULL;
 
     if (!file_open(file))
 	return -1;

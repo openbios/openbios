@@ -114,12 +114,6 @@ static inline node_buf* node_buf_get(node_cache* cache, int i)
 {
     return (node_buf*) (cache->buffers + (i * cache->nodebufsize));
 }
-   
-/* flush the cache NYI */
-static void node_cache_flush(node_cache* cache)
-{
-    // NYI
-}
 
 /* flush the node at index */
 static void node_cache_flush_node(node_cache* cache, int index)
@@ -132,7 +126,6 @@ static void node_cache_close(node_cache* cache)
 {
     if (!cache->entries) // not (fully) intialized ?
 	return;
-    node_cache_flush(cache);
     free(cache->entries);
 }
 

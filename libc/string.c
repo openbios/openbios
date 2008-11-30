@@ -50,7 +50,7 @@ int strnicmp(const char *s1, const char *s2, size_t len)
 	return (int)c1 - (int)c2;
 }
 
-char * ___strtok;
+static char * ___strtok;
 
 /**
  * strcpy - Copy a %NUL terminated string

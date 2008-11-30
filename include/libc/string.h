@@ -17,6 +17,8 @@
 #ifndef _H_STRING
 #define _H_STRING
 
+#include "openbios/config.h"
+
 #define bzero(s,n)	memset( s, 0, n )
 #define atol(nptr)	strtol(nptr, NULL, 10 )
 
@@ -95,5 +97,6 @@ static inline unsigned char __toupper(unsigned char c) {
 #define tolower(c) __tolower(c)
 #define toupper(c) __toupper(c)
 
+extern int errno_int;
 
 #endif   /* _H_STRING */

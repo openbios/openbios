@@ -325,7 +325,7 @@ ob_eccmemctl_init(void)
 }
 
 static unsigned char *nvram;
-ohwcfg_v3_t nv_info;
+static ohwcfg_v3_t nv_info;
 
 #define NVRAM_OB_START   (sizeof(ohwcfg_v3_t) + sizeof(struct sparc_arch_cfg))
 #define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_START) & ~15)
@@ -807,15 +807,6 @@ id_machine(uint16_t machine_id)
 static void
 ob_nvram_init(uint64_t base, uint64_t offset)
 {
-    extern uint32_t kernel_image;
-    extern uint32_t kernel_size;
-    extern uint32_t qemu_cmdline;
-    extern uint32_t cmdline_size;
-    extern char boot_device;
-    extern char obp_stdin, obp_stdout;
-    extern const char *obp_stdin_path, *obp_stdout_path;
-    extern uint16_t graphic_depth;
-
     const char *stdin, *stdout;
     unsigned int i;
     char nographic;

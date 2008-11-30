@@ -22,7 +22,7 @@ void __exit_context(void); /* assembly routine */
  * It is placed at the bottom of our stack, and loaded by assembly routine
  * to start us up.
  */
-struct context main_ctx = {
+static struct context main_ctx = {
     .regs[REG_SP] = (uint64_t) &_estack - 2047 - 96,
     .pc = (uint64_t) start_main,
     .npc = (uint64_t) start_main + 4,

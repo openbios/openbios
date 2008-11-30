@@ -21,6 +21,9 @@ extern void		vfd_close( void );
 
 extern int                console_draw_str( const char *str );
 
+/* console.c */
+int serial_init(void);
+
 #include "kernel.h"
 
 #endif   /* _H_QEMU */

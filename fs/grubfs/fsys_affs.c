@@ -235,10 +235,10 @@ struct FSysBuffer {
 #define rdsk(x) ((struct RigidDiskBlock *)(x)->blockbuffer)
 #define part(x) ((struct PartitionBlock *)(x)->blockbuffer)
 
-struct FSysBuffer *fsysb;
-int blockoffset; /* offset if there is an embedded RDB partition */
-int rootb;       /* block number of root block */
-int rdbb;        /* block number of rdb block */
+static struct FSysBuffer *fsysb;
+static int blockoffset; /* offset if there is an embedded RDB partition */
+static int rootb;       /* block number of root block */
+static int rdbb;        /* block number of rdb block */
 
 static void initCache(void)
 {
@@ -357,7 +357,7 @@ unsigned long togo;
 	{
 		disk_read_func = disk_read_hook;
 		cblock = getBlock(block);
-		disk_read_func = 0;
+                disk_read_func = NULL;
 		block = AROS_BE2LONG(extensionBlock(cblock)->extension);
 		togo--;
 	}
@@ -383,7 +383,7 @@ unsigned int readbytes = 0;
 		len=fsysb->file.filesize-fsysb->file.current.offset;
 	disk_read_func = disk_read_hook;
 	cblock = getBlock(fsysb->file.current.block);
-	disk_read_func = 0;
+        disk_read_func = NULL;
 	while (len)
 	{
 		disk_read_func = disk_read_hook;
@@ -427,7 +427,7 @@ unsigned int readbytes = 0;
 			fsysb->file.current.byte = 0;
 			fsysb->file.current.filekey--;
 		}
-		disk_read_func = 0;
+                disk_read_func = NULL;
 		len -= size;
 		readbytes += size;
 	}
@@ -580,10 +580,9 @@ int block;
 	return 0;
 }
 
+#ifndef STAGE1_5
 static void checkPossibility(char *filename, char *bstr)
 {
-
-#ifndef STAGE1_5
 	char cstr[32];
 
 	if (noCaseStrCmp(filename, bstr, 1)<=0)
@@ -594,8 +593,10 @@ static void checkPossibility(char *filename, char *bstr)
 		cstr[bstr[0]]=0;
 		print_a_completion(cstr);
 	}
-#endif
 }
+#else
+#define checkPossibility(a, b) do { } while(0)
+#endif
 
 int affs_dir(char *dirname)
 {

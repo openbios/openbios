@@ -114,8 +114,8 @@ volume_readfork(void *p, hfsp_fork_raw* f)
  * 
  * ToDo: add more consitency checks. 
  */
-static int 
-volume_readbuf(volume * vol, hfsp_vh* vh, char * p)
+static int
+volume_readbuf(hfsp_vh* vh, char * p)
 {
 	if(  (vh->signature = bswabU16_inc(p)) != HFSP_VOLHEAD_SIG) 
 		HFSP_ERROR(-1, "This is not a HFS+ volume");
@@ -159,7 +159,7 @@ volume_read(volume * vol, hfsp_vh* vh, UInt32 block)
 
 	if( volume_readinbuf(vol, buf, block))
 		return -1;
-	return volume_readbuf(vol, vh, buf);
+        return volume_readbuf(vh, buf);
 }
 
 /* Find out wether the volume is wrapped and unwrap it eventually */
@@ -200,7 +200,7 @@ volume_read_wrapper(volume * vol, hfsp_vh* vh)
 	}
 	else if( signature == HFSP_VOLHEAD_SIG) { /* Native HFS+ volume */
 		p = buf; // Restore to begin of block
-		return volume_readbuf(vol, vh, p);
+                return volume_readbuf(vh, p);
 	} else
 		 HFSP_ERROR(-1, "Neither Wrapper nor native HFS+ volume header found");
 fail:

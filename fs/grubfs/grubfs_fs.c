@@ -57,34 +57,34 @@ typedef struct fsys_entry {
 
 static const struct fsys_entry fsys_table[] = {
 # ifdef CONFIG_FSYS_FAT
-	{"fat", fat_mount, fat_read, fat_dir, 0, 0},
+    {"fat", fat_mount, fat_read, fat_dir, NULL, NULL},
 # endif
 # ifdef CONFIG_FSYS_EXT2FS
-	{"ext2fs", ext2fs_mount, ext2fs_read, ext2fs_dir, 0, 0},
+    {"ext2fs", ext2fs_mount, ext2fs_read, ext2fs_dir, NULL, NULL},
 # endif
 # ifdef CONFIG_FSYS_MINIX
-	{"minix", minix_mount, minix_read, minix_dir, 0, 0},
+    {"minix", minix_mount, minix_read, minix_dir, NULL, NULL},
 # endif
 # ifdef CONFIG_FSYS_REISERFS
-	{"reiserfs", reiserfs_mount, reiserfs_read, reiserfs_dir, 0, reiserfs_embed},
+    {"reiserfs", reiserfs_mount, reiserfs_read, reiserfs_dir, NULL, reiserfs_embed},
 # endif
 # ifdef CONFIG_FSYS_JFS
-	{"jfs", jfs_mount, jfs_read, jfs_dir, 0, jfs_embed},
+    {"jfs", jfs_mount, jfs_read, jfs_dir, NULL, jfs_embed},
 # endif
 # ifdef CONFIG_FSYS_XFS
-	{"xfs", xfs_mount, xfs_read, xfs_dir, 0, 0},
+    {"xfs", xfs_mount, xfs_read, xfs_dir, NULL, NULL},
 # endif
 # ifdef CONFIG_FSYS_UFS
-	{"ufs", ufs_mount, ufs_read, ufs_dir, 0, ufs_embed},
+    {"ufs", ufs_mount, ufs_read, ufs_dir, NULL, ufs_embed},
 # endif
 # ifdef CONFIG_FSYS_ISO9660
-	{"iso9660", iso9660_mount, iso9660_read, iso9660_dir, 0, 0},
+    {"iso9660", iso9660_mount, iso9660_read, iso9660_dir, NULL, NULL},
 # endif
 # ifdef CONFIG_FSYS_NTFS
-	{"ntfs", ntfs_mount, ntfs_read, ntfs_dir, 0, 0},
+    {"ntfs", ntfs_mount, ntfs_read, ntfs_dir, NULL, NULL},
 # endif
 # ifdef CONFIG_FSYS_AFFS
-	{"affs", affs_mount, affs_read, affs_dir, 0, 0},
+    {"affs", affs_mount, affs_read, affs_dir, NULL, NULL},
 # endif
 };
 
@@ -157,8 +157,9 @@ static int
 grubfs_file_read( file_desc_t *fd, void *buf, size_t count )
 {
 	grubfile_t *file = (grubfile_t*)fd;
-	curfs = (grubfs_t *)file->fs->fs_data;
-	int ret;
+        int ret;
+
+        curfs = (grubfs_t *)file->fs->fs_data;
 
 	filepos=file->pos;
 	filemax=file->len;
@@ -186,8 +187,9 @@ static file_desc_t *
 open_path( fs_ops_t *fs, const char *path )
 {
 	grubfile_t *ret = NULL;
+        char *s = (char *)path;
+
 	curfs = (grubfs_t *)fs->fs_data;
-	char *s=(char *)path;
 
 	while(*s) {
 		if(*s=='\\') *s='/';

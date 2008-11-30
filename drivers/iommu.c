@@ -41,7 +41,7 @@ struct mem {
 };
 
 struct mem cmem;                /* Current memory, virtual */
-struct mem cio;                 /* Current I/O space */
+static struct mem cio;          /* Current I/O space */
 
 unsigned int va_shift;
 
@@ -59,7 +59,7 @@ struct iommu {
     struct mem bmap;
 };
 
-struct iommu ciommu;
+static struct iommu ciommu;
 static struct iommu_regs *regs;
 
 static void iommu_init(struct iommu *t, uint64_t base);
@@ -95,7 +95,7 @@ mem_alloc(struct mem *t, int size, int align)
 
     if ((unsigned long)p >= (unsigned long)t->uplim ||
         (unsigned long)p + size > (unsigned long)t->uplim)
-        return 0;
+        return NULL;
     t->curp = p + size;
 
     return p;
@@ -106,7 +106,7 @@ mem_zalloc(struct mem *t, int size, int align)
 {
     char *p;
 
-    if ((p = mem_alloc(t, size, align)) != 0)
+    if ((p = mem_alloc(t, size, align)) != NULL)
         memset(p, 0, size);
 
     return p;
@@ -124,7 +124,7 @@ find_pte(unsigned long va, int alloc)
         if (alloc) {
             p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PMD * sizeof(int),
                            SRMMU_PTRS_PER_PMD * sizeof(int));
-            if (p == 0)
+            if (p == NULL)
                 return -1;
             pte = SRMMU_ET_PTD | ((va2pa((unsigned long)p)) >> 4);
             l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
@@ -141,7 +141,7 @@ find_pte(unsigned long va, int alloc)
         if (alloc) {
             p = mem_zalloc(&cmem, SRMMU_PTRS_PER_PTE * sizeof(void *),
                            SRMMU_PTRS_PER_PTE * sizeof(void *));
-            if (p == 0)
+            if (p == NULL)
                 return -2;
             pte = SRMMU_ET_PTD | ((va2pa((unsigned int)p)) >> 4);
             *(uint32_t *)pa2va(pa) = pte;
@@ -199,7 +199,7 @@ map_io(uint64_t pa, int size)
     pa &= ~(PAGE_SIZE - 1);
 
     va = mem_alloc(&cio, npages * PAGE_SIZE, PAGE_SIZE);
-    if (va == 0)
+    if (va == NULL)
         return va;
 
     mva = (unsigned int) va;
@@ -435,12 +435,12 @@ dvma_alloc(int size, unsigned int *pphys)
 
     npages = (size + (PAGE_SIZE-1)) / PAGE_SIZE;
     va = mem_alloc(&cmem, npages * PAGE_SIZE, PAGE_SIZE);
-    if (va == 0)
-        return 0;
+    if (va == NULL)
+        return NULL;
 
     ba = (unsigned int)mem_alloc(&t->bmap, npages * PAGE_SIZE, PAGE_SIZE);
     if (ba == 0)
-        return 0;
+        return NULL;
 
     pa = (unsigned int)va2pa((unsigned long)va);
 
@@ -484,7 +484,7 @@ iommu_init(struct iommu *t, uint64_t base)
     unsigned int tmp;
 
     regs = map_io(base, IOMMU_REGS);
-    if (regs == 0) {
+    if (regs == NULL) {
         DPRINTF("Cannot map IOMMU\n");
         for (;;) { }
     }
@@ -505,7 +505,7 @@ iommu_init(struct iommu *t, uint64_t base)
     /* Allocate IOMMU page table */
     /* Thremendous alignment causes great waste... */
     ptsize = (t->vasize/PAGE_SIZE) *  sizeof(int);
-    if ((ptab = mem_zalloc(&cmem, ptsize, ptsize)) == 0) {
+    if ((ptab = mem_zalloc(&cmem, ptsize, ptsize)) == NULL) {
         DPRINTF("Cannot allocate IOMMU table [0x%x]\n", ptsize);
         for (;;) { }
     }

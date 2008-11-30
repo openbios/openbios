@@ -24,7 +24,7 @@ extern ucell *trampoline;
  * point behind the pointer.
  */
 static ucell t[] = { DOCOL, 0, (ucell)(t+3), 0 };
-ucell *trampoline = t;
+static ucell *trampoline = t;
 #endif
 
 #ifndef CONFIG_DEBUG_INTERPRETER
@@ -287,7 +287,7 @@ static void doplusloop(void)
 #ifndef FCOMPILER
 static ucell get_myself(void)
 {
-	static ucell **myself = 0;
+        static ucell **myself = NULL;
 	if( !myself )
 		myself = (ucell**)findword("my-self") + 1;
 	return (*myself && **myself) ? (ucell)**myself : 0;

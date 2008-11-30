@@ -39,8 +39,6 @@ do { printk("ADB - %s: " fmt, __func__ , ##args); } while (0)
 #define ADB_DPRINTF(fmt, args...) do { } while (0)
 #endif
 
-static void adb_read(void);
-
 DECLARE_UNNAMED_NODE( keyboard, INSTALL_OPEN, sizeof(int));
 
 static void
@@ -447,7 +445,6 @@ struct adb_kbd_t {
     int next_key;
 };
 
-static adb_kbd_t *my_adb_kbd = NULL;
 static adb_dev_t *my_adb_dev = NULL;
 
 static int adb_kbd_read (void *private)
@@ -504,7 +501,7 @@ void *adb_kbd_new (char *path, void *private)
 
 	set_property(ph, "device_type", "keyboard", 9);
 	props[0] = __cpu_to_be32(dev->addr);
-	set_property(ph, "reg", &props, sizeof(props));
+	set_property(ph, "reg", (char *)&props, sizeof(props));
 
 	aliases = find_dev("/aliases");
 	set_property(aliases, "adb-keyboard", buf, strlen(buf) + 1);
@@ -542,14 +539,12 @@ mouse_close(int *idx)
 {
 }
 
-static void mouse_read(void);
-
 NODE_METHODS( mouse ) = {
 	{ "open",		mouse_open		},
 	{ "close",		mouse_close		},
 };
 
-void *adb_mouse_new (char *path, void *private)
+void adb_mouse_new (char *path, void *private)
 {
 	char buf[64];
 	int props[1];
@@ -563,7 +558,7 @@ void *adb_mouse_new (char *path, void *private)
 
 	set_property(ph, "device_type", "mouse", 6);
 	props[0] = __cpu_to_be32(dev->addr);
-	set_property(ph, "reg", &props, sizeof(props));
+	set_property(ph, "reg", (char *)&props, sizeof(props));
 	set_int_property(ph, "#buttons", 3);
 
 	aliases = find_dev("/aliases");

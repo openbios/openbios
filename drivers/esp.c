@@ -62,7 +62,7 @@ typedef struct esp_private {
     sd_private_t sd[8];
 } esp_private_t;
 
-esp_private_t *global_esp;
+static esp_private_t *global_esp;
 
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE(ob_sd, INSTALL_OPEN, sizeof(sd_private_t *));
@@ -304,7 +304,7 @@ espdma_init(unsigned int slot, uint64_t base, unsigned long offset,
 {
     espdma->regs = (void *)map_io(base + (uint64_t)offset, 0x10);
 
-    if (espdma->regs == 0) {
+    if (espdma->regs == NULL) {
         DPRINTF("espdma_init: cannot map registers\n");
         return -1;
     }
@@ -437,7 +437,7 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
     /* Get the IO region */
     esp->ll = (void *)map_io(base + (uint64_t)espoffset,
                              sizeof(struct esp_regs));
-    if (esp->ll == 0) {
+    if (esp->ll == NULL) {
         DPRINTF("Can't map ESP registers\n");
         return -1;
     }

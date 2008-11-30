@@ -468,7 +468,7 @@ ext2fs_read (char *buf, int len)
       devread (map * (EXT2_BLOCK_SIZE (SUPERBLOCK) / DEV_BSIZE),
 	       offset, size, buf);
 
-      disk_read_func = 0;
+      disk_read_func = NULL;
 
       buf += size;
       len -= size;

@@ -101,5 +101,6 @@ static inline int adb_reg_set (adb_dev_t *dev, uint8_t reg,
 
 void *adb_kbd_new (char *path, void *private);
 
+void adb_mouse_new (char *path, void *private);
 
 #endif /* !defined(__OHW_ADB_H__) */

@@ -6,6 +6,7 @@
 #include "openbios/bindings.h"
 #include "openbios/elfload.h"
 #include "openbios/nvram.h"
+#include "openbios/drivers.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "sys_info.h"
@@ -103,14 +104,17 @@ void boot(void)
 		printk("without parameters.\n");
 
 	if (elf_load(&sys_info, path, param, romvec) == LOADER_NOT_SUPPORT)
-            if (linux_load(&sys_info, path, param, romvec) == LOADER_NOT_SUPPORT)
-                if (aout_load(&sys_info, path, param, romvec) == LOADER_NOT_SUPPORT) {
+            if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
+                if (aout_load(&sys_info, path, romvec) == LOADER_NOT_SUPPORT) {
 
                     sprintf(altpath, "%s:d", path);
 
-                    if (elf_load(&sys_info, altpath, param, romvec) == LOADER_NOT_SUPPORT)
-                        if (linux_load(&sys_info, altpath, param, romvec) == LOADER_NOT_SUPPORT)
-                            if (aout_load(&sys_info, altpath, param, romvec) == LOADER_NOT_SUPPORT)
+                    if (elf_load(&sys_info, altpath, param, romvec)
+                        == LOADER_NOT_SUPPORT)
+                        if (linux_load(&sys_info, altpath, param)
+                            == LOADER_NOT_SUPPORT)
+                            if (aout_load(&sys_info, altpath, romvec)
+                                == LOADER_NOT_SUPPORT)
                                 printk("Unsupported image format\n");
                 }
 

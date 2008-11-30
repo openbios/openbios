@@ -16,7 +16,7 @@
 #define debug printk
 
 static char *forthtext=NULL;
-int forth_load(struct sys_info *info, const char *filename, const char *cmdline)
+int forth_load(const char *filename)
 {
     char magic[2];
     unsigned long forthsize;

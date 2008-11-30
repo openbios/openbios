@@ -27,7 +27,6 @@
 # include "hfs.h"
 # include "hfsp.h"
 
-extern int errno;
 /* Last error is eventually found here */
 extern const char *hfsp_error; 
 

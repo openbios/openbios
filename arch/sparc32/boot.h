@@ -6,25 +6,35 @@
  * the copyright and warranty status of this work.
  */
 
-int forth_load(struct sys_info *info, const char *filename, const char *cmdline);
+// forthload.c
+int forth_load(const char *filename);
+
+// elfload.c
 int elf_load(struct sys_info *, const char *filename, const char *cmdline,
              const void *romvec);
-int aout_load(struct sys_info *, const char *filename, const char *cmdline,
-              const void *romvec);
-int linux_load(struct sys_info *, const char *filename, const char *cmdline,
-               const void *romvec);
 
+// aout_load.c
+int aout_load(struct sys_info *info, const char *filename, const void *romvec);
+
+// linux_load.c
+int linux_load(struct sys_info *info, const char *file, const char *cmdline);
+
+// context.c
+extern struct context *__context;
 unsigned int start_elf(unsigned long entry_point, unsigned long param);
 
+// romvec.c
 void *init_openprom(unsigned long memsize, const char *path);
+
+// boot.c
+extern struct sys_info sys_info;
 void boot(void);
 
-extern struct sys_info sys_info;
-extern uint32_t kernel_image;
-extern uint32_t kernel_size;
-extern uint32_t qemu_cmdline;
-extern uint32_t cmdline_size;
-extern char boot_device;
+// sys_info.c
 extern unsigned int qemu_mem_size;
+
+// romvec.c
 extern struct linux_arguments_v0 obp_arg;
+
+// openbios.c
 extern int qemu_machine_type;

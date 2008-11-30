@@ -171,7 +171,7 @@ ob_cuda_initialize (int *idx)
 	props[0] = __cpu_to_be32(IO_CUDA_OFFSET);
 	props[1] = __cpu_to_be32(IO_CUDA_SIZE);
 
-	set_property(ph, "reg", &props, sizeof(props));
+	set_property(ph, "reg", (char *)&props, sizeof(props));
 	set_int_property(ph, "interrupt-parent", pic_handle);
 	// HEATHROW
 	set_int_property(ph, "interrupts", 0x12);

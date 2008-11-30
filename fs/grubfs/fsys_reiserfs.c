@@ -691,12 +691,12 @@ read_tree_node (unsigned int blockNr, int depth)
 	  blockNr, depth);
 #endif /* REISERDEBUG */
   if (! block_read (blockNr, 0, INFO->blocksize, cache))
-    return 0;
+      return NULL;
   /* Make sure it has the right node level */
   if (BLOCKHEAD (cache)->blk_level != depth)
     {
       errnum = ERR_FSYS_CORRUPT;
-      return 0;
+      return NULL;
     }
 
   INFO->blocks[depth] = blockNr;

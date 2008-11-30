@@ -18,7 +18,7 @@
 #include "cross.h"
 
 
-unsigned char *dict = 0;
+unsigned char *dict = NULL;
 ucell *last;
 cell dicthead = 0;
 

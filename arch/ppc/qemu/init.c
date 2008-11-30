@@ -47,7 +47,7 @@ enum {
     ARCH_HEATHROW,
 };
 
-pci_arch_t known_arch[] = {
+static pci_arch_t known_arch[] = {
 	[ARCH_PREP] = { "PREP", 0x1057, 0x4801, 0x80800000, 0x800c0000,
 			0x80000000, 0x00100000, 0xf0000000, 0x10000000,
 			0x80000000, 0x00010000, 0x00000000, 0x00400000,

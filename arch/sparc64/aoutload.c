@@ -52,7 +52,7 @@ static int check_mem_ranges(struct sys_info *info,
     return 0;
 }
 
-int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
+int aout_load(struct sys_info *info, const char *filename)
 {
     int retval = -1;
     int image_retval;
@@ -60,7 +60,7 @@ int aout_load(struct sys_info *info, const char *filename, const char *cmdline)
     unsigned long start, size;
     unsigned int offset;
 
-    image_name = image_version = 0;
+    image_name = image_version = NULL;
 
     if (!file_open(filename))
 	goto out;
