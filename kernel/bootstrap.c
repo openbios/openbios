@@ -80,7 +80,7 @@ static const char *wordnames[] = {
 	"$include", "$encode-file"
 };
 
-void init_trampoline(void)
+static void init_trampoline(void)
 {
 	if (!trampoline) {
 		/* We're using side effects which is to some extent nasty */

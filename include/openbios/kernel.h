@@ -37,11 +37,14 @@ extern void		encode_file( const char *str );
 extern int		get_inputbyte( void );
 #endif
 
+#ifndef BOOTSTRAP
 #undef putchar
 #undef getchar
 
 extern int		putchar( int ch );
-extern int		availchar( void );
 extern int		getchar( void );
+#endif
+
+extern int		availchar( void );
 
 #endif   /* _H_KERNEL */

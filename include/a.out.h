@@ -127,14 +127,16 @@ enum machine_type {
 #define SEGMENT_SIZE PAGE_SIZE
 #endif
 
+#if !defined(SEGMENT_SIZE)
 #ifdef linux
 #if defined(__i386__) || defined(__mc68000__)
 #define SEGMENT_SIZE	1024
 #elif defined(__sparc__)
-#define SEGMENT_SIZE    4096
+#define SEGMENT_SIZE    0x2000
 #else
-#ifndef SEGMENT_SIZE
+#if defined(PAGE_SIZE)
 #define SEGMENT_SIZE	PAGE_SIZE
+#endif
 #endif
 #endif
 #endif
