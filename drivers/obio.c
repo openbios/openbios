@@ -275,7 +275,8 @@ ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
 
     fword("finish-device");
 
-    sprintf(nodebuff, "/obio/zs@0,%x", (int)offset & 0xffffffff);
+    snprintf(nodebuff, sizeof(nodebuff), "/obio/zs@0,%x",
+             (int)offset & 0xffffffff);
     if (keyboard) {
         REGISTER_NODE_METHODS(zs_keyboard, nodebuff);
     } else {

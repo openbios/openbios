@@ -62,12 +62,12 @@ static int do_indent;
 int
 printk( const char *fmt, ... )
 {
-	char *p, buf[1024];	/* XXX: no buffer overflow protection... */
+        char *p, buf[1024];
 	va_list args;
 	int i;
 
 	va_start(args, fmt);
-	i=vsprintf(buf,fmt,args);
+        i = vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
 	for( p=buf; *p; p++ ) {
@@ -105,7 +105,7 @@ void macio_nvram_init(char *path, uint32_t addr)
 	char buf[64];
 
 	nvram = (char*)addr + IO_NVRAM_OFFSET;
-	sprintf(buf, "%s/nvram", path);
+        snprintf(buf, sizeof(buf), "%s/nvram", path);
 	nvram_init(buf);
 	dnode = find_dev(buf);
 	set_int_property(dnode, "#bytes", IO_NVRAM_SIZE >> 4);

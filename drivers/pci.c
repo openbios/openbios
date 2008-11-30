@@ -1098,7 +1098,7 @@ static int macio_config_cb (const pci_config_t *config)
 	phandle_t ph;
         cell props[2];
 
-	sprintf(buf, "%s/interrupt-controller", config->path);
+        snprintf(buf, sizeof(buf), "%s/interrupt-controller", config->path);
 	REGISTER_NAMED_NODE(ob_pci_node, buf);
 
 	ph = find_dev(buf);
@@ -1505,9 +1505,11 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 
 			dbus=get_cur_dev();
 			if (pci_dev == NULL || pci_dev->name == NULL)
-				sprintf(config.path, "%s/pci%x,%x", path, vid, did);
+                            snprintf(config.path, sizeof(config.path),
+                                     "%s/pci%x,%x", path, vid, did);
 			else
-				sprintf(config.path, "%s/%s", path, pci_dev->name);
+                            snprintf(config.path, sizeof(config.path),
+                                     "%s/%s", path, pci_dev->name);
 #ifdef CONFIG_DEBUG_PCI
 			printk("%s - ", config.path);
 #endif

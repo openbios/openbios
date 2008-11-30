@@ -507,7 +507,8 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
         push_str("reg");
         fword("property");
         fword("finish-device");
-        sprintf(nodebuff, "/iommu/sbus/espdma/esp/sd@%d,0", id);
+        snprintf(nodebuff, sizeof(nodebuff), "/iommu/sbus/espdma/esp/sd@%d,0",
+                 id);
         REGISTER_NODE_METHODS(ob_sd, nodebuff);
         if (esp->sd[id].media == TYPE_ROM) {
             counter_ptr = &cdcount;
@@ -517,11 +518,12 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
         if (*counter_ptr == 0) {
             add_alias(nodebuff, esp->sd[id].media_str);
         }
-        sprintf(aliasbuff, "%s%d", esp->sd[id].media_str, *counter_ptr);
+        snprintf(aliasbuff, sizeof(aliasbuff), "%s%d", esp->sd[id].media_str,
+                *counter_ptr);
         add_alias(nodebuff, aliasbuff);
-        sprintf(aliasbuff, "sd(0,%d,0)", id);
+        snprintf(aliasbuff, sizeof(aliasbuff), "sd(0,%d,0)", id);
         add_alias(nodebuff, aliasbuff);
-        sprintf(aliasbuff, "sd(0,%d,0)@0,0", id);
+        snprintf(aliasbuff, sizeof(aliasbuff), "sd(0,%d,0)@0,0", id);
         add_alias(nodebuff, aliasbuff);
         (*counter_ptr)++;
     }

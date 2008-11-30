@@ -227,7 +227,7 @@ rtc_init(char *path)
 	phandle_t ph, aliases;
 	char buf[64];
 
-	sprintf(buf, "%s/rtc", path);
+        snprintf(buf, sizeof(buf), "%s/rtc", path);
 	REGISTER_NAMED_NODE(rtc, buf);
 
 	ph = find_dev(buf);
@@ -250,7 +250,7 @@ cuda_t *cuda_init (char *path, uint32_t base)
     if (cuda == NULL)
         return NULL;
 
-    sprintf(buf, "%s/via-cuda", path);
+    snprintf(buf, sizeof(buf), "%s/via-cuda", path);
     REGISTER_NAMED_NODE(ob_cuda, buf);
 
     cuda->base = base;
@@ -323,7 +323,7 @@ adb_bus_t *adb_bus_new (void *host,
  *   */
 int adb_bus_init (char *path, adb_bus_t *bus)
 {
-	char buf[64];
+    char buf[64];
     uint8_t buffer[ADB_BUF_SIZE];
     uint8_t adb_addresses[16] =
         { 8, 9, 10, 11, 12, 13, 14, -1, -1, -1, -1, -1, -1, -1, 0, };
@@ -332,7 +332,7 @@ int adb_bus_init (char *path, adb_bus_t *bus)
     int reloc = 0, next_free = 7;
     int keep;
 
-	sprintf(buf, "%s/adb", path);
+    snprintf(buf, sizeof(buf), "%s/adb", path);
     REGISTER_NAMED_NODE( adb, buf);
     /* Reset the bus */
     // ADB_DPRINTF("\n");

@@ -1330,7 +1330,7 @@ int ob_ide_init(void)
 
 		ob_ide_identify_drives(chan);
 
-		sprintf(nodebuff, nodetemp_chan, i);
+                snprintf(nodebuff, sizeof(nodebuff), nodetemp_chan, i);
 		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
 
 		printk("ide%d: [io ports 0x%x-0x%x,0x%x]\n", i, chan->io_regs[0], chan->io_regs[0] + 7, chan->io_regs[8]);
@@ -1357,7 +1357,8 @@ int ob_ide_init(void)
 					break;
 			}
 			printk("%s]: %s\n", media, drive->model);
-			sprintf(nodebuff, nodetemp, i, media);
+                        snprintf(nodebuff, sizeof(nodebuff), nodetemp, i,
+                                 media);
 			REGISTER_NAMED_NODE(ob_ide, nodebuff);
 			dnode=find_dev(nodebuff);
 			set_int_property(dnode, "reg", j);

@@ -300,7 +300,8 @@ newworld_startup( void )
 				continue;
 
 			for( j=0; !entry && j<32; j++ ) {
-				sprintf( spec, "%s/disk@%x:%d", path, i, j );
+                                snprintf( spec, sizeof(spec), "%s/disk@%x:%d",
+                                          path, i, j );
 				entry = newworld_load( path, spec, (!type || type==2) );
 			}
 			if( entry ) {

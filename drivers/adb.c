@@ -494,7 +494,7 @@ void *adb_kbd_new (char *path, void *private)
 	my_adb_dev = dev;
     }
 
-	sprintf(buf, "%s/keyboard", path);
+        snprintf(buf, sizeof(buf), "%s/keyboard", path);
 	REGISTER_NAMED_NODE( keyboard, buf);
 
 	ph = find_dev(buf);
@@ -551,7 +551,7 @@ void adb_mouse_new (char *path, void *private)
 	phandle_t ph, aliases;
 	adb_dev_t *dev = private;
 
-	sprintf(buf, "%s/mouse", path);
+        snprintf(buf, sizeof(buf), "%s/mouse", path);
 	REGISTER_NAMED_NODE( mouse, buf);
 
 	ph = find_dev(buf);

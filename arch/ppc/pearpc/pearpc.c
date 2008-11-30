@@ -64,12 +64,12 @@ static int do_indent;
 int
 printk( const char *fmt, ... )
 {
-	char *p, buf[1024];	/* XXX: no buffer overflow protection... */
+        char *p, buf[1024];
 	va_list args;
 	int i;
 
 	va_start(args, fmt);
-	i=vsprintf(buf,fmt,args);
+        i = vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
 	for( p=buf; *p; p++ ) {

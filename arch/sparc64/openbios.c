@@ -432,7 +432,7 @@ static void cpu_generic_init(const struct cpudef *cpu)
     fword("finish-device");
 
     // MMU node
-    sprintf(nodebuff, "/%s", cpu->name);
+    snprintf(nodebuff, sizeof(nodebuff), "/%s", cpu->name);
     push_str(nodebuff);
     fword("find-device");
 
@@ -443,7 +443,7 @@ static void cpu_generic_init(const struct cpudef *cpu)
 
     fword("finish-device");
 
-    sprintf(nodebuff, "/%s/mmu", cpu->name);
+    snprintf(nodebuff, sizeof(nodebuff), "/%s/mmu", cpu->name);
 
     REGISTER_NODE_METHODS(mmu, nodebuff);
 
