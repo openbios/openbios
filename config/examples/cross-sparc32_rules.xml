@@ -12,13 +12,14 @@ HOSTCC := gcc
 HOSTCFLAGS := -O2 -g -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 
-CC := sparc-linux-gcc
-AS := sparc-linux-as
-AR := sparc-linux-ar
-LD := sparc-linux-ld
-NM := sparc-linux-nm
-STRIP := sparc-linux-strip
-RANLIB := sparc-linux-ranlib
+TARGET=sparc-elf-
+CC     := $(TARGET)gcc
+AS     := $(TARGET)as
+AR     := $(TARGET)ar
+LD     := $(TARGET)ld
+NM     := $(TARGET)nm
+STRIP  := $(TARGET)strip
+RANLIB := $(TARGET)ranlib
 CFLAGS := -Os -Wall -W -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin -g
 CFLAGS+=  -Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
