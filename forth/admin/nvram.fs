@@ -305,8 +305,8 @@ constant config-info.size
 " boot"     " boot-command"         str-config    \ 7.4.3.5
 " "         " boot-file"            str-config    \ 7.4.3.5
 " false"    " diag-switch?"         bool-config   \ 7.4.3.5
-" net"      " diag-device"          str-config    \ 7.4.3.5
-" diag"     " diag-file"            str-config    \ 7.4.3.5
+no-conf-def " diag-device"          str-config    \ 7.4.3.5
+no-conf-def " diag-file"            str-config    \ 7.4.3.5
 " false"    " fcode-debug?"         bool-config   \ 7.7
 " "         " nvramrc"              str-config    \ 7.4.4.2
 " false"    " oem-banner?"          bool-config
