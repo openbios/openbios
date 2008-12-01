@@ -49,7 +49,7 @@ static int obp_devread(int dev_desc, char *buf, int nbytes);
 static int obp_devseek(int dev_desc, int hi, int lo);
 
 struct linux_arguments_v0 obp_arg;
-static const char *bootpath;
+const char *bootpath;
 static const struct linux_arguments_v0 * const obp_argp = &obp_arg;
 
 static void (*sync_hook)(void);
@@ -501,7 +501,7 @@ static void obp_fortheval_v2(char *str)
 }
 
 void *
-init_openprom(unsigned long memsize, const char *path)
+init_openprom(unsigned long memsize)
 {
     ptphys = totphys;
     ptmap = totmap;
@@ -559,9 +559,6 @@ init_openprom(unsigned long memsize, const char *path)
     romvec0.pv_v2devops.v2_dev_write = obp_devwrite;
     romvec0.pv_v2devops.v2_dev_seek = obp_devseek;
 
-    push_str(path);
-    fword("pathres-resolve-aliases");
-    bootpath = pop_fstr_copy();
     romvec0.pv_v2bootargs.bootpath = &bootpath;
 
     romvec0.pv_v2bootargs.bootargs = &obp_arg.argv[1];

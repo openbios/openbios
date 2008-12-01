@@ -57,22 +57,19 @@ int aout_load(struct sys_info *info, const char *filename, const void *romvec)
     int image_retval;
     struct exec ehdr;
     unsigned long start, size;
-    unsigned int offset;
+    unsigned int offset = 512;
 
     image_name = image_version = NULL;
 
     if (!file_open(filename))
 	goto out;
 
-    for (offset = 0; offset < 16 * 512; offset += 512) {
-        file_seek(offset);
-        if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
-            debug("Can't read a.out header\n");
-            retval = LOADER_NOT_SUPPORT;
-            goto out;
-        }
-        if (!N_BADMAG(ehdr))
-            break;
+    file_seek(offset);
+
+    if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
+        debug("Can't read a.out header\n");
+        retval = LOADER_NOT_SUPPORT;
+        goto out;
     }
 
     if (N_BADMAG(ehdr)) {

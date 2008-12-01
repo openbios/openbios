@@ -20,6 +20,18 @@ uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;
 
+static void try_path(const char *path, char *param, const void *romvec)
+{
+        push_str(path);
+        fword("pathres-resolve-aliases");
+        bootpath = pop_fstr_copy();
+        printk("Trying %s (%s)\n", path, bootpath);
+
+        elf_load(&sys_info, path, param, romvec);
+        linux_load(&sys_info, path, param);
+        aout_load(&sys_info, path, romvec);
+}
+
 void boot(void)
 {
         char *path = pop_fstr_copy(), *param, *oldpath = path;
@@ -87,7 +99,7 @@ void boot(void)
             obp_arg.argv[1] = param;
         }
 
-        romvec = init_openprom(qemu_mem_size, path);
+        romvec = init_openprom(qemu_mem_size);
 
         if (kernel_size) {
             int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
@@ -103,20 +115,17 @@ void boot(void)
 	else
 		printk("without parameters.\n");
 
-	if (elf_load(&sys_info, path, param, romvec) == LOADER_NOT_SUPPORT)
-            if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-                if (aout_load(&sys_info, path, romvec) == LOADER_NOT_SUPPORT) {
+        try_path(path, param, romvec);
 
-                    snprintf(altpath, sizeof(altpath), "%s:d", path);
+        push_str(path);
+        PUSH(':');
+        fword("left-split");
+        snprintf(altpath, sizeof(altpath), "%s:d", pop_fstr_copy());
+        POP();
+        POP();
 
-                    if (elf_load(&sys_info, altpath, param, romvec)
-                        == LOADER_NOT_SUPPORT)
-                        if (linux_load(&sys_info, altpath, param)
-                            == LOADER_NOT_SUPPORT)
-                            if (aout_load(&sys_info, altpath, romvec)
-                                == LOADER_NOT_SUPPORT)
-                                printk("Unsupported image format\n");
-                }
+        try_path(altpath, param, romvec);
+        printk("Unsupported image format\n");
 
 	free(path);
 }

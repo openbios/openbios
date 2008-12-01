@@ -24,10 +24,11 @@ extern struct context *__context;
 unsigned int start_elf(unsigned long entry_point, unsigned long param);
 
 // romvec.c
-void *init_openprom(unsigned long memsize, const char *path);
+void *init_openprom(unsigned long memsize);
 
 // boot.c
 extern struct sys_info sys_info;
+extern const char *bootpath;
 void boot(void);
 
 // sys_info.c
