@@ -38,7 +38,7 @@ versions: $(ODIR)/forth/version.fs
 
 $(ODIR)/forth/version.fs:
 	@test -d $(dir $@) || $(INSTALL) -d $(dir $@)
-	@DATE="$(shell echo `date +'%b %e %Y %H:%M'`)" ;  \
+	@DATE="$(shell echo `LC_ALL=C TZ=UTC date +'%b %e %Y %H:%M'`)" ;  \
 		( echo ": builddate \" $$DATE\" ; " ;     \
 		  echo ": version \" $(VERSION)\" ; " ; ) \
 		  > $(dir $@)/version.fs
