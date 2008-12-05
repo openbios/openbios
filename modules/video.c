@@ -148,7 +148,7 @@ fill_rect( int col_ind, int x, int y, int w, int h )
 			while( ww-- )
 				*p++ = col;
 		} else {
-			char *p = (char*)pp + x;
+			char *p = (ushort*)pp + x;
 			while( ww-- )
 				*p++ = col;
 		}
@@ -181,6 +181,10 @@ set_color( int ind, ulong color )
             dac[1] = ((color >> 8) & 0xff) << 24; // Green
             dac[1] = (color & 0xff) << 24; // Blue
         }
+#else
+	vga_set_color(ind, ((color >> 16) & 0xff),
+			   ((color >> 8) & 0xff),
+			   (color & 0xff));
 #endif
 }
 
@@ -278,14 +282,7 @@ video_write(void)
     PUSH(len);
 }
 
-static void
-video_open(void)
-{
-    RET(-1);
-}
-
 NODE_METHODS( video ) = {
-	{"open",		video_open		},
 	{"dimensions",		video_dimensions	},
 	{"set-colors",		video_set_colors	},
 	{"fill-rectangle",	video_fill_rect		},
