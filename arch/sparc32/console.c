@@ -141,26 +141,13 @@ static void serial_cls(void)
 #define DAC_BASE  0x00200000ULL
 #define DAC_SIZE  16
 
-static unsigned char *vmem;
+unsigned char *vmem;
 static volatile uint32_t *dac;
 
 typedef struct osi_fb_info {
 	unsigned long   mphys;
 	int             rb, w, h, depth;
 } osi_fb_info_t;
-
-static int TCX_GetFBInfo( osi_fb_info_t *fb )
-{
-    fb->w = 1024;
-    fb->h = 768;
-    fb->depth = 8;
-    fb->rb = 1024;
-    fb->mphys = (unsigned long)vmem;
-
-    return 0;
-}
-
-#define openbios_GetFBInfo(x) TCX_GetFBInfo(x)
 
 #include "../../modules/video.c"
 #include "../../modules/console.c"

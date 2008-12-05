@@ -138,20 +138,6 @@ typedef struct osi_fb_info {
 #include "../../../modules/video.c"
 #include "../../../modules/console.c"
 
-static uint32_t vga_phys_mem;
-static int vga_width, vga_height, vga_depth;
-
-int Qemu_GetFBInfo( osi_fb_info_t *fb )
-{
-	fb->mphys = vga_phys_mem;
-	fb->w = vga_width;
-	fb->h = vga_height;
-	fb->depth = vga_depth;
-	fb->rb = fb->w * ((fb->depth + 7) / 8);
-
-	return 0;
-}
-
 /* ******************************************************************
  *      common functions, implementing simple concurrent console
  * ****************************************************************** */

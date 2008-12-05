@@ -150,24 +150,10 @@ rec_char( int ch, int x, int y )
 static void
 scroll1( void )
 {
-	osi_fb_info_t fb;
-	int i, x, offs, size, *dest, *src;
-	
-	openbios_GetFBInfo( &fb );
+	int x;
 
-	offs = fb.rb * FONT_ADJ_HEIGHT;
-	size = (fb.h * fb.rb - offs)/16;
-	dest = (int*)fb.mphys;
-	src = (int*)(fb.mphys + offs);
+	video_scroll( FONT_ADJ_HEIGHT );
 
-	for( i=0; i<size; i++ ) {
-		dest[0] = src[0];
-		dest[1] = src[1];
-		dest[2] = src[2];
-		dest[3] = src[3];
-		dest += 4;
-		src += 4;
-	}
 	for( x=0; x<cons.w; x++ )
 		cons.buf[(cons.h-1)*cons.w + x] = 0;
 	draw_line(cons.h-1);

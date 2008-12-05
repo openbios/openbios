@@ -19,19 +19,6 @@ typedef struct osi_fb_info {
 	int		rb, w, h, depth;
 } osi_fb_info_t;
 
-int Xbox_GetFBInfo (osi_fb_info_t *fb)
-{
-	fb->w = 640;
-	fb->h = 480;
-	fb->depth = 32;
-	fb->rb = fb->w * 4; /* rgb + alpha */
-	fb->mphys = phys_to_virt(0x3C00000); /* 60M - 64M */
-
-	return 0;
-}
-
-#define openbios_GetFBInfo(x) Xbox_GetFBInfo(x)
-
 #include "../../../modules/video.c"
 #include "../../../modules/console.c"
 

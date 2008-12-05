@@ -22,7 +22,7 @@ void kbd_init(uint64_t base);
 int keyboard_dataready(void);
 unsigned char keyboard_readdata(void);
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-void init_video(void);
+void init_video(unsigned long fb,  int width, int height, int depth, int rb);
 #endif
 #endif
 #ifdef CONFIG_DRIVER_IDE

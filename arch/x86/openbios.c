@@ -51,7 +51,7 @@ arch_init( void )
 	ob_floppy_init();
 #endif
 #ifdef CONFIG_XBOX
-	init_video();
+	init_video(phys_to_virt(0x3C00000), 640, 480, 32, 2560);
 	node_methods_init();
 #endif
 	device_end();

@@ -184,6 +184,25 @@ set_color( int ind, ulong color )
 #endif
 }
 
+void
+video_scroll( int height )
+{
+	int i, offs, size, *dest, *src;
+
+	offs = video.fb.rb * height;
+	size = (video.fb.h * video.fb.rb - offs)/16;
+	dest = (int*)video.fb.mphys;
+	src = (int*)(video.fb.mphys + offs);
+
+	for( i=0; i<size; i++ ) {
+		dest[0] = src[0];
+		dest[1] = src[1];
+		dest[2] = src[2];
+		dest[3] = src[3];
+		dest += 4;
+		src += 4;
+	}
+}
 
 /************************************************************************/
 /*	OF methods							*/
@@ -280,15 +299,16 @@ NODE_METHODS( video ) = {
 /************************************************************************/
 
 void
-init_video( void )
+init_video( unsigned long fb,  int width, int height, int depth, int rb )
 {
 	int i, s, size;
 	phandle_t ph=0;
-	
-	if( openbios_GetFBInfo(&video.fb) ) {
-		printk("init_video: No video display\n");
-		return;
-	}
+
+	video.fb.mphys = fb;
+	video.fb.w = width;
+	video.fb.h = height;
+	video.fb.depth = depth;
+	video.fb.rb = rb;
 	while( (ph=dt_iterate_type(ph, "display")) ) {
 		set_property( ph, "width", (char*)&video.fb.w, 4 );
 		set_property( ph, "height", (char*)&video.fb.h, 4 );
@@ -308,7 +328,7 @@ init_video( void )
 	ofmem_claim_virt( video.fb.mphys, size, 0 );
 	ofmem_map( video.fb.mphys, video.fb.mphys, size, -1 );
 #endif
-		
+
 	for( i=0; i<256; i++ )
 		set_color( i, i * 0x010101 );
 	

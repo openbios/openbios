@@ -122,7 +122,7 @@ arch_init( void )
 #endif
 #ifdef CONFIG_DRIVER_SBUS
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	init_video();
+	init_video((unsigned long)vmem, 1024, 768, 8, 1024);
 #endif
 	ob_sbus_init(hwdef->iommu_base + 0x1000ULL, qemu_machine_type);
 #endif
