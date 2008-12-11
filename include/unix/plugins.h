@@ -21,7 +21,7 @@ extern unsigned char *plugindir;
 #define PLUGIN_LICENSE(license)   const char *plugin_license=license;
 #define PLUGIN_DESCRIPTION(desc)  const char *plugin_description=desc;
 
-int register_iorange(const char *name, io_ops_t *ops, 
+int register_iorange(const char *name, io_ops_t *ops,
 				unsigned int rstart, unsigned int rend);
 io_ops_t *find_iorange(u32 reg);
 

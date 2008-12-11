@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/01 00:26:13 samuel>
  *   Time-stamp: <2004/01/07 19:59:53 samuel>
- *   
+ *
  *	<nvram.c>
- *	
+ *
  *	medium-level NVRAM handling
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -65,7 +65,7 @@ nvpart_checksum( nvpart_t* hdr )
 			val = (val - 256 + 1) & 0xff;
 	}
 	return val;
-}  
+}
 
 static inline int
 nvpart_size( nvpart_t *p )
@@ -114,11 +114,11 @@ create_nv_part( int signature, char *name, int size )
 {
 	nvpart_t *p = NULL;
 	int fs;
-	
+
 	while( next_nvpart(&p) > 0 ) {
 		if( p->signature != NV_SIG_FREE )
 			continue;
-		
+
 		fs = nvpart_size( p );
 		if( fs < size )
 			size = fs;
@@ -151,7 +151,7 @@ show_partitions( void )
 {
 	nvpart_t *p = NULL;
 	char buf[13];
-	
+
 	while( next_nvpart(&p) > 0 ) {
 		memcpy( buf, p->name, sizeof(p->name) );
 		buf[12] = 0;
@@ -174,11 +174,11 @@ void
 nvconf_init( void )
 {
 	int once=0;
-	
+
 	/* initialize nvram structure completely */
 	nvram.config = NULL;
 	nvram.config_size = 0;
-	
+
 	nvram.size = arch_nvram_size();
 	nvram.data = malloc( nvram.size );
 	arch_nvram_get( nvram.data );
@@ -197,7 +197,7 @@ nvconf_init( void )
 			if( p->signature == NV_SIG_SYSTEM ) {
 				nvram.config = p;
 				nvram.config_size = nvpart_size(p) - 0x10;
-				
+
 				if( !once++ ) {
 					PUSH( (ucell)p->data );
 					PUSH( nvram.config_size );
@@ -300,6 +300,6 @@ void
 nvram_init( char *path )
 {
 	nvconf_init();
-	
+
 	REGISTER_NAMED_NODE( nvram, path );
 }

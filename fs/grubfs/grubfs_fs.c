@@ -1,17 +1,17 @@
-/* 
+/*
  *	<grubfs_fs.c>
- *	
+ *
  *	grub vfs
- *   
+ *
  *   Copyright (C) 2004 Stefan Reinauer
  *   Copyright (C) 2004 Samuel Rydh
  *
  *   inspired by HFS code from Samuel Rydh
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -34,7 +34,7 @@ char		FSYS_BUF[FSYS_BUFLEN];
 /* we fake this for now, assuming that the filesystem is not corrupt */
 unsigned long	part_length=(unsigned long)-1;
 
-/* these are not even used by us, instead 
+/* these are not even used by us, instead
  * the grub fs drivers want them:
  */
 int		fsmax;
@@ -163,7 +163,7 @@ grubfs_file_read( file_desc_t *fd, void *buf, size_t count )
 
 	filepos=file->pos;
 	filemax=file->len;
-	
+
 	ret=curfs->fsys->read_func(buf, count);
 
 	file->pos=filepos;
@@ -174,7 +174,7 @@ static char *
 get_path( file_desc_t *fd, char *retbuf, int len )
 {
 	const char *path=((grubfile_t *)fd)->path;
-	
+
 	if(strlen(path) > len)
 		return NULL;
 
@@ -208,7 +208,7 @@ open_path( fs_ops_t *fs, const char *path )
 	ret->len=filemax;
 	ret->path=strdup(path);
 	ret->fs=fs;
-	
+
 	return (file_desc_t *)ret;
 }
 
@@ -217,7 +217,7 @@ close_fs( fs_ops_t *fs )
 {
 	free( fs->fs_data );
 	fs->fs_data = NULL;
-	
+
 	/* callers responsibility to call free(fs) */
 }
 
@@ -226,7 +226,7 @@ grubfs_get_fstype( fs_ops_t *fs )
 {
 	grubfs_t *gfs = (grubfs_t*)fs->fs_data;
 	return gfs->fsys->name;
-}		
+}
 
 static const fs_ops_t grubfs_ops = {
 	.close_fs	= close_fs,
@@ -285,7 +285,7 @@ devread( unsigned long sector, unsigned long byte_offset,
 #ifdef CONFIG_DEBUG_FS
 	//printk("devread s=%x buf=%x, fd=%x\n",sector, buf, curfs->dev_fd);
 #endif
-	
+
 	if( !curfs ) {
 #ifdef CONFIG_DEBUG_FS
 		printk("devread: fsys == NULL!\n");
@@ -309,4 +309,4 @@ file_read( void *buf, unsigned long len )
 		len = filemax - filepos;
 	errnum = 0;
 	return curfs->fsys->read_func( buf, len );
-} 
+}

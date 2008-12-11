@@ -431,7 +431,7 @@ static int search_attribute( MFTR *mftr, int type, char *name)
 {
 #ifdef DEBUG_NTFS
     printf("searching attribute %x <%s>\n", type, name);
-#endif 
+#endif
 
     mftr->attr_type = type;
     mftr->attr_name = name;
@@ -907,7 +907,7 @@ printf("reading uninitialized data 3\n");
 	ret += len0;
     }
 #else
-    errnum = FSYS_CORRUPT;   
+    errnum = FSYS_CORRUPT;
 #endif /*NO_NTFS_DECOMPRESSION*/
 #endif /*STAGE1_5*/
     return ret;

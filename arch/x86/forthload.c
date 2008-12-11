@@ -38,10 +38,10 @@ int forth_load(struct sys_info *info, const char *filename, const char *cmdline)
     }
 
     forthsize = file_size();
-    
+
     forthtext = malloc(forthsize+1);
     file_seek(0);
-    
+
     printk("Loading forth source ...");
     if (lfile_read(forthtext, forthsize) != forthsize) {
 	printk("Can't read forth text\n");

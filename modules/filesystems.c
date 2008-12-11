@@ -1,18 +1,18 @@
-/* 
+/*
  *   Creation Date: <2003/12/08 19:19:29 samuel>
  *   Time-stamp: <2004/01/07 19:22:40 samuel>
- *   
+ *
  *	<filesystems.c>
- *	
+ *
  *	generic filesystem support node
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
  *   Copyright (C) 2004 Stefan Reinauer
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -47,9 +47,9 @@ do_open( ihandle_t ih )
 	if( !err ) {
 		err=fs_hfsp_open(fd, fs);
 		if( err ) err = fs_hfs_open(fd, fs);
-		if( err ) err = fs_grubfs_open(fd, fs);	
+		if( err ) err = fs_grubfs_open(fd, fs);
 	}
-	
+
 	fs->fd = fd;
 
 	if( err ) {
@@ -76,7 +76,7 @@ files_open( files_info_t *mi )
 {
 	fs_ops_t *fs = do_open( my_parent() );
 	char *name;
-	
+
 	if( !fs )
 		RET( 0 );
 
@@ -90,7 +90,7 @@ files_open( files_info_t *mi )
 		/* printk("PATH: %s\n", fs->get_path(mi->file, mi->pathbuf, PATHBUF_SIZE) ); */
 	}
 	mi->fs = fs;
-	
+
 	if( name )
 		free( name );
 
@@ -110,7 +110,7 @@ do_reopen( files_info_t *mi, file_desc_t *file )
 
 /* ( file-str len -- success? ) */
 static void
-files_reopen( files_info_t *mi ) 
+files_reopen( files_info_t *mi )
 {
 	file_desc_t *file = NULL;
 	char *name = pop_fstr_copy();
@@ -145,14 +145,14 @@ files_volume_name( files_info_t *mi )
 
 	if( !mi->volname )
 		mi->volname = malloc( VOLNAME_SIZE );
-	
+
 	ret = mi->fs->vol_name( mi->fs, mi->volname, VOLNAME_SIZE );
 	PUSH( (ucell)ret );
 }
 
 /* ( -- success? ) */
 static void
-files_open_nwrom( files_info_t *mi ) 
+files_open_nwrom( files_info_t *mi )
 {
 	file_desc_t *file = fs_search_rom( mi->fs );
 	do_reopen( mi, file );
@@ -180,7 +180,7 @@ files_read( files_info_t *mi )
 	int len = POP();
 	char *buf = (char*)POP();
 	int ret;
-	
+
 	if( mi->file ) {
 		ret = mi->fs->read( mi->file, buf, len );
 		mi->filepos += ret;
@@ -204,7 +204,7 @@ files_seek( files_info_t *mi )
 {
 	llong pos = DPOP();
 	cell ret;
-	
+
 	if( mi->file ) {
 		int offs = (int)pos;
 		int whence = SEEK_SET;
@@ -266,17 +266,17 @@ NODE_METHODS( files ) = {
 	{ "open",		files_open 		},
 	{ "close",		files_close 		},
 	{ "read",		files_read 		},
-	{ "write",		files_write 		},	
+	{ "write",		files_write 		},
 	{ "seek",		files_seek 		},
 	{ "tell",		files_tell		},
-	
+
 	/* special */
 	{ "reopen",		files_reopen 		},
 	{ "open-nwrom",		files_open_nwrom 	},
 	{ "get-path",		files_get_path		},
 	{ "get-fstype",		files_get_fstype	},
 	{ "volume-name",	files_volume_name	},
-	
+
 	{ NULL,			files_initializer 	},
 };
 

@@ -1,19 +1,19 @@
-/* 
+/*
  *   Creation Date: <2004/08/28 18:38:22 greg>
  *   Time-stamp: <2004/08/28 18:38:22 greg>
- *   
+ *
  *	<briq.c>
- *   
+ *
  *   Copyright (C) 2004, Greg Watson
- *   
+ *
  *   derived from mol.c
  *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -114,7 +114,7 @@ availchar( void )
 {
 	if( !tty_avail() )
 		return 0;
-	
+
 	if( ttychar < 0 )
 		ttychar = inb(UART_BASE);
 	return (ttychar >= 0);
@@ -167,7 +167,7 @@ dump_nvram(void)
         {
           printk (" ");
         }
-    }	
+    }
 }
 
 

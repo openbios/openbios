@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original 1996-1998 Robert Leslie <rob@mars.org>
- * Additional work by  Brad Boyer (flar@pants.nu)  
+ * Additional work by  Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ void* record_readkey(void* p, void* buf)
 	/* check if keylenght was correct */
     if (key_length != ((char*) p) - ((char*) check))
 	 HFSP_ERROR(EINVAL, "Invalid key length in record_readkey");
-    return p;	
+    return p;
   fail:
     return NULL;
 }
@@ -70,7 +70,7 @@ void* record_extent_readkey(void* p, void* buf)
 	HFSP_ERROR(-1, "Invalid key length in record_extent_readkey");
     key->file_id		    = bswabU32_inc(p);
     key->start_block		    = bswabU32_inc(p);
-    return p;	
+    return p;
   fail:
     return NULL;
 }
@@ -282,7 +282,7 @@ int record_key_compare(void* k1, void* k2)
     hfsp_cat_key* key2 = (hfsp_cat_key*) k2;
     int diff = key2->parent_cnid - key1->parent_cnid;
     if (!diff) // same parent
-	diff = fast_unicode_compare(&key1->name, &key2->name); 
+	diff = fast_unicode_compare(&key1->name, &key2->name);
     return diff;
 }
 
@@ -333,7 +333,7 @@ static node_buf* record_find_node(btree* tree, void *key)
 		start = mid + 1;
 	    else if (comp < 0)
 		end = mid;
-	    else 
+	    else
 		break;
 	}
 	if (!p) // Empty tree, fascinating ...
@@ -349,7 +349,7 @@ static node_buf* record_find_node(btree* tree, void *key)
 	    if (!p)
 		HFSP_ERROR(-1, "record_find_node: unexpected error");
 	}
-	    
+
 	index = bswabU32_inc(p);
 	node = btree_node_by_index(tree, index);
     }
@@ -359,7 +359,7 @@ static node_buf* record_find_node(btree* tree, void *key)
 }
 
 /* search for the given key in the btree.
- * 
+ *
  * returns pointer to memory just after key or NULL
  * In any case *keyind recives the index where the
  * key was found (or could be inserted.)
@@ -392,7 +392,7 @@ record_find_key(btree* tree, void* key, int* keyind, UInt16* node_index)
 		start = mid + 1;
 	    else if (comp < 0)
 		end = mid;
-	    else 
+	    else
 		break;
 	}
 	if (!p) // Empty tree, fascinating ...
@@ -408,7 +408,7 @@ record_find_key(btree* tree, void* key, int* keyind, UInt16* node_index)
 }
 
 /* intialize the record by searching for the given key in the btree.
- * 
+ *
  * r is umodified on error.
  */
 static int
@@ -417,7 +417,7 @@ record_init_key(record* r, btree* tree, hfsp_cat_key* key)
     int	    keyind;
     UInt16  node_index;
     void    *p = record_find_key(tree, key, &keyind, &node_index);
-    
+
     if (p)
     {
 	r -> tree      = tree;
@@ -438,14 +438,14 @@ record_init_key(record* r, btree* tree, hfsp_cat_key* key)
  *
  * forktype: either HFSP_EXTEND_DATA or HFSP_EXTEND_RSRC
  */
-int record_init_file(extent_record* r, btree* tree, 
+int record_init_file(extent_record* r, btree* tree,
 		    UInt8 forktype, UInt32 fileId, UInt32 blockindex)
 {
     int		    keyind;
     UInt16	    node_index;
     hfsp_extent_key key = { 10, forktype, 0, fileId, blockindex };
     void	    *p = record_find_key(tree, &key, &keyind, &node_index);
-    
+
     if (p)
     {
 	r -> tree      = tree;
@@ -466,7 +466,7 @@ int record_init_file(extent_record* r, btree* tree,
 int record_init_cnid(record* r, btree* tree, UInt32 cnid)
 {
     hfsp_cat_key    thread_key;	    // the thread is the first record
-    
+
     thread_key.key_length = 6;	    // null name (like '.' in unix )
     thread_key.parent_cnid = cnid;
     thread_key.name.strlen = 0;
@@ -486,7 +486,7 @@ int record_init_parent(record* r, record* parent)
 	    *r = *parent; // The folder thread is in fact the first entry, like '.'
 	return 0;
     }
-    HFSP_ERROR(EINVAL, 
+    HFSP_ERROR(EINVAL,
 	"record_init_parent: parent is neither folder nor folder thread.");
 
   fail:
@@ -513,9 +513,9 @@ static node_buf* prepare_next(btree* tree, UInt16 node_index, UInt16* pindex)
     }
     return buf;
 }
-/* move record foreward to next entry. 
+/* move record foreward to next entry.
  *
- * In case of an error the value of *r is undefined ! 
+ * In case of an error the value of *r is undefined !
  */
 int record_next(record* r)
 {
@@ -523,10 +523,10 @@ int record_next(record* r)
     UInt16	index	= r->keyind +1;
     UInt32	parent;
     node_buf*	buf	= prepare_next(tree, r->node_index, &index);
-    
+
     if (!buf)
 	return ENOENT;	// No (more) such file or directory
-    
+
     parent = r->key.parent_cnid;
 
     if (record_init(r, tree, buf, index))
@@ -539,9 +539,9 @@ int record_next(record* r)
     return 0;
 }
 
-/* move record foreward to next extent record. 
+/* move record foreward to next extent record.
  *
- * In case of an error the value of *r is undefined ! 
+ * In case of an error the value of *r is undefined !
  */
 int record_next_extent(extent_record* r)
 {
@@ -553,7 +553,7 @@ int record_next_extent(extent_record* r)
 
     if (!buf)
 	return ENOENT;	// No (more) such file or directory
-    
+
     file_id	= r->key.file_id;
     fork_type	= r->key.fork_type;
 
@@ -569,13 +569,13 @@ int record_next_extent(extent_record* r)
 }
 
 /* intialize the record by searching for the given string in the given folder.
- * 
+ *
  * parent and r may be the same.
  */
 int record_init_string_parent(record* r, record* parent, char* name)
 {
     hfsp_cat_key key;
-    
+
     if (parent->record.type == HFSP_FOLDER)
 	key.parent_cnid = parent->record.u.folder.id;
     else if(parent->record.type == HFSP_FOLDER_THREAD)
@@ -632,8 +632,8 @@ static void record_print_Rect(Rect* r)
 /* print the key of a record */
 static void record_print_key(hfsp_cat_key* key)
 {
-    char buf[255]; // mh this _might_ overflow 
-    unicode_uni2asc(buf, &key->name, 255);   
+    char buf[255]; // mh this _might_ overflow
+    unicode_uni2asc(buf, &key->name, 255);
     printf("parent cnid :    %ld\n",   key->parent_cnid);
     printf("name        :    %s\n", buf);
 }
@@ -687,7 +687,7 @@ static void record_print_FInfo(FInfo* finfo)
     printf(  "fdLocation          :\t");     record_print_Point(&finfo->fdLocation);
     printf("\nfdFldr              :\t%d\n",  finfo->fdFldr);
 }
- 
+
 /* print extended File info */
 static void record_print_FXInfo(FXInfo* xinfo)
 {
@@ -695,7 +695,7 @@ static void record_print_FXInfo(FXInfo* xinfo)
     // xinfo -> fdUnused;
     printf(  "fdComment           :\t%d\n",   xinfo->fdComment);
     printf(  "fdPutAway           :\t%ld\n",  xinfo->fdPutAway);
-} 
+}
 
 /* print folder entry */
 
@@ -719,8 +719,8 @@ static void record_print_file(hfsp_cat_file* file)
 /* print info for a file or folder thread */
 static void record_print_thread(hfsp_cat_thread* entry)
 {
-    char buf[255]; // mh this _might_ overflow 
-    unicode_uni2asc(buf, &entry->nodeName, 255);   
+    char buf[255]; // mh this _might_ overflow
+    unicode_uni2asc(buf, &entry->nodeName, 255);
     printf("parent cnid :\t%ld\n", entry->parentID);
     printf("name        :\t%s\n" , buf);
 }

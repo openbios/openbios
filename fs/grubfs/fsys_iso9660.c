@@ -82,7 +82,7 @@ iso9660_mount (void)
    */
   for (sector = 16 ; sector < 32 ; sector++)
     {
-      if (!iso9660_devread(sector, 0, sizeof(*PRIMDESC), (char *)PRIMDESC)) 
+      if (!iso9660_devread(sector, 0, sizeof(*PRIMDESC), (char *)PRIMDESC))
 	break;
       /* check ISO_VD_PRIMARY and ISO_STANDARD_ID */
       if (CHECK4(&PRIMDESC->type, ISO_VD_PRIMARY, 'C', 'D', '0')

@@ -37,7 +37,7 @@
 
 #define MEMORY_SIZE	(4*1024*1024)	/* 4M ram for hosted system */
 #define DICTIONARY_SIZE	(256*1024)	/* 256k for the dictionary   */
- 
+
 #if defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS==64)
 #define lseek lseek64
 #define __LFS O_LARGEFILE
@@ -155,7 +155,7 @@ u8 inb(u32 reg)
 	if (ior)
 		return ior->inb(reg);
 #endif
-	
+
 	printk("TRAP: io byte read @0x%x", reg);
 	return 0xff;
 }
@@ -302,7 +302,7 @@ int_handler(int signo __attribute__ ((unused)),
     exit(1);
 }
 
-/* 
+/*
  * allocate memory and prepare engine for memory management.
  */
 
@@ -327,9 +327,9 @@ static void init_memory(void)
 
 void exception(__attribute__((unused)) cell no)
 {
-	/* 
-	 * this is a noop since the dictionary has to take care 
-	 * itself of errors it generates outside of the bootstrap 
+	/*
+	 * this is a noop since the dictionary has to take care
+	 * itself of errors it generates outside of the bootstrap
 	 */
 }
 
@@ -339,17 +339,17 @@ arch_init( void )
 	modules_init();
 	if(diskemu!=-1)
 		blk_init();
-	
+
 	device_end();
         bind_func("platform-boot", boot);
 }
 
-int 
+int
 read_from_disk( int channel, int unit, int blk, unsigned long mphys, int size )
 {
 	// channels and units not supported yet.
 	unsigned char *buf=(unsigned char *)mphys;
-	
+
 	if(diskemu==-1)
 		return -1;
 
@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
 	}
 
 	memset(dict, 0, DICTIONARY_SIZE);
-	
+
 	if (!segfault) {
 		if (verbose)
 			printk("Installing SIGSEGV handler...");
@@ -536,7 +536,7 @@ int
 printk( const char *fmt, ... )
 {
 	int i;
-	
+
 	va_list args;
 	va_start( args, fmt );
 	i = vprintf(fmt, args );

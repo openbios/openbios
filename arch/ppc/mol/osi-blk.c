@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/07 19:08:33 samuel>
  *   Time-stamp: <2004/01/07 19:38:36 samuel>
- *   
+ *
  *	<osi-blk.c>
- *	
+ *
  *	OSI-block interface
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -64,7 +64,7 @@ osiblk_read_blocks( osiblk_data_t *pb )
 	int i, n = POP();
 	int blk = POP();
 	char *dest = (char*)POP();
-	
+
 	/* printk("osiblk_read_blocks %x block=%d n=%d\n", (int)dest, blk, n ); */
 
 	for( i=0; i<n; ) {

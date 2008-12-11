@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/19 18:46:21 samuel>
  *   Time-stamp: <2004/04/12 16:27:12 samuel>
- *   
+ *
  *	<mol.c>
- *	
- *	
- *   
+ *
+ *
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -96,7 +96,7 @@ availchar( void )
 {
 	if( !tty_avail() )
 		return 0;
-	
+
 	if( ttychar < 0 )
 		ttychar = OSI_TTYGetc();
 	if( ttychar < 0 )

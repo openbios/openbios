@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/11/18 14:55:05 samuel>
  *   Time-stamp: <2004/03/27 02:03:55 samuel>
- *   
+ *
  *	<tree.c>
- *	
+ *
  *	device tree setup
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -30,7 +30,7 @@ copy_node( mol_phandle_t molph )
 	char name[40], path[80];
 	int exists;
 	phandle_t ph;
-	
+
 	if( !molph )
 		return;
 
@@ -73,7 +73,7 @@ copy_node( mol_phandle_t molph )
 
 	set_int_property( ph, "MOL,phandle", molph );
 	copy_node( prom_child(molph) );
-	
+
 	if( !exists )
 		fword("finish-device");
 	else
@@ -128,7 +128,7 @@ fix_phandles( void )
 		if( (map=(int*)get_property(ph, "interrupt-map", &len)) ) {
 			int i, acells = get_int_property(ph, "#address-cells", NULL);
 			int icells = get_int_property(ph, "#interrupt-cells", NULL);
-			
+
 			len /= sizeof(int);
 			for( i=0; i<len; i++ ) {
 				phandle_t ch_ph;
@@ -147,7 +147,7 @@ fix_phandles( void )
 		}
 	}
 	/* delete MOL,phandle properties */
-	for( ph=0; (ph=dt_iterate(ph)) ; ) {	
+	for( ph=0; (ph=dt_iterate(ph)) ; ) {
 		push_str("MOL,phandle");
 		PUSH_ph(ph);
 		fword("(delete-property)");

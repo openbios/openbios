@@ -1,21 +1,21 @@
-/* 
+/*
  *   Creation Date: <2004/08/28 18:38:22 greg>
  *   Time-stamp: <2004/08/28 18:38:22 greg>
- *   
+ *
  *	<methods.c>
- *	
+ *
  *	Misc device node methods
  *
  *   Copyright (C) 2004 Greg Watson
- *   
+ *
  *   Based on MOL specific code which is
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -39,11 +39,11 @@ stdout_write( void )
 
 	strncpy_nopad( s, addr, len );
 	s[len]=0;
-	
+
 	printk( "%s", s );
 	//vfd_draw_str( s );
 	console_draw_str( s );
-		
+
 	free( s );
 
 	PUSH( len );

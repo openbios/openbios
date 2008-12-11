@@ -41,7 +41,7 @@ unsigned short add_ipchksums(unsigned long offset, unsigned short sum, unsigned 
 	sum = ~sum & 0xFFFF;
 	new = ~new & 0xFFFF;
 	if (offset & 1) {
-		/* byte swap the sum if it came from an odd offset 
+		/* byte swap the sum if it came from an odd offset
 		 * since the computation is endian independant this
 		 * works.
 		 */

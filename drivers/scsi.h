@@ -160,7 +160,7 @@
 #define TYPE_WORM           0x04    /* Treated as ROM by our system */
 #define TYPE_ROM            0x05
 #define TYPE_SCANNER        0x06
-#define TYPE_MOD            0x07    /* Magneto-optical disk - 
+#define TYPE_MOD            0x07    /* Magneto-optical disk -
 				     * - treated as TYPE_DISK */
 #define TYPE_MEDIUM_CHANGER 0x08
 #define TYPE_COMM           0x09    /* Communications device */
@@ -247,7 +247,7 @@ struct ccs_modesel_head
  * of the file.
  * ---------------------------------------------------------------------------
  * Local variables:
- * c-indent-level: 4 
+ * c-indent-level: 4
  * c-brace-imaginary-offset: 0
  * c-brace-offset: -4
  * c-argdecl-indent: 4

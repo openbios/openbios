@@ -285,7 +285,7 @@ dump_inode(struct ext2_inode *i)
     printf("  flags=%d\n", __le32_to_cpu(i->i_flags));
 }
 
-void 
+void
 dump_inode_data(unsigned char *inode, int len)
 {
   static char hexdigit[] = "0123456789abcdef";
@@ -333,8 +333,8 @@ static int
 ext2_rdfsb (int fsblock, char * buffer)
 {
 #ifdef E2DEBUG
-  printf ("ext2_rdfsb: fsblock %d, devblock %d, size %d\n", fsblock, 
-	  fsblock * (EXT2_BLOCK_SIZE (SUPERBLOCK) / DEV_BSIZE), 
+  printf ("ext2_rdfsb: fsblock %d, devblock %d, size %d\n", fsblock,
+	  fsblock * (EXT2_BLOCK_SIZE (SUPERBLOCK) / DEV_BSIZE),
 	  EXT2_BLOCK_SIZE (SUPERBLOCK));
 #endif /* E2DEBUG */
   return devread (fsblock * (EXT2_BLOCK_SIZE (SUPERBLOCK) / DEV_BSIZE), 0,
@@ -574,14 +574,14 @@ ext2fs_dir (char *dirname)
 
 #ifdef E2DEBUG
       dump_group_desc(GROUP_DESC);
-#endif /* E2DEBUG */	
+#endif /* E2DEBUG */
 
       gdp = GROUP_DESC;
       ino_blk = __le32_to_cpu(gdp[desc].bg_inode_table) +
 	(((current_ino - 1) % __le32_to_cpu(SUPERBLOCK->s_inodes_per_group))
 	 >> log2 (EXT2_BLOCK_SIZE (SUPERBLOCK) / sizeof (struct ext2_inode)));
 #ifdef E2DEBUG
-      printf ("ext2fs_dir: itab_blk=%d, i_in_grp=%d, log2=%d\n", 
+      printf ("ext2fs_dir: itab_blk=%d, i_in_grp=%d, log2=%d\n",
 	 __le32_to_cpu(gdp[desc].bg_inode_table),
 	 ((current_ino - 1) % __le32_to_cpu(SUPERBLOCK->s_inodes_per_group)),
 	 log2 (EXT2_BLOCK_SIZE (SUPERBLOCK) / sizeof (struct ext2_inode)));

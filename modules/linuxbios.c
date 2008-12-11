@@ -11,7 +11,7 @@
 #ifdef CONFIG_DEBUG_BOOT
 #define debug printk
 #else
-#define debug(x...) 
+#define debug(x...)
 #endif
 
 #define for_each_lbrec(head, rec) \
@@ -19,7 +19,7 @@
 		(((char *)rec) < (((char *)head) + sizeof(*head) + head->table_bytes))  && \
 		(rec->size >= 1) && \
 		((((char *)rec) + rec->size) <= (((char *)head) + sizeof(*head) + head->table_bytes)); \
-		rec = (struct lb_record *)(((char *)rec) + rec->size)) 
+		rec = (struct lb_record *)(((char *)rec) + rec->size))
 
 static void convert_memmap(struct lb_memory *lbmem, struct sys_info *info)
 {
@@ -67,7 +67,7 @@ static unsigned long count_lb_records(void *start, unsigned long length)
 	count = 0;
 	end = ((char *)start) + length;
 	for(rec = start; ((void *)rec < end) &&
-		((signed long)rec->size <= (end - (void *)rec)); 
+		((signed long)rec->size <= (end - (void *)rec));
 		rec = (void *)(((char *)rec) + rec->size)) {
 		count++;
 	}
@@ -80,7 +80,7 @@ static int find_lb_table(void *start, void *end, struct lb_header **result)
 	/* For now be stupid.... */
 	for(ptr = start; (void *)ptr < end; ptr += 16) {
 		struct lb_header *head = (struct lb_header *)ptr;
-		if (	(head->signature[0] != 'L') || 
+		if (	(head->signature[0] != 'L') ||
 			(head->signature[1] != 'B') ||
 			(head->signature[2] != 'I') ||
 			(head->signature[3] != 'O')) {
@@ -89,7 +89,7 @@ static int find_lb_table(void *start, void *end, struct lb_header **result)
 		if (head->header_bytes != sizeof(*head))
 			continue;
 		debug("Found canidate at: %p\n", head);
-		if (ipchksum((uint16_t *)head, sizeof(*head)) != 0) 
+		if (ipchksum((uint16_t *)head, sizeof(*head)) != 0)
 			continue;
 		debug("header checksum o.k.\n");
 		if (ipchksum((uint16_t *)(ptr + sizeof(*head)), head->table_bytes) !=

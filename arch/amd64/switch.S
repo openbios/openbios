@@ -6,7 +6,7 @@
 /*
  * Entry point
  * We start execution from here.
- * It is assumed that CPU is in 32-bit protected mode and 
+ * It is assumed that CPU is in 32-bit protected mode and
  * all segments are 4GB and base zero (flat model).
  */
 entry:
@@ -28,7 +28,7 @@ entry:
  * switches the stack, and restores everything from the new stack.
  * This function takes no argument. New stack pointer is
  * taken from global variable __context, and old stack pointer
- * is also saved to __context. This way we can just jump to 
+ * is also saved to __context. This way we can just jump to
  * this routine to get back to the original context.
  *
  * Call this routine with lcall or pushl %cs; call.
@@ -51,7 +51,7 @@ __switch_context:
 	xchgl	%eax, 64(%esp)
 	movl	%eax, 60(%esp)
 #endif
-	
+
 	/* At this point we don't know if we are on flat segment
 	 * or relocated. So compute the address offset from %eip.
 	 * Assuming CS.base==DS.base==SS.base.
@@ -62,7 +62,7 @@ __switch_context:
 
 	/* Interrupts are not allowed... */
 	cli
-	
+
 	/* Current context pointer is our stack pointer */
 	movl	%esp, %esi
 

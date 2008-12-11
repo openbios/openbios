@@ -25,4 +25,4 @@
 #include "openbios/config.h"
 #include "libhfsp.h"
 
-const char *hfsp_error = "no error";       /* static error string */   
+const char *hfsp_error = "no error";       /* static error string */

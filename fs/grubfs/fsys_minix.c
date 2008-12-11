@@ -20,7 +20,7 @@
 /* Restrictions:
    This is MINIX V1 only (yet)
    Disk creation is like:
-   mkfs.minix -c DEVICE 
+   mkfs.minix -c DEVICE
 */
 
 #ifdef FSYS_MINIX
@@ -75,7 +75,7 @@ typedef unsigned int __u32;
 #define MINIX_V1                0x0001          /* original minix fs */
 #define MINIX_V2                0x0002          /* minix V2 fs */
 
-/* originally this is : 
+/* originally this is :
 #define INODE_VERSION(inode)    inode->i_sb->u.minix_sb.s_version
    here we have */
 #define INODE_VERSION(inode)	(SUPERBLOCK->s_version)
@@ -164,15 +164,15 @@ minix_mount (void)
       && ! IS_PC_SLICE_TYPE_MINIX (current_slice)
       && ! IS_PC_SLICE_TYPE_BSD_WITH_FS (current_slice, FS_OTHER))
     return 0;			/* The partition is not of MINIX type */
-  
+
   if (part_length < (SBLOCK +
 		     (sizeof (struct minix_super_block) / DEV_BSIZE)))
     return 0;			/* The partition is too short */
-  
+
   if (!devread (SBLOCK, 0, sizeof (struct minix_super_block),
 		(char *) SUPERBLOCK))
     return 0;			/* Cannot read superblock */
-  
+
   switch (SUPERBLOCK->s_magic)
     {
     case MINIX_SUPER_MAGIC:
@@ -210,7 +210,7 @@ minix_block_map (int logical_block)
   if (logical_block < 512)
     {
       i = INODE->i_zone[7];
-      
+
       if (!i || ((mapblock1 != 1)
 		 && !minix_rdfsb (i, DATABLOCK1)))
 	{
@@ -311,7 +311,7 @@ minix_dir (char *dirname)
   char * rest;
   char ch;
 
-  int off;			     /* offset within block of directory 
+  int off;			     /* offset within block of directory
 					entry */
   int loc;			     /* location within a directory */
   int blk;			     /* which data blk within dir entry */
@@ -326,7 +326,7 @@ minix_dir (char *dirname)
 
 #ifdef DEBUG_MINIX
   printf ("\n");
-#endif  
+#endif
 
   while (1)
     {
@@ -345,7 +345,7 @@ minix_dir (char *dirname)
       raw_inode = INODE + ((current_ino - 1) % MINIX_INODES_PER_BLOCK);
 
       /* copy inode to fixed location */
-      memmove ((void *) INODE, (void *) raw_inode, 
+      memmove ((void *) INODE, (void *) raw_inode,
 	       sizeof (struct minix_inode));
 
       /* If we've got a symbolic link, then chase it. */
@@ -430,7 +430,7 @@ minix_dir (char *dirname)
       while (*dirname == '/')
 	dirname++;
 
-      /* if this isn't a directory of sufficient size to hold our file, 
+      /* if this isn't a directory of sufficient size to hold our file,
 	 abort */
       if (!(INODE->i_size) || !S_ISDIR (INODE->i_mode))
 	{

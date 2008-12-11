@@ -123,7 +123,7 @@ struct linux_params {
     uint16_t ramdisk_flags;		/* 0x1f8 */
 #define RAMDISK_IMAGE_START_MASK  	0x07FF
 #define RAMDISK_PROMPT_FLAG		0x8000
-#define RAMDISK_LOAD_FLAG		0x4000	
+#define RAMDISK_LOAD_FLAG		0x4000
     uint8_t  reserved8[2];		/* 0x1fa */
     uint16_t orig_root_dev;		/* 0x1fc */
     uint8_t  reserved9[1];		/* 0x1fe */
@@ -464,7 +464,7 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
 	max = hdr->initrd_addr_max;
     else
 	max = 0x38000000; /* Hardcoded value for older kernels */
-    
+
     /* FILO itself is at the top of RAM. (relocated)
      * So, try putting initrd just below us. */
     end = virt_to_phys(_start);
@@ -520,9 +520,9 @@ static void hardware_setup(void)
     outb(0, 0xf0);
     outb(0, 0xf1);
 
-    /* we're getting screwed again and again by this problem of the 8259. 
-     * so we're going to leave this lying around for inclusion into 
-     * crt0.S on an as-needed basis. 
+    /* we're getting screwed again and again by this problem of the 8259.
+     * so we're going to leave this lying around for inclusion into
+     * crt0.S on an as-needed basis.
      *
      * well, that went ok, I hope. Now we have to reprogram the interrupts :-(
      * we put them right after the intel-reserved hardware interrupts, at
@@ -565,8 +565,8 @@ static int start_linux(uint32_t kern_addr, struct linux_params *params)
     linux_gdt[2] = gdt[FLAT_CODE];
     linux_gdt[3] = gdt[FLAT_DATA];
     /* 2.6 kernel uses 12 and 13, but head.S uses backward-compatible
-     * segments (2 and 3), so it SHOULD not be a problem. 
-     * However, some distro kernels (eg. RH9) with backported threading 
+     * segments (2 and 3), so it SHOULD not be a problem.
+     * However, some distro kernels (eg. RH9) with backported threading
      * patch use 12 and 13 also when booting... */
     linux_gdt[12] = gdt[FLAT_CODE];
     linux_gdt[13] = gdt[FLAT_DATA];
@@ -594,7 +594,7 @@ static int start_linux(uint32_t kern_addr, struct linux_params *params)
     params->orig_x = cursor_x;
     params->orig_y = cursor_y;
 #endif
-    
+
     /* Go... */
     ctx = switch_to(ctx);
 

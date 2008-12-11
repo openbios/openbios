@@ -778,7 +778,7 @@ static void unalignedlongread(void)
 
 
 /*
- *  unaligned-l!  ( quad addr -- ) 
+ *  unaligned-l!  ( quad addr -- )
  */
 
 static void unalignedlongwrite(void)

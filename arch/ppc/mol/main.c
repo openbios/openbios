@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2002/10/02 22:24:24 samuel>
  *   Time-stamp: <2004/03/27 01:57:55 samuel>
- *   
+ *
  *	<main.c>
- *	
- *	
- *   
+ *
+ *
+ *
  *   Copyright (C) 2002, 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 
@@ -71,7 +71,7 @@ load_elf_rom( ulong *entry, int fd )
 		s = MIN( phdr[i].p_filesz, phdr[i].p_memsz );
 		seek_io( fd, elf_offs + phdr[i].p_offset );
 
-		/* printk("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n", 
+		/* printk("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n",
 		   phdr[i].p_filesz, phdr[i].p_memsz, phdr[i].p_offset,
 		   phdr[i].p_vaddr ); */
 
@@ -94,7 +94,7 @@ load_elf_rom( ulong *entry, int fd )
 		}
 		flush_icache_range( addr, addr+s );
 
-		/* printk("ELF ROM-section loaded at %08lX (size %08lX)\n", 
+		/* printk("ELF ROM-section loaded at %08lX (size %08lX)\n",
 		   (ulong)phdr[i].p_vaddr, (ulong)phdr[i].p_memsz );*/
 	}
 	free( phdr );
@@ -157,7 +157,7 @@ newworld_timer_hack( char *start, size_t size )
 			nw_dec_calibration = OSI_MticksToUsecs(0xfffff*47)/60;
 			memcpy( start + s, timer_calib_start, timer_calib_end - timer_calib_start );
 
-			printk("Timer calibration fix: %d.%02d MHz [%ld]\n", 
+			printk("Timer calibration fix: %d.%02d MHz [%ld]\n",
 			       hz/1000, (hz/10)%100, nw_dec_calibration );
 			break;
 		}
@@ -170,20 +170,20 @@ load_newworld_rom( int fd )
 	int lszz_offs, lszz_size;
 	ulong entry, data[2];
 	phandle_t ph;
-	
+
 	lszz_offs = load_elf_rom( &entry, fd );
 	seek_io( fd, -1 );
 	lszz_size = tell(fd) - lszz_offs;
 	seek_io( fd, lszz_offs );
 
-	/* printk("Compressed ROM image: offset %08X, size %08X loaded at %08x\n", 
+	/* printk("Compressed ROM image: offset %08X, size %08X loaded at %08x\n",
 	   lszz_offs, lszz_size, ROM_BASE ); */
 
 	if( ofmem_claim(ROM_BASE, lszz_size, 0) == -1 )
 		fatal_error("Claim failure (lszz)!\n");
-	
+
 	read_io( fd, (char*)ROM_BASE, lszz_size );
-	
+
 	/* Fix the /rom/macos/AAPL,toolbox-image,lzss property (phys, size) */
 #if 0
 	if( (ph=prom_create_node("/rom/macos/")) == -1 )
@@ -195,7 +195,7 @@ load_newworld_rom( int fd )
 	data[1] = lszz_size;
 	set_property( ph, "AAPL,toolbox-image,lzss", (char*)data, sizeof(data) );
 
-	/* The 7.8 rom (MacOS 9.2) uses AAPL,toolbox-parcels instead of 
+	/* The 7.8 rom (MacOS 9.2) uses AAPL,toolbox-parcels instead of
 	 * AAPL,toolbox-image,lzss. It probably doesn't hurt to have it
 	 * always present (we don't have an easy way to determine ROM version...)
 	 */
@@ -208,7 +208,7 @@ search_nwrom( int fd, int fast )
 {
 	char *s, buf[128];
 	int found = 0;
-	
+
 	if( fast ) {
 		int ind;
 		found = !reopen( fd, "\\\\:tbxi" );
@@ -233,8 +233,8 @@ static void
 encode_bootpath( const char *spec, const char *args )
 {
 	phandle_t chosen_ph = find_dev("/chosen");
-	set_property( chosen_ph, "bootpath", spec, strlen(spec)+1 );	
-	set_property( chosen_ph, "bootargs", args, strlen(args)+1 );	
+	set_property( chosen_ph, "bootpath", spec, strlen(spec)+1 );
+	set_property( chosen_ph, "bootargs", args, strlen(args)+1 );
 }
 
 static char *

@@ -2,7 +2,7 @@
  * <adbkbd.c>
  *
  * Open Hack'Ware BIOS ADB keyboard support, ported to OpenBIOS
- * 
+ *
  *  Copyright (c) 2005 Jocelyn Mayer
  *  Copyright (c) 2005 Stefan Reinauer
  *
@@ -516,7 +516,7 @@ static void keyboard_read(void)
 	int len, key, i;
 	len=POP();
 	addr=(char *)POP();
-	
+
 	for (i = 0; i < len; i++) {
 		key = adb_kbd_read(my_adb_dev);
 		if (key == -1 || key == -2)

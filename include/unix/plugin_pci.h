@@ -1,5 +1,5 @@
 /* tag: openbios pci plugin headers
- * 
+ *
  * Copyright (C) 2003 Stefan Reinauer
  *
  * See the file "COPYING" for further information about

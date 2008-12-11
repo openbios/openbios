@@ -91,7 +91,7 @@ ffs_mount (void)
 
   mapblock = -1;
   mapblock_offset = -1;
-  
+
   return retval;
 }
 
@@ -99,10 +99,10 @@ static int
 block_map (int file_block)
 {
   int bnum, offset, bsize;
-  
+
   if (file_block < NDADDR)
     return (INODE->i_db[file_block]);
-  
+
   /* If the blockmap loaded does not include FILE_BLOCK,
      load a new blockmap.  */
   if ((bnum = fsbtodb (SUPERBLOCK, INODE->i_ib[0])) != mapblock
@@ -112,7 +112,7 @@ block_map (int file_block)
 	{
 	  offset = ((file_block - NDADDR) % NINDIR (SUPERBLOCK));
 	  bsize = MAPBUF_LEN;
-	  
+
 	  if (offset + MAPBUF_LEN > SUPERBLOCK->fs_bsize)
 	    offset = (SUPERBLOCK->fs_bsize - MAPBUF_LEN) / sizeof (int);
 	}
@@ -121,7 +121,7 @@ block_map (int file_block)
 	  bsize = SUPERBLOCK->fs_bsize;
 	  offset = 0;
 	}
-      
+
       if (! devread (bnum, offset * sizeof (int), bsize, (char *) MAPBUF))
 	{
 	  mapblock = -1;
@@ -130,12 +130,12 @@ block_map (int file_block)
 	  errnum = ERR_FSYS_CORRUPT;
 	  return -1;
 	}
-      
+
       mapblock = bnum;
       mapblock_bsize = bsize;
       mapblock_offset = offset;
     }
-  
+
   return (((int *) MAPBUF)[((file_block - NDADDR) % NINDIR (SUPERBLOCK))
 			  - mapblock_offset]);
 }
@@ -145,7 +145,7 @@ int
 ffs_read (char *buf, int len)
 {
   int logno, off, size, map, ret = 0;
-  
+
   while (len && !errnum)
     {
       off = blkoff (SUPERBLOCK, filepos);
@@ -296,7 +296,7 @@ ffs_embed (int *start_sector, int needed_sectors)
      familiar with BSD should check for this.  */
   if (needed_sectors > 14)
     return 0;
-  
+
   *start_sector = 1;
 #if 1
   /* FIXME: Disable the embedding in FFS until someone checks if

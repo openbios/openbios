@@ -8,7 +8,7 @@
  *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original 1996-1998 Robert Leslie <rob@mars.org>
- * Additional work by  Brad Boyer (flar@pants.nu)  
+ * Additional work by  Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ static void* btree_readnode(btree_node_desc* node, void *p)
     node->num_rec   = bswabU16_inc(p);
     node->reserved  = bswabU16_inc(p);
     return p;
-} 
+}
 
 /* read a btree header from the given buffer and swap the bytes.
  *
@@ -81,15 +81,15 @@ static void* btree_readhead(btree_head* head, void *p)
  * Should be the average number of keys per node but these vary. */
 #define DEPTH_FACTOR	1000
 
-/* Cache size is height of tree + this value 
+/* Cache size is height of tree + this value
  * Really big numbers wont help in case of ls -R
  */
-#define EXTRA_CACHESIZE	3 
+#define EXTRA_CACHESIZE	3
 
 /* Not in use by now ... */
 #define CACHE_DIRTY 0x0001
 
-/* Intialize cache with default cache Size, 
+/* Intialize cache with default cache Size,
  * must call node_cache_close to deallocate memory */
 static int node_cache_init(node_cache* cache, btree* tree, int size)
 {
@@ -129,7 +129,7 @@ static void node_cache_close(node_cache* cache)
     free(cache->entries);
 }
 
-/* Load the cach node indentified by index with 
+/* Load the cach node indentified by index with
  * the node identified by node_index */
 
 static node_buf* node_cache_load_buf
@@ -138,7 +138,7 @@ static node_buf* node_cache_load_buf
     node_buf	*result	    = node_buf_get(cache ,index);
     UInt32	blkpernode  = bt->blkpernode;
     UInt32	block	    = node_index * blkpernode;
-    void*	p	    = volume_readfromfork(bt->vol, result->node, bt->fork, 
+    void*	p	    = volume_readfromfork(bt->vol, result->node, bt->fork,
 			     block, blkpernode, HFSP_EXTENT_DATA, bt->cnid);
     node_entry	*e	    = &cache->entries[index];
 
@@ -210,9 +210,9 @@ node_buf* btree_node_by_index(btree* bt, UInt16 index)
 
 /** intialize the btree with the first entry in the fork */
 static int btree_init(btree* bt, volume* vol, hfsp_fork_raw* fork)
-{ 
+{
     void	    *p;
-    char	    buf[vol->blksize]; 
+    char	    buf[vol->blksize];
     UInt16	    node_size;
     btree_node_desc node;
 
@@ -236,7 +236,7 @@ static int btree_init(btree* bt, volume* vol, hfsp_fork_raw* fork)
 
     node_cache_init(&bt->cache, bt, bt->head.depth + EXTRA_CACHESIZE);
 
-    // Allocate buffer 
+    // Allocate buffer
     // bt->buf = malloc(node_size);
     // if (!bt->buf)
     //	return ENOMEM;
@@ -249,10 +249,10 @@ void btree_reset(btree* bt)
 {
     bt->cache.entries = NULL;
 }
- 
+
 /** Intialize catalog btree */
 int btree_init_cat(btree* bt, volume* vol, hfsp_fork_raw* fork)
-{ 
+{
     int result = btree_init(bt,vol,fork);	// super (...)
     bt->cnid  = HFSP_CAT_CNID;
     bt->kcomp = record_key_compare;
@@ -262,7 +262,7 @@ int btree_init_cat(btree* bt, volume* vol, hfsp_fork_raw* fork)
 
 /** Intialize catalog btree */
 int btree_init_extent(btree* bt, volume* vol, hfsp_fork_raw* fork)
-{ 
+{
     int result = btree_init(bt,vol,fork);	// super (...)
     bt->cnid  = HFSP_EXT_CNID;
     bt->kcomp = record_extent_key_compare;
@@ -280,16 +280,16 @@ void btree_close(btree* bt)
 /* returns pointer to key given by index in current node.
  *
  * Assumes that current node is not NODE_HEAD ...
- */   
+ */
 void* btree_key_by_index(btree* bt, node_buf* buf, UInt16 index)
 {
-    UInt16  node_size	    = bt->head.node_size; 
+    UInt16  node_size	    = bt->head.node_size;
 	// The offsets are found at the end of the node ...
     UInt16  off_pos	    = node_size - (index +1) * sizeof(btree_record_offset);
  	// position of offset at end of node
-    btree_record_offset* offset = 
+    btree_record_offset* offset =
 	(btree_record_offset*) (buf->node + off_pos);
-	
+
     // now we have the offset and can read the key ...
 #ifdef CONFIG_LITTLE_ENDIAN
     return buf->node + bswap_16(*offset);
@@ -297,7 +297,7 @@ void* btree_key_by_index(btree* bt, node_buf* buf, UInt16 index)
     return buf->node + *offset;
 #endif
 }
-    
+
 
 #ifdef DEBUG
 
@@ -338,7 +338,7 @@ void btree_printhead(btree_head* head)
 
 /* Dump all the node information to stdout */
 void btree_print(btree* bt)
-{ 
+{
     btree_node_desc* node;
 
     btree_printhead(&bt->head);
@@ -350,7 +350,7 @@ void btree_print(btree* bt)
     printf("num_rec  : %#X\n",  node->num_rec);
     printf("reserved : %#X\n",  node->reserved);
     printf("height   : %#X\n",  node->height);                                      switch(node->kind)
-    { 
+    {
 	case HFSP_NODE_NDX  :
 	    printf("HFSP_NODE_NDX\n");
 	    break;
@@ -365,8 +365,8 @@ void btree_print(btree* bt)
 	    break;
 	default:
 	    printf("*** Unknown Node type ***\n");
-    } 
-} 
+    }
+}
 
 #endif
 

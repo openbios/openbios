@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/11/26 16:55:47 samuel>
  *   Time-stamp: <2004/01/07 19:41:54 samuel>
- *   
+ *
  *	<pseudodisk.c>
- *	
+ *
  *	pseudodisk (contains files exported from linux)
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -77,7 +77,7 @@ pdisk_read( pdisk_data_t *pb )
 	int len = POP();
 	char *dest = (char*)POP();
 	int cnt;
-	
+
 	if( pb->fd < 0 ) {
 		memset( dest, 0, len );
 		PUSH(len);
@@ -119,9 +119,9 @@ pdisk_seek( pdisk_data_t *pb )
 		if( pos_lo == -1 )
 			pos_lo = pb->size;
 	}
-	
+
 	pb->seekpos = pos_lo;
-	
+
 	PUSH(0);	/* ??? */
 }
 

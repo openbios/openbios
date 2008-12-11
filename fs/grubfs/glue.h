@@ -23,7 +23,7 @@ int mount_fs(void);
 extern int using_devsize;
 
 /*
- * some of the filesystem drivers don't correctly provide their 
+ * some of the filesystem drivers don't correctly provide their
  * prototypes. we fix this here so we can leave them untouched.
  */
 

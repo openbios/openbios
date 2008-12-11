@@ -15,7 +15,7 @@ DECLARE_UNNAMED_NODE( ob_floppy, INSTALL_OPEN, 2*sizeof(int) );
 #define printk_debug printk
 #define printk_err printk
 
-#ifndef FD_BASE 
+#ifndef FD_BASE
 #define FD_BASE 0x3f0
 #endif
 
@@ -198,7 +198,7 @@ struct drive_state {
 	unsigned track;
 } drive_state[1];
 
-struct floppy_fdc_state {	
+struct floppy_fdc_state {
 	int in_sync;
 	int spec1;		/* spec1 value last used */
 	int spec2;		/* spec2 value last used */
@@ -241,7 +241,7 @@ static int wait_til_ready(void)
 {
 	int counter, status;
 	for (counter = 0; counter < 10000; counter++) {
-		status = inb(FD_STATUS);		
+		status = inb(FD_STATUS);
 		if (status & STATUS_READY) {
 			return status;
 		}
@@ -312,7 +312,7 @@ static int output_command(unsigned char *cmd, int count)
 	int i, status;
 	for(i = 0; i < count; i++) {
 		if ((status = output_byte(cmd[i])) < 0) {
-			printk_err("full command not acceppted, status =%x\n", 
+			printk_err("full command not acceppted, status =%x\n",
 				status);
 			return -1;
 		}
@@ -325,11 +325,11 @@ static int output_new_command(unsigned char *cmd, int count)
 	int i, status;
 	if ((status = output_byte(cmd[0])) < 0)
 		return -1;
-	if (need_more_output() != MORE_OUTPUT) 
+	if (need_more_output() != MORE_OUTPUT)
 		return -1;
 	for(i = 1; i < count; i++) {
 		if ((status = output_byte(cmd[i])) < 0) {
-			printk_err("full new command not acceppted, status =%d\n", 
+			printk_err("full new command not acceppted, status =%d\n",
 				status);
 			return -1;
 		}
@@ -351,12 +351,12 @@ static unsigned char collect_interrupt(void)
 	else {
 		int max_sensei = 4;
 		do {
-			if (output_byte(FD_SENSEI) < 0) 
+			if (output_byte(FD_SENSEI) < 0)
 				break;
 			nr = result(reply_buffer, MAX_REPLIES);
 			if (nr == 2) {
 				pcn = reply_buffer[1];
-				printk_debug("SENSEI %02x %02x\n", 
+				printk_debug("SENSEI %02x %02x\n",
 					reply_buffer[0], reply_buffer[1]);
 			}
 #if 0
@@ -367,7 +367,7 @@ static unsigned char collect_interrupt(void)
 		status = inb(FD_STATUS);
 		printk_debug("status = %x, reply_buffer=", status);
 		for(i = 0; i < nr; i++) {
-			printk_debug(" %x", 
+			printk_debug(" %x",
 				reply_buffer[i]);
 		}
 		printk_debug("\n");
@@ -404,7 +404,7 @@ static void set_drive(int drive)
 	mdelay(DRIVE_H1440_SPINUP);
 
 	status = inb(FD_STATUS);
-	printk_debug("set_drive status = %02x, new_dor = %02x\n", 
+	printk_debug("set_drive status = %02x, new_dor = %02x\n",
 		status, new_dor);
 	if (status != STATUS_READY) {
 		printk_err("set_drive bad status\n");
@@ -449,7 +449,7 @@ static void fdc_dtr(unsigned rate)
 	mdelay(5);
 } /* fdc_dtr */
 
-static int fdc_configure(int use_implied_seek, int use_fifo, 
+static int fdc_configure(int use_implied_seek, int use_fifo,
 	unsigned fifo_threshold, unsigned precompensation)
 {
 	unsigned config_bits;
@@ -473,7 +473,7 @@ static int fdc_configure(int use_implied_seek, int use_fifo,
 	if (output_new_command(cmd, 4) < 0)
 		return 0;
 	return 1;
-}	
+}
 
 #define NOMINAL_DTR 500
 /* Issue a "SPECIFY" command to set the step rate time, head unload time,
@@ -542,7 +542,7 @@ static void fdc_specify(
 	}
 	if (srt > 0xf) {
 		srt = 0xf;
-	} 
+	}
 
 	hlt = (head_load_time*scale_dtr/2 + NOMINAL_DTR - 1)/NOMINAL_DTR;
 	if (hlt < 0x01)
@@ -604,7 +604,7 @@ static void show_floppy(void)
 
 	printk_debug("fdc_bytes: %02x %02x xx %02x %02x %02x xx %02x\n",
 		inb(FD_BASE + 0), inb(FD_BASE + 1),
-		inb(FD_BASE + 3), inb(FD_BASE + 4), inb(FD_BASE + 5), 
+		inb(FD_BASE + 3), inb(FD_BASE + 4), inb(FD_BASE + 5),
 		inb(FD_BASE + 7));
 
 	printk_debug("status=%x\n", inb(FD_STATUS));
@@ -641,9 +641,9 @@ static void floppy_recalibrate(void)
 		nr = result(reply, MAX_REPLIES);
 
 		/* Now see if we have succeeded in our seek */
-		success = 
+		success =
 			/* We have the right size result */
-			(nr == 2) && 
+			(nr == 2) &&
 			/* The command didn't terminate in error */
 			((reply[0] & ST0_INTR) == ST0_INTR_OK) &&
 			/* We finished a seek */
@@ -670,14 +670,14 @@ static int floppy_seek(unsigned track)
 	if (old_track == track) {
 		return 1;
 	}
-	
+
 	/* Compute the distance we are about to move,
-	 * We need to know this so we know how long to sleep... 
+	 * We need to know this so we know how long to sleep...
 	 */
 	distance = (old_track > track)?(old_track - track):(track - old_track);
 	distance += 1;
 
-       
+
 	/* Send the seek command to the controller.
 	 * We don't have interrupts or anything we can poll
 	 * so we have to guess when it is done.
@@ -687,7 +687,7 @@ static int floppy_seek(unsigned track)
 	cmd[2] = track;
 	if (output_command(cmd, 3) < 0)
 		return 0;
-	
+
 	/* Sleep for the time it takes to step throuhg distance tracks.
 	 */
 	mdelay(distance*DRIVE_H1440_SRT/1000);
@@ -701,9 +701,9 @@ static int floppy_seek(unsigned track)
 	nr = result(reply, MAX_REPLIES);
 
 	/* Now see if we have succeeded in our seek */
-	success = 
+	success =
 		/* We have the right size result */
-		(nr == 2) && 
+		(nr == 2) &&
 		/* The command didn't terminate in error */
 		((reply[0] & ST0_INTR) == ST0_INTR_OK) &&
 		/* We finished a seek */
@@ -740,7 +740,7 @@ static int read_ok(unsigned head)
 			result_ok = 1;
 		}
 		/* Or did we get just an overflow error */
-		else if (((results[0] & ST0_INTR) == ST0_INTR_ERROR) && 
+		else if (((results[0] & ST0_INTR) == ST0_INTR_ERROR) &&
 			(results[1]== ST1_OR) &&
 			(results[2] == 0)) {
 			result_ok = 1;
@@ -835,7 +835,7 @@ static int floppy_read_sectors(
 		}
 	}
 	bytes_read = i;
-	
+
 	/* The result stage begins when STATUS_NON_DMA is cleared */
 	while((status = inb(FD_STATUS)) & STATUS_NON_DMA) {
 		/* We get extra bytes in the fifo  past
@@ -854,7 +854,7 @@ static int floppy_read_sectors(
 			ret = length;
 		}
 	}
-	
+
 	if (ret < 0) {
 		printk_debug("ret = %d\n", ret);
 		printk_debug("bytes_read = %d\n", bytes_read);
@@ -919,7 +919,7 @@ static char get_fdc_version(void)
 {
 	int bytes, ret;
 	unsigned char reply_buffer[MAX_REPLIES];
-	
+
 	ret = output_byte(FD_DUMPREGS); /* 82072 and better know DUMPREGS */
 	if (ret < 0)
 		return FDC_NONE;
@@ -952,7 +952,7 @@ static char get_fdc_version(void)
 	bytes = result(reply_buffer, MAX_REPLIES);
 	if ((bytes == 1) && (reply_buffer[0] == 0x80)){
 		printk_info("FDC is a pre-1991 82077\n");
-		return FDC_82077_ORIG;	/* Pre-1991 82077, doesn't know 
+		return FDC_82077_ORIG;	/* Pre-1991 82077, doesn't know
 					 * LOCK/UNLOCK */
 	}
 	if ((bytes != 1) || (reply_buffer[0] != 0x00)) {
@@ -1021,7 +1021,7 @@ static void floppy_reset(void)
 	fdc_dtr(DISK_H1440_RATE);
 	/* program data rate via ccr */
 	collect_interrupt();
-	fdc_configure(USE_IMPLIED_SEEK, USE_FIFO, FIFO_THRESHOLD, 
+	fdc_configure(USE_IMPLIED_SEEK, USE_FIFO, FIFO_THRESHOLD,
 		TRACK_PRECOMPENSATION);
 	fdc_specify(DRIVE_H1440_HLT, DRIVE_H1440_HUT, DRIVE_H1440_SRT);
 	set_drive(FD_DRIVE);

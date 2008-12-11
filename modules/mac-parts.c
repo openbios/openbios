@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/04 17:07:05 samuel>
  *   Time-stamp: <2004/01/07 19:36:09 samuel>
- *   
+ *
  *	<mac-parts.c>
- *	
+ *
  *	macintosh partition support
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -89,7 +89,7 @@ macparts_open( macparts_info_t *di )
 
 	if( par.pmSig != 0x504d /* 'PM' */ || !par.pmPartBlkCnt )
 		RET(0);
-	
+
 	di->offs = (llong)par.pmPyPartStart * bs;
 	di->size = (llong)par.pmPartBlkCnt * bs;
 

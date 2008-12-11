@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/03 21:20:58 samuel>
  *   Time-stamp: <2004/01/07 19:34:50 samuel>
- *   
+ *
  *	<deblocker.c>
- *	
+ *
  *	deblocker implementation
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -81,7 +81,7 @@ deblk_seek( deblk_info_t *di )
 		RET(-1);
         di->mark_hi = pos_hi;
         di->mark_lo = pos_lo;
-	
+
 	/* 0,1 == success, -1 == error */
 	PUSH(0);
 }
@@ -130,7 +130,7 @@ split( deblk_info_t *di, char *data, int len, work_t w[3] )
 	w[1].len = w[1].nblks * di->blksize;
 	data += w[1].len;
 	len -= w[1].len;
-	
+
 	w[2].blk_buf = di->buf;
 	w[2].data = data;
 	w[2].len = len;
@@ -147,7 +147,7 @@ do_readwrite( deblk_info_t *di, int is_write, xt_t xt )
 	ducell mark = ((ducell)di->mark_hi << BITS) | di->mark_lo;
 
 	/* printk("read: %x %x\n", (int)dest, len ); */
-	
+
 	if( !xt )
 		return -1;
 
@@ -162,7 +162,7 @@ do_readwrite( deblk_info_t *di, int is_write, xt_t xt )
 			DO_IO( di->read_xt, w[i].blk_buf, blk, w[i].nblks );
 			memcpy( w[i].blk_buf + w[i].offs, w[i].data, w[i].len );
 		}
-		
+
 		n = DO_IO( xt, w[i].blk_buf, blk, w[i].nblks );
 		if( n < 0 ) {
 			if( !retlen )
@@ -208,7 +208,7 @@ NODE_METHODS( deblocker ) = {
 	{ "open",	deblk_open 	},
 	{ "close",	deblk_close 	},
 	{ "read",	deblk_read 	},
-	{ "write",	deblk_write 	},	
+	{ "write",	deblk_write 	},
 	{ "seek",	deblk_seek 	},
 	{ "tell",	deblk_tell 	},
 };

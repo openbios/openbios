@@ -22,7 +22,7 @@ void boot(void)
 {
 	char *path=pop_fstr_copy(), *param;
         char altpath[256];
-	
+
         if (kernel_size) {
             void (*entry)(unsigned long p1, unsigned long p2, unsigned long p3,
                           unsigned long p4, unsigned long p5);
@@ -75,7 +75,7 @@ void boot(void)
             POP();
             param = pop_fstr_copy();
         }
-	
+
 	printk("[sparc64] Booting file '%s' ", path);
 	if (param)
 		printk("with parameters '%s'\n", param);

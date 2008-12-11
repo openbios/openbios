@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2002/10/03 21:07:27 samuel>
  *   Time-stamp: <2003/10/22 22:45:26 samuel>
- *   
+ *
  *	<prom.h>
- *	
+ *
  *	device tree interface
- *   
+ *
  *   Copyright (C) 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #ifndef _H_PROM

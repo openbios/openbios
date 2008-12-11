@@ -92,7 +92,7 @@ struct PartitionBlock
 
 #define ST_FILE		-3
 #define ST_ROOT		1
-#define ST_USERDIR	2	
+#define ST_USERDIR	2
 
 struct BootBlock{
 	int id;
@@ -465,7 +465,7 @@ unsigned char length;
 static unsigned int getHashKey(char *name,unsigned int tablesize, unsigned char flags)
 {
 unsigned int length;
-	
+
 	length=0;
 	while (name[length] != 0)
 	    length++;
@@ -667,7 +667,7 @@ int affs_dir(char *dirname)
 		if (print_possibilities>0)
 		    print_possibilities = -print_possibilities;
 #endif
-	}	
+	}
 	else
 	{
 	    errnum = ERR_BAD_FILETYPE;
@@ -689,7 +689,7 @@ int affs_dir(char *dirname)
 	while (*current && !isspace(*current))
 	    *fname++ = *current++;
 	*fname = 0;
-	    
+
 	errnum = findBlock(filename, &buffer2);
 	if (errnum)
 	    return 0;

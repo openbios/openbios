@@ -1,5 +1,5 @@
 /* fsys_jfs.c - an implementation for the IBM JFS file system */
-/*  
+/*
  *  GRUB  --  GRand Unified Bootloader
  *  Copyright (C) 2001,2002  Free Software Foundation, Inc.
  *
@@ -240,7 +240,7 @@ jfs_read (char *buf, int len)
 		offset = offsetXAD (xad);
 		xadlen = lengthXAD (xad);
 		if (isinxt (filepos >> jfs.l2bsize, offset, xadlen)) {
-			endofcur = (offset + xadlen) << jfs.l2bsize; 
+			endofcur = (offset + xadlen) << jfs.l2bsize;
 			toread = (endofcur >= endpos)
 				  ? len : (endofcur - filepos);
 
@@ -262,7 +262,7 @@ jfs_read (char *buf, int len)
 			}
 			continue;
 		}
-		endofprev = offset + xadlen; 
+		endofprev = offset + xadlen;
 		xad = next_extent ();
 	} while (len > 0 && xad);
 

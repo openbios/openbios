@@ -1,18 +1,18 @@
-/* 
+/*
  *   Creation Date: <1999/11/07 19:02:11 samuel>
  *   Time-stamp: <2004/01/07 19:42:36 samuel>
- *   
+ *
  *	<ofmem.c>
- *	
+ *
  *	OF Memory manager
- *   
+ *
  *   Copyright (C) 1999-2004 Samuel Rydh (samuel@ibrium.se)
  *   Copyright (C) 2004 Stefan Reinauer
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 /* TODO: Clean up MOLisms in a decent way */
@@ -44,14 +44,14 @@ extern void	setup_mmu( ulong code_base, ulong code_size, ulong ramsize );
  *
  *			Physical
  *
- *	0x00000000	Exception vectors	
+ *	0x00000000	Exception vectors
  *	0x00004000	Free space
  *	0x01e00000	Open Firmware (us)
  *	0x01f00000	OF allocations
  *	0x01ff0000	PTE Hash
  *	0x02000000-	Free space
  *
- * Allocations grow downwards from 0x01e00000 
+ * Allocations grow downwards from 0x01e00000
  *
  ****************************************************************/
 
@@ -104,7 +104,7 @@ static struct {
 /************************************************************************/
 
 void *
-malloc( int size ) 
+malloc( int size )
 {
 	alloc_desc_t *d, **pp;
 	char *ret;
@@ -114,11 +114,11 @@ malloc( int size )
 
 	if( !ofmem.next_malloc )
 		ofmem.next_malloc = (char*)OF_MALLOC_BASE;
-	
+
 	if( size & 3 )
 		size += 4 - (size & 3);
 	size += sizeof(alloc_desc_t);
-	
+
 	/* look in the freelist */
 	for( pp=&ofmem.mfree; *pp && (**pp).size < size; pp = &(**pp).next )
 		;
@@ -154,7 +154,7 @@ free( void *ptr )
 	/* it is legal to free NULL pointers (size zero allocations) */
 	if( !ptr )
 		return;
-	
+
 	d = (alloc_desc_t*)(ptr - sizeof(alloc_desc_t));
 	d->next = ofmem.mfree;
 
@@ -166,11 +166,11 @@ free( void *ptr )
 }
 
 void *
-realloc( void *ptr, size_t size ) 
+realloc( void *ptr, size_t size )
 {
 	alloc_desc_t *d = (alloc_desc_t*)(ptr - sizeof(alloc_desc_t));
 	char *p;
-	
+
 	if( !ptr )
 		return malloc( size );
 	if( !size ) {
@@ -199,13 +199,13 @@ print_range( range_t *r, char *str )
 }
 
 static void
-print_phys_range() 
+print_phys_range()
 {
 	print_range( ofmem.phys_range, "phys" );
 }
 
 static void
-print_virt_range() 
+print_virt_range()
 {
 	print_range( ofmem.virt_range, "virt" );
 }
@@ -259,7 +259,7 @@ static void
 add_entry_( ulong ea, ulong size, range_t **r )
 {
 	range_t *nr;
-	
+
 	for( ; *r && (**r).start < ea; r=&(**r).next )
 		;
 	nr = (range_t*)malloc( sizeof(range_t) );
@@ -312,17 +312,17 @@ find_area( ulong align, ulong size, range_t *r, ulong min, ulong max, int revers
 {
 	ulong base = min;
 	range_t *r2;
-	
+
 	if( (align & (align-1)) ) {
 		printk("bad alignment %ld\n", align);
 		align = 0x1000;
 	}
 	if( !align )
 		align = 0x1000;
-	
+
 	base = reverse ? max - size : min;
 	r2 = reverse ? NULL : r;
-	
+
 	for( ;; ) {
 		if( !reverse ) {
 			base = (base + align - 1) & ~(align-1);
@@ -395,7 +395,7 @@ ofmem_claim_virt_( ulong virt, ulong size, ulong align, int min, int max, int re
 		add_entry( virt, size, &ofmem.virt_range );
 		return virt;
 	}
-	
+
 	virt = find_area( align, size, ofmem.virt_range, min, max, reverse );
 	if( virt == (ulong)-1 ) {
 		printk("ofmem_claim_virt - out of space\n");
@@ -451,7 +451,7 @@ ofmem_claim( ulong addr, ulong size, ulong align )
 	}
 	if( size & 0xfff )
 		size = (size + 0xfff) & ~0xfff;
-	
+
 	/* printk("...free memory found... phys: %08lX, virt: %08lX, size %lX\n", phys, virt, size ); */
 	ofmem_map( phys, virt, size, def_memmode(phys) );
 	return virt + offs;
@@ -466,7 +466,7 @@ static void
 split_trans( ulong virt )
 {
 	translation_t *t, *t2;
-	
+
 	for( t=ofmem.trans; t; t=t->next ) {
 		if( virt > t->virt && virt < t->virt + t->size-1 ) {
 			t2 = (translation_t*)malloc( sizeof(translation_t) );
@@ -485,7 +485,7 @@ static int
 map_page_range( ulong virt, ulong phys, ulong size, int mode )
 {
 	translation_t *t, **tt;
-	
+
 	split_trans( virt );
 	split_trans( virt + size );
 
@@ -523,9 +523,9 @@ map_page_range( ulong virt, ulong phys, ulong size, int mode )
 int
 ofmem_map( ulong phys, ulong virt, ulong size, int mode )
 {
-	/* printk("+ofmem_map: %08lX --> %08lX (size %08lX, mode 0x%02X)\n", 
+	/* printk("+ofmem_map: %08lX --> %08lX (size %08lX, mode 0x%02X)\n",
 	   virt, phys, size, mode ); */
-       
+
 	if( (phys & 0xfff) || (virt & 0xfff) || (size & 0xfff) ) {
 		printk("ofmem_map: Bad parameters (%08lX %08lX %08lX)\n", phys, virt, size );
 		phys &= ~0xfff;
@@ -548,7 +548,7 @@ ulong
 ofmem_translate( ulong virt, ulong *mode )
 {
 	translation_t *t;
-	
+
 	for( t=ofmem.trans; t && t->virt <= virt ; t=t->next ) {
 		ulong offs;
 		if( t->virt + t->size - 1 < virt )
@@ -611,7 +611,7 @@ hash_page( ulong ea, ulong phys, int mode )
 	ulong *upte, cmp, hash1;
 	int i, vsid, found;
 	mPTE_t *pp;
-	
+
 	vsid = (ea>>28) + SEGR_BASE;
 	cmp = BIT(0) | (vsid << 7) | ((ea & 0x0fffffff) >> 22);
 
@@ -621,7 +621,7 @@ hash_page( ulong ea, ulong phys, int mode )
 
 	pp = (mPTE_t*)(HASH_BASE + (hash1 << 6));
 	upte = (ulong*)pp;
-	
+
 	/* replace old translation */
 	for( found=0, i=0; !found && i<8; i++ )
 		if( cmp == upte[i*2] )
@@ -651,7 +651,7 @@ dsi_exception( void )
 	int mode;
 
 	asm volatile("mfdar %0" : "=r" (dar) : );
-	asm volatile("mfdsisr %0" : "=r" (dsisr) : );	
+	asm volatile("mfdsisr %0" : "=r" (dsisr) : );
 	//printk("dsi-exception @ %08lx <%08lx>\n", dar, dsisr );
 	hash_page( dar, ea_to_phys(dar, &mode), mode );
 }
@@ -663,7 +663,7 @@ isi_exception( void )
 	int mode;
 
 	asm volatile("mfsrr0 %0" : "=r" (nip) : );
-	asm volatile("mfsrr1 %0" : "=r" (srr1) : );	
+	asm volatile("mfsrr1 %0" : "=r" (srr1) : );
 
 	//printk("isi-exception @ %08lx <%08lx>\n", nip, srr1 );
 	hash_page( nip, ea_to_phys(nip, &mode), mode );

@@ -3,10 +3,10 @@
  *
  * This file contains defintions that are special for Apple.
  * The names match the defintions found in Apple Header files.
- * 
+ *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original code 1996-1998 by Robert Leslie <rob@mars.rog>
- * other work 2000 from Brad Boyer (flar@pants.nu) 
+ * other work 2000 from Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,15 +36,15 @@ typedef unsigned long	    UInt32;
 typedef unsigned long	    OSType;
 typedef unsigned long long  UInt64;
 
-/* A point, normally used by Quickdraw, 
- * but found in Finderinformation, too 
+/* A point, normally used by Quickdraw,
+ * but found in Finderinformation, too
  */
 typedef struct {
   SInt16	v;		/* vertical coordinate */
   SInt16	h;		/* horizontal coordinate */
 } Point;
 
-/* A rectancle, normally used by Quickdraw, 
+/* A rectancle, normally used by Quickdraw,
  * but found in Finderinformation, too.
  */
 typedef struct {
@@ -54,8 +54,8 @@ typedef struct {
   SInt16	right;		/* right edge */
 } Rect;
 
-/* Information about the location and size of a folder 
- * used by the Finder. 
+/* Information about the location and size of a folder
+ * used by the Finder.
  */
 typedef struct {
   Rect		frRect;		/* folder's rectangle */

@@ -1,4 +1,4 @@
-/* Mac-on-Linux ELF loader 
+/* Mac-on-Linux ELF loader
 
    Copyright (C) 2001-2003 Samuel Rydh
 
@@ -11,7 +11,7 @@
    Copyright (C) 1999 Marius Vollmer
 
    portions based on quik
-   
+
    Copyright (C) 1996 Paul Mackerras.
 
    Because this program is derived from the corresponding file in the
@@ -44,12 +44,12 @@ int
 find_elf( int fd )
 {
 	int size, offs;
-	
+
 	seek_io( fd, -1 );
 	size = tell( fd );
 	if( size > 0x10000 )
 		size = 0x10000;
-	
+
 	for( offs=0; offs < size; offs+= BS )
 		if( is_elf(fd, offs) )
 			return offs;
@@ -82,18 +82,18 @@ elf_readhdrs( int fd, int offs, Elf_ehdr *e )
 {
 	int size;
 	Elf_phdr *ph;
-	
+
 	if( !is_elf(fd, offs) ) {
 		printk("Not an ELF image\n");
 		return NULL;
 	}
-	
+
 	seek_io( fd, offs );
 	if( read_io(fd, e, sizeof(*e)) != sizeof(*e) ) {
 		printk("\nCan't read ELF image header\n");
 		return NULL;
 	}
-	
+
 #if DEBUG
 	printk("ELF header:\n");
 	printk(" e.e_type    = %d\n", (int)e->e_type);

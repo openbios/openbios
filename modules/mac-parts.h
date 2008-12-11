@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <1999/07/06 15:45:12 samuel>
  *   Time-stamp: <2002/10/20 16:31:48 samuel>
- *   
+ *
  *	<partition_table.h>
- *	
+ *
  *	Headers describing the partition table
- *   
+ *
  *   Copyright (C) 1999, 2002 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #ifndef _H_PARTITION_TABLE
@@ -51,7 +51,7 @@ typedef struct { /* Partition descriptor */
 	ulong		pmPartBlkCnt;		/* #blocks in partition */
 	char		pmPartName[32];		/* partition name */
 	char		pmPartType[32];		/* partition type */
-	
+
 	/* these fields may or may not be used */
 	ulong		pmLgDataStart;
 	ulong		pmDataCnt;

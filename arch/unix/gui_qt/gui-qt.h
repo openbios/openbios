@@ -1,5 +1,5 @@
 /* tag: qt user interface fb class description
- * 
+ *
  * Copyright (C) 2003-2004 Stefan Reinauer <stepan@openbios.org>
  *
  * See the file "COPYING" for further information about
@@ -24,7 +24,7 @@ class FrameBufferWidget : public QWidget {
 	public:
 		FrameBufferWidget(QWidget *parent=0, const char *name=0);
 		unsigned char *getFrameBuffer(void);
-		
+
 	public slots:
 		void quit();
 		void about();

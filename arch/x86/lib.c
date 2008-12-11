@@ -15,7 +15,7 @@
 #include "openbios/kernel.h"
 
 /* Format a string and print it on the screen, just like the libc
- * function printf. 
+ * function printf.
  */
 int printk( const char *fmt, ... )
 {

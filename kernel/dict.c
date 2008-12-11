@@ -1,6 +1,6 @@
 /*
  * tag: dict management
- * 
+ *
  * Copyright (C) 2003-2005 Stefan Reinauer, Patrick Mauritz
  *
  * See the file "COPYING" for further information about
@@ -39,7 +39,7 @@ ucell lfa2nfa(ucell ilfa)
 
 /* lfa2cfa
  * converts a link field address to a code field address.
- * in this forth implementation this is just a fixed offset 
+ * in this forth implementation this is just a fixed offset
  */
 
 static xt_t lfa2cfa(ucell ilfa)
@@ -151,16 +151,16 @@ ucell load_dictionary(const char *data, ucell len)
 	len -= sizeof(dictionary_header_t);
 
 	dicthead = target_long(header->length);
-	
+
 	memcpy(dict, data, dicthead);
 	reloc_table=(ucell *)(data+dicthead);
 
 #ifdef CONFIG_DEBUG_DICTIONARY
-	printk("\nmoving dictionary (%x bytes) to %x\n", 
+	printk("\nmoving dictionary (%x bytes) to %x\n",
 			(ucell)dicthead, (ucell)dict);
 	printk("\ndynamic relocation...");
 #endif
-	
+
 	for (walk = (ucell *) dict; walk < (ucell *) (dict + dicthead);
 	     walk++) {
 		int pos, bit, l;

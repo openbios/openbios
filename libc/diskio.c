@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/07 19:36:00 samuel>
  *   Time-stamp: <2004/01/07 19:28:43 samuel>
- *   
+ *
  *	<diskio.c>
- *	
+ *
  *	I/O wrappers
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -61,10 +61,10 @@ open_ih( ihandle_t ih )
 			break;
 	if(fd==MAX_FD)
 		return -1;
-	
+
 	fdp = malloc( sizeof(*fdp) );
-	/* Better clear the fd, as it 
-	 * contains valuable information 
+	/* Better clear the fd, as it
+	 * contains valuable information
 	 */
 	memset(fdp, 0, sizeof(*fdp));
 	fdp->ih = ih;
@@ -82,15 +82,15 @@ open_io( const char *spec )
 	int fd;
 	ihandle_t ih = open_dev( spec );
 	priv_fd_t *fdp;
-	
+
 	if( !ih )
 		return -1;
-	
+
 	if( (fd=open_ih(ih)) == -1 ) {
 		close_dev( ih );
 		return -1;
 	}
-	
+
 	fdp = file_descriptors[fd];
 	fdp->do_close = 1;
 
@@ -102,10 +102,10 @@ reopen( int fd, const char *filename )
 {
 	priv_fd_t *fdp = file_descriptors[fd];
 	int ret;
-	
+
 	if( lookup_xt(fdp->ih, "reopen", &fdp->reopen_xt) )
 		return -1;
-	
+
 	push_str( filename );
 	call_package( fdp->reopen_xt, fdp->ih );
         ret = (POP() == (ucell)-1)? 0 : -1;
@@ -117,7 +117,7 @@ int
 reopen_nwrom( int fd )
 {
 	priv_fd_t *fdp = file_descriptors[fd];
-	
+
 	if( lookup_xt(fdp->ih, "open-nwrom", &fdp->open_nwrom_xt) )
 		return -1;
 	call_package( fdp->open_nwrom_xt, fdp->ih );
@@ -166,12 +166,12 @@ read_io( int fd, void *buf, size_t cnt )
 {
 	priv_fd_t *fdp = file_descriptors[fd];
 	ucell ret;
-	
+
 	PUSH( (ucell)buf );
 	PUSH( cnt );
 	call_package( fdp->read_xt, fdp->ih );
 	ret = POP();
-	
+
 	if( !ret && cnt )
 		ret = -1;
 	return ret;
@@ -188,11 +188,11 @@ seek_io( int fd, llong offs )
 }
 
 llong
-tell( int fd ) 
+tell( int fd )
 {
 	priv_fd_t *fdp = file_descriptors[fd];
 	llong offs;
-	
+
 	if( lookup_xt(fdp->ih, "tell", &fdp->tell_xt) )
 		return -1;
 	call_package( fdp->tell_xt, fdp->ih );

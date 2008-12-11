@@ -1,15 +1,15 @@
-/* 
+/*
  *   Creation Date: <2000/09/03 23:04:27 samuel>
  *   Time-stamp: <2000/09/04 01:23:55 samuel>
- *   
+ *
  *	<hfs_mdb.h>
- *	
+ *
  *	HFS Master Directory Block (MDB)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #ifndef _H_HFS_MDB
@@ -22,7 +22,7 @@ typedef unsigned char hfs_uint_t[4];
 #define hfs_get_ushort(addr)    (*((unsigned short*)(addr)))
 #define hfs_get_uint(addr)      (*((unsigned int*)(addr)))
 
-/* 
+/*
  * The HFS Master Directory Block (MDB).
  *
  * Also known as the Volume Information Block (VIB), this structure is
@@ -64,8 +64,8 @@ typedef struct hfs_mdb {
 	hfs_uint_t	drDirCnt;	/* number of directories in the fs */
 	hfs_char_t	drFndrInfo[32];	/* data used by the Finder */
 	hfs_ushort_t	drEmbedSigWord;	/* embedded volume signature */
-	hfs_uint_t	drEmbedExtent;  /* starting block number (xdrStABN) 
-					   and number of allocation blocks 
+	hfs_uint_t	drEmbedExtent;  /* starting block number (xdrStABN)
+					   and number of allocation blocks
 					   (xdrNumABlks) occupied by embedded
 					   volume */
 	hfs_uint_t	drXTFlSize;	/* bytes in the extents B-tree */

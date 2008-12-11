@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2002/10/03 20:55:02 samuel>
  *   Time-stamp: <2002/10/29 13:00:23 samuel>
- *   
+ *
  *	<prom.c>
- *	
+ *
  *	oftree interface
- *   
+ *
  *   Copyright (C) 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -69,7 +69,7 @@ prom_get_prop( mol_phandle_t phandle, const char *name, char *buf, long buflen )
 
 /* ret: prop len or -1 if error */
 int
-prom_get_prop_by_path( const char *path, const char *name, char *buf, long buflen ) 
+prom_get_prop_by_path( const char *path, const char *name, char *buf, long buflen )
 {
 	mol_phandle_t ph = prom_find_device(path);
 	return (ph != -1)? prom_get_prop( ph, name, buf, buflen) : -1;
@@ -105,12 +105,12 @@ prom_find_device( const char *path )
 
 	if( !path )
 		return -1;
-	
+
 	if( (ph=OSI_PromPathIface( kPromFindDevice, path )) != -1 )
 		return ph;
 	else if( path[0] == '/' )
 		return -1;
-	
+
 	/* might be an alias */
 	if( !(p=strpbrk(path, "@:/")) )
 		p = (char*)path + strlen(path);
@@ -126,7 +126,7 @@ prom_find_device( const char *path )
 		printk("Error: aliases must be absolute!\n");
 		return -1;
 	}
-	ph = OSI_PromPathIface( kPromFindDevice, buf2 );	
+	ph = OSI_PromPathIface( kPromFindDevice, buf2 );
 	return ph;
 }
 

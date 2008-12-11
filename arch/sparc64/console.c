@@ -201,7 +201,7 @@ static void video_newline(void)
 static void video_putchar(int c)
 {
 	int p=1;
-	
+
 	if (c == '\n' || c == '\r') {
 		video_newline();
 		return;
@@ -229,7 +229,7 @@ static void video_putchar(int c)
 static void video_cls(void)
 {
 	int i;
-	
+
 	for (i = 0; i < 2 * COLUMNS * LINES;) {
 		video[i++] = 0;
 		video[i++] = ATTRIBUTE;

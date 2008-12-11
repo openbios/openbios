@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/11/24 12:30:18 samuel>
  *   Time-stamp: <2004/01/07 19:37:38 samuel>
- *   
+ *
  *	<bindings.c>
- *	
+ *
  *	Forth bindings
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -297,10 +297,10 @@ char *
 get_property( phandle_t ph, const char *name, int *retlen )
 {
 	int len;
-	
+
 	if( retlen )
 		*retlen = -1;
-	
+
 	push_str( name );
 	PUSH_ph( ph );
 	fword("get-package-property");
@@ -316,7 +316,7 @@ cell
 get_int_property( phandle_t ph, const char *name, int *retlen )
 {
 	cell *p;
-	
+
 	if( !(p=(cell *)get_property(ph, name, retlen)) )
 		return 0;
 	return __becell_to_cpu(*p);
@@ -378,7 +378,7 @@ dt_iterate( phandle_t last )
 {
 	if( !last )
 		return dt_iter_begin();
-	
+
 	PUSH_ph( last );
 	fword("iterate-tree");
 	return POP_ph();
@@ -389,7 +389,7 @@ dt_iterate_type( phandle_t last, const char *type )
 {
 	if( !last )
 		last = dt_iter_begin();
-	
+
 	/* root node is never matched but we don't care about that */
 	while( (last=dt_iterate(last)) ) {
 		char *s = get_property( last, "device_type", NULL );
@@ -437,11 +437,11 @@ add_methods( int flags, int size, const method_t *methods, int nmet )
 {
 	xt_t xt=0;
 	int i;
-	
+
 	/* nodes might be matched multiple times */
 	if( find_package_method(methods[0].name, get_cur_dev()) )
 		return;
-	
+
 	if( size ) {
 		PUSH( size );
 		fword("is-ibuf");
@@ -477,7 +477,7 @@ bind_node( int flags, int size, const char * const *paths, int npaths,
 {
 	phandle_t save_ph = get_cur_dev();
 	int i;
-	
+
 	for( i=0; i<npaths; i++ ) {
 		const char *name = paths[i];
 
@@ -512,7 +512,7 @@ bind_new_node( int flags, int size, const char *name,
 	   const method_t *methods, int nmet )
 {
 	phandle_t save_ph = get_cur_dev();
-	
+
 	/* create node */
 	push_str( name );
 	fword("create-node");

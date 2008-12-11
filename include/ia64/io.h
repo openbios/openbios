@@ -7,9 +7,9 @@ extern unsigned long virt_offset;
 #define virt_to_phys(virt) ((unsigned long) (virt) + virt_offset)
 
 #define __SLOW_DOWN_IO "outb %%al,$0x80;"
-static inline void slow_down_io(void) 
+static inline void slow_down_io(void)
 {
-	__asm__ __volatile__( 
+	__asm__ __volatile__(
 		__SLOW_DOWN_IO
 #ifdef REALLY_SLOW_IO
 		__SLOW_DOWN_IO __SLOW_DOWN_IO __SLOW_DOWN_IO
@@ -46,7 +46,7 @@ static inline void ins##bwl(int port, void *addr, unsigned long count) { \
 BUILDIO(b,b,char)
 BUILDIO(w,w,short)
 BUILDIO(l,,int)
-#else 
+#else
 extern u8               inb( u32 reg );
 extern u16              inw( u32 reg );
 extern u32              inl( u32 reg );

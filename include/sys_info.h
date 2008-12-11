@@ -29,6 +29,6 @@ void collect_linuxbios_info(struct sys_info *info);
 /* Our name and version. I want to see single instance of these in the image */
 extern const char *program_name, *program_version;
 
-#define LOADER_NOT_SUPPORT 0xbadf11e                                            
+#define LOADER_NOT_SUPPORT 0xbadf11e
 
 #endif /* SYS_INFO_H */

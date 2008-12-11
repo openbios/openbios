@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2001/05/05 23:33:49 samuel>
  *   Time-stamp: <2004/01/12 10:25:39 samuel>
- *   
+ *
  *	<hfsp_fs.c>
- *	
+ *
  *	HFS+ file system interface (and ROM lookup support)
- *   
+ *
  *   Copyright (C) 2001, 2002, 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -95,13 +95,13 @@ root_search_files( fs_ops_t *fs, int recursive, match_proc_t proc, const void *m
 	return search_files( &r, recursive, proc, match_data, pt );
 }
 
-static int 
+static int
 match_file( record *r, record *parent, const void *match_data, hfsp_file_t *pt )
 {
         const char *p = (const char*)match_data;
 	char name[256];
 	int ret=1;
-	
+
 	if( r->record.type != HFSP_FILE )
 		return 1;
 
@@ -119,7 +119,7 @@ match_rom( record *r, record *par, const void *match_data, hfsp_file_t *pt )
 	FInfo *fi = &file->user_info;
 	int ret = 1;
 	char buf[256];
-	
+
 	if( r->record.type == HFSP_FILE && fi->fdCreator == MAC_OS_ROM_CREATOR && fi->fdType == MAC_OS_ROM_TYPE ) {
 		ret = search_files( par, 0, match_file, "System", NULL )
 			|| search_files( par, 0, match_file, "Finder", NULL );
@@ -193,7 +193,7 @@ close_fs( fs_ops_t *fs )
 }
 
 static file_desc_t *
-_create_fops( hfsp_file_t *t ) 
+_create_fops( hfsp_file_t *t )
 {
 	hfsp_file_t *r = malloc( sizeof(hfsp_file_t) );
 
@@ -208,7 +208,7 @@ open_path( fs_ops_t *fs, const char *path )
 	hfsp_file_t t;
 	volume *vol = (volume*)fs->fs_data;
 	record r;
-	
+
 	/* Leading \\ means system folder. The finder info block has
 	 * the following meaning.
 	 *
@@ -341,7 +341,7 @@ file_read( file_desc_t *fd, void *buf, size_t count )
 		}
 		size = (count-act_count > max)? max : count-act_count;
 		memcpy( (char *)buf + act_count, &buf2[add], size );
-		
+
 		curpos += blksize;
 		act_count += size;
 
@@ -360,10 +360,10 @@ vol_name( fs_ops_t *fs, char *buf, int size )
 }
 
 static char *
-get_fstype( fs_ops_t *fs ) 
+get_fstype( fs_ops_t *fs )
 {
 	return ("HFS+");
-}               
+}
 
 
 static const fs_ops_t fs_ops = {
@@ -377,7 +377,7 @@ static const fs_ops_t fs_ops = {
 	.close		= file_close,
 	.read		= file_read,
 	.lseek		= file_lseek,
-	
+
 	.get_fstype     = get_fstype
 };
 
@@ -392,6 +392,6 @@ fs_hfsp_open( int os_fd, fs_ops_t *fs )
 	}
 	*fs = fs_ops;
 	fs->fs_data = vol;
-	
+
 	return 0;
 }

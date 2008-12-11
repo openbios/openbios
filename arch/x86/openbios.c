@@ -24,7 +24,7 @@ static char intdict[256 * 1024];
 static void init_memory(void)
 {
 	/* push start and end of available memory to the stack
-	 * so that the forth word QUIT can initialize memory 
+	 * so that the forth word QUIT can initialize memory
 	 * management. For now we use hardcoded memory between
 	 * 0x10000 and 0x9ffff (576k). If we need more memory
 	 * than that we have serious bloat.
@@ -70,12 +70,12 @@ int openbios(void)
 #endif
 
         collect_sys_info(&sys_info);
-	
+
 	dict=intdict;
 	load_dictionary((char *)sys_info.dict_start,
 			(unsigned long)sys_info.dict_end -
 			(unsigned long)sys_info.dict_start);
-	
+
 	relocate(&sys_info);
 
 #ifdef CONFIG_DEBUG_CONSOLE_VGA
@@ -94,7 +94,7 @@ int openbios(void)
 
 	PUSH_xt( bind_noname_func(arch_init) );
 	fword("PREPOST-initializer");
-	
+
 	PC = (ucell)findword("initialize-of");
 
 	if (!PC) {

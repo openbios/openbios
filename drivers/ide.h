@@ -189,7 +189,7 @@ struct ide_channel {
 	 */
 	struct ata_command ata_cmd;
 	struct atapi_command atapi_cmd;
-	
+
 };
 
 enum {

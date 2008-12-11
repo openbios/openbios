@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2002/10/23 20:26:40 samuel>
  *   Time-stamp: <2004/01/07 19:39:15 samuel>
- *   
+ *
  *	<video.c>
- *	
+ *
  *	Mac-on-Linux display node
- *   
+ *
  *   Copyright (C) 2002, 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -57,7 +57,7 @@ startup_splash( void )
 			return;
 		*(!i ? &width : &height) = atol(buf);
 	}
-	
+
 	if( (s=width * height * 3) > 0x20000 )
 		return;
 
@@ -69,9 +69,9 @@ startup_splash( void )
 
 		dx = (video.fb.w - width)/2;
 		dy = (video.fb.h - height)/3;
-		
+
 		pp = (char*)video.fb.mphys + dy * video.fb.rb + dx * (video.fb.depth >= 24 ? 4 : 2);
-		
+
 		for( y=0 ; y<height; y++, pp += video.fb.rb ) {
 			if( video.fb.depth >= 24 ) {
 				ulong *d = (ulong*)pp;
@@ -109,7 +109,7 @@ get_color( int col_ind )
 	return 0;
 }
 
-void 
+void
 draw_pixel( int x, int y, int colind )
 {
 	char *p = (char*)video.fb.mphys + video.fb.rb * y;
@@ -221,7 +221,7 @@ video_dimensions( void )
 	int w, h;
 	(void) video_get_res( &w, &h );
 	PUSH( w );
-	PUSH( h );	
+	PUSH( h );
 }
 
 /* ( table start count -- ) (?) */
@@ -263,7 +263,7 @@ video_fill_rect( void )
 	int y = POP();
 	int x = POP();
 	int color_ind = POP();
-	
+
 	fill_rect( color_ind, x, y, w, h );
 }
 
@@ -328,12 +328,12 @@ init_video( unsigned long fb,  int width, int height, int depth, int rb )
 
 	for( i=0; i<256; i++ )
 		set_color( i, i * 0x010101 );
-	
+
 	set_color( 254, 0xffffcc );
 	fill_rect( 254, 0, 0, video.fb.w, video.fb.h );
 
 	refresh_palette();
 	startup_splash();
 
-	REGISTER_NODE( video );	
+	REGISTER_NODE( video );
 }

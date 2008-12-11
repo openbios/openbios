@@ -22,7 +22,7 @@ struct gdtarg {
     unsigned int base;
 } __attribute__((packed));
 
-/* How far the virtual address (used in C) is different from physical 
+/* How far the virtual address (used in C) is different from physical
  * address. Since we start in flat mode, the initial value is zero. */
 unsigned long virt_offset = 0;
 
@@ -108,7 +108,7 @@ void relocate(struct sys_info *info)
 	    "movw %5, %%gs\n\t"
 	    "movw %5, %%ss\n"
 	    : "=&S" (d0), "=&D" (d1), "=&c" (d2)
-	    : "m" (gdtarg), "n" (RELOC_CS), "q" ((unsigned short) RELOC_DS), 
+	    : "m" (gdtarg), "n" (RELOC_CS), "q" ((unsigned short) RELOC_DS),
 	    "0" (&_start), "1" (new_base), "2" (prog_size));
 
     virt_offset = new_offset;

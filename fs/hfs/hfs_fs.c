@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2001/05/06 22:47:23 samuel>
  *   Time-stamp: <2004/01/12 10:24:35 samuel>
- *   
+ *
  *	<hfs_fs.c>
- *	
+ *
  *	HFS world interface
- *   
+ *
  *   Copyright (C) 2001-2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -39,7 +39,7 @@ _find_file( hfsvol *vol, const char *path, ulong type, ulong creator )
 	hfsdirent ent;
 	hfsdir *dir;
 	int ret=1;
-	
+
 	if( !(dir=hfs_opendir(vol, path)) )
 		return 1;
 
@@ -76,24 +76,24 @@ _search( hfsvol *vol, const char *path, const char *sname, file_desc_t **ret_fd 
 
 	while( status && !hfs_readdir(dir, &ent) ) {
 		ulong type, creator;
-		
+
 		*p = 0;
 		topdir = 0;
-		
+
 		strncat( buf, ent.name, sizeof(buf) );
 		if( (status=_search(vol, buf, sname, ret_fd)) != 2 )
 			continue;
 		topdir = 1;
-		
+
 		/* name search? */
 		if( sname ) {
 			status = strcasecmp( ent.name, sname );
 			continue;
 		}
-		
+
 		type = *(ulong*)ent.u.file.type;
 		creator = *(ulong*)ent.u.file.creator;
-		
+
 		/* look for Mac OS ROM, System and Finder in the same directory */
 		if( type == MAC_OS_ROM_TYPE && creator == MAC_OS_ROM_CREATOR ) {
 			if( strcasecmp(ent.name, MAC_OS_ROM_NAME) )
@@ -113,11 +113,11 @@ _search( hfsvol *vol, const char *path, const char *sname, file_desc_t **ret_fd 
 }
 
 static file_desc_t *
-_do_search( fs_ops_t *fs, const char *sname ) 
+_do_search( fs_ops_t *fs, const char *sname )
 {
 	hfsvol *vol = hfs_getvol( NULL );
 	file_desc_t *ret_fd = NULL;
-	
+
 	(void)_search( vol, ":", sname, &ret_fd );
 	return ret_fd;
 }
@@ -183,7 +183,7 @@ get_path( file_desc_t *fd, char *retbuf, int len )
 	hfsdirent ent;
 	int start, ns;
 	ulong id;
-	
+
 	hfs_fstat( file, &ent );
 	start = sizeof(buf) - strlen(ent.name) - 1;
 	if( start <= 0 )
@@ -202,7 +202,7 @@ get_path( file_desc_t *fd, char *retbuf, int len )
 	}
 	if( strlen(buf + start) >= len )
 		return NULL;
-	
+
 	strcpy( retbuf, buf+start );
 	return retbuf;
 }
@@ -220,7 +220,7 @@ open_path( fs_ops_t *fs, const char *path )
 	hfsvol *vol = (hfsvol*)fs->fs_data;
 	const char *s;
 	char buf[256];
-	
+
 	if( !strncmp(path, "\\\\", 2) ) {
 		hfsvolent ent;
 
@@ -231,7 +231,7 @@ open_path( fs_ops_t *fs, const char *path )
 	} else {
 		hfs_chdir( vol, ":" );
 	}
-	
+
 	for( path-- ;; ) {
 		int n;
 
@@ -241,7 +241,7 @@ open_path( fs_ops_t *fs, const char *path )
 		n = MIN( sizeof(buf)-1, (path-s) );
 		if( !n )
 			continue;
-		
+
 		strncpy( buf, s, n );
 		buf[n] = 0;
 		if( hfs_chdir(vol, buf) )
@@ -254,16 +254,16 @@ open_path( fs_ops_t *fs, const char *path )
 		file_desc_t *ret = NULL;
 		hfsdirent ent;
 		hfsdir *dir;
-		
+
 		s++;
 		id = oldid;
 		hfs_dirinfo( vol, &id, buf );
 		hfs_setcwd( vol, id );
-		
+
 		if( !(dir=hfs_opendir(vol, buf)) )
 			return NULL;
 		hfs_setcwd( vol, oldid );
-		
+
 		while( !hfs_readdir(dir, &ent) ) {
 			if( ent.flags & HFS_ISDIR )
 				continue;
@@ -289,10 +289,10 @@ close_fs( fs_ops_t *fs )
 }
 
 static char *
-get_fstype( fs_ops_t *fs ) 
+get_fstype( fs_ops_t *fs )
 {
 	return ("HFS");
-}		
+}
 
 static const fs_ops_t hfs_ops = {
 	.close_fs	= close_fs,
@@ -319,6 +319,6 @@ fs_hfs_open( int os_fd, fs_ops_t *fs )
 
 	*fs = hfs_ops;
 	fs->fs_data = vol;
-	
+
 	return 0;
 }

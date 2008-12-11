@@ -1,6 +1,6 @@
 /*
  * libhfsp - library for reading and writing Macintosh HFS+ volumes
- * 
+ *
  * This file includes definitions for the structures found on
  * HFS+ Volumes. The structures are further wrapped by struct
  * found in libhfsp.h. fucntions on those enhanced structures
@@ -8,7 +8,7 @@
  *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original code 1996-1998 by Robert Leslie <rob@mars.rog>
- * other work 2000 from Brad Boyer (flar@pants.nu) 
+ * other work 2000 from Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,29 +68,29 @@ typedef struct {
  */
 typedef struct hfsp_vh {
         UInt16         signature;   // must be HFSPLUS_VOLHEAD_SIG 'H+'
-        UInt16         version;     // currently 4, ignored 
+        UInt16         version;     // currently 4, ignored
         UInt32         attributes;  // See bit constants below
         UInt32         last_mount_vers;
                 // Use a registered creator code here (what do we use ?)
 		// Mac OS uses '8.10' well
         UInt32         reserved;
- 
+
         UInt32         create_date; // local time !
         UInt32         modify_date; // GMT (?)
         UInt32         backup_date; // GMT (?)
         UInt32         checked_date; // GMT (?) fsck ?
- 
+
         UInt32         file_count;
          // not including special files but including DATA and RSRC forks
         UInt32         folder_count; // excluding the root folder
- 
+
         UInt32         blocksize;
          // must be multiple of HFSPLUS_SECTOR_SIZE,
          // should be a multiple of 4k for harddisk
         UInt32         total_blocks;
         UInt32         free_blocks;
          // The total number of unused allocation blocks on the disk.
- 
+
         UInt32         next_alloc;
          // hint wher to search for next allocation blocks
         UInt32         rsrc_clump_sz;
@@ -104,7 +104,7 @@ typedef struct hfsp_vh {
         UInt64        encodings_bmp;
                 // for every encoding used on the disk a bit is set
                 // ignored but eventually must be cared for
-        Char          finder_info[32];                                      
+        Char          finder_info[32];
 	hfsp_fork_raw   alloc_file;
          // stores bitmap of use/free blocks
         hfsp_fork_raw   ext_file;
@@ -162,7 +162,7 @@ typedef struct {
         UInt16         depth;
 	    // equal to height of btree_node_desc
         UInt32         root;
-	    // root node of the hierarchy 
+	    // root node of the hierarchy
         UInt32         leaf_count;
         UInt32         leaf_head;
         UInt32         leaf_tail;
@@ -179,9 +179,9 @@ typedef struct {
          // always 0 for HFS+
         UInt8	       reserved2;
         UInt32         attributes;
-	 // see below 
+	 // see below
         UInt32         reserved3[16];
-} btree_head;                                                                   
+} btree_head;
 
 /* BTree attributes */
 #define HFSPLUS_BAD_CLOSE            0x01
@@ -192,7 +192,7 @@ typedef struct {
 #define HFSPLUS_TREE_VAR_NDXKEY_SIZE 0x04
   // use variable length index nodes, always set for catalog btree,
   // always cleared for extents btree.
- 
+
 #define HFSPLUS_TREE_UNUSED          0xFFFFFFF8
 
 /* Some special File ID numbers */
@@ -226,7 +226,7 @@ typedef struct {
     UInt8		fork_type;	/* Seee below */
     UInt8		filler;
     UInt32		file_id;
-    UInt32		start_block;	
+    UInt32		start_block;
 } hfsp_extent_key;
 
 #define HFSP_EXTENT_DATA    0x00
@@ -238,10 +238,10 @@ typedef struct {
 
 #define HFSP_FOLDER         0x0001  // entry fo a Folder
 #define HFSP_FILE           0x0002  // entry for a File
-#define HFSP_FOLDER_THREAD  0x0003  
+#define HFSP_FOLDER_THREAD  0x0003
     // Like '.' in unix, identifies the folder by its id, only
-#define HFSP_FILE_THREAD    0x0004  
-    // Im unsure if this is used by HFS+, too 
+#define HFSP_FILE_THREAD    0x0004
+    // Im unsure if this is used by HFS+, too
 
 /* HFS+ folder data (part of an hfsp_cat_entry) */
 typedef struct {

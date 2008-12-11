@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/03 22:10:45 samuel>
  *   Time-stamp: <2004/01/07 19:17:45 samuel>
- *   
+ *
  *	<disk-label.c>
- *	
+ *
  *	Partition support
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -21,7 +21,7 @@
 
 typedef struct {
 	int		fd;
-	
+
         ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
 	int		type;		/* partition type or -1 */
@@ -85,7 +85,7 @@ dlabel_open( dlabel_info_t *di )
 	PUSH( (ucell)block0 );
 	selfword("find-part-handler");
 	ph = POP_ph();
-	
+
 	/* open partition package */
 	if( ph ) {
 		xt_t xt;
@@ -113,7 +113,7 @@ dlabel_open( dlabel_info_t *di )
 		goto out;
 	}
 	success = 1;
-	
+
  out:
 	if( parstr )
 		free( parstr );

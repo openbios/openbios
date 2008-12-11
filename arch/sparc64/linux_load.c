@@ -123,7 +123,7 @@ struct linux_params {
     uint16_t ramdisk_flags;		/* 0x1f8 */
 #define RAMDISK_IMAGE_START_MASK  	0x07FF
 #define RAMDISK_PROMPT_FLAG		0x8000
-#define RAMDISK_LOAD_FLAG		0x4000	
+#define RAMDISK_LOAD_FLAG		0x4000
     uint8_t  reserved8[2];		/* 0x1fa */
     uint16_t orig_root_dev;		/* 0x1fc */
     uint8_t  reserved9[1];		/* 0x1fe */

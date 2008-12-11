@@ -2,10 +2,10 @@
  * libhfs - library for reading and writing Macintosh HFS volumes
  *
  * The iterator shown here iterates over the blocks of a fork.
- * 
+ *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original work by 1996-1998 Robert Leslie <rob@mars.org>
- * other work 2000 from Brad Boyer (flar@pants.nu)  
+ * other work 2000 from Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
  */
 
 /*  Structure of the blockiterator */
-typedef struct 
+typedef struct
 {
     volume*	    vol;	// volume we iterate over
     UInt32	    curr_block;	// current, absolute block
@@ -38,11 +38,11 @@ typedef struct
     UInt8	    forktype;	// type of fork we iterate over
     UInt8	    in_extent;	// boolean  0 - in file extent
 				//	    1 - in extents file
-    extent_record   er;		// record to iterate in extents file. 
+    extent_record   er;		// record to iterate in extents file.
 } blockiter;
 
 /* Initialize iterator for a given fork */
-extern void blockiter_init(blockiter* b, volume* vol, hfsp_fork_raw* f, 
+extern void blockiter_init(blockiter* b, volume* vol, hfsp_fork_raw* f,
 			    UInt8 forktype, UInt32 fileId);
 
 /* find next block of the fork iterating over */

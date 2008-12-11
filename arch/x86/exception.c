@@ -54,12 +54,12 @@ void x86_exception(struct eregs *info);
 void x86_exception(struct eregs *info)
 {
 	if(info->vector <= 18) {
-		printk("\nUnexpected Exception: %s", 
+		printk("\nUnexpected Exception: %s",
 				exception_names[info->vector]);
 	} else {
 		printk("\nUnexpected Exception: %d", info->vector);
 	}
-	
+
 	printk(
 		" @ %02x:%08lx - Halting\n"
 		"Code: %d eflags: %08lx\n"
@@ -67,7 +67,7 @@ void x86_exception(struct eregs *info)
 		"edi: %08lx esi: %08lx ebp: %08lx esp: %08lx\n",
 		info->cs, (unsigned long)info->eip,
 		info->error_code, (unsigned long)info->eflags,
-		(unsigned long)info->eax, (unsigned long)info->ebx, 
+		(unsigned long)info->eax, (unsigned long)info->ebx,
 		(unsigned long)info->ecx, (unsigned long)info->edx,
 		(unsigned long)info->edi, (unsigned long)info->esi,
 		(unsigned long)info->ebp, (unsigned long)info->esp);
@@ -83,7 +83,7 @@ void x86_exception(struct eregs *info)
 	PC=findword("outer-interpreter");
 
 	info->eip=(uint32_t)&do_nothing;
-	
+
 /*
 	for (;;)
 		asm("hlt;");

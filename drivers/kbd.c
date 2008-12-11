@@ -2,7 +2,7 @@
  * <kbd.c>
  *
  * Open Hack'Ware BIOS generic keyboard input translation.
- * 
+ *
  *  Copyright (c) 2005 Jocelyn Mayer
  *
  *   This program is free software; you can redistribute it and/or

@@ -18,7 +18,7 @@ static int
 asc2uni( unsigned char *ustr, const char *astr, int maxlen )
 {
 	int len;
-	
+
 	if( maxlen <= 0 )
 		return 0;
 
@@ -35,10 +35,10 @@ static int
 uni2asc( char *astr, const unsigned char *ustr, int ustrlen, int maxlen )
 {
 	int len;
-	
+
 	if( maxlen <= 0 )
 		return 0;
-	
+
 	for( len=0; ustrlen-- > 0 && len < maxlen-1 ; ustr += 2 ) {
 		/* might be unrepresentable (or too complicated for us) */
 		if( ustr[0] || !ustr[1] )
@@ -70,7 +70,7 @@ fastUnicodeCompare - Compare two Unicode strings; produce a relative ordering
 
 static const UInt16 gLowerCaseTable[];
 
-SInt32 fast_unicode_compare ( const hfsp_unistr255 *ustr1, 
+SInt32 fast_unicode_compare ( const hfsp_unistr255 *ustr1,
 			      const hfsp_unistr255 *ustr2)
 {
     register UInt16     c1,c2;

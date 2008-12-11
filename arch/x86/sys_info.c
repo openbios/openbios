@@ -6,7 +6,7 @@
 #ifdef CONFIG_DEBUG_BOOT
 #define debug printk
 #else
-#define debug(x...) 
+#define debug(x...)
 #endif
 
 void collect_multiboot_info(struct sys_info *);

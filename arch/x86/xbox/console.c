@@ -1,7 +1,7 @@
 /*
  * Xbox framebuffer - Video + Console
  *
- * Copyright (C) 2005 Ed Schouten <ed@fxq.nl>, 
+ * Copyright (C) 2005 Ed Schouten <ed@fxq.nl>,
  * 		      Stefan Reinauer <stepan@openbios.org>
  *
  * This program is free software; you can redistribute it and/or modify

@@ -1,23 +1,23 @@
-/* 
+/*
  *   Creation Date: <2004/08/28 18:38:22 greg>
  *   Time-stamp: <2004/08/28 18:38:22 greg>
- *   
+ *
  *	<init.c>
- *	
+ *
  *	Initialization for pearpc
  *
  *   Copyright (C) 2004 Greg Watson
  *   Copyright (C) 2005 Stefan Reinauer
  *
  *   based on mol/init.c:
- *   
- *   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Samuel & David Rydh 
+ *
+ *   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Samuel & David Rydh
  *      (samuel@ibrium.se, dary@lindesign.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -66,7 +66,7 @@ entry( void )
 	printk("\n");
 	printk("=============================================================\n");
 	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
-	
+
 	ofmem_init();
 	initialize_forth();
 	/* won't return */
@@ -91,7 +91,7 @@ arch_of_init( void )
 	phandle_t ph;
 #endif
 	int autoboot;
-	
+
 	devtree_init();
 	nvram_init("/pci/mac-io/nvram");
 	modules_init();
@@ -108,7 +108,7 @@ arch_of_init( void )
 
 	node_methods_init();
 	init_video();
-		
+
 #if USE_RTAS
 	if( !(ph=find_dev("/rtas")) )
 		printk("Warning: No /rtas node\n");

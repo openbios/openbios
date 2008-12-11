@@ -1,5 +1,5 @@
 /* memory access abstraction layer for forth kernel
- * 
+ *
  * Copyright (C) 2005 Stefan Reinauer
  *
  * See the file "COPYING" for further information about
@@ -9,7 +9,7 @@
 #ifndef __CROSS_H
 #define __CROSS_H 1
 
-/* The forthstrap compiler has to abstract the underlying dictionary 
+/* The forthstrap compiler has to abstract the underlying dictionary
  * type: big/little endian, 32/64bit. All other binaries shall use
  * unchanged memory access for performance.
  */

@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2002/10/12 20:41:57 samuel>
  *   Time-stamp: <2003/10/25 12:51:22 samuel>
- *   
+ *
  *	<string.h>
- *	
+ *
  *	string library functions
- *   
+ *
  *   Copyright (C) 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #ifndef _H_STRING

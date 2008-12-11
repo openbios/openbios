@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/11 21:23:54 samuel>
  *   Time-stamp: <2004/01/07 19:38:45 samuel>
- *   
+ *
  *	<osi-scsi.c>
- *	
+ *
  *	SCSI device node
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -105,7 +105,7 @@ scsi_read_blocks( instance_data_t *sd )
 	char *dest = (char*)POP();
 	unsigned char cmd[10];
 	int len = nblks * sd->info->blocksize;
-	
+
 	memset( dest, 0, len );
 
 	/* printk("READ: blk: %d length %d\n", blk, len ); */
@@ -190,7 +190,7 @@ inquiry( instance_data_t *sd )
 			continue;
 		}
 		break;
-	} 
+	}
 
 	info->valid = 1;
 	return 0;

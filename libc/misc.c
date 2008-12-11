@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2002/10/19 21:05:07 samuel>
  *   Time-stamp: <2002/10/22 22:29:18 samuel>
- *   
+ *
  *	<misc.c>
- *	
+ *
  *	Miscellaneous
- *   
+ *
  *   Copyright (C) 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"

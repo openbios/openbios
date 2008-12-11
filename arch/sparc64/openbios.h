@@ -3,8 +3,8 @@
  *   Time-stamp: <2004/01/15 16:14:05 samuel>
  *
  *	<openbios.h>
- *	
- *	
+ *
+ *
  *
  *   Copyright (C) 2004 Samuel Rydh (samuel@ibrium.se)
  *

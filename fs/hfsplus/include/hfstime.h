@@ -5,7 +5,7 @@
  * other work 2000 from Brad Boyer (flar@pants.nu)
  *
  * The HFS+ dates are stored as UInt32 containing the number of seconds since
- * midnight, January 1, 1904, GMT. This is slightly different from HFS, 
+ * midnight, January 1, 1904, GMT. This is slightly different from HFS,
  * where the value represents local time. A notable exception is the
  * creationdate !. Linux uses times in GMT starting at  January 1, 1970
  *
@@ -25,7 +25,7 @@
  *
  * $Id: hfstime.h,v 1.2 2000/10/19 13:33:38 hasi Exp $
  */
- 
+
     /* The number of seconds between 1.1.1904 and 1.1.1970 */
 #define HFSPTIMEDIFF 2082844800U
 

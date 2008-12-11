@@ -1,5 +1,5 @@
 /* tag: pci config space dump for qt plugin's pci device.
- * 
+ *
  * Copyright (C) 2003 Stefan Reinauer
  *
  * See the file "COPYING" for further information about

@@ -42,7 +42,7 @@ u8 read_crtc_b(u16 addr) {
 }
 u8 read_att_b(u16 addr) {
 	inb(IS1_RC);
-	inb(0x80); 
+	inb(0x80);
 	outb(addr,ATT_IW);
 	return inb(ATT_R);
 }
@@ -131,7 +131,7 @@ static const struct screeninfo vga_settings = {
 
 	48, 16, 39, 8, 	// margins left,right,upper,lower
         96, 	// hsync length
-	2,	// vsync length 
+	2,	// vsync length
 	0,      // sync polarity
         0,	// non interlaced, single mode
         {0,0,0,0,0,0}	// compatibility
@@ -144,7 +144,7 @@ static const struct screeninfo vga_settings = {
 static int vga_decode_var(const struct screeninfo *var,
                               struct vga_par *par)
 {
-	u8 VgaAttributeTable[16] = 
+	u8 VgaAttributeTable[16] =
 	{ 0x000, 0x001, 0x002, 0x003, 0x004, 0x005, 0x014, 0x007, 0x038, 0x039, 0x03A, 0x03B, 0x03C, 0x03D, 0x03E, 0x03F};
 
         u32 xres, right, hslen, left, xtotal;
@@ -272,7 +272,7 @@ static int vga_decode_var(const struct screeninfo *var,
         par->crtc[CRTC_OFFSET] = vxres >> 1;
 
 	// put the underline off of the character, necessary in alpha color mode
-        par->crtc[CRTC_UNDERLINE] = 0x1f; 
+        par->crtc[CRTC_UNDERLINE] = 0x1f;
 
         par->crtc[CRTC_MODE] = rMode | 0xA3; // word mode
         par->crtc[CRTC_LINE_COMPARE] = 0xFF;
@@ -292,22 +292,22 @@ static int vga_decode_var(const struct screeninfo *var,
         par->atc[ATC_PLANE_ENABLE] = 0x0F;
         par->atc[ATC_PEL] = xoffset & 7;
         par->atc[ATC_COLOR_PAGE] = 0x00;
-        
+
         par->misc = 0x67;       /* enable CPU, ports 0x3Dx, positive sync*/
         if (var->sync & SYNC_HOR_HIGH_ACT)
                 par->misc &= ~0x40;
         if (var->sync & SYNC_VERT_HIGH_ACT)
                 par->misc &= ~0x80;
-        
+
         par->seq[SEQ_CLOCK_MODE] = 0x01; //8-bit char; 0x01=alpha mode
         par->seq[SEQ_PLANE_WRITE] = 0x03; // just char/attr plane
         par->seq[SEQ_CHARACTER_MAP] = 0x00;
 	par->seq[SEQ_MEMORY_MODE] = 0x02; // A/G bit not used in stpc; O/E on, C4 off
-        
+
         par->gdc[GDC_SR_VALUE] = 0x00;
 		// bits set in the SR_EN regs will enable set/reset action
 		// based on the bit settings in the SR_VAL register
-        par->gdc[GDC_SR_ENABLE] = 0x00; 
+        par->gdc[GDC_SR_ENABLE] = 0x00;
         par->gdc[GDC_COMPARE_VALUE] = 0x00;
         par->gdc[GDC_DATA_ROTATE] = 0x00;
         par->gdc[GDC_PLANE_READ] = 0;
@@ -333,7 +333,7 @@ static int vga_decode_var(const struct screeninfo *var,
  *
  * Write the data in the vga parameter structure
  * to the vga registers, along with other default
- * settings. 
+ * settings.
  *
  */
 static int vga_set_regs(const struct vga_par *par)
@@ -342,7 +342,7 @@ static int vga_set_regs(const struct vga_par *par)
 
         /* update misc output register */
         outb(par->misc, MIS_W);
-        
+
 	/* synchronous reset on */
 	outb(0x00, SEQ_I);
 	outb(0x00, SEQ_D);
@@ -354,11 +354,11 @@ static int vga_set_regs(const struct vga_par *par)
 		outb(i, SEQ_I);
 		outb(par->seq[i], SEQ_D);
 	}
-        
+
 	/* synchronous reset off */
 	outb(0x00, SEQ_I);
 	outb(0x03, SEQ_D);
-        
+
 	/* deprotect CRT registers 0-7 */
 	outb(0x11, CRT_IC);
 	outb(par->crtc[0x11], CRT_DC);
@@ -373,7 +373,7 @@ static int vga_set_regs(const struct vga_par *par)
 		outb(i, GRA_I);
 		outb(par->gdc[i], GRA_D);
 	}
-        
+
 	/* write attribute controller registers */
 	for (i = 0; i < ATT_C; i++) {
 		inb(IS1_RC);          /* reset flip-flop */
@@ -412,7 +412,7 @@ static int vga_set_regs(const struct vga_par *par)
 // turn on display, disable access to attr palette
 	inb(IS1_RC);
 	outb(0x20, ATT_IW);
-        
+
 return 0;
 }
 

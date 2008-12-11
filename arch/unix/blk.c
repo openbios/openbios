@@ -1,14 +1,14 @@
-/* 
+/*
  *  <arch/unix/blk.c>
- *	
- *	block device emulation for unix hosts 
- *   
+ *
+ *	block device emulation for unix hosts
+ *
  *   Copyright (C) 2004 Stefan Reinauer <stepan@openbios.org>
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -60,9 +60,9 @@ blk_read_blocks( blk_data_t *pb )
 	cell i, n = POP();
 	cell blk = POP();
 	char *dest = (char*)POP();
-	
+
 	// printk("blk_read_blocks %x block=%d n=%d\n", (ucell)dest, blk, n );
-	
+
 	for( i=0; i<n; ) {
 		char buf[4096];
 		ucell m = MIN( n-i, sizeof(buf)/512 );

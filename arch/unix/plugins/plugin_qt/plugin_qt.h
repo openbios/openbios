@@ -1,5 +1,5 @@
 /* tag: qt plugin framebuffer class description
- * 
+ *
  * Copyright (C) 2003 Stefan Reinauer
  *
  * See the file "COPYING" for further information about
@@ -24,7 +24,7 @@ class FrameBufferWidget : public QWidget {
 	public:
 		FrameBufferWidget(QWidget *parent=0, const char *name=0);
 		unsigned char *getFrameBuffer(void);
-		
+
 	public slots:
 		void quit();
 		void about();

@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/10/18 13:24:29 samuel>
  *   Time-stamp: <2004/03/27 02:00:30 samuel>
- *   
+ *
  *	<methods.c>
- *	
+ *
  *	Misc device node methods
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -30,7 +30,7 @@
 DECLARE_NODE( powermgt, INSTALL_OPEN, 0, "/pci/pci-bridge/mac-io/power-mgt" );
 
 /* ( -- ) */
-static void 
+static void
 set_hybernot_flag( void )
 {
 }
@@ -53,7 +53,7 @@ rtas_instantiate( void )
 	int physbase = POP();
 	int s=0x1000, size = (int)of_rtas_end - (int)of_rtas_start;
 	ulong virt;
-	
+
 	while( s < size )
 		s += 0x1000;
 	virt = ofmem_claim_virt( 0, s, 0x1000 );
@@ -89,7 +89,7 @@ stdout_write( void )
 
 	strncpy_nopad( s, addr, len );
 	s[len]=0;
-	
+
 	/* printk( "%s", s ); */
 	console_draw_str( s );
 	free( s );
@@ -159,7 +159,7 @@ typedef struct {
 	char 	keytable[32];
 } kbd_state_t;
 
-static const uchar adb_ascii_table[128] = 
+static const uchar adb_ascii_table[128] =
 	/* 0x00 */	"asdfhgzxcv`bqwer"
 	/* 0x10 */	"yt123465=97-80]o"
 	/* 0x20 */	"u[ip\nlj'k;\\,/nm."
@@ -169,7 +169,7 @@ static const uchar adb_ascii_table[128] =
 	/* 0x60 */	"                "
 	/* 0x70 */	"                ";
 
-static const uchar adb_shift_table[128] = 
+static const uchar adb_shift_table[128] =
 	/* 0x00 */	"ASDFHGZXCV~BQWER"
 	/* 0x10 */	"YT!@#$^%+(&_*)}O"
 	/* 0x20 */	"U{IP\nLJ\"K:|<?NM>"
@@ -179,7 +179,7 @@ static const uchar adb_shift_table[128] =
 	/* 0x60 */	"                "
 	/* 0x70 */	"                ";
 
-DECLARE_NODE( kbd, INSTALL_OPEN, sizeof(kbd_state_t), 
+DECLARE_NODE( kbd, INSTALL_OPEN, sizeof(kbd_state_t),
       "/psuedo-hid/keyboard",
       "/mol/mol-keyboard",
       "/mol/keyboard"
@@ -203,7 +203,7 @@ kbd_read( kbd_state_t *ks )
 	int ret=0, len = POP();
 	char *p = (char*)POP();
 	int key;
-	
+
 	if( !p || !len ) {
 		PUSH( -1 );
 		return;
@@ -214,12 +214,12 @@ kbd_read( kbd_state_t *ks )
 		ks->save_key = 0;
 		RET( 1 );
 	}
-	OSI_USleep(1);	/* be nice */ 
+	OSI_USleep(1);	/* be nice */
 
 	for( ; (key=OSI_GetAdbKey()) >= 0 ; ) {
 		int code = (key & 0x7f);
 		int down = !(key & 0x80);
-		
+
 		if( code == 0x36 /* ctrl */ ) {
 			ks->cntrl = down;
 			continue;
@@ -273,7 +273,7 @@ DECLARE_NODE( ciface, 0, 0, "/packages/client-iface" );
 
 /* ( -- ) */
 static void
-ciface_quiesce( ulong args[], ulong ret[] ) 
+ciface_quiesce( ulong args[], ulong ret[] )
 {
 #if 0
 	ulong msr;
@@ -290,11 +290,11 @@ ciface_quiesce( ulong args[], ulong ret[] )
 
 /* ( -- ms ) */
 static void
-ciface_milliseconds( ulong args[], ulong ret[] ) 
+ciface_milliseconds( ulong args[], ulong ret[] )
 {
 	static ulong mticks=0, usecs=0;
 	ulong t;
-        
+
 	asm volatile("mftb %0" : "=r" (t) : );
 	if( mticks )
 		usecs += OSI_MticksToUsecs( t-mticks );
@@ -327,7 +327,7 @@ mem_claim( void )
 	int size = POP();
 	int phys = POP();
 	int ret = ofmem_claim_phys( phys, size, align );
-	
+
 	if( ret == -1 ) {
 		printk("MEM: claim failure\n");
 		throw( -13 );
@@ -368,7 +368,7 @@ mmu_release( void )
 }
 
 /* ( phys virt size mode -- [ret???] ) */
-static void 
+static void
 mmu_map( void )
 {
 	int mode = POP();
@@ -376,7 +376,7 @@ mmu_map( void )
 	int virt = POP();
 	int phys = POP();
 	int ret;
-	
+
 	/* printk("mmu_map: %x %x %x %x\n", phys, virt, size, mode ); */
 	ret = ofmem_map( phys, virt, size, mode );
 

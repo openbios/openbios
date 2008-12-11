@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original 1996-1998 Robert Leslie <rob@mars.org>
- * Additional work by  Brad Boyer (flar@pants.nu)  
+ * Additional work by  Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

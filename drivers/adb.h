@@ -2,7 +2,7 @@
  * ADB bus definitions for Open Hack'Ware
  *
  * Copyright (c) 2004-2005 Jocelyn Mayer
- * 
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License V2
  *   as published by the Free Software Foundation
@@ -76,7 +76,7 @@ int adb_bus_init (char *path, adb_bus_t *bus);
 static inline int adb_reset (adb_bus_t *bus)
 {
     adb_dev_t fake_device;
-    
+
     memset(&fake_device, 0, sizeof(adb_dev_t));
     fake_device.bus = bus;
 

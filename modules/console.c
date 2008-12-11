@@ -1,15 +1,15 @@
-/* 
+/*
  *	<console.c>
- *	
+ *
  *	Simple text console
- *	
+ *
  *   Copyright (C) 2002, 2003 Samuel Rydh (samuel@ibrium.se)
  *   Copyright (C) 2005 Stefan Reinauer <stepan@openbios.org>
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -57,10 +57,10 @@ draw_char( uint h, uint v )
 	int x, y, xx, rskip, m;
 	int invert = (h==cons.x && v==cons.y && cons.cursor_on);
 	int ch = get_conschar( h, v );
-	
+
 	while( h >= cons.w || v >= cons.h )
 		return;
-	
+
 	h *= FONT_WIDTH;
 	v *= FONT_ADJ_HEIGHT;
 
@@ -106,36 +106,36 @@ draw_line( int n )
 static void
 refresh( void )
 {
-	int i;       
+	int i;
 	for( i=0; i<cons.h; i++ )
 		draw_line(i);
 }
 #endif
 
 static int
-console_init( void ) 
+console_init( void )
 {
 	if( video_get_res(&cons.physw,&cons.physh) < 0 )
 		return -1;
 
 	set_color( 0, 0 );
-	
+
 	cons.w = cons.physw/FONT_WIDTH;
 	cons.h = cons.physh/FONT_ADJ_HEIGHT;
 	cons.buf = malloc( cons.w * cons.h );
-	cons.inited = 1;	
+	cons.inited = 1;
 	cons.x = cons.y = 0;
         cons.vc_state = ESnormal;
 	return 0;
 }
 
 void
-console_close( void ) 
+console_close( void )
 {
  	if( !cons.inited )
-		return; 
+		return;
 	free( cons.buf );
-	cons.inited = 0;	
+	cons.inited = 0;
 }
 
 static void

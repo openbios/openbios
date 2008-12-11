@@ -34,8 +34,8 @@ extern int volume_close(volume* vol);
  *
  * returns given pointer or NULL on failure.
  */
-extern void* volume_readfromfork(volume* vol, void* buf, 
-	hfsp_fork_raw* f, UInt32 block, 
+extern void* volume_readfromfork(volume* vol, void* buf,
+	hfsp_fork_raw* f, UInt32 block,
 	UInt32 count, UInt8 forktype, UInt32 fileId);
 
 /* Fill a given buffer with the given block in volume.
@@ -57,7 +57,7 @@ extern int volume_allocated(volume* v, UInt32 block);
 /* Read a raw hfsp_extent_rec from memory. */
 extern void* volume_readextent(void *p, hfsp_extent_rec er);
 
-/* Read fork information from raw memory */ 
+/* Read fork information from raw memory */
 extern void* volume_readfork(void *p, hfsp_fork_raw* f);
 
 /* internal function used to create the extents btree,
@@ -70,7 +70,7 @@ static inline btree* volume_get_extents_tree(volume* vol) {
 	volume_create_extents_tree(vol);
     return vol->extents;
 }
-    
+
 
 #ifdef DEBUG
     /* Print raw fork information to stdout */

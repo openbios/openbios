@@ -18,8 +18,8 @@
 
 #include "cross.h"
 
-/* 
- * Code Field Address (CFA) definitions (DOCOL and the like) 
+/*
+ * Code Field Address (CFA) definitions (DOCOL and the like)
  */
 
 #include "internal.c"
@@ -31,12 +31,12 @@
 #include "forth.c"
 
 /* words[] is a function array of all native code functions in used by
- * the dictionary, i.e. CFAs and primitives. 
- * Any change here needs a matching change in the primitive word's 
+ * the dictionary, i.e. CFAs and primitives.
+ * Any change here needs a matching change in the primitive word's
  * name list that is kept for bootstrapping in arch/unix/unix.c
  *
- * NOTE: THIS LIST SHALL NOT CHANGE (EXCEPT MANDATORY ADDITIONS AT 
- * THE END). ANY OTHER CHANGE WILL BREAK COMPATIBILITY TO OLDER 
+ * NOTE: THIS LIST SHALL NOT CHANGE (EXCEPT MANDATORY ADDITIONS AT
+ * THE END). ANY OTHER CHANGE WILL BREAK COMPATIBILITY TO OLDER
  * BINARY DICTIONARIES.
  */
 void * const words[] = {

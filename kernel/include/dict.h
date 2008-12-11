@@ -37,7 +37,7 @@ typedef struct dictionary_header {
 ucell lfa2nfa(ucell ilfa);
 ucell load_dictionary(const char *data, ucell len);
 void  dump_header(dictionary_header_t *header);
-	
+
 /* program counter */
 extern ucell 		PC;
 

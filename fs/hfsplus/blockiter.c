@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original work by 1996-1998 Robert Leslie <rob@mars.org>
- * other work 2000 from Brad Boyer (flar@pants.nu)  
+ * other work 2000 from Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@
 #include "hfstime.h"
 
 /* Initialize iterator for a given fork */
-void 
-blockiter_init(blockiter* b, volume* vol, hfsp_fork_raw* f, 
+void
+blockiter_init(blockiter* b, volume* vol, hfsp_fork_raw* f,
 		    UInt8 forktype, UInt32 fileId)
 {
     b->vol	    = vol;
@@ -52,7 +52,7 @@ blockiter_init(blockiter* b, volume* vol, hfsp_fork_raw* f,
 }
 
 /* get next extent record when needed */
-static int 
+static int
 blockiter_next_extent(blockiter *b)
 {
     btree*  extents_tree = volume_get_extents_tree(b->vol);
@@ -64,7 +64,7 @@ blockiter_next_extent(blockiter *b)
 	err = record_next_extent(&b->er);
 	// Hope there is no need to check this ...
 	// if (b->er.key.start_block != b->curr_block)
-	//     HFSP_ERROR(ENOENT, 
+	//     HFSP_ERROR(ENOENT,
 	//	"Extents record inconistent");
     }
     else
@@ -78,10 +78,10 @@ blockiter_next_extent(blockiter *b)
 }
 
 /* find next block of the fork iterating over */
-int 
+int
 blockiter_next(blockiter *b)
 {
-    b->curr_block ++; 
+    b->curr_block ++;
     b->block ++;
     if (b->curr_block >= b->max_block)
 	return -1; // end of Blocks, but no error
@@ -104,7 +104,7 @@ blockiter_next(blockiter *b)
 }
 
 /* skip the indicated number of blocks */
-int 
+int
 blockiter_skip(blockiter *b, UInt32 skip)
 {
     while (skip > 0)
@@ -118,7 +118,7 @@ blockiter_skip(blockiter *b, UInt32 skip)
 	}
 	else
 	    skip -= diff;
-	b->curr_block += diff; 
+	b->curr_block += diff;
 	b->block      += diff;
 	if (b->curr_block >= b->max_block)
 	    return -1;	// end of Blocks, but no error

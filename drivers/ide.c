@@ -1,6 +1,6 @@
 /*
  *   OpenBIOS polled ide driver
- *   
+ *
  *   Copyright (C) 2004 Jens Axboe <axboe@suse.de>
  *   Copyright (C) 2005 Stefan Reinauer <stepan@openbios.org>
  *
@@ -374,7 +374,7 @@ ob_ide_pio_data_in(struct ide_drive *drive, struct ata_command *cmd)
 		cmd->stat = stat;
 		return 1;
 	}
-				
+
 	ob_ide_write_registers(drive, cmd);
 
 	/*
@@ -1123,7 +1123,7 @@ ob_ide_probe(struct ide_channel *chan)
 /*
  * The following functions are interfacing with OpenBIOS. They
  * are device node methods. Thus they have to do proper stack handling.
- * 
+ *
  */
 
 /*
@@ -1148,7 +1148,7 @@ ob_ide_read_blocks(int *idx)
 #ifdef CONFIG_DEBUG_IDE
 	printk("ob_ide_read_blocks %x block=%d n=%d\n", (unsigned long)dest, blk, n );
 #endif
-	
+
 	while (n) {
 		int len = n;
 		if (len > drive->max_sectors)
@@ -1179,10 +1179,10 @@ ob_ide_initialize(int *idx)
 {
 	int props[3];
 	phandle_t ph=get_cur_dev();
-	
+
 	push_str("block");
 	fword("device-type");
-	
+
 	// Set dummy reg properties
 	props[0] = __cpu_to_be32(0); props[1] = __cpu_to_be32(0); props[2] = __cpu_to_be32(0);
 	set_property(ph, "reg", (char *)&props, 3*sizeof(int));
@@ -1206,7 +1206,7 @@ ob_ide_open(int *idx)
 	ph=(phandle_t)POP();
 	idename=get_property(ph, "name", &len);
 	idx[1]=idename[3]-0x30;
-	
+
 #ifdef CONFIG_DEBUG_IDE
 	printk("opening channel %d unit %d\n", idx[1], idx[0]);
 #endif
@@ -1223,7 +1223,7 @@ ob_ide_open(int *idx)
 	fword("my-args");
 	PUSH_ph( ph );
 	fword("interpose");
-	
+
 	RET ( -ret );
 }
 
@@ -1255,17 +1255,17 @@ ob_ide_ctrl_initialize(int *idx)
 	/* set device type */
 	push_str("ide");
 	fword("device-type");
-	
+
 	idename=get_property(ph, "name", &len);
 	devnum=idename[3]-0x30;
-	
+
 	/* Create interrupt properties. */
 	props[0]=14; props[1]=0;
 	set_property(ph, "interrupts", (char *)&props, 2*sizeof(int));
-	
-	props[0] = __cpu_to_be32(io_ports[devnum]); 
+
+	props[0] = __cpu_to_be32(io_ports[devnum]);
 	props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
-	props[3] = __cpu_to_be32(ctl_ports[devnum]); 
+	props[3] = __cpu_to_be32(ctl_ports[devnum]);
 	props[4] = __cpu_to_be32(1); props[5] = __cpu_to_be32(2);
 	set_property(ph, "reg", (char *)&props, 6*sizeof(int));
 }
@@ -1335,7 +1335,7 @@ int ob_ide_init(void)
 
 		printk("ide%d: [io ports 0x%x-0x%x,0x%x]\n", i, chan->io_regs[0], chan->io_regs[0] + 7, chan->io_regs[8]);
 		for (j = 0; j < 2; j++) {
-			struct ide_drive *drive = &chan->drives[j];	
+			struct ide_drive *drive = &chan->drives[j];
 			char *media = "UNKNOWN";
 
 			if (!drive->present)

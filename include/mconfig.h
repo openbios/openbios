@@ -1,4 +1,4 @@
-/* 
+/*
  *  We got rid of configure for now, and I hope it stays like this.
  *  This file may have to be changed/reworked completely
  *

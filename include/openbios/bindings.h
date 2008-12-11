@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/19 23:09:56 samuel>
  *   Time-stamp: <2004/01/07 19:36:42 samuel>
- *   
+ *
  *	<bindings.h>
- *	
+ *
  *	Forth bindings
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #ifndef _H_BINDINGS

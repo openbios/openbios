@@ -1,15 +1,15 @@
-/* 
+/*
  *   pc partition support
- *   
+ *
  *   Copyright (C) 2004 Stefan Reinauer
  *
- *   This code is based (and copied in many places) from 
+ *   This code is based (and copied in many places) from
  *   mac partition support by Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -83,12 +83,12 @@ pcparts_open( pcparts_info_t *di )
 		printk("pc partition magic not found.\n");
 		RET(0);
 	}
-	
+
 	/* get partition data */
 	p = (struct pc_partition *) (buf + 0x1be);
 
 	bs=512;
-	
+
 	if (parnum < 4) {
 		/* primary partition */
 		p += parnum;
@@ -101,27 +101,27 @@ pcparts_open( pcparts_info_t *di )
 
 		/* printk("Primary partition at sector %x\n",
 				__le32_to_cpu(*((u32 *)p->start_sect))); */
-		
+
 		RET( -1 );
 	} else {
 		/* Extended partition */
 		int i, cur_part;
 		unsigned long ext_start, cur_table;
-		
+
 		/* Search for the extended partition
 		 * which contains logical partitions */
 		for (i = 0; i < 4; i++) {
 			if (is_pc_extended_part(p[i].type))
 				break;
 		}
-		
+
 		if (i >= 4) {
 			printk("Extended partition not found\n");
 			RET( 0 );
 		}
-		
+
 		printk("Extended partition at %d\n", i+1);
-		
+
 		/* Visit each logical partition labels */
 		ext_start = __le32_to_cpu(*((u32 *)p[i].start_sect));
 		cur_table = ext_start;
@@ -129,7 +129,7 @@ pcparts_open( pcparts_info_t *di )
 
 		for (;;) {
 			/* printk("cur_part=%d at %x\n", cur_part, cur_table); */
-			
+
 			SEEK( cur_table*bs );
 			if( READ(buf, sizeof(512)) != sizeof(512) )
 				RET( 0 );
@@ -138,7 +138,7 @@ pcparts_open( pcparts_info_t *di )
 				printk("Extended partition has no magic\n");
 				break;
 			}
-			
+
 			p = (struct pc_partition *) (buf + 0x1be);
 			/* First entry is the logical partition */
 			if (cur_part == parnum) {
@@ -151,7 +151,7 @@ pcparts_open( pcparts_info_t *di )
 				di->size = (llong)__le32_to_cpu(*((u32 *)p->nr_sects)) * bs;
 				RET ( -1 );
 			}
-			
+
 			/* Second entry is link to next partition */
 			if (!is_pc_extended_part(p[1].type)) {
 				printk("no link\n");
@@ -172,7 +172,7 @@ static void
 pcparts_probe( pcparts_info_t *dummy )
 {
 	unsigned char *buf = (unsigned char *)POP();
-	
+
 	RET ( has_pc_part_magic(buf) );
 }
 

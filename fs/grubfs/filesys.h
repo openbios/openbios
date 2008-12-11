@@ -1,4 +1,4 @@
-/* GRUB compatibility header 
+/* GRUB compatibility header
  *
  * taken from filo and grub.
  */
@@ -76,21 +76,21 @@ static __inline__ unsigned int log2(unsigned int word)
 	/* assume 8 bits per byte. */
 	unsigned int i = 1 << (sizeof(word)*8 - 1);
 	unsigned int pow = sizeof(word) * 8 - 1;
-	
+
 	if (! word) {
 		/* invalid parameter */
 		return -1;
 	}
 	for(; i > word; i >>= 1, pow--) ;
-	
-        return pow;     
+
+        return pow;
 }
 
 #define ffz(n) log2(~(n))
 
 #endif
 
-static inline int 
+static inline int
 substring (const char *s1, const char *s2)
 {
   while (*s1 == *s2)
@@ -115,7 +115,7 @@ substring (const char *s1, const char *s2)
 #define MAXINT 0x7fffffff
 
 /* This is only used by fsys_* to determine if it's hard disk. If it is,
- * they try to guess filesystem type by partition type. I guess it is 
+ * they try to guess filesystem type by partition type. I guess it is
  * not necessory, so hardcoded to 0 (first floppy) --ts1 */
 #define current_drive 0
 #define current_slice 0

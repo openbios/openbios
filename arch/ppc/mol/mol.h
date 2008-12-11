@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/20 00:20:12 samuel>
  *   Time-stamp: <2004/03/27 01:52:50 samuel>
- *   
+ *
  *	<mol.h>
- *	
- *	
- *   
+ *
+ *
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #ifndef _H_MOL

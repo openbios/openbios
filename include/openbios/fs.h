@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2001/05/06 17:12:45 samuel>
  *   Time-stamp: <2003/10/22 11:43:45 samuel>
- *   
+ *
  *	<fs_loader.h>
- *	
+ *
  *	Generic file system access
- *   
+ *
  *   Copyright (C) 2001, 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #ifndef _H_FS

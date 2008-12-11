@@ -66,7 +66,7 @@ __switch_context_nosave:
 	set	(PSR_PS | PSR_S | PSR_PIL | PSR_EF), %g2
 	wr	%g2, 0x0, %psr
 #endif
-	
+
 	/* Load all registers
 	 */
 	set	__context, %g1

@@ -2,7 +2,7 @@
  * <kbd.h>
  *
  * Open Hack'Ware BIOS generic keyboard management definitions.
- * 
+ *
  *  Copyright (c) 2005 Jocelyn Mayer
  *
  *   This program is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@ typedef struct kbd_t kbd_t;
 typedef struct keymap_t keymap_t;
 struct kbd_t {
     uint32_t mod_state;
-    /* Modifier state              
+    /* Modifier state
      *                0x00 kk ll rr
      *                   |  |  |  |
      * Not used for now -+  |  |  |

@@ -1,12 +1,12 @@
 /*
  *   OpenBIOS pci driver
- *   
- *   This driver is compliant to the 
+ *
+ *   This driver is compliant to the
  *   PCI bus binding to IEEE 1275-1994 Rev 2.1
  *
  *   (C) 2004 Stefan Reinauer <stepan@openbios.org>
  *   (C) 2005 Ed Schouten <ed@fxq.nl>
- * 
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
@@ -1274,23 +1274,23 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	rev = pci_config_read8(addr, PCI_REVISION_ID);
 
 	/* create properties as described in 2.5 */
-	
+
 	printk("%s\n", pci_dev->name);
 	set_int_property(dev, "vendor-id", vendor_id);
 	set_int_property(dev, "device-id", device_id);
 	set_int_property(dev, "revision-id", rev);
-	
-	set_int_property(dev, "interrupts", 
+
+	set_int_property(dev, "interrupts",
 			pci_config_read8(addr, PCI_INTERRUPT_LINE));
-	
+
 	set_int_property(dev, "min-grant", pci_config_read8(addr, PCI_MIN_GNT));
 	set_int_property(dev, "max-latency", pci_config_read8(addr, PCI_MAX_LAT));
 
 	status=pci_config_read16(addr, PCI_STATUS);
-	
-	set_int_property(dev, "devsel-speed", 
+
+	set_int_property(dev, "devsel-speed",
 			(status&PCI_STATUS_DEVSEL_MASK)>>10);
-	
+
 	if(status&PCI_STATUS_FAST_BACK)
 		set_bool_property(dev, "fast-back-to-back");
 	if(status&PCI_STATUS_66MHZ)
@@ -1299,15 +1299,15 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 		set_bool_property(dev, "udf-supported");
 
 	id=pci_config_read16(addr, PCI_SUBSYSTEM_VENDOR_ID);
-	if(id) 
+	if(id)
 		set_int_property(dev, "subsystem-vendor-id", id);
 	id=pci_config_read16(addr, PCI_SUBSYSTEM_ID);
-	if(id) 
+	if(id)
 		set_int_property(dev, "subsystem-id", id);
 
-	set_int_property(dev, "cache-line-size", 
+	set_int_property(dev, "cache-line-size",
 			pci_config_read16(addr, PCI_CACHE_LINE_SIZE));
-	
+
 	if (pci_dev->type) {
 		push_str(pci_dev->type);
 		fword("encode-string");
@@ -1492,13 +1492,13 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 			pci_dev = pci_find_device(class, subclass, iface, vid, did);
 
 #ifdef CONFIG_DEBUG_PCI
-			printk("%x:%x.%x - %x:%x - ", bus, devnum, fn, 
+			printk("%x:%x.%x - %x:%x - ", bus, devnum, fn,
 					vid, did);
 #endif
 			htype = pci_config_read8(addr, PCI_HEADER_TYPE);
 			if (fn == 0)
 				is_multi = htype & 0x80;
-	    
+
 			activate_device(path);
 
 			dbus=get_cur_dev();

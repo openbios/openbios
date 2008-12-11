@@ -20,7 +20,7 @@ volatile int runforth = 0;
 #ifdef FCOMPILER
 extern ucell *trampoline;
 #else
-/* instead of pointing to an explicit 0 variable we 
+/* instead of pointing to an explicit 0 variable we
  * point behind the pointer.
  */
 static ucell t[] = { DOCOL, 0, (ucell)(t+3), 0 };
@@ -98,7 +98,7 @@ int enterforth(xt_t xt)
 	 * handle exceptions by returning immediately since the throw
 	 * is supposed to abort the execution of this C-code too.
 	 */
-	
+
 	if( rstackcnt != tmp )
 		printk("EXCEPTION DETECTED!\n");
 #endif
@@ -157,7 +157,7 @@ static void execute(void)
 }
 
 /*
- * call ( ... function-ptr -- ??? ) 
+ * call ( ... function-ptr -- ??? )
  */
 static void call(void)
 {
@@ -172,7 +172,7 @@ static void call(void)
 #endif
 }
 
-/* 
+/*
  * sys-debug ( errno -- )
  */
 

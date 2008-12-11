@@ -159,7 +159,7 @@ static int load_segments(Elf_phdr *phdr, int phnum,
 	}
 	bytes += phdr[i].p_filesz;
 	debug("clearing... ");
-	memset(phys_to_virt(phdr[i].p_paddr + phdr[i].p_filesz), 0, 
+	memset(phys_to_virt(phdr[i].p_paddr + phdr[i].p_filesz), 0,
 		phdr[i].p_memsz - phdr[i].p_filesz);
 	if (phdr[i].p_offset <= checksum_offset
 		&& phdr[i].p_offset + phdr[i].p_filesz >= checksum_offset+2) {
@@ -362,7 +362,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     if (!load_segments(phdr, ehdr.e_phnum, checksum_offset))
 	goto out;
-    
+
     if (checksum_offset) {
 	if (!verify_image(&ehdr, phdr, ehdr.e_phnum, checksum))
 	    goto out;

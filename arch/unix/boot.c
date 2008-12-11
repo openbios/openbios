@@ -37,12 +37,12 @@ void
 	}
 
 	(ullong *)entry = ehdr.e_entry;
-	
+
 	lszz_offs = elf_offs;
 	for( i=0; i<ehdr.e_phnum; i++ ) {
 		s = MIN( phdr[i].p_filesz, phdr[i].p_memsz );
 		seek_io( fd, elf_offs + phdr[i].p_offset );
-		/* printk("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n", 
+		/* printk("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n",
 		   phdr[i].p_filesz, phdr[i].p_memsz, phdr[i].p_offset,
 		   phdr[i].p_vaddr ); */
 		if( phdr[i].p_vaddr != phdr[i].p_paddr )
@@ -56,7 +56,7 @@ void
 	}
 	free( phdr );
 	return entry;
-#else 
+#else
 	return NULL;
 #endif
 }
@@ -66,7 +66,7 @@ boot( void )
 {
 	char *path=pop_fstr_copy();
 	void *entry;
-	
+
 	if(!path) {
 		printk("[unix] Booting default not supported.\n");
 		return;

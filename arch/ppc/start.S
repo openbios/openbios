@@ -1,23 +1,23 @@
-/* 
+/*
  *   Creation Date: <2001/06/16 21:30:18 samuel>
  *   Time-stamp: <2003/04/04 16:32:06 samuel>
- *   
+ *
  *	<init.S>
- *	
+ *
  *	Asm glue for ELF images run inside MOL
- *   
+ *
  *   Copyright (C) 2001, 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "asm/asmdefs.h"
 #include "asm/processor.h"
 #include "osi.h"
-		
+
 /************************************************************************/
 /*	Macros								*/
 /************************************************************************/
@@ -73,8 +73,8 @@ stack:	.space  64
 
 	.space  32*1024		// 32 K exception stack
 estack:	.space	128
-	
-	
+
+
 /************************************************************************/
 /*	entry								*/
 /************************************************************************/
@@ -83,7 +83,7 @@ estack:	.space	128
 GLOBL(_start):
 	li	r0,0
 	mtmsr	r0
-	
+
 	lis	r1,HA(estack)
 	addi	r1,r1,LO(estack)
 	mtsprg0 r1			// setup exception stack
@@ -122,7 +122,7 @@ GLOBL(_start):
 
 
 	/* According to IEEE 1275, PPC bindings:
-	 *	
+	 *
 	 * 	MSR = FP, ME + (DR|IR)
 	 *	r1 = stack (32 K + 32 bytes link area above)
 	 *	r5 = clint interface handler
@@ -156,7 +156,7 @@ GLOBL(call_elf):
 	lwz	r0,20(r1)
 	mtlr	r0
 	addi	r1,r1,16
-	// XXX: should restore r12-r31 etc.. 
+	// XXX: should restore r12-r31 etc..
 	// we should not really come here though
 	blr
 
@@ -191,7 +191,7 @@ GLOBL(of_client_callback):
 	lwz	r0,16(r1)
 	lwz	r1,8(r1)		// restore caller stack
 	blr
-	
+
 	/* rtas glue (must be reloctable) */
 GLOBL(of_rtas_start):
 	/* r3 = argument buffer, r4 = of_rtas_start */
@@ -276,12 +276,12 @@ VECTOR( 0x400, "ISI" ):
 	mtctr	r3
 	bctrl
 	b	exception_return
-	
+
 	ILLEGAL_VECTOR( 0x500 )
 	ILLEGAL_VECTOR( 0x600 )
 	ILLEGAL_VECTOR( 0x700 )
 
-VECTOR( 0x800, "FPU" ):	
+VECTOR( 0x800, "FPU" ):
 	mtsprg1	r3
 	mfsrr1	r3
 	ori	r3,r3,0x2000

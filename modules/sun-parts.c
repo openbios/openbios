@@ -1,15 +1,15 @@
-/* 
+/*
  *   Sun (Sparc32/64) partition support
- *   
+ *
  *   Copyright (C) 2004 Stefan Reinauer
  *
- *   This code is based (and copied in many places) from 
+ *   This code is based (and copied in many places) from
  *   mac partition support by Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -106,7 +106,7 @@ sunparts_open( sunparts_info_t *di )
                 parnum = str[0] - 'a';
             else
                 parnum = atol(str);
-       
+
             free( str );
 	}
 
@@ -156,7 +156,7 @@ static void
 sunparts_probe( __attribute__((unused))sunparts_info_t *dummy )
 {
 	unsigned char *buf = (unsigned char *)POP();
-	
+
 	RET ( has_sun_part_magic(buf) );
 }
 

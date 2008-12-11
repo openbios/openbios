@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/23 00:28:05 samuel>
  *   Time-stamp: <2003/12/28 19:43:41 samuel>
- *   
+ *
  *	<init.c>
- *	
+ *
  *	Module intialization
- *   
+ *
  *   Copyright (C) 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -26,7 +26,7 @@ modules_init( void )
 #endif
 #ifdef CONFIG_DEBLOCKER
 	deblocker_init();
-#endif	
+#endif
 #ifdef CONFIG_DISK_LABEL
 	disklabel_init();
 #endif

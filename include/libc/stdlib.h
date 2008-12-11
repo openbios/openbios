@@ -1,16 +1,16 @@
-/* 
+/*
  *   Creation Date: <2003/12/19 18:52:20 samuel>
  *   Time-stamp: <2003/12/19 18:52:21 samuel>
- *   
+ *
  *	<stdlib.h>
- *	
- *   
+ *
+ *
  *   Copyright (C) 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #ifndef _H_STDLIB

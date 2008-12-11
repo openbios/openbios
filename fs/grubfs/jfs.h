@@ -1,22 +1,22 @@
 /* jfs.h - an extractions from linux/include/linux/jfs/jfs* into one file */
-/*   
+/*
  *  GRUB  --  GRand Unified Bootloader
  *  Copyright (C) 2000  International Business Machines  Corp.
  *  Copyright (C) 2001  Free Software Foundation, Inc.
  *
  *  This program is free software;  you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or 
+ *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY;  without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
  *  the GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with this program;  if not, write to the Free Software 
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+ *  along with this program;  if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA 02110-1301, USA.
  */
 
@@ -177,7 +177,7 @@ struct jfs_superblock
 	s64 s_size;		/* 8: aggregate size in hardware/LVM blocks;
 				 * VFS: number of blocks
 				 */
-	s32 s_bsize;		/* 4: aggregate block size in bytes; 
+	s32 s_bsize;		/* 4: aggregate block size in bytes;
 				 * VFS: fragment size
 				 */
 	s16 s_l2bsize;		/* 2: log2 of s_bsize */
@@ -191,7 +191,7 @@ struct jfs_superblock
 	u32 s_flag;		/* 4: aggregate attributes:
 				 *    see jfs_filsys.h
 				 */
-	u32 s_state;		/* 4: mount/unmount/recovery state: 
+	u32 s_state;		/* 4: mount/unmount/recovery state:
 				 *    see jfs_filsys.h
 				 */
 	s32 s_compress;		/* 4: > 0 if data compression */
@@ -212,11 +212,11 @@ struct jfs_superblock
 	struct timestruc_t s_time;	/* 8: time last updated */
 
 	s32 s_fsckloglen;	/* 4: Number of filesystem blocks reserved for
-				 *    the fsck service log.  
+				 *    the fsck service log.
 				 *    N.B. These blocks are divided among the
 				 *         versions kept.  This is not a per
 				 *         version size.
-				 *    N.B. These blocks are included in the 
+				 *    N.B. These blocks are included in the
 				 *         length field of s_fsckpxd.
 				 */
 	s8 s_fscklog;		/* 1: which fsck service log is most recent
@@ -224,7 +224,7 @@ struct jfs_superblock
 				 *    1 => the first one
 				 *    2 => the 2nd one
 				 */
-	char s_fpack[11];	/* 11: file system volume name 
+	char s_fpack[11];	/* 11: file system volume name
 				 *     N.B. This must be 11 bytes to
 				 *          conform with the OS/2 BootSector
 				 *          requirements
@@ -237,7 +237,7 @@ struct jfs_superblock
 	/* - 128 byte boundary - */
 
 	/*
-	 *      DFS VFS support (preliminary) 
+	 *      DFS VFS support (preliminary)
 	 */
 	char s_attach;		/* 1: VFS: flag: set when aggregate is attached
 				 */
@@ -246,22 +246,22 @@ struct jfs_superblock
 	u64 totalUsable;	/* 8: VFS: total of 1K blocks which are
 				 * available to "normal" (non-root) users.
 				 */
-	u64 minFree;		/* 8: VFS: # of 1K blocks held in reserve for 
+	u64 minFree;		/* 8: VFS: # of 1K blocks held in reserve for
 				 * exclusive use of root.  This value can be 0,
-				 * and if it is then totalUsable will be equal 
+				 * and if it is then totalUsable will be equal
 				 * to # of blocks in aggregate.  I believe this
 				 * means that minFree + totalUsable = # blocks.
-				 * In that case, we don't need to store both 
+				 * In that case, we don't need to store both
 				 * totalUsable and minFree since we can compute
-				 * one from the other.  I would guess minFree 
-				 * would be the one we should store, and 
-				 * totalUsable would be the one we should 
+				 * one from the other.  I would guess minFree
+				 * would be the one we should store, and
+				 * totalUsable would be the one we should
 				 * compute.  (Just a guess...)
 				 */
 
-	u64 realFree;		/* 8: VFS: # of free 1K blocks can be used by 
+	u64 realFree;		/* 8: VFS: # of free 1K blocks can be used by
 				 * "normal" users.  It may be this is something
-				 * we should compute when asked for instead of 
+				 * we should compute when asked for instead of
 				 * storing in the superblock.  I don't know how
 				 * often this information is needed.
 				 */
@@ -318,7 +318,7 @@ typedef struct {
 
 /*
  * dir_table used for directory traversal during readdir
-*/ 
+*/
 
 /*
  * Maximum entry in inline directory table
@@ -562,8 +562,8 @@ typedef struct dinode dinode_t;
 
 /*
  *	inode allocation map:
- * 
- * inode allocation map consists of 
+ *
+ * inode allocation map consists of
  * . the inode map control page and
  * . inode allocation group pages (per 4096 inodes)
  * which are addressed by standard JFS xtree.

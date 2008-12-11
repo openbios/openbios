@@ -1,18 +1,18 @@
-/*   -*- asm -*- 
+/*   -*- asm -*-
  *
  *   Creation Date: <2001/02/03 19:38:07 samuel>
  *   Time-stamp: <2003/07/08 18:55:50 samuel>
- *   
+ *
  *	<asmdefs.h>
- *	
+ *
  *	Common assembly definitions
- *   
+ *
  *   Copyright (C) 2001, 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #ifndef _H_ASMDEFS
@@ -82,7 +82,7 @@
 /* an underscore is needed on Darwin */
 #define GLOBL( name )		.globl _##name ; name: ; _##name
 #define EXTERN( name )		_##name
-#endif	
+#endif
 
 #define	BIT(n)		(1<<(31-(n)))
 

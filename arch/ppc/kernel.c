@@ -1,20 +1,20 @@
-/* 
+/*
  *   Creation Date: <2003/10/25 14:07:17 samuel>
  *   Time-stamp: <2004/08/28 17:48:19 stepan>
- *   
+ *
  *	<kernel.c>
- *	
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
  *   Copyright (C) 2003, 2004 Stefan Reinauer
- *   
+ *
  *   Based upon unix.c (from OpenBIOS):
  *
  *   Copyright (C) 2003 Patrick Mauritz, Stefan Reinauer
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -46,7 +46,7 @@ forth_segv_handler( char *segv_addr )
 
 	printk("panic: segmentation violation at %x\n", (int)segv_addr);
 	printk("dict=0x%x here=0x%x(dict+0x%x) pc=0x%x(dict+0x%x)\n",
-	       (int)dict, (int)(dict + dicthead), dicthead, 
+	       (int)dict, (int)(dict + dicthead), dicthead,
 	       PC, PC - (ucell) dict);
 	printk("dstackcnt=%d rstackcnt=%d instruction=%x\n",
 	       dstackcnt, rstackcnt, addr);
@@ -60,7 +60,7 @@ forth_segv_handler( char *segv_addr )
 	return -1;
 }
 
-/* 
+/*
  * allocate memory and prepare engine for memory management.
  */
 

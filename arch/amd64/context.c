@@ -17,7 +17,7 @@ static void start_main(void); /* forward decl. */
 void __exit_context(void); /* assembly routine */
 
 /*
- * Main context structure 
+ * Main context structure
  * It is placed at the bottom of our stack, and loaded by assembly routine
  * to start us up.
  */

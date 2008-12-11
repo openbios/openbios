@@ -37,7 +37,7 @@ int b_init(hfsvol *vol)
 {
   bcache *cache;
   int i;
-	
+
   ASSERT(vol->cache == 0);
 
   cache = ALLOC(bcache, 1);

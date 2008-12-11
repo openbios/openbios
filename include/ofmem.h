@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <1999/11/16 00:47:06 samuel>
  *   Time-stamp: <2003/10/18 13:28:14 samuel>
- *   
+ *
  *	<ofmem.h>
- *	
- *	
- *   
+ *
+ *
+ *
  *   Copyright (C) 1999, 2002 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #ifndef _H_OFMEM

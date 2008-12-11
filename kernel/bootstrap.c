@@ -104,20 +104,20 @@ static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, 
 	ucell *reloc_table;
 	int pos, bit;
 	int l=(length+(sizeof(cell)-1))/sizeof(ucell), i;
-	
+
 	/* prepare relocation table */
 	relocation_length=(length+BITS-1)/BITS;
 	reloc_table = malloc(relocation_length*sizeof(cell));
 	memset(reloc_table,0,relocation_length*sizeof(cell));
-	
+
 	for (i=0; i<l; i++) {
-		
+
 		pos=i/BITS;
 		bit=i&~(-BITS);
-		
+
 		if(d1[i]==d2[i]) {
 			reloc_table[pos] &= target_ucell(~((ucell)1UL<<bit));
-			
+
 			// This check might bring false positives in data.
 			//if(d1[i] >= pointer2cell(dict_one) &&
 			//		d1[i] <= pointer2cell(dict_one+length))
@@ -148,7 +148,7 @@ static void write_dictionary(char *filename)
 	/*
 	 * get memory for dictionary
 	 */
-	
+
 	write_len  = sizeof(dictionary_header_t)+dicthead+relocation_length*sizeof(cell);
 	write_data = malloc(write_len);
 	if(!write_data) {
@@ -157,11 +157,11 @@ static void write_dictionary(char *filename)
 		exit(1);
 	}
 	memset(write_data, 0, write_len);
-	
+
 	/*
-	 * prepare dictionary header 
+	 * prepare dictionary header
 	 */
-	
+
 	header = (dictionary_header_t *)write_data;
 	*header = (dictionary_header_t){
 		.signature	= DICTID,
@@ -185,15 +185,15 @@ static void write_dictionary(char *filename)
 	/*
 	 * prepare dictionary data
 	 */
-	
+
 	walk_data=write_data+sizeof(dictionary_header_t);
 	memcpy (walk_data, dict, dicthead);
-	
+
 	/*
-	 * prepare relocation data. 
+	 * prepare relocation data.
 	 * relocation_address is zero when writing a dictionary core.
 	 */
-	
+
 	if (relocation_address) {
 #ifdef CONFIG_DEBUG_DICTIONARY
 		printk("writing %d reloc cells \n",relocation_length);
@@ -207,9 +207,9 @@ static void write_dictionary(char *filename)
 	} else {
 		header->relocation=0;
 	}
-	
+
 	/*
-	 * Calculate Checksum 
+	 * Calculate Checksum
 	 */
 
 	walk_data=write_data;
@@ -218,11 +218,11 @@ static void write_dictionary(char *filename)
 		walk_data+=sizeof(u32);
 	}
 	checksum=(u32)-checksum;
-	
+
 	header->checksum=target_long(checksum);
-	
+
 	dump_header(header);
-	
+
 	f = fopen(filename, "w");
 	if (!f) {
 		printk("panic: can't write to dictionary '%s'.\n", filename);
@@ -329,7 +329,7 @@ static int parse(FILE * f, char *line, char delim)
 
 /*
  * parse_word is a small helper that skips whitespaces before a word.
- * it's behaviour is similar to the forth version parse-word. 
+ * it's behaviour is similar to the forth version parse-word.
  */
 
 static void parse_word(FILE * f, char *line)
@@ -381,7 +381,7 @@ static void fcreate(char *word, ucell cfaval)
 		printk("WARNING: tried to create unnamed word.\n");
 		return;
 	}
-	
+
 	writestring(word);
 	/* get us at least 1 byte for flags */
 	writebyte(0);
@@ -479,8 +479,8 @@ static int interpret_source(char *fil)
 		exit(1);
 	}
 
-	/* FIXME: We should read this file at 
-	 * once. No need to get it char by char 
+	/* FIXME: We should read this file at
+	 * once. No need to get it char by char
 	 */
 
 	while (!feof(f)) {
@@ -655,7 +655,7 @@ static int interpret_source(char *fil)
 		else
 			num = strtoul(tib, &test, read_ucell(base));
 
-		
+
 		if (*test != 0) {
 			/* what is it?? */
 			printk("%s is not defined.\n\n", tib);
@@ -692,10 +692,10 @@ static int build_dictionary(void)
 
 	/* we need a temporary place for latest outside the dictionary */
 	latest = &lfa;
-	
+
 	/* starting a new dictionary: clear dicthead */
 	dicthead = 0;
-	
+
 #ifdef CONFIG_DEBUG_DICTIONARY
 	printk("building dictionary, %d primitives.\nbuilt words:",
 	       sizeof(wordnames) / sizeof(void *));
@@ -721,7 +721,7 @@ static int build_dictionary(void)
 	*latest = target_ucell(pointer2cell(latest)-2*sizeof(cell));
 
 	base=buildvariable("base", 10);
-	
+
 	buildconstant("/c", sizeof(u8));
 	buildconstant("/w", sizeof(u16));
 	buildconstant("/l", sizeof(u32));
@@ -759,12 +759,12 @@ int availchar(void)
 int get_inputbyte( void )
 {
 	int tmp;
-	
+
 	if( cursrc < 1 ) {
 		runforth = 0;
 		return 0;
 	}
-	
+
 	tmp = getc( srcfiles[cursrc-1] );
 	if (tmp != EOF)
 		return tmp;
@@ -810,14 +810,14 @@ segv_handler(int signo __attribute__ ((unused)),
 	exit(1);
 }
 
-/* 
+/*
  * allocate memory and prepare engine for memory management.
  */
 
 static void init_memory(void)
 {
 	memset(memory, 0, MEMORY_SIZE);
-	
+
 	/* we push start and end of memory to the stack
 	 * so that it can be used by the forth word QUIT
 	 * to initialize the memory allocator.
@@ -865,7 +865,7 @@ encode_file( const char *name )
 {
 	FILE *file = fopen_include(name);
 	int size;
-	
+
 	if( !file ) {
 		printk("\npanic: Can't open '%s'\n", name );
 		exit(1);
@@ -873,7 +873,7 @@ encode_file( const char *name )
 	fseek( file, 0, SEEK_END );
 	size = ftell( file );
 	fseek( file, 0, SEEK_SET );
-	
+
 	printk("\nEncoding %s [%d bytes]\n", name, size );
 	fread( dict + dicthead, size, 1, file );
 	PUSH( pointer2cell(dict + dicthead) );
@@ -912,7 +912,7 @@ static void run_dictionary(char *basedict)
 static void new_dictionary(const char *source)
 {
 	build_dictionary();
-	
+
 	interpret_source((char *)source);
 
 	printk("interpretion finished. %d errors occured.\n",
@@ -1035,10 +1035,10 @@ int main(int argc, char *argv[])
 
 
 	/*
-	 * Get all required resources 
+	 * Get all required resources
 	 */
-	
-	
+
+
 	ressources = malloc(MEMORY_SIZE + (2 * DICTIONARY_SIZE) + TRAMPOLINE_SIZE);
 	if (!ressources) {
 		printk("panic: not enough memory on host system.\n");
@@ -1048,13 +1048,13 @@ int main(int argc, char *argv[])
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
 	base_address=(unsigned long)ressources;
 #endif
-	
+
 	memory = (ucell *)ressources;
-	
+
 	bootstrapdict[0] = ressources + MEMORY_SIZE;
 	bootstrapdict[1] = ressources + MEMORY_SIZE + DICTIONARY_SIZE;
 	trampoline = (ucell *)(ressources + MEMORY_SIZE + DICTIONARY_SIZE + DICTIONARY_SIZE);
-	
+
 #ifdef CONFIG_DEBUG_INTERPRETER
 	printf("memory: %p\n",memory);
 	printf("dict1: %p\n",bootstrapdict[0]);
@@ -1064,9 +1064,9 @@ int main(int argc, char *argv[])
 				DICTIONARY_SIZE) + TRAMPOLINE_SIZE,
 			TRAMPOLINE_SIZE);
 #endif
-	
+
 	init_trampoline();
-	
+
 	if (!segfault) {
 		if (verbose)
 			printk("Installing SIGSEGV handler...");
@@ -1079,11 +1079,11 @@ int main(int argc, char *argv[])
 		if (verbose)
 			printk("done.\n");
 	}
-	
+
 	/*
 	 * Now do the real work
 	 */
-	
+
 	for (cnt=0; cnt<2; cnt++) {
 		printk("Compiling dictionary %d/%d\n", cnt+1, 2);
 		dict=bootstrapdict[cnt];
@@ -1095,7 +1095,7 @@ int main(int argc, char *argv[])
 
 			run_dictionary(basedict);
 		}
-		if(errors) 
+		if(errors)
 			break;
 	}
 
@@ -1108,7 +1108,7 @@ int main(int argc, char *argv[])
 		relocation_table( bootstrapdict[0], bootstrapdict[1], dicthead);
 		write_dictionary( dictname ? dictname : "bootstrap.dict");
 	}
-	
+
 	free(ressources);
 	return 0;
 }

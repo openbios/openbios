@@ -199,7 +199,7 @@ entry:
 	bne	1b
 	 nop
 #endif
-	
+
 	membar	#Sync
 
 	setx	_start, %g7, %g4

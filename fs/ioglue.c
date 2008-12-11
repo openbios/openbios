@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2001/05/06 22:27:09 samuel>
  *   Time-stamp: <2003/12/12 02:24:56 samuel>
- *   
+ *
  *	<fs.c>
- *	
+ *
  *     	I/O API used by the filesystem code
- *   
+ *
  *   Copyright (C) 2001, 2002, 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 #include "openbios/config.h"

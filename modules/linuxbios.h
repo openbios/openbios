@@ -6,7 +6,7 @@
  * is expected to be information that cannot be discovered by
  * other means, such as quering the hardware directly.
  *
- * All of the information should be Position Independent Data.  
+ * All of the information should be Position Independent Data.
  * That is it should be safe to relocated any of the information
  * without it's meaning/correctnes changing.   For table that
  * can reasonably be used on multiple architectures the data
@@ -62,7 +62,7 @@ struct lb_memory_range {
 #define LB_MEM_RAM       1	/* Memory anyone can use */
 #define LB_MEM_RESERVED  2	/* Don't use this memory region */
 #define LB_MEM_TABLE     16	/* Ram configuration tables are kept in */
-	
+
 };
 
 struct lb_memory {
@@ -128,7 +128,7 @@ struct cmos_entries {
 	uint32_t config;             /* e=enumeration, h=hex, r=reserved */
 	uint32_t config_id;          /* a number linking to an enumeration record */
 #define CMOS_MAX_NAME_LENGTH 32
-	uint8_t name[CMOS_MAX_NAME_LENGTH]; /* name of entry in ascii, 
+	uint8_t name[CMOS_MAX_NAME_LENGTH]; /* name of entry in ascii,
 					       variable length int aligned */
 };
 
@@ -144,7 +144,7 @@ struct cmos_enums {
 	uint32_t config_id;          /* a number identifying the config id */
 	uint32_t value;              /* the value associated with the text */
 #define CMOS_MAX_TEXT_LENGTH 32
-	uint8_t text[CMOS_MAX_TEXT_LENGTH]; /* enum description in ascii, 
+	uint8_t text[CMOS_MAX_TEXT_LENGTH]; /* enum description in ascii,
 						variable length int aligned */
 };
 

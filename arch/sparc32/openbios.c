@@ -168,7 +168,7 @@ int openbios(void)
 	load_dictionary((char *)sys_info.dict_start,
 			(unsigned long)sys_info.dict_end
                         - (unsigned long)sys_info.dict_start);
-	
+
 #ifdef CONFIG_DEBUG_BOOT
 	printk("forth started.\n");
 	printk("initializing memory...");

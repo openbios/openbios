@@ -9,7 +9,7 @@
  * Based on VGA info at http://www.goodnet.com/~tinara/FreeVGA/home.htm
  * Based on VESA framebuffer (c) 1998 Gerd Knorr <kraxel@goldbach.in-berlin.de>
  *
- */ 
+ */
 
 #ifndef VGA_H_INCL
 #define VGA_H_INCL 1
@@ -164,7 +164,7 @@ void vga_hardware_fixup(void);
 
 /*
  * vga register parameters
- * these are copied to the 
+ * these are copied to the
  * registers.
  *
  */
@@ -187,8 +187,8 @@ struct vga_par {
 struct fb_bitfield {
         __u32 offset;                   /* beginning of bitfield        */
         __u32 length;                   /* length of bitfield           */
-        __u32 msb_right;                /* != 0 : Most significant bit is */ 
-                                        /* right */ 
+        __u32 msb_right;                /* != 0 : Most significant bit is */
+                                        /* right */
 };
 
 struct screeninfo {
@@ -205,7 +205,7 @@ struct screeninfo {
         struct fb_bitfield red;         /* bitfield in fb mem if true color, */
         struct fb_bitfield green;       /* else only length is significant */
         struct fb_bitfield blue;
-        struct fb_bitfield transp;      /* transparency                 */      
+        struct fb_bitfield transp;      /* transparency                 */
 
         __u32 nonstd;                   /* != 0 Non standard pixel format */
 

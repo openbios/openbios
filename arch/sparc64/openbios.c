@@ -898,12 +898,12 @@ int openbios(void)
 #endif
 
         collect_sys_info(&sys_info);
-	
+
 	dict=intdict;
 	load_dictionary((char *)sys_info.dict_start,
 			(unsigned long)sys_info.dict_end
                         - (unsigned long)sys_info.dict_start);
-	
+
 #ifdef CONFIG_DEBUG_BOOT
 	printk("forth started.\n");
 	printk("initializing memory...");
@@ -917,7 +917,7 @@ int openbios(void)
 
 	PUSH_xt( bind_noname_func(arch_init) );
 	fword("PREPOST-initializer");
-	
+
 	PC = (ucell)findword("initialize-of");
 
 	if (!PC) {

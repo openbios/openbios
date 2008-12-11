@@ -1,5 +1,5 @@
-/* multiboot.h 
- * tag: header for multiboot 
+/* multiboot.h
+ * tag: header for multiboot
  *
  * Copyright (C) 2003 Stefan Reinauer
  *

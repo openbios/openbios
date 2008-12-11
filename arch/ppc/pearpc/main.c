@@ -1,18 +1,18 @@
-/* 
+/*
  *   Creation Date: <2004/08/28 18:38:22 greg>
  *   Time-stamp: <2004/08/28 18:38:22 greg>
- *   
+ *
  *	<main.c>
- *	
+ *
  *   Copyright (C) 2004 Greg Watson
- *	
- *   Based on MOL specific code which is   
+ *
+ *   Based on MOL specific code which is
  *   Copyright (C) 2002, 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   as published by the Free Software Foundation
- *   
+ *
  */
 
 
@@ -65,7 +65,7 @@ load_elf_rom( ulong *entry, int fd )
 		s = MIN( phdr[i].p_filesz, phdr[i].p_memsz );
 		seek_io( fd, elf_offs + phdr[i].p_offset );
 
-		/* printk("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n", 
+		/* printk("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n",
 		   phdr[i].p_filesz, phdr[i].p_memsz, phdr[i].p_offset,
 		   phdr[i].p_vaddr ); */
 
@@ -90,7 +90,7 @@ load_elf_rom( ulong *entry, int fd )
 #endif
 		flush_icache_range( addr, addr+s );
 
-		/*printk("ELF ROM-section loaded at %08lX (size %08lX)\n", 
+		/*printk("ELF ROM-section loaded at %08lX (size %08lX)\n",
 		   (ulong)phdr[i].p_vaddr, (ulong)phdr[i].p_memsz );*/
 	}
 	free( phdr );
@@ -102,8 +102,8 @@ static void
 encode_bootpath( const char *spec, const char *args )
 {
 	phandle_t chosen_ph = find_dev("/chosen");
-	set_property( chosen_ph, "bootpath", spec, strlen(spec)+1 );	
-	set_property( chosen_ph, "bootargs", args, strlen(args)+1 );	
+	set_property( chosen_ph, "bootpath", spec, strlen(spec)+1 );
+	set_property( chosen_ph, "bootargs", args, strlen(args)+1 );
 }
 
 /************************************************************************/

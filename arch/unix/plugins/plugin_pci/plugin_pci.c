@@ -1,5 +1,5 @@
 /* tag: openbios pci plugin
- * 
+ *
  * Copyright (C) 2003 Stefan Reinauer
  *
  * See the file "COPYING" for further information about
@@ -34,7 +34,7 @@ static pci_dev_t *find_device(u32 conf_addr)
 }
 
 /*
- * IO functions. These manage all the magic of providing a PCI 
+ * IO functions. These manage all the magic of providing a PCI
  * compatible interface to OpenBIOS' unix version of the kernel.
  */
 

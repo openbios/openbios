@@ -69,7 +69,7 @@ hfsvol *hfs_mount( int os_fd, int pnum)
 {
   hfsvol *vol, *check;
   int mode = HFS_MODE_RDONLY;
-  
+
   /* see if the volume is already mounted */
   for (check = hfs_mounts; check; check = check->next)
     {

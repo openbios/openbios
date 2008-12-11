@@ -17,7 +17,7 @@ void file_close(void)
 {
 	if(load_fd==-1)
 		return;
-	
+
 	close_io(load_fd);
 	load_fd=-1;
 }
@@ -42,7 +42,7 @@ int file_seek(unsigned long offset)
 unsigned long file_size(void)
 {
 	llong fpos, fsize;
-	
+
         if (load_fd < 0)
             return 0;
 
@@ -52,11 +52,11 @@ unsigned long file_size(void)
 	/* go to end of file and get position */
 	seek_io(load_fd, -1);
 	fsize=tell(load_fd);
-	
+
 	/* go back to old position */
 	seek_io(load_fd, 0);
 	seek_io(load_fd, fpos);
-	
+
 	return fsize;
 }
 

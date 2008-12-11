@@ -24,5 +24,5 @@ int unicode_uni2asc(char *astr, const hfsp_unistr255 *ustr, int maxlen);
 
 /* similar to strcmp for unicode, pascal strings */
 
-SInt32 fast_unicode_compare (const hfsp_unistr255 *ustr1, 
+SInt32 fast_unicode_compare (const hfsp_unistr255 *ustr1,
 			     const hfsp_unistr255 *ustr2);

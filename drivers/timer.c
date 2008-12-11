@@ -42,9 +42,9 @@ unsigned long currticks(void)
 	unsigned long ticks = 0;
 	unsigned char portb = inb(PPC_PORTB);
 
-	/* 
-	 * Read the timer, and hope it hasn't wrapped around 
-	 * (call this again within 54ms), then restart it 
+	/*
+	 * Read the timer, and hope it hasn't wrapped around
+	 * (call this again within 54ms), then restart it
 	 */
 	outb(TIMER2_SEL | LATCH_COUNT, TIMER_MODE_PORT);
 	ticks = inb(TIMER2_PORT);
@@ -54,9 +54,9 @@ unsigned long currticks(void)
 	outb(0, TIMER2_PORT);
 	outb(0, TIMER2_PORT);
 
-	/* 
-	 * Check if the timer was running. If not, 
-	 * result is rubbish and need to start it 
+	/*
+	 * Check if the timer was running. If not,
+	 * result is rubbish and need to start it
 	 */
 	if (portb & PPCB_T2GATE) {
 		totticks += (0x10000 - ticks);

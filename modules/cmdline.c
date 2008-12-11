@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/28 14:16:31 samuel>
  *   Time-stamp: <2004/01/07 10:37:40 samuel>
- *   
+ *
  *	<cmdline.c>
- *	
+ *
  *	OpenFirmwware User Interface
- *   
+ *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #include "openbios/config.h"
@@ -113,7 +113,7 @@ history_get( cmdline_info_t *ci, int n )
 {
 	char *p = ci->history;
 	int len;
-	
+
 	while( n-- && p )
 		if( (p=strchr(p,'\n')) )
 			p++;
@@ -133,7 +133,7 @@ static int
 history_remove( cmdline_info_t *ci, int line )
 {
 	char *s, *p = history_get( ci, line );
-	
+
 	if( !p || !(s=strchr(p, '\n')) )
 		return 1;
 	s++;
@@ -145,13 +145,13 @@ static int /* ( -- ) */
 add_to_history( cmdline_info_t *ci, char *str )
 {
 	int n, len;
-	
+
 	if( !ci->history )
 		return 0;
 	len = strlen(str);
 	if( !len )
 		return 0;
-	
+
 	/* make room for line in history */
 	for( ;; ) {
 		char *p;
@@ -159,7 +159,7 @@ add_to_history( cmdline_info_t *ci, char *str )
 
 		if( n + len + 1 <= ci->hsize )
 			break;
-		
+
 		if( !(p=strrchr(ci->history,'\n')) )
 			return 0;
 		*p = 0;
@@ -182,7 +182,7 @@ cmdline_prompt( cmdline_info_t *ci )
 
 	buf = ci->buf;
 	selfword("prepare");
-	
+
 	emit('\n');
 #ifdef NOLEAVE
 	for (;;)
@@ -191,13 +191,13 @@ cmdline_prompt( cmdline_info_t *ci )
 #endif
 	{
 		int drop = 0;
-		
+
 		if( prompt ) {
 			fword("print-prompt");
 			buf[0] = 0;
 			cur_added = prompt = histind = pos = n = 0;
 		}
-		
+
 		switch( (ch=key()) ) {
 		case 27:
 			switch( key() ) {
@@ -312,7 +312,7 @@ cmdline_prompt( cmdline_info_t *ci )
 			fword("print-prompt");
 			move_cursor( pos-emit_str(buf) );
 			break;
-			
+
 		//case 66: /* down */
 		//	drop = 1;
 		case 14: /* ^n */
@@ -327,7 +327,7 @@ cmdline_prompt( cmdline_info_t *ci )
 				history_remove( ci, 0 );
 			}
 			break;
-			
+
 		//case 65: /* up */
 		//	drop = 1;
 		case 16: /* ^p */
@@ -344,7 +344,7 @@ cmdline_prompt( cmdline_info_t *ci )
 		}
 		if( (uint)ch < 32 )
 			drop = 1;
-		
+
 		if( !drop && n < ci->ncol ) {
 			memmove( &buf[pos+1], &buf[pos], n+1-pos );
 			n++;

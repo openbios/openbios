@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2000 Klaus Halfmann <khalfmann@libra.de>
  * Original 1996-1998 Robert Leslie <rob@mars.org>
- * Additional work by  Brad Boyer (flar@pants.nu)  
+ * Additional work by  Brad Boyer (flar@pants.nu)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ extern int record_init_cnid(record* r, btree* tree, UInt32 cnid);
 extern int record_init_parent(record* r, record* parent);
 
 /* intialize the record by searching for the given string in the given folder.
- * 
+ *
  * parent and r may be the same.
  */
 extern int record_init_string_parent(record* r, record* parent, char* key);
@@ -65,9 +65,9 @@ extern int record_up(record* r);
  */
 extern int record_next(record* r);
 
-/* intialize the extent_record to the extent identified by 
+/* intialize the extent_record to the extent identified by
  * a given file */
-extern int record_init_file(extent_record* r, btree* tree, 
+extern int record_init_file(extent_record* r, btree* tree,
 		    UInt8 forktype, UInt32 fileId, UInt32 blockindex);
 
 /* move foreward to next entent record. */

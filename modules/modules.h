@@ -1,17 +1,17 @@
-/* 
+/*
  *   Creation Date: <2003/12/23 00:32:12 samuel>
  *   Time-stamp: <2003/12/28 14:47:02 samuel>
- *   
+ *
  *	<modules.h>
- *	
+ *
  *	Module initialization
- *   
+ *
  *   Copyright (C) 2003 Samuel Rydh (samuel@ibrium.se)
- *   
+ *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
  *   version 2
- *   
+ *
  */
 
 #ifndef _H_MODULES
