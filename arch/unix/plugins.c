@@ -195,4 +195,3 @@ int load_plugin(const char *plugin_name)
 	// We don't dlclose the handle here since
 	// we want to keep our symbols for later use.
 }
-

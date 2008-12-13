@@ -171,5 +171,3 @@ defer outer-interpreter
   ;
   
 : eval evaluate ;
-
-

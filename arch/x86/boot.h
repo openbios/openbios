@@ -11,4 +11,3 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline);
 int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 
 unsigned int start_elf(unsigned long entry_point, unsigned long param);
-

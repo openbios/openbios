@@ -16,5 +16,3 @@
 
 \ : diag-switch?    ( -- diag? )
 \   ;
-
-

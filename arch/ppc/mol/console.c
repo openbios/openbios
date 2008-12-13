@@ -28,5 +28,3 @@
 
 #include "../../../modules/video.c"
 #include "../../../modules/console.c"
-
-

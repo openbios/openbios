@@ -108,4 +108,3 @@ typedef struct {
 # define HFS_FNDR_HASBUNDLE             (1 << 13)
 # define HFS_FNDR_ISINVISIBLE           (1 << 14)
 # define HFS_FNDR_ISALIAS               (1 << 15)
-

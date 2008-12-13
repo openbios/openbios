@@ -138,4 +138,3 @@ blockiter_skip(blockiter *b, UInt32 skip)
   fail:
     return -1;
 }
-

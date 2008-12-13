@@ -29,4 +29,3 @@ __uint128_t __udivmodti4(__uint128_t num, __uint128_t den, __uint128_t *rem_p)
 
   return quot;
 }
-

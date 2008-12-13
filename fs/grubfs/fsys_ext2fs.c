@@ -806,4 +806,3 @@ ext2fs_dir (char *dirname)
 }
 
 #endif /* FSYS_EXT2_FS */
-

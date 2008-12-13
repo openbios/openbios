@@ -188,4 +188,3 @@ int f_doblock(hfsfile *file, unsigned long num, block *bp,
 fail:
   return -1;
 }
-

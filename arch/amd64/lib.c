@@ -54,5 +54,3 @@ void free(void *ptr)
 {
 	/* Nothing yet */
 }
-
-

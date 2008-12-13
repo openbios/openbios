@@ -14,4 +14,3 @@ config PKG_OBP_TFTP
 config PKG_TERMINAL_EMULATOR
 	bool "Terminal Emulator"
 	default y
-

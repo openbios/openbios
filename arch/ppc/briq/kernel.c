@@ -14,4 +14,3 @@
 
 #include "briq-dict.h"
 #include "../kernel.c"
-

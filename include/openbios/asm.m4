@@ -135,4 +135,3 @@ ifdef([$1]_curnum,,[$1[]f:])dnl
 	define([$1]b,$1_[]$1_curnum[] )
 $1[]_[]$1_curnum[]dnl
 ])
-

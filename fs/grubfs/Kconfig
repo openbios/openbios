@@ -81,4 +81,3 @@ config FSYS_AFFS
 	default n
 	help
 	  Include Amiga FFS filesystem support
-

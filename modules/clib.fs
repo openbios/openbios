@@ -34,4 +34,3 @@
   swap ['] (lit) , , ['] (lit) , , ['] call ,
 	is-func-end
 ;
-

@@ -125,4 +125,3 @@ finish-device
 
 " /options" find-device
   " disk" encode-string " boot-from" property
-

@@ -52,4 +52,3 @@ device-end
 : rmap@    ( virt -- rmentry )
   drop 0
   ;
-

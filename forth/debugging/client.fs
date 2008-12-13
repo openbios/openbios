@@ -108,4 +108,3 @@
 
 : value>sym    ( n1 -- n1 false | n2 addr len true )
   ;
-

@@ -333,4 +333,3 @@ iso9660_read (char *buf, int len)
 }
 
 #endif /* FSYS_ISO9660 */
-

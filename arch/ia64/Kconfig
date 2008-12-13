@@ -20,5 +20,3 @@ source "kernel/Kconfig"
 source "forth/Kconfig"
 source "modules/Kconfig"
 source "drivers/Kconfig"
-
-

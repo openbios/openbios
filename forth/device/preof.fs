@@ -47,4 +47,3 @@ deadbeef constant processor-type ( -- processor-type )
 : group-code		non-implemented ;
 : probe 		non-implemented ;
 : probe-virtual 	non-implemented ;
-

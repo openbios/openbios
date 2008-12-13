@@ -1116,4 +1116,3 @@ int ob_floppy_init(void)
 	floppy_init();
 	return 0;
 }
-

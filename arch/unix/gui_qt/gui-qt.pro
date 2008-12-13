@@ -16,4 +16,3 @@ MOC_DIR     = qbuild
 TARGET      = gui_qt
 HEADERS	    = $(UIDIR)/gui-qt.h
 SOURCES	    = $(UIDIR)/gui-qt.cpp $(UIDIR)/qt-main.cpp
-

@@ -26,5 +26,3 @@
   0 ['] source-id (to)  \ builtin terminal has id 0
 
   ;
-
-

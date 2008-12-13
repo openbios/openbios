@@ -166,4 +166,3 @@ struct sun4m_intregs {
 #define	SUN4M_INT_SERIAL	0x00008000	  /* serial ports */
 #define	SUN4M_INT_KBDMS		0x00004000	  /* keyboard/mouse */
 #define	SUN4M_INT_SBUSBITS	0x00003F80	  /* sbus int bits */
-

@@ -126,4 +126,3 @@ void FrameBufferWidget::keyPressEvent(QKeyEvent * e)
 		std::cout << " key '" << e->text() << "' pressed" << std::endl;
 	}
 }
-

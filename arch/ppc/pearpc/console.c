@@ -42,6 +42,3 @@ int PearPC_GetFBInfo( osi_fb_info_t *fb )
 #include "../../../modules/video.c"
 
 #include "../../../modules/console.c"
-
-
-

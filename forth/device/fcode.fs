@@ -517,5 +517,3 @@ defer fcode-c@             \ get byte
   fcode-offset drop
   postpone endof
   ; immediate
-
-

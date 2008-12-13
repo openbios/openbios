@@ -8,6 +8,3 @@
   ;
 
   test-screen
-
-
-

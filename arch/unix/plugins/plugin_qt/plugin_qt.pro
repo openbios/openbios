@@ -16,4 +16,3 @@ MOC_DIR     = qbuild
 TARGET      = plugin_qt.so
 HEADERS	    = $(PLUGINDIR)/plugin_qt/plugin_qt.h
 SOURCES	    = $(PLUGINDIR)/plugin_qt/plugin_qt.cpp $(PLUGINDIR)/plugin_qt/qt_main.cpp
-

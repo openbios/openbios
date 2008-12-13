@@ -16,4 +16,3 @@
   " ," pocket tmpstrcat >r
   rot pocket tohexstr r> tmpstrcat drop
 ;
-

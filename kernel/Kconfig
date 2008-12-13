@@ -86,4 +86,3 @@ config DEBUG_CONSOLE_VGA
 	  use vga textmode and keyboard console
 
 endmenu
-

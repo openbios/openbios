@@ -47,4 +47,3 @@ extern void* btree_key_by_index(btree* bt, node_buf* buf, UInt16 index);
     /* Dump all the btree information to stdout */
   extern void btree_print(btree* bt);
 #endif
-

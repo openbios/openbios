@@ -145,4 +145,3 @@ void * const words[] = {
 	do_include,		/* $include */
 	do_encode_file,		/* $encode-file */
 };
-

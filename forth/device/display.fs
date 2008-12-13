@@ -364,4 +364,3 @@ defer fb-emit ( x -- )
   to foreground-color to background-color
 
 ;
-

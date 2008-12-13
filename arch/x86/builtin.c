@@ -22,4 +22,3 @@ void collect_multiboot_info(struct sys_info *info)
 	info->dict_end=(unsigned long *)((ucell)forth_dictionary +
 			sizeof(forth_dictionary));
 }
-

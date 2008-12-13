@@ -151,5 +151,3 @@ create forth get-order over , discard do-vocabulary
   ;
  
 true to vocabularies?
-
-

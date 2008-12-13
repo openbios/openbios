@@ -21,6 +21,3 @@ typedef struct osi_fb_info {
 
 #include "../../../modules/video.c"
 #include "../../../modules/console.c"
-
-
-

@@ -296,5 +296,3 @@ idtarg:
 _idt:
         .fill   20, 8, 0        # idt is unitiailzed
 _idt_end:
-
-

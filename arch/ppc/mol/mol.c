@@ -163,4 +163,3 @@ arch_nvram_get( char *buf )
 	for( i=0; i<size; i++ )
 		buf[i] = OSI_ReadNVRamByte( i );
 }
-

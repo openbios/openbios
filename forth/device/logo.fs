@@ -96,4 +96,3 @@ here
 00 c, 00 c, 00 c, 00 c, 00 c, 00 c, 00 c, 00 c, 
 
 value (romlogo-64x64)
-

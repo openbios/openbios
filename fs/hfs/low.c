@@ -154,4 +154,3 @@ int l_getmdb(hfsvol *vol, MDB *mdb, int backup)
 fail:
   return -1;
 }
-

@@ -31,4 +31,3 @@
 
    /* return the given apple time as UNIX time */
 extern char* get_atime(UInt32 atime);
-

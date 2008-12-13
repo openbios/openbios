@@ -198,6 +198,3 @@ typedef struct {
 } record;
 
 /* Functions on records are defined in record.h */
-
-
-

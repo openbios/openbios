@@ -16,5 +16,3 @@ enum {
 
 
 cuda_t *cuda_init (char *path, uint32_t base);
-
-

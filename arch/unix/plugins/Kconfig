@@ -14,4 +14,3 @@ config PLUGIN_QT
 	default n
 	help
 	  This plugin needs qt installed. Disable if you don't have qt.
-

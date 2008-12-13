@@ -107,4 +107,3 @@ typedef struct hfs_plus_mdb
 
 
 #endif   /* _H_HFS_MDB */
-

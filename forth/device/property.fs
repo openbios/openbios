@@ -321,4 +321,3 @@ defer sbus-intr>cpu ( sbus-intr# -- cpu-intr# )
 : model    ( str len -- )
   encode-string  " model"  property
   ;
-

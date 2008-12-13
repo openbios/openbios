@@ -31,4 +31,3 @@ GLOBL(_wait_ticks):
 
         mtlr    r8              /* restore link register */
         blr
-

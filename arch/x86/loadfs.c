@@ -41,6 +41,3 @@ unsigned long file_size(void)
 
 	return fsize;
 }
-
-
-

@@ -103,4 +103,3 @@ $(ODIR)/openbios.iso: $(ODIR)/openbios.multiboot $(ODIR)/openbios-x86.dict
 
 runiso: $(ODIR)/openbios.iso
 	qemu -cdrom $^
-

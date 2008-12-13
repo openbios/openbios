@@ -710,4 +710,3 @@ int affs_dir(char *dirname)
     }
 }
 #endif
-

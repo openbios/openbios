@@ -173,5 +173,3 @@ prom_change_phandle( mol_phandle_t old_ph, mol_phandle_t new_ph )
 {
 	return OSI_PromIface1( kPromChangePHandle, old_ph, (int)new_ph );
 }
-
-

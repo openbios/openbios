@@ -29,4 +29,3 @@
 	/* A sector for Apple is always 512 bytes */
 #define HFS_BLOCKSZ_BITS	9	/* 1<<9 == 512  */
 #define	HFS_VOLHEAD_SIG		0x4244	/* 'BD'	*/
-

@@ -87,4 +87,3 @@
 #define	BIT(n)		(1<<(31-(n)))
 
 #endif   /* _H_ASMDEFS */
-

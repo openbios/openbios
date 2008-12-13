@@ -401,4 +401,3 @@
 #define SPRNUM_FLIP( v )	( (((v)>>5) & 0x1f) | (((v)<<5) & 0x3e0) )
 
 #endif   /* _H_PROCESSOR */
-

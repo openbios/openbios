@@ -72,4 +72,3 @@ GLOBL(__lshrdi3):
 	srw	r3,r3,r5	# MSW = MSW >> count
 	or	r4,r4,r7	# LSW |= t2
 	blr
-

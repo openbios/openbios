@@ -56,5 +56,3 @@ static inline UInt32 blockiter_curr(blockiter *b)
 {
     return b->e->start_block + b->block;
 }
-
-

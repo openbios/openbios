@@ -10,5 +10,3 @@ defer reset-all    ( -- )
 
 \ OpenBOOT knows reset as well.
 : reset reset-all ;
-
-

@@ -22,4 +22,3 @@ finish-device
 \ clean up afterwards
 
 device-end
-

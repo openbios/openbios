@@ -19,4 +19,3 @@ void collect_multiboot_info(struct sys_info *info)
 	info->dict_start=(unsigned long *)FIXED_DICTSTART;
 	info->dict_end=(unsigned long *)FIXED_DICTEND;
 }
-

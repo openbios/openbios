@@ -77,5 +77,3 @@ extern int record_next_extent(extent_record *r);
     /* Dump all the record information to stdout */
   extern void record_print(record* r);
 #endif
-
-

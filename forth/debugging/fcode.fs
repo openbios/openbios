@@ -28,4 +28,3 @@
 
 : apply    ( ... "method-name< >device-specifier< >" -- ??? )
   ;
-
