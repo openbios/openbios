@@ -68,7 +68,7 @@ static int to_lower(int c)
 
 /* fstrcmp - compare null terminated string with forth string. */
 
-static int fstrcmp(char *s1, ucell fstr)
+static int fstrcmp(const char *s1, ucell fstr)
 {
 	char *s2 = (char*)cell2pointer(fstr);
 	while (*s1) {
@@ -84,7 +84,7 @@ static int fstrcmp(char *s1, ucell fstr)
  * word.
  */
 
-xt_t findword(char *s1)
+xt_t findword(const char *s1)
 {
 	ucell tmplfa, len;
 

@@ -172,10 +172,10 @@ struct linux_romvec {
 struct linux_nodeops {
 	int (*no_nextnode)(int node);
 	int (*no_child)(int node);
-	int (*no_proplen)(int node, char *name);
-	int (*no_getprop)(int node, char *name, char *val);
-	int (*no_setprop)(int node, char *name, char *val, int len);
-	const char * (*no_nextprop)(int node, char *name);
+        int (*no_proplen)(int node, const char *name);
+        int (*no_getprop)(int node, const char *name, char *val);
+        int (*no_setprop)(int node, const char *name, char *val, int len);
+        const char * (*no_nextprop)(int node, const char *name);
 };
 
 /* More fun PROM structures for device probing. */

@@ -41,10 +41,10 @@ const char *obp_stdin_path, *obp_stdout_path;
 
 static int obp_nextnode(int node);
 static int obp_child(int node);
-static int obp_proplen(int node, char *name);
-static int obp_getprop(int node, char *name, char *val);
-static int obp_setprop(int node, char *name, char *val, int len);
-static const char *obp_nextprop(int node, char *name);
+static int obp_proplen(int node, const char *name);
+static int obp_getprop(int node, const char *name, char *val);
+static int obp_setprop(int node, const char *name, char *val, int len);
+static const char *obp_nextprop(int node, const char *name);
 static int obp_devread(int dev_desc, char *buf, int nbytes);
 static int obp_devseek(int dev_desc, int hi, int lo);
 
@@ -85,7 +85,7 @@ static int obp_child(int node)
     return child;
 }
 
-static int obp_proplen(int node, char *name)
+static int obp_proplen(int node, const char *name)
 {
     int notfound;
 
@@ -129,11 +129,11 @@ static int looks_like_string(char *str, int len)
 }
 #endif
 
-static int obp_getprop(int node, char *name, char *value)
+static int obp_getprop(int node, const char *name, char *value)
 {
     int notfound, found;
     int len;
-    char *str;
+    const char *str;
 
     if (!node) {
         DPRINTF("obp_getprop(0x0, %s) = -1\n", name);
@@ -192,7 +192,7 @@ static int obp_getprop(int node, char *name, char *value)
     }
 }
 
-static const char *obp_nextprop(int node, char *name)
+static const char *obp_nextprop(int node, const char *name)
 {
     int found;
 
@@ -224,7 +224,7 @@ static const char *obp_nextprop(int node, char *name)
 }
 
 static int obp_setprop(__attribute__((unused)) int node,
-		       __attribute__((unused)) char *name,
+                       __attribute__((unused)) const char *name,
 		       __attribute__((unused)) char *value,
 		       __attribute__((unused)) int len)
 {

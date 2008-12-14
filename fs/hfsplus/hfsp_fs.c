@@ -67,7 +67,9 @@ search_files( record *par, int recursive, match_proc_t proc, const void *match_d
 	} while( ret && !record_next(&r) );
 
 	if( !ret && pt ) {
-		char name[256], *s2 = t.path ? t.path : "";
+                char name[256];
+                const char *s2 = t.path ? t.path : "";
+
 		unicode_uni2asc( name, &r.key.name, sizeof(name));
 
 		pt->rec = t.rec;
@@ -359,7 +361,7 @@ vol_name( fs_ops_t *fs, char *buf, int size )
 	return get_hfs_vol_name( fs->fd, buf, size );
 }
 
-static char *
+static const char *
 get_fstype( fs_ops_t *fs )
 {
 	return ("HFS+");

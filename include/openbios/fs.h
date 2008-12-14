@@ -43,7 +43,7 @@ struct fs_ops {
 	int		(*lseek)( file_desc_t *file, off_t offset, int whence );
 	char		*(*get_path)( file_desc_t *file, char *buf, int len );
 
-	char		*(*get_fstype)( fs_ops_t *fs );
+        const char     	*(*get_fstype)( fs_ops_t *fs );
 };
 
 extern fs_ops_t		*fs_open( int fs_type, int fd );

@@ -41,7 +41,7 @@ struct esp_dma {
 
 typedef struct sd_private {
     unsigned int bs;
-    char *media_str;
+    const char *media_str;
     uint32_t sectors;
     uint8_t media;
     uint8_t id;
@@ -182,7 +182,7 @@ read_capacity(esp_private_t *esp, sd_private_t *sd)
 static unsigned int
 inquiry(esp_private_t *esp, sd_private_t *sd)
 {
-    char *media = "UNKNOWN";
+    const char *media = "UNKNOWN";
 
     // Setup command = Inquiry
     memset(esp->buffer, 0, 7);

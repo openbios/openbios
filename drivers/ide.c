@@ -157,7 +157,7 @@ ob_ide_400ns_delay(struct ide_drive *drive)
 }
 
 static void
-ob_ide_error(struct ide_drive *drive, unsigned char stat, char *msg)
+ob_ide_error(struct ide_drive *drive, unsigned char stat, const char *msg)
 {
 	struct ide_channel *chan = drive->channel;
 	unsigned char err;
@@ -1285,8 +1285,8 @@ int ob_ide_init(void)
 {
 	int i, j;
 
-	char * nodetemp_chan = "/pci/isa/ide%d";
-	char * nodetemp = "/pci/isa/ide%d/%s";
+        const char *nodetemp_chan = "/pci/isa/ide%d";
+        const char *nodetemp = "/pci/isa/ide%d/%s";
 	char nodebuff[32];
 	phandle_t dnode;
 
@@ -1336,7 +1336,7 @@ int ob_ide_init(void)
 		printk("ide%d: [io ports 0x%x-0x%x,0x%x]\n", i, chan->io_regs[0], chan->io_regs[0] + 7, chan->io_regs[8]);
 		for (j = 0; j < 2; j++) {
 			struct ide_drive *drive = &chan->drives[j];
-			char *media = "UNKNOWN";
+                        const char *media = "UNKNOWN";
 
 			if (!drive->present)
 				continue;

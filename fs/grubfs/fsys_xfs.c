@@ -342,9 +342,15 @@ next_dentry (xfs_ino_t *ino)
 {
 	int namelen = 1;
 	int toread;
-	static char *usual[2] = {".", ".."};
+        static char *usual[2];
 	static xfs_dir2_sf_entry_t *sfe;
-	char *name = usual[0];
+        char *name;
+
+        if (!usual[0]) {
+            usual[0] = strdup(".");
+            usual[1] = strdup("..");
+        }
+        name = usual[0];
 
 	if (xfs.dirpos >= xfs.dirmax) {
 		if (xfs.forw == 0)

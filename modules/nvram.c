@@ -110,7 +110,7 @@ create_free_part( char *ptr, int size )
 }
 
 static int
-create_nv_part( int signature, char *name, int size )
+create_nv_part( int signature, const char *name, int size )
 {
 	nvpart_t *p = NULL;
 	int fs;

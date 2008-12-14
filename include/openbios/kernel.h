@@ -25,7 +25,7 @@ extern volatile int 	runforth;
 extern int		enterforth( xt_t xt );
 extern void		panic(const char *error) __attribute__ ((noreturn));
 
-extern xt_t		findword(char *s1);
+extern xt_t		findword(const char *s1);
 extern void		modules_init( void );
 
 /* arch kernel hooks */

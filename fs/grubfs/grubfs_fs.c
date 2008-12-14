@@ -47,7 +47,7 @@ void		(*disk_read_func) (int, int, int);
 /************************************************************************/
 
 typedef struct fsys_entry {
-	char	*name;
+        const char *name;
 	int	(*mount_func) (void);
 	int	(*read_func) (char *buf, int len);
 	int	(*dir_func) (char *dirname);
@@ -221,7 +221,7 @@ close_fs( fs_ops_t *fs )
 	/* callers responsibility to call free(fs) */
 }
 
-static char *
+static const char *
 grubfs_get_fstype( fs_ops_t *fs )
 {
 	grubfs_t *gfs = (grubfs_t*)fs->fs_data;

@@ -44,17 +44,17 @@ void boot(void)
             } else {
                 switch (boot_device) {
                 case 'a':
-                    path = "/obio/SUNW,fdtwo";
+                    path = strdup("/obio/SUNW,fdtwo");
                     break;
                 case 'c':
-                    path = "disk";
+                    path = strdup("disk");
                     break;
                 default:
                 case 'd':
-                    path = "cdrom";
+                    path = strdup("cdrom");
                     break;
                 case 'n':
-                    path = "net";
+                    path = strdup("net");
                     break;
                 }
             }

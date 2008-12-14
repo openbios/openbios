@@ -87,7 +87,7 @@ entry( void )
 }
 
 static void
-setenv( char *env, char *value )
+setenv( const char *env, const char *value )
 {
 	push_str( value );
 	push_str( env );
@@ -97,7 +97,7 @@ setenv( char *env, char *value )
 void
 arch_of_init( void )
 {
-#if USE_RTAS
+#ifdef USE_RTAS
 	phandle_t ph;
 #endif
 	int autoboot;
@@ -114,7 +114,7 @@ arch_of_init( void )
 
 	node_methods_init();
 
-#if USE_RTAS
+#ifdef USE_RTAS
 	if( !(ph=find_dev("/rtas")) )
 		printk("Warning: No /rtas node\n");
 	else {

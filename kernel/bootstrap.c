@@ -53,7 +53,7 @@ unsigned long base_address;
 /* include path handling */
 typedef struct include_path include;
 struct include_path {
-	char *path;
+        const char *path;
 	include *next;
 };
 
@@ -137,7 +137,7 @@ static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, 
 	relocation_address=reloc_table;
 }
 
-static void write_dictionary(char *filename)
+static void write_dictionary(const char *filename)
 {
 	FILE *f;
 	unsigned char *write_data, *walk_data;
@@ -375,7 +375,7 @@ static void paddict(ucell align)
  * generic forth word creator function.
  */
 
-static void fcreate(char *word, ucell cfaval)
+static void fcreate(const char *word, ucell cfaval)
 {
 	if (strlen(word) == 0) {
 		printk("WARNING: tried to create unnamed word.\n");
@@ -395,20 +395,20 @@ static void fcreate(char *word, ucell cfaval)
 }
 
 
-static ucell *buildvariable(char *name, cell defval)
+static ucell *buildvariable(const char *name, cell defval)
 {
 	fcreate(name, DOVAR);	/* see dict.h for DOVAR and other CFA ids */
 	writecell(defval);
 	return (ucell *) (dict + dicthead - sizeof(cell));
 }
 
-static void buildconstant(char *name, cell defval)
+static void buildconstant(const char *name, cell defval)
 {
 	fcreate(name, DOCON);	/* see dict.h for DOCON and other CFA ids */
 	writecell(defval);
 }
 
-static void builddefer(char *name)
+static void builddefer(const char *name)
 {
 	fcreate(name, DODFR);	/* see dict.h for DODFR and other CFA ids */
         writecell((ucell)0);

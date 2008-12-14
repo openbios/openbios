@@ -34,8 +34,8 @@ static void try_path(const char *path, char *param, const void *romvec)
 
 void boot(void)
 {
-        char *path = pop_fstr_copy(), *param, *oldpath = path;
-        char altpath[256];
+        char *path = pop_fstr_copy(), *param, altpath[256];
+        const char *oldpath = path;
         int unit = 0;
         const void *romvec;
 
