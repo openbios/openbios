@@ -27,7 +27,7 @@ ifeq ($(shell uname), Linux)
 	LIBDL_LDFLAGS=-ldl
 endif
 
-CFLAGS := -Os -Wall -W -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin -g
+CFLAGS := -Os -Wall -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin -g
 CFLAGS+=  -Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
 CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes

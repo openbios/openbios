@@ -22,7 +22,7 @@ LD     := $(TARGET)ld
 NM     := $(TARGET)nm
 STRIP  := $(TARGET)strip
 RANLIB := $(TARGET)ranlib
-CFLAGS := -Os -Wall -W -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -g
+CFLAGS := -Os -Wall -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -g
 CFLAGS+= -Wa,-xarch=v9b -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany
 CFLAGS+= -fno-builtin -nostdlib -ffreestanding
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
