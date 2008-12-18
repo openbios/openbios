@@ -119,6 +119,12 @@ macparts_get_info( macparts_info_t *di )
 }
 
 static void
+macparts_block_size( __attribute__((unused))macparts_info_t *di )
+{
+	PUSH(512);
+}
+
+static void
 macparts_initialize( macparts_info_t *di )
 {
 	fword("register-partition-package");
@@ -128,6 +134,7 @@ NODE_METHODS( macparts ) = {
 	{ "probe",	macparts_probe 		},
 	{ "open",	macparts_open 		},
 	{ "get-info",	macparts_get_info 	},
+	{ "block-size",	macparts_block_size 	},
 	{ NULL,		macparts_initialize	},
 };
 

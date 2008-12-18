@@ -186,6 +186,12 @@ pcparts_get_info( pcparts_info_t *di )
 }
 
 static void
+pcparts_block_size( __attribute__((unused))pcparts_info_t *di )
+{
+	PUSH(512);
+}
+
+static void
 pcparts_initialize( pcparts_info_t *di )
 {
 	fword("register-partition-package");
@@ -195,6 +201,7 @@ NODE_METHODS( pcparts ) = {
 	{ "probe",	pcparts_probe 		},
 	{ "open",	pcparts_open 		},
 	{ "get-info",	pcparts_get_info 	},
+	{ "block-size",	pcparts_block_size 	},
 	{ NULL,		pcparts_initialize	},
 };
 

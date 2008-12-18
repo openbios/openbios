@@ -200,12 +200,30 @@ dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 	PUSH(0);
 }
 
+static void
+dlabel_block_size( dlabel_info_t *di )
+{
+	xt_t xt;
+
+	if( !di->part_ih )
+		goto no_handler;
+
+	xt = find_ih_method("block-size", di->part_ih);
+	if ( !xt )
+		goto no_handler;
+
+	call_package( xt , di->part_ih );
+	return;
+no_handler:
+	PUSH(512);
+}
+
 NODE_METHODS( dlabel ) = {
 	{ "open",	dlabel_open 	},
 	{ "close",	dlabel_close 	},
 	{ "offset",	dlabel_offset 	},
 	{ "load",	dlabel_load 	},
-
+	{ "block-size", dlabel_block_size },
 	{ "read",	dlabel_read 	},
 	{ "write",	dlabel_write 	},
 	{ "seek",	dlabel_seek 	},

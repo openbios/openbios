@@ -173,6 +173,12 @@ sunparts_get_info( sunparts_info_t *di )
 }
 
 static void
+sunparts_block_size( __attribute__((unused))sunparts_info_t *di )
+{
+	PUSH(512);
+}
+
+static void
 sunparts_initialize( __attribute__((unused))sunparts_info_t *di )
 {
 	fword("register-partition-package");
@@ -182,6 +188,7 @@ NODE_METHODS( sunparts ) = {
 	{ "probe",	sunparts_probe 		},
 	{ "open",	sunparts_open 		},
 	{ "get-info",	sunparts_get_info 	},
+	{ "block-size",	sunparts_block_size 	},
 	{ NULL,		sunparts_initialize	},
 };
 
