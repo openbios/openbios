@@ -1379,7 +1379,7 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
 
 {
 	uint32_t smask, omask, amask, size, reloc, min_align;
-	uint32_t *base;
+        unsigned long base;
 	pci_addr config_addr;
 	int reg;
 
