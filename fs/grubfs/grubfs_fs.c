@@ -267,7 +267,9 @@ fs_grubfs_open( int fd, fs_ops_t *fs )
 			return 0;
 		}
 	}
+#ifdef CONFIG_DEBUG_FS
 	printk("Unknown filesystem type\n");
+#endif
 	return -1;
 }
 

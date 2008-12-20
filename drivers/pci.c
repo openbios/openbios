@@ -1444,7 +1444,6 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
 		}
 		pci_config_write32(addr, config_addr, reloc | omask);
 		config->regions[reg] = reloc;
-printk("region %08x size %08x\n", config->regions[reg], config->sizes[reg]);
 	}
 }
 
