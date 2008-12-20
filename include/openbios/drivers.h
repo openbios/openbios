@@ -26,7 +26,8 @@ void init_video(unsigned long fb,  int width, int height, int depth, int rb);
 #endif
 #endif
 #ifdef CONFIG_DRIVER_IDE
-int ob_ide_init(void);
+int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
+                uint32_t io_port1, uint32_t ctl_port1);
 #endif
 #ifdef CONFIG_DRIVER_ESP
 int ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,

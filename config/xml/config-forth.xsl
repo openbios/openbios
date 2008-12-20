@@ -26,6 +26,9 @@
        <xsl:value-of select="@name"/>
        <xsl:text>&#10;</xsl:text>
      </xsl:when>
+     <!-- config option "string" -->
+     <xsl:when test="@type='string'">
+     </xsl:when>
      <xsl:otherwise>
       <xsl:message terminate="yes">&#10;ERROR: configuration option '<xsl:value-of select="@name"/>' has unsupported type '<xsl:value-of select="@type"/>'.</xsl:message> 
      </xsl:otherwise>

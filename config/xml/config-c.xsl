@@ -34,6 +34,11 @@
       <xsl:value-of select="@name"/><xsl:text> </xsl:text>
       <xsl:value-of select="@value"/>
      </xsl:when>
+
+     <!-- config option "string" -->
+     <xsl:when test="@type='string'">
+      <xsl:text>#define </xsl:text>
+      <xsl:value-of select="@name"/><xsl:text> </xsl:text> "<xsl:value-of select="@value"/>" </xsl:when>
     
      <!-- unsupported config option: bail out -->
      <xsl:otherwise>

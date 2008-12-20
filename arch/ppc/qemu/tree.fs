@@ -82,6 +82,65 @@ finish-device
 	0 encode-int 0 encode-int encode+ " bus-range" property
 
 new-device
+  " isa" device-name
+  " isa" device-type
+	2 encode-int " #address-cells" property
+	1 encode-int " #size-cells" property
+
+  external
+  : open true ;
+  : close ;
+
+finish-device
+
+: ?devalias ( alias-str alias-len device-str device-len --
+  \		alias-str alias-len false | true )
+  active-package >r
+  " /aliases" find-device
+  \ 2dup ." Checking " type
+  2dup find-dev if     \ check if device exists
+    drop
+    2over find-dev if  \ do we already have an alias?
+      \ ." alias exists" cr
+      drop 2drop false
+    else
+      \ ." device exists" cr
+      encode-string
+      2swap property
+      true
+    then
+  else
+    \ ." device doesn't exist" cr
+    2drop false
+  then
+  r> active-package!
+  ;
+
+:noname
+  " hd"
+  " /pci/pci-ata/ata-1/disk@0" ?devalias not if
+    " /pci/pci-ata/ata-1/disk@1" ?devalias not if
+      " /pci/pci-ata/ata-2/disk@0" ?devalias not if
+        " /pci/pci-ata/ata-2/disk@1" ?devalias not if
+	  2drop ." No disk found." cr
+	then
+      then
+    then
+  then
+
+  " cdrom"
+  " /pci/pci-ata/ata-1/cdrom@0" ?devalias not if
+    " /pci/pci-ata/ata-1/cdrom@1" ?devalias not if
+      " /pci/pci-ata/ata-2/cdrom@0" ?devalias not if
+        " /pci/pci-ata/ata-2/cdrom@1" ?devalias not if
+	  2drop ." No cdrom found" cr
+	then
+      then
+    then
+  then
+; SYSTEM-initializer
+
+new-device
 	" ide" device-name
 	" ide" device-type
 	" WINBOND,82C553" model

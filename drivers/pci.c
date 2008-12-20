@@ -147,13 +147,11 @@ static const pci_subclass_t undef_subclass[] = {
 
 static int ide_config_cb2 (const pci_config_t *config)
 {
-#if 0
-	ide_init(config->path,
-		 config->regions[0] & ~0x0000000F,
-		 config->regions[1] & ~0x0000000F,
-		 config->regions[2] & ~0x0000000F,
-		 config->regions[3] & ~0x0000000F);
-#endif
+	ob_ide_init(config->path,
+		    config->regions[0] & ~0x0000000F,
+		    config->regions[1] & ~0x0000000F,
+		    config->regions[2] & ~0x0000000F,
+		    config->regions[3] & ~0x0000000F);
 	return 0;
 }
 
@@ -1092,6 +1090,7 @@ static const pci_class_t pci_classes[] = {
 phandle_t pic_handle;
 static int macio_config_cb (const pci_config_t *config)
 {
+#ifdef CONFIG_PPC
 	char buf[64];
 	phandle_t ph;
         cell props[2];
@@ -1108,21 +1107,10 @@ static int macio_config_cb (const pci_config_t *config)
 	set_property(ph, "reg", &props, sizeof(props));
 	pic_handle = ph;
 
-#if 0
 	cuda_init(config->path, config->regions[0]);
 	macio_nvram_init(config->path, config->regions[0]);
-    ide_init(config->path,
-    	     config->regions[0] + 0x1f000,
-    	     config->regions[0] + 0x1f000 + 0x1000,
-    	     config->regions[0] + 0x1f000 + 0x2000,
-    	     config->regions[0] + 0x1f000 + 0x3000);
 #endif
-#if 0
-    OF_finalize_pci_macio(device->common.OF_private,
-                          device->regions[0] & ~0x0000000F, device->sizes[0],
-                          private_data);
-#endif
-    return 0;
+	return 0;
 }
 
 static const pci_dev_t misc_pci[] = {

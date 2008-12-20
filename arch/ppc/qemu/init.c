@@ -29,7 +29,6 @@
 #include "openbios-version.h"
 
 extern void unexpected_excep( int vector );
-extern void ob_ide_init( void );
 extern void ob_pci_init( void );
 extern void setup_timers( void );
 
@@ -108,10 +107,6 @@ arch_of_init( void )
 #ifdef CONFIG_DRIVER_PCI
 	ob_pci_init();
 #endif
-#ifdef CONFIG_DRIVER_IDE
-        ob_ide_init();
-#endif
-
 	node_methods_init();
 
 #ifdef USE_RTAS

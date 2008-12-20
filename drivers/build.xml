@@ -19,7 +19,6 @@
 
  <dictionary name="openbios" target="forth">
   <object source="pci.fs" condition="DRIVER_PCI"/>
-  <object source="ide.fs" condition="DRIVER_IDE"/>
   <object source="sbus.fs" condition="DRIVER_SBUS"/>
   <object source="esp.fs" condition="DRIVER_ESP"/>
  </dictionary>

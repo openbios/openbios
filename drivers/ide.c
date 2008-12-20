@@ -13,11 +13,6 @@
  *
  */
 
-/*
- * TODO:
- *  - Really probe for interfaces, don't just rely on legacy
- */
-
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "openbios/kernel.h"
@@ -43,13 +38,30 @@ DECLARE_UNNAMED_NODE( ob_ide_ctrl, INSTALL_OPEN, sizeof(int));
 #endif
 #define IDE_MAX_CHANNELS 4
 
+#ifndef CONFIG_IDE_FIRST_UNIT
+#define FIRST_UNIT 0
+#else
+#define FIRST_UNIT CONFIG_IDE_FIRST_UNIT
+#endif
+
+#ifndef CONFIG_IDE_DEV_TYPE
+#define DEV_TYPE "ide"
+#else
+#define DEV_TYPE CONFIG_IDE_DEV_TYPE
+#endif
+
+#ifndef CONFIG_IDE_DEV_NAME
+#define DEV_NAME "ide%d"
+#else
+#define DEV_NAME CONFIG_IDE_DEV_NAME
+#endif
+
+static int current_channel = FIRST_UNIT;
+
 static struct ide_channel ob_ide_channels[IDE_MAX_CHANNELS];
 
-/*
- * FIXME: probe, we just hardwire legacy ports for now
- */
-static const int io_ports[IDE_MAX_CHANNELS] = { 0x1f0, 0x170, 0x1e8, 0x168 };
-static const int ctl_ports[IDE_MAX_CHANNELS] = { 0x3f6, 0x376, 0x3ee, 0x36e };
+static int io_ports[IDE_MAX_CHANNELS];
+static int ctl_ports[IDE_MAX_CHANNELS];
 
 /*
  * don't be pedantic
@@ -634,6 +646,9 @@ ob_ide_atapi_drive_ready(struct ide_drive *drive)
 	struct atapi_command *cmd = &drive->channel->atapi_cmd;
 	struct atapi_capacity cap;
 
+#ifdef CONFIG_DEBUG_IDE
+	printk("ob_ide_atapi_drive_ready\n");
+#endif
 	/*
 	 * Test Unit Ready is like a ping
 	 */
@@ -835,7 +850,8 @@ ob_ide_read_sectors(struct ide_drive *drive, unsigned long long block,
 		return 1;
 
 #ifdef CONFIG_DEBUG_IDE
-		printk("ob_ide_read_sectors: block=%Ld sectors=%u\n", (unsigned long) block, sectors);
+	printk("ob_ide_read_sectors: block=%lu sectors=%u\n",
+	       (unsigned long) block, sectors);
 #endif
 
 	if (drive->type == ide_type_ata)
@@ -1133,6 +1149,9 @@ static void
 ob_ide_max_transfer(int *idx)
 {
 	struct ide_drive *drive=&ob_ide_channels[idx[1]].drives[idx[0]];
+#ifdef CONFIG_DEBUG_IDE
+	printk("max_transfer %x\n", drive->max_sectors * drive->bs);
+#endif
 
 	PUSH(drive->max_sectors * drive->bs);
 }
@@ -1171,6 +1190,9 @@ static void
 ob_ide_block_size(int *idx)
 {
 	struct ide_drive *drive=&ob_ide_channels[idx[1]].drives[idx[0]];
+#ifdef CONFIG_DEBUG_IDE
+	printk("ob_ide_block_size: block size %x\n", drive->bs);
+#endif
 	PUSH(drive->bs);
 }
 
@@ -1184,6 +1206,10 @@ ob_ide_initialize(int *idx)
 	fword("device-type");
 
 	// Set dummy reg properties
+
+	set_int_property(ph, "#address-cells", 1);
+	set_int_property(ph, "#size-cells", 0);
+
 	props[0] = __cpu_to_be32(0); props[1] = __cpu_to_be32(0); props[2] = __cpu_to_be32(0);
 	set_property(ph, "reg", (char *)&props, 3*sizeof(int));
 
@@ -1205,7 +1231,7 @@ ob_ide_open(int *idx)
 	fword("ihandle>phandle");
 	ph=(phandle_t)POP();
 	idename=get_property(ph, "name", &len);
-	idx[1]=idename[3]-0x30;
+	idx[1]=(idename[strlen(idename) - 1] - '0' - FIRST_UNIT) % 2;
 
 #ifdef CONFIG_DEBUG_IDE
 	printk("opening channel %d unit %d\n", idx[1], idx[0]);
@@ -1249,19 +1275,20 @@ ob_ide_ctrl_initialize(int *idx)
 	phandle_t ph=get_cur_dev();
 	char *idename;
 
-	set_int_property(ph, "#address-cells", 1);
-	set_int_property(ph, "#size-cells", 0);
-
 	/* set device type */
-	push_str("ide");
+	push_str(DEV_TYPE);
 	fword("device-type");
 
 	idename=get_property(ph, "name", &len);
-	devnum=idename[3]-0x30;
+	devnum=idename[strlen(idename) - 1] - '0' - FIRST_UNIT;
 
 	/* Create interrupt properties. */
 	props[0]=14; props[1]=0;
 	set_property(ph, "interrupts", (char *)&props, 2*sizeof(int));
+
+	set_property(ph, "compatible", "pci1095,646\0pci1095,646\0pciclass,01018f", 40);
+	set_int_property(ph, "#address-cells", 1);
+	set_int_property(ph, "#size-cells", 0);
 
 	props[0] = __cpu_to_be32(io_ports[devnum]);
 	props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
@@ -1281,16 +1308,21 @@ NODE_METHODS(ob_ide_ctrl) = {
 	{ "decode-unit",	ob_ide_ctrl_decodeunit  },
 };
 
-int ob_ide_init(void)
+int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
+		uint32_t io_port1, uint32_t ctl_port1)
 {
 	int i, j;
-
-        const char *nodetemp_chan = "/pci/isa/ide%d";
-        const char *nodetemp = "/pci/isa/ide%d/%s";
+	const char * nodetemp_chan = "%s/"DEV_NAME;
+	const char * nodetemp = "%s/"DEV_NAME"/%s";
 	char nodebuff[32];
 	phandle_t dnode;
 
-	for (i = 0; i < IDE_NUM_CHANNELS; i++) {
+	io_ports[0] = io_port0;
+	ctl_ports[0] = ctl_port0 + 2;
+	io_ports[1] = io_port1;
+	ctl_ports[1] = ctl_port1 + 2;
+
+	for (i = 0; i < IDE_NUM_CHANNELS; i++, current_channel++) {
 		struct ide_channel *chan = &ob_ide_channels[i];
 
 		chan->mmio = 0;
@@ -1330,10 +1362,13 @@ int ob_ide_init(void)
 
 		ob_ide_identify_drives(chan);
 
-                snprintf(nodebuff, sizeof(nodebuff), nodetemp_chan, i);
+		snprintf(nodebuff, sizeof(nodebuff), nodetemp_chan, path,
+                         current_channel);
 		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
+		printk(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
+		       current_channel, chan->io_regs[0],
+		       chan->io_regs[0] + 7, chan->io_regs[8]);
 
-		printk("ide%d: [io ports 0x%x-0x%x,0x%x]\n", i, chan->io_regs[0], chan->io_regs[0] + 7, chan->io_regs[8]);
 		for (j = 0; j < 2; j++) {
 			struct ide_drive *drive = &chan->drives[j];
                         const char *media = "UNKNOWN";
@@ -1357,8 +1392,8 @@ int ob_ide_init(void)
 					break;
 			}
 			printk("%s]: %s\n", media, drive->model);
-                        snprintf(nodebuff, sizeof(nodebuff), nodetemp, i,
-                                 media);
+			snprintf(nodebuff, sizeof(nodebuff), nodetemp, path,
+                                 current_channel, media);
 			REGISTER_NAMED_NODE(ob_ide, nodebuff);
 			dnode=find_dev(nodebuff);
 			set_int_property(dnode, "reg", j);

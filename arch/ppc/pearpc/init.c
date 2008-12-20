@@ -28,7 +28,6 @@
 #include "openbios-version.h"
 
 extern void unexpected_excep( int vector );
-extern void ob_ide_init( void );
 extern void ob_pci_init( void );
 extern void ob_adb_init( void );
 extern void setup_timers( void );
@@ -95,17 +94,10 @@ arch_of_init( void )
 	devtree_init();
 	nvram_init("/pci/mac-io/nvram");
 	modules_init();
+        setup_timers();
 #ifdef CONFIG_DRIVER_PCI
 	ob_pci_init();
 #endif
-#ifdef CONFIG_DRIVER_IDE
-        setup_timers();
-        ob_ide_init();
-#endif
-#ifdef CONFIG_DRIVER_ADB
-	ob_adb_init();
-#endif
-
 	node_methods_init();
 	init_video();
 
