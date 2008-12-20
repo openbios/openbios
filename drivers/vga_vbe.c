@@ -19,7 +19,9 @@
 #include "openbios/kernel.h"
 #include "openbios/bindings.h"
 #include "openbios/pci.h"
+#include "openbios/drivers.h"
 #include "asm/io.h"
+#include "video_subr.h"
 
 /* VGA init. We use the Bochs VESA VBE extensions  */
 #define VBE_DISPI_INDEX_ID              0x0
@@ -96,8 +98,8 @@ void vga_vbe_set_mode(int width, int height, int depth)
         vga_build_rgb_palette();
 }
 
-void vga_vbe_init(char *path, uint32_t fb, uint32_t fb_size,
-		  uint32_t rom, uint32_t rom_size)
+void vga_vbe_init(const char *path, uint32_t fb, uint32_t fb_size,
+                  unsigned long rom, uint32_t rom_size)
 {
 	phandle_t ph, chosen, aliases;
 
@@ -117,9 +119,10 @@ void vga_vbe_init(char *path, uint32_t fb, uint32_t fb_size,
 	aliases = find_dev("/aliases");
 	set_property(aliases, "screen", path, strlen(path) + 1);
 	if (rom_size >= 8) {
-		const uint8_t *p;
+                const char *p;
 		int size;
-		p = rom;
+
+                p = (const char *)rom;
 		if (p[0] == 'N' && p[1] == 'D' && p[2] == 'R' && p[3] == 'V') {
 			size = *(uint32_t*)(p + 4);
 			set_property(ph, "driver,AAPL,MacOS,PowerPC",

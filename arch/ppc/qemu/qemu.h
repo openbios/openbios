@@ -19,8 +19,6 @@
 extern int		vfd_draw_str( const char *str );
 extern void		vfd_close( void );
 
-extern int                console_draw_str( const char *str );
-
 /* console.c */
 int serial_init(void);
 

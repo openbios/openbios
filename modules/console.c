@@ -53,7 +53,7 @@ get_conschar( int x, int y )
 static void
 draw_char( uint h, uint v )
 {
-	char *c = fontdata;
+        const unsigned char *c = fontdata;
 	int x, y, xx, rskip, m;
 	int invert = (h==cons.x && v==cons.y && cons.cursor_on);
 	int ch = get_conschar( h, v );

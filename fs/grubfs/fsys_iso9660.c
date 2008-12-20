@@ -141,7 +141,7 @@ iso9660_dir (char *dirname)
 	  for (; idr->length.l > 0;
 		 idr = (struct iso_directory_record *)((char *)idr + idr->length.l) )
 	  {
-	      const char *name = idr->name;
+              const char *name = (char *)idr->name;
 	      unsigned int name_len = idr->name_len.l;
 
 	      file_type = (idr->flags.l & 2) ? ISO_DIRECTORY : ISO_REGULAR;
@@ -164,7 +164,7 @@ iso9660_dir (char *dirname)
 	      rr_len = (idr->length.l - idr->name_len.l
 			- (unsigned char)sizeof(struct iso_directory_record)
 			+ (unsigned char)sizeof(idr->name));
-	      rr_ptr.ptr = ((unsigned char *)idr + idr->name_len.l
+	      rr_ptr.ptr = ((char *)idr + idr->name_len.l
 			    + sizeof(struct iso_directory_record)
 			    - sizeof(idr->name));
 	      if (rr_ptr.i & 1)
@@ -190,7 +190,7 @@ iso9660_dir (char *dirname)
 		    rr_flag &= rr_ptr.rr->u.rr.flags.l;
 		  else if (rr_ptr.rr->signature == RRMAGIC('N', 'M'))
 		  {
-		      name = rr_ptr.rr->u.nm.name;
+		      name = (char *)rr_ptr.rr->u.nm.name;
 		      name_len = rr_ptr.rr->len - 5;
 		      rr_flag &= ~RR_FLAG_NM;
 		  }
@@ -222,11 +222,12 @@ iso9660_dir (char *dirname)
 			  && (unsigned char *)name < RRCONT_BUF + ISO_SECTOR_SIZE )
 		      {
 			  memcpy(NAME_BUF, name, name_len);
-			  name = NAME_BUF;
+			  name = (char *)NAME_BUF;
 		      }
-		      rr_ptr.ptr = RRCONT_BUF + ce_ptr->u.ce.offset.l;
+                      rr_ptr.ptr = (char *)(RRCONT_BUF + ce_ptr->u.ce.offset.l);
 		      rr_len = ce_ptr->u.ce.size.l;
-		      if (!iso9660_devread(ce_ptr->u.ce.extent.l, 0, ISO_SECTOR_SIZE, RRCONT_BUF))
+                      if (!iso9660_devread(ce_ptr->u.ce.extent.l, 0,
+                                           ISO_SECTOR_SIZE, (char *)RRCONT_BUF))
 		      {
 			  errnum = 0;	/* this is not fatal. */
 			  break;

@@ -155,7 +155,7 @@ free( void *ptr )
 	if( !ptr )
 		return;
 
-	d = (alloc_desc_t*)(ptr - sizeof(alloc_desc_t));
+        d = (alloc_desc_t*)((char *)ptr - sizeof(alloc_desc_t));
 	d->next = ofmem.mfree;
 
 	/* insert in the (sorted) freelist */
@@ -168,7 +168,7 @@ free( void *ptr )
 void *
 realloc( void *ptr, size_t size )
 {
-	alloc_desc_t *d = (alloc_desc_t*)(ptr - sizeof(alloc_desc_t));
+        alloc_desc_t *d = (alloc_desc_t*)((char *)ptr - sizeof(alloc_desc_t));
 	char *p;
 
 	if( !ptr )

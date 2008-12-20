@@ -300,7 +300,7 @@ unmap_pages(unsigned long virt, unsigned long size)
 {
     unsigned long phys, data;
 
-    unsigned long tte_data, currsize;
+    unsigned long currsize;
 
     // align size
     size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;

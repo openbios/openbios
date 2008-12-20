@@ -20,6 +20,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "openbios/drivers.h"
 #include "libc/string.h"
 #include "qemu/qemu.h"
 #include "ofmem.h"
@@ -155,7 +156,7 @@ ciface_quiesce( ulong args[], ulong ret[] )
 static void
 ciface_milliseconds( ulong args[], ulong ret[] )
 {
-	extern unsigned long get_timer_freq();
+        extern unsigned long get_timer_freq(void);
 	static ulong mticks=0, usecs=0;
 	ulong t;
 

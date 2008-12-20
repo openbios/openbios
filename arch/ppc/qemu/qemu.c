@@ -97,7 +97,7 @@ printk( const char *fmt, ... )
 
 static char *nvram;
 
-void macio_nvram_init(char *path, uint32_t addr)
+void macio_nvram_init(const char *path, uint32_t addr)
 {
 	phandle_t chosen, aliases;
 	phandle_t dnode;

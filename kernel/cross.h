@@ -112,8 +112,8 @@
 #define FMT_CELL_x "x"
 #define FMT_CELL_d "d"
 #else
-#define FMT_CELL_x "lx"
-#define FMT_CELL_d "ld"
+#define FMT_CELL_x "llx"
+#define FMT_CELL_d "lld"
 #endif
 #endif
 

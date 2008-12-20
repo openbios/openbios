@@ -8,6 +8,7 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "openbios/kernel.h"
+#include "openbios/drivers.h"
 #include "openbios.h"
 #include "video_subr.h"
 #include "libc/vsprintf.h"

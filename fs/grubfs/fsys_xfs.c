@@ -382,7 +382,7 @@ next_dentry (xfs_ino_t *ino)
 		default:
 			namelen = sfe->namelen;
 			*ino = sf_ino ((char *)sfe, namelen);
-			name = sfe->name;
+			name = (char *)sfe->name;
 			sfe = (xfs_dir2_sf_entry_t *)
 				  ((char *)sfe + namelen + 11 - xfs.i8param);
 		}

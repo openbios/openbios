@@ -26,10 +26,10 @@
 #include "ofmem.h"
 
 static void
-transfer_control_to_elf( ulong entry )
+transfer_control_to_elf( ulong elf_entry )
 {
 	extern void call_elf( ulong entry );
-	printk("Starting ELF image at 0x%08lX\n", entry);
+	printk("Starting ELF image at 0x%08lX\n", elf_entry);
 	call_elf( 0x400000 );
 	//call_elf( entry );
 
@@ -37,7 +37,7 @@ transfer_control_to_elf( ulong entry )
 }
 
 static int
-load_elf_rom( ulong *entry, int fd )
+load_elf_rom( ulong *elf_entry, int fd )
 {
 	int i, lszz_offs, elf_offs;
 	char buf[128], *addr;
@@ -55,7 +55,7 @@ load_elf_rom( ulong *entry, int fd )
 	if( !(phdr=elf_readhdrs(fd, elf_offs, &ehdr)) )
 		fatal_error("elf_readhdrs failed\n");
 
-	*entry = ehdr.e_entry;
+	*elf_entry = ehdr.e_entry;
 
 	/* load segments. Compressed ROM-image assumed to be located immediately
 	 * after the last segment */
@@ -83,7 +83,8 @@ load_elf_rom( ulong *entry, int fd )
 
 #if 0
 		/* patch CODE segment */
-		if( *entry >= phdr[i].p_vaddr && *entry < phdr[i].p_vaddr + s ) {
+                if( *elf_entry >= phdr[i].p_vaddr &&
+                    *elf_entry < phdr[i].p_vaddr + s ) {
 			patch_newworld_rom( (char*)phdr[i].p_vaddr, s );
 			newworld_timer_hack( (char*)phdr[i].p_vaddr, s );
 		}
@@ -115,18 +116,18 @@ qemu_startup( void )
 {
 	const char *paths[] = { "hd:0,\\zImage.chrp", NULL };
 	const char *args[] = { "root=/dev/hda2 console=ttyS0,115200", NULL };
-	ulong entry;
+        ulong elf_entry;
 	int i, fd;
 
 	for( i=0; paths[i]; i++ ) {
 		if( (fd=open_io(paths[i])) == -1 )
 			continue;
-		(void) load_elf_rom( &entry, fd );
+                (void) load_elf_rom( &elf_entry, fd );
 		close_io( fd );
 		encode_bootpath( paths[i], args[i] );
 
 		update_nvram();
-		transfer_control_to_elf( entry );
+                transfer_control_to_elf( elf_entry );
 		/* won't come here */
 	}
 	printk("*** Boot failure! No secondary bootloader specified ***\n");

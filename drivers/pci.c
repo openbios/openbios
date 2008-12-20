@@ -21,8 +21,10 @@
 #include "libc/vsprintf.h"
 
 #include "openbios/drivers.h"
+#include "video_subr.h"
 #include "timer.h"
 #include "pci.h"
+#include "cuda.h"
 
 #define set_bool_property(ph, name) set_property(ph, name, NULL, 0);
 
@@ -219,7 +221,7 @@ static const pci_dev_t eth_devices[] = {
     },
 };
 
-static void eth_config_cb (const pci_config_t *config)
+static int eth_config_cb (const pci_config_t *config)
 {
 	phandle_t ph;
 	cell props[12];
@@ -236,7 +238,8 @@ static void eth_config_cb (const pci_config_t *config)
 		props[i*2] = config->regions[i];
 		props[i*2 + 1] = config->sizes[i];
 	}
-	set_property(ph, "reg", props, i * 2 * sizeof(cell));
+        set_property(ph, "reg", (char *)props, i * 2 * sizeof(cell));
+        return 0;
 }
 
 static const pci_subclass_t net_subclass[] = {
@@ -1104,7 +1107,7 @@ static int macio_config_cb (const pci_config_t *config)
 	set_int_property(ph, "#interrupt-cells", 1);
 	props[0]= 0x10;
 	props[1]= 0x20;
-	set_property(ph, "reg", &props, sizeof(props));
+        set_property(ph, "reg", (char *)&props, sizeof(props));
 	pic_handle = ph;
 
 	cuda_init(config->path, config->regions[0]);
@@ -1140,7 +1143,7 @@ static const pci_dev_t *pci_find_device (uint8_t class, uint8_t subclass,
                                          uint8_t iface, uint16_t vendor,
                                          uint16_t product)
 {
-    int (*config_cb)(pci_config_t *config);
+    int (*config_cb)(const pci_config_t *config);
     const pci_class_t *pclass;
     const pci_subclass_t *psubclass;
     const pci_iface_t *piface;
@@ -1371,8 +1374,8 @@ static char pci_xbox_blacklisted (int bus, int devnum, int fn)
 #endif
 
 static void
-ob_pci_configure(pci_arch_t *addr, pci_config_t *config, uint32_t *mem_base,
-                 uint32_t *io_base)
+ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
+                 unsigned long *io_base)
 
 {
 	uint32_t smask, omask, amask, size, reloc, min_align;
