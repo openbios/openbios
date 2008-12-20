@@ -44,7 +44,7 @@ static unsigned char intdict[256 * 1024];
 #define NVRAM_OB_START   (sizeof(ohwcfg_v3_t) + sizeof(struct sparc_arch_cfg))
 #define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_START) & ~15)
 
-ohwcfg_v3_t nv_info;
+static ohwcfg_v3_t nv_info;
 
 #define OBIO_CMDLINE_MAX 256
 static char obio_cmdline[OBIO_CMDLINE_MAX];
@@ -105,7 +105,7 @@ spitfire_translate(unsigned long virt, unsigned long *p_phys,
 
     for (i = 0; i < 64; i++) {
         data = spitfire_get_dtlb_data(i);
-        if (data & 0x8000000000000000) { // Valid entry?
+        if (data & 0x8000000000000000ULL) { // Valid entry?
             switch ((data >> 61) & 3) {
             default:
             case 0x0: // 8k
@@ -127,7 +127,7 @@ spitfire_translate(unsigned long virt, unsigned long *p_phys,
             }
             tag = spitfire_get_dtlb_tag(i);
             if ((virt & mask) == (tag & mask)) {
-                phys = data & mask & 0x000001fffffff000;
+                phys = data & mask & 0x000001fffffff000ULL;
                 phys |= virt & ~mask;
                 *p_phys = phys;
                 *p_data = data & 0xfff;

@@ -14,5 +14,6 @@ enum {
 	CHARDEV_LAST,
 };
 
+extern phandle_t pic_handle;
 
 cuda_t *cuda_init (const char *path, uint32_t base);

@@ -17,9 +17,7 @@ extern void * const words[];
 ucell PC;
 volatile int runforth = 0;
 
-#ifdef FCOMPILER
-extern ucell *trampoline;
-#else
+#ifndef FCOMPILER
 /* instead of pointing to an explicit 0 variable we
  * point behind the pointer.
  */

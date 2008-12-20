@@ -69,7 +69,7 @@ static inline ducell DPOP(void) {
 	return du;
 #else
 	ducell du;
-	du = ((ducell) ((ucell) dstack[dstackcnt--]) << bitspercell);
+        du = ((ducell)(ucell) dstack[dstackcnt--]) << bitspercell;
 	du |= (ucell) dstack[dstackcnt--];
 	return du;
 #endif

@@ -34,14 +34,14 @@
 #define TRAMPOLINE_SIZE (4*sizeof(cell)) /* 4 cells for the trampoline */
 
 /* state variables */
-ucell *latest, *state, *base;
-ucell *memory;
+static ucell *latest, *state, *base;
+static ucell *memory;
 ucell *trampoline;
 
 /* local variables */
 static int errors = 0;
 static int segfault = 0;
-int verbose = 0;
+static int verbose = 0;
 
 static FILE *srcfiles[128];
 static unsigned int cursrc = 0;
@@ -57,7 +57,7 @@ struct include_path {
 	include *next;
 };
 
-include includes = { ".", NULL };
+static include includes = { ".", NULL };
 
 static ucell * relocation_address=NULL;
 static int     relocation_length=0;
@@ -1074,7 +1074,7 @@ int main(int argc, char *argv[])
 		sa.sa_sigaction = segv_handler;
 		sigemptyset(&sa.sa_mask);
 		sa.sa_flags = SA_SIGINFO | SA_NODEFER;
-		sigaction(SIGSEGV, &sa, 0);
+                sigaction(SIGSEGV, &sa, NULL);
 
 		if (verbose)
 			printk("done.\n");

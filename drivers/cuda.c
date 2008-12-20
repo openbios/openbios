@@ -156,7 +156,6 @@ DECLARE_UNNAMED_NODE(ob_cuda, INSTALL_OPEN, sizeof(int));
 static void
 ob_cuda_initialize (int *idx)
 {
-	extern phandle_t pic_handle;
 	phandle_t ph=get_cur_dev();
 	int props[2];
 

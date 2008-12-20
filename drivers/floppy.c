@@ -194,11 +194,11 @@ DECLARE_UNNAMED_NODE( ob_floppy, INSTALL_OPEN, 2*sizeof(int) );
 /*
  * FDC state
  */
-struct drive_state {
+static struct drive_state {
 	unsigned track;
 } drive_state[1];
 
-struct floppy_fdc_state {
+static struct floppy_fdc_state {
 	int in_sync;
 	int spec1;		/* spec1 value last used */
 	int spec2;		/* spec2 value last used */

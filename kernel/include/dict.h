@@ -44,5 +44,8 @@ extern ucell 		PC;
 extern unsigned char	*dict;
 extern cell 		dicthead;
 extern ucell		*last;
+#ifdef FCOMPILER
+extern ucell *trampoline;
+#endif
 
 #endif

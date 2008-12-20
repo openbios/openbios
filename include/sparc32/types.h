@@ -32,8 +32,8 @@ typedef long long       int64_t;
 
 typedef int32_t		cell;
 typedef uint32_t	ucell;
-typedef int64_t		dcell;
-typedef uint64_t	ducell;
+typedef long long       dcell;
+typedef unsigned long long ducell;
 
 #define bitspercell	(sizeof(cell)<<3)
 #define bitsperdcell	(sizeof(dcell)<<3)
