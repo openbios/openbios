@@ -130,9 +130,6 @@ typedef struct osi_fb_info {
 	int             rb, w, h, depth;
 } osi_fb_info_t;
 
-
-#define openbios_GetFBInfo(x) Qemu_GetFBInfo(x)
-
 #include "../../../modules/font_8x16.c"
 #undef FONTDATAMAX
 #include "../../../modules/video.c"
