@@ -240,32 +240,36 @@ rtc_init(char *path)
 
 cuda_t *cuda_init (const char *path, uint32_t base)
 {
-    cuda_t *cuda;
-    char buf[64];
+	cuda_t *cuda;
+	char buf[64];
+	phandle_t aliases;
 
-    base += IO_CUDA_OFFSET;
-    CUDA_DPRINTF(" base=%08x\n", base);
-    cuda = malloc(sizeof(cuda_t));
-    if (cuda == NULL)
-        return NULL;
+	base += IO_CUDA_OFFSET;
+	CUDA_DPRINTF(" base=%08x\n", base);
+	cuda = malloc(sizeof(cuda_t));
+	if (cuda == NULL)
+	    return NULL;
 
-    snprintf(buf, sizeof(buf), "%s/via-cuda", path);
-    REGISTER_NAMED_NODE(ob_cuda, buf);
+	snprintf(buf, sizeof(buf), "%s/via-cuda", path);
+	REGISTER_NAMED_NODE(ob_cuda, buf);
 
-    cuda->base = base;
-    cuda_writeb(cuda, B, cuda_readb(cuda, B) | TREQ | TIP);
+	aliases = find_dev("/aliases");
+	set_property(aliases, "via-cuda", buf, strlen(buf) + 1);
+
+	cuda->base = base;
+	cuda_writeb(cuda, B, cuda_readb(cuda, B) | TREQ | TIP);
 #ifdef CONFIG_DRIVER_ADB
-    cuda->adb_bus = adb_bus_new(cuda, &cuda_adb_req);
-    if (cuda->adb_bus == NULL) {
-        free(cuda);
-        return NULL;
-    }
-    adb_bus_init(buf, cuda->adb_bus);
+	cuda->adb_bus = adb_bus_new(cuda, &cuda_adb_req);
+	if (cuda->adb_bus == NULL) {
+	    free(cuda);
+	    return NULL;
+	}
+	adb_bus_init(buf, cuda->adb_bus);
 #endif
 
-    rtc_init(buf);
+	rtc_init(buf);
 
-    return cuda;
+	return cuda;
 }
 
 #ifdef CONFIG_DRIVER_ADB
