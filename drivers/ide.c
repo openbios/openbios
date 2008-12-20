@@ -217,7 +217,7 @@ ob_ide_error(struct ide_drive *drive, unsigned char stat, const char *msg)
  */
 static int
 ob_ide_wait_stat(struct ide_drive *drive, unsigned char ok_stat,
-		 unsigned char bad_stat, char *ret_stat)
+                 unsigned char bad_stat, unsigned char *ret_stat)
 {
 	unsigned char stat;
 	int i;
@@ -700,8 +700,8 @@ ob_ide_atapi_drive_ready(struct ide_drive *drive)
  * read from an atapi device, using READ_10
  */
 static int
-ob_ide_read_atapi(struct ide_drive *drive, unsigned long long block, char *buf,
-		  unsigned int sectors)
+ob_ide_read_atapi(struct ide_drive *drive, unsigned long long block,
+                  unsigned char *buf, unsigned int sectors)
 {
 	struct atapi_command *cmd = &drive->channel->atapi_cmd;
 
@@ -730,7 +730,7 @@ ob_ide_read_atapi(struct ide_drive *drive, unsigned long long block, char *buf,
 
 static int
 ob_ide_read_ata_chs(struct ide_drive *drive, unsigned long long block,
-		    char *buf, unsigned int sectors)
+                    unsigned char *buf, unsigned int sectors)
 {
 	struct ata_command *cmd = &drive->channel->ata_cmd;
 	unsigned int track = (block / drive->sect);
@@ -759,7 +759,7 @@ ob_ide_read_ata_chs(struct ide_drive *drive, unsigned long long block,
 
 static int
 ob_ide_read_ata_lba28(struct ide_drive *drive, unsigned long long block,
-		      char *buf, unsigned int sectors)
+                      unsigned char *buf, unsigned int sectors)
 {
 	struct ata_command *cmd = &drive->channel->ata_cmd;
 
@@ -785,7 +785,7 @@ ob_ide_read_ata_lba28(struct ide_drive *drive, unsigned long long block,
 
 static int
 ob_ide_read_ata_lba48(struct ide_drive *drive, unsigned long long block,
-		      char *buf, unsigned int sectors)
+                      unsigned char *buf, unsigned int sectors)
 {
 	struct ata_command *cmd = &drive->channel->ata_cmd;
 	struct ata_sector ata_sector;
@@ -818,8 +818,8 @@ ob_ide_read_ata_lba48(struct ide_drive *drive, unsigned long long block,
  * read 'sectors' sectors from ata device
  */
 static int
-ob_ide_read_ata(struct ide_drive *drive, unsigned long long block, char *buf,
-		unsigned int sectors)
+ob_ide_read_ata(struct ide_drive *drive, unsigned long long block,
+                unsigned char *buf, unsigned int sectors)
 {
 	unsigned long long end_block = block + sectors;
 	const int need_lba48 = (end_block > (1ULL << 28)) || (sectors > 255);
@@ -842,7 +842,7 @@ ob_ide_read_ata(struct ide_drive *drive, unsigned long long block, char *buf,
 
 static int
 ob_ide_read_sectors(struct ide_drive *drive, unsigned long long block,
-		    char *buf, unsigned int sectors)
+                    unsigned char *buf, unsigned int sectors)
 {
 	if (!sectors)
 		return 1;
@@ -958,7 +958,7 @@ ob_ide_identify_drive(struct ide_drive *drive)
 		drive->sect = id.sectors;
 	}
 
-	strcpy(drive->model, id.model);
+	strcpy(drive->model, (char *)id.model);
 	return 0;
 }
 
@@ -1161,11 +1161,12 @@ ob_ide_read_blocks(int *idx)
 {
 	cell n = POP(), cnt=n;
 	ucell blk = POP();
-	char *dest = (char*)POP();
+        unsigned char *dest = (unsigned char *)POP();
 	struct ide_drive *drive=&ob_ide_channels[idx[1]].drives[idx[0]];
 
 #ifdef CONFIG_DEBUG_IDE
-	printk("ob_ide_read_blocks %x block=%d n=%d\n", (unsigned long)dest, blk, n );
+        printk("ob_ide_read_blocks %lx block=%ld n=%ld\n", (unsigned long)dest,
+               (unsigned long)blk, (long)n);
 #endif
 
 	while (n) {

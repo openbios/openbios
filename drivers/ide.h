@@ -97,7 +97,7 @@ enum {
  * simple ata command that works for everything (except 48-bit lba commands)
  */
 struct ata_command {
-	char *buffer;
+        unsigned char *buffer;
 	unsigned int buflen;
 
 	/*
