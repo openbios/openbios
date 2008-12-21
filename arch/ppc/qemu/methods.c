@@ -24,6 +24,7 @@
 #include "libc/string.h"
 #include "qemu/qemu.h"
 #include "ofmem.h"
+#include "ppc/processor.h"
 
 /************************************************************************/
 /*	RTAS (run-time abstraction services)				*/
@@ -57,37 +58,6 @@ NODE_METHODS( rtas ) = {
 	{ "instantiate-rtas",	rtas_instantiate },
 };
 #endif
-
-
-/************************************************************************/
-/*	stdout								*/
-/************************************************************************/
-
-DECLARE_NODE( video_stdout, INSTALL_OPEN, 0, "Tdisplay" );
-
-/* ( addr len -- actual ) */
-static void
-stdout_write( void )
-{
-	int len = POP();
-	char *addr = (char*)POP();
-	char *s = malloc( len + 1 );
-
-	strncpy_nopad( s, addr, len );
-	s[len]=0;
-
-	printk( "%s", s );
-	//vfd_draw_str( s );
-	console_draw_str( s );
-
-	free( s );
-
-	PUSH( len );
-}
-
-NODE_METHODS( video_stdout ) = {
-	{ "write",	stdout_write	},
-};
 
 
 /************************************************************************/
@@ -136,7 +106,7 @@ NODE_METHODS( tty ) = {
 /*	client interface 'quiesce'					*/
 /************************************************************************/
 
-DECLARE_NODE( ciface, 0, 0, "/packages/client-iface" );
+DECLARE_NODE( ciface, 0, 0, "+/openprom/client-services" );
 
 /* ( -- ) */
 static void
@@ -149,7 +119,6 @@ ciface_quiesce( ulong args[], ulong ret[] )
 	msr &= ~(MSR_IR | MSR_DR);
 	asm volatile("mtmsr %0" :: "r" (msr) );
 #endif
-	printk("=============================================================\n\n");
 }
 
 /* ( -- ms ) */
@@ -181,7 +150,7 @@ NODE_METHODS( ciface ) = {
 
 DECLARE_NODE( memory, INSTALL_OPEN, 0, "/memory" );
 DECLARE_NODE( mmu, INSTALL_OPEN, 0, "/cpu@0" );
-DECLARE_NODE( mmu_ciface, 0, 0, "/packages/client-iface" );
+DECLARE_NODE( mmu_ciface, 0, 0, "+/openprom/client-services" );
 
 
 /* ( phys size align --- base ) */
@@ -327,7 +296,6 @@ node_methods_init( void )
 #ifdef USE_RTAS
 	REGISTER_NODE( rtas );
 #endif
-	REGISTER_NODE( video_stdout );
 	REGISTER_NODE( ciface );
 	REGISTER_NODE( memory );
 	REGISTER_NODE( mmu );

@@ -1,0 +1,55 @@
+OUTPUT_FORMAT(elf32-powerpc)
+OUTPUT_ARCH(powerpc)
+
+/* Initial load address
+ */
+BASE_ADDR = 0xfff00000;
+
+CSTACK_SIZE = 32768;	/* client stack size */
+
+SECTIONS
+{
+    . = BASE_ADDR;
+
+    _start = BASE_ADDR + 0x0100;
+
+    /* Normal sections */
+    .text ALIGN(4096): {
+        *(.text.vectors)
+        *(.text)
+        *(.text.*)
+    }
+
+    .rodata ALIGN(4096): {
+        _rodata = .;
+	*(.rodata)
+	*(.rodata.*)
+        *(.note.ELFBoot)
+    }
+    .data ALIGN(4096): {
+        _data = .;
+        *(.data)
+        *(.data.*)
+	_edata = .;
+    }
+
+    .bss ALIGN(4096): {
+        _bss = .;
+	*(.bss)
+	*(.bss.*)
+	*(COMMON)
+	_ebss = .;
+    }
+
+    . = 0xfffffffc;
+
+    .romentry : { *(.romentry) }
+
+    . = ALIGN(4096);
+    _end = .;
+
+    /* We discard .note sections other than .note.ELFBoot,
+     * because some versions of GCC generates useless ones. */
+
+    /DISCARD/ : { *(.comment*) *(.note.*) }
+}

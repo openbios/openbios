@@ -15,17 +15,12 @@
 
 " chrp" device-type
 " OpenSource,QEMU" model
-h# 80000000 encode-int " isa-io-base" property
 1 encode-int " #interrupt-cells" property
 1 encode-int " #size-cells" property
 
 new-device
 	" memory" device-name
 	" memory" device-type
-	0 encode-int h# 1E00000 encode-int encode+
-	h# 2000000 encode-int encode+ h# 40000000 encode-int encode+
-	  " available" property
-	0 h# 40000000 reg
 	external
 	: open true ;
 	: close ;

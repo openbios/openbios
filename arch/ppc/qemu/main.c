@@ -1,12 +1,11 @@
 /*
- *   Creation Date: <2004/08/28 18:38:22 greg>
- *   Time-stamp: <2004/08/28 18:38:22 greg>
+ *   Creation Date: <2002/10/02 22:24:24 samuel>
+ *   Time-stamp: <2004/03/27 01:57:55 samuel>
  *
  *	<main.c>
  *
- *   Copyright (C) 2004 Greg Watson
  *
- *   Based on MOL specific code which is
+ *
  *   Copyright (C) 2002, 2003, 2004 Samuel Rydh (samuel@ibrium.se)
  *
  *   This program is free software; you can redistribute it and/or
@@ -22,16 +21,23 @@
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
-#include "qemu/qemu.h"
 #include "ofmem.h"
 
+//#define DEBUG_ELF
+
+#ifdef DEBUG_ELF
+#define ELF_DPRINTF(fmt, args...) \
+do { printk("ELF - %s: " fmt, __func__ , ##args); } while (0)
+#else
+#define ELF_DPRINTF(fmt, args...) do { } while (0)
+#endif
+
 static void
-transfer_control_to_elf( ulong elf_entry )
+transfer_control_to_elf( ulong entry )
 {
 	extern void call_elf( ulong entry );
-	printk("Starting ELF image at 0x%08lX\n", elf_entry);
-	call_elf( 0x400000 );
-	//call_elf( entry );
+	ELF_DPRINTF("Starting ELF boot loader\n");
+	call_elf( entry );
 
 	fatal_error("call_elf returned unexpectedly\n");
 }
@@ -45,11 +51,12 @@ load_elf_rom( ulong *elf_entry, int fd )
 	Elf_phdr *phdr;
 	size_t s;
 
-	printk("Loading '%s'\n", get_file_path(fd));
+	ELF_DPRINTF("Loading '%s' from '%s'\n", get_file_path(fd),
+	       get_volume_name(fd) );
 
 	/* the ELF-image (usually) starts at offset 0x4000 */
 	if( (elf_offs=find_elf(fd)) < 0 ) {
-		printk("----> %s is not an ELF image\n", buf );
+		ELF_DPRINTF("----> %s is not an ELF image\n", buf );
 		exit(1);
 	}
 	if( !(phdr=elf_readhdrs(fd, elf_offs, &ehdr)) )
@@ -65,12 +72,12 @@ load_elf_rom( ulong *elf_entry, int fd )
 		s = MIN( phdr[i].p_filesz, phdr[i].p_memsz );
 		seek_io( fd, elf_offs + phdr[i].p_offset );
 
-		/* printk("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n",
+		ELF_DPRINTF("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n",
 		   phdr[i].p_filesz, phdr[i].p_memsz, phdr[i].p_offset,
-		   phdr[i].p_vaddr ); */
+		   phdr[i].p_vaddr );
 
 		if( phdr[i].p_vaddr != phdr[i].p_paddr )
-			printk("WARNING: ELF segment virtual addr != physical addr\n");
+			ELF_DPRINTF("WARNING: ELF segment virtual addr != physical addr\n");
 		lszz_offs = MAX( lszz_offs, elf_offs + phdr[i].p_offset + phdr[i].p_filesz );
 		if( !s )
 			continue;
@@ -81,23 +88,14 @@ load_elf_rom( ulong *elf_entry, int fd )
 		if( read_io(fd, addr, s) != s )
 			fatal_error("read failed\n");
 
-#if 0
-		/* patch CODE segment */
-                if( *elf_entry >= phdr[i].p_vaddr &&
-                    *elf_entry < phdr[i].p_vaddr + s ) {
-			patch_newworld_rom( (char*)phdr[i].p_vaddr, s );
-			newworld_timer_hack( (char*)phdr[i].p_vaddr, s );
-		}
-#endif
 		flush_icache_range( addr, addr+s );
 
-		/*printk("ELF ROM-section loaded at %08lX (size %08lX)\n",
-		   (ulong)phdr[i].p_vaddr, (ulong)phdr[i].p_memsz );*/
+		ELF_DPRINTF("ELF ROM-section loaded at %08lX (size %08lX)\n",
+			    (ulong)phdr[i].p_vaddr, (ulong)phdr[i].p_memsz );
 	}
 	free( phdr );
 	return lszz_offs;
 }
-
 
 static void
 encode_bootpath( const char *spec, const char *args )
@@ -112,10 +110,10 @@ encode_bootpath( const char *spec, const char *args )
 /************************************************************************/
 
 static void
-qemu_startup( void )
+yaboot_startup( void )
 {
-	const char *paths[] = { "hd:0,\\zImage.chrp", NULL };
-	const char *args[] = { "root=/dev/hda2 console=ttyS0,115200", NULL };
+	const char *paths[] = { "hd:2,\\ofclient", "hd:2,\\yaboot", NULL };
+	const char *args[] = { "", "conf=hd:2,\\yaboot.conf", NULL };
         ulong elf_entry;
 	int i, fd;
 
@@ -127,6 +125,8 @@ qemu_startup( void )
 		encode_bootpath( paths[i], args[i] );
 
 		update_nvram();
+		ELF_DPRINTF("Transfering control to %s %s\n",
+			    paths[i], args[i]);
                 transfer_control_to_elf( elf_entry );
 		/* won't come here */
 	}
@@ -142,5 +142,5 @@ void
 boot( void )
 {
 	fword("update-chosen");
-	qemu_startup();
+	yaboot_startup();
 }

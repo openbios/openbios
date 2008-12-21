@@ -27,6 +27,6 @@ extern ulong 	ofmem_claim_virt( ulong mvirt, ulong size, ulong align );
 extern int 	ofmem_map( ulong phys, ulong virt, ulong size, int mode );
 
 extern void  	ofmem_release( ulong virt, ulong size );
-extern ulong 	ofmem_translate( ulong virt, ulong *ret_mode );
+extern ulong 	ofmem_translate( ulong virt, int *ret_mode );
 
 #endif   /* _H_OFMEM */

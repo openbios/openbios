@@ -111,6 +111,5 @@
   " /chosen" find-device
   stdin @ encode-int " stdin" property
   stdout @ encode-int " stdout" property
-  " /pci/isa/interrupt-controller" find-dev if encode-int " interrupt-controller" property then
   device-end
 ;

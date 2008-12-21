@@ -81,7 +81,7 @@ void setup_timers(void)
 
 unsigned long get_timer_freq(void)
 {
-	return 100000000 / 4;
+	return 10000000 / 4;
 }
 
 void udelay(unsigned int usecs)

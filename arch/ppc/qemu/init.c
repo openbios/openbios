@@ -32,6 +32,11 @@ extern void unexpected_excep( int vector );
 extern void ob_pci_init( void );
 extern void setup_timers( void );
 
+extern ulong get_ram_size( void );
+extern ulong get_ram_top( void );
+extern ulong get_ram_bottom( void );
+
+
 void
 unexpected_excep( int vector )
 {
@@ -67,11 +72,9 @@ entry( void )
 {
 	arch = &known_arch[ARCH_HEATHROW];
 	isa_io_base = arch->io_base;
-#ifdef CONFIG_DEBUG_CONSOLE
-#ifdef CONFIG_DEBUG_CONSOLE_SERIAL
+
 	serial_init();
-#endif
-#endif
+
 	printk("\n");
 	printk("=============================================================\n");
 	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
@@ -100,8 +103,59 @@ arch_of_init( void )
 	phandle_t ph;
 #endif
 	int autoboot;
+	uint64_t ram_size;
 
 	devtree_init();
+
+	/* ISA BASE */
+
+	push_str("/");
+	fword("find-device");
+
+	PUSH(isa_io_base);
+	fword("encode-int");
+	push_str("isa-io-base");
+	fword("property");
+
+	/* memory info */
+
+	push_str("/memory");
+	fword("find-device");
+
+	/* all memory */
+
+	ram_size = get_ram_size();
+
+	PUSH(ram_size >> 32);
+	fword("encode-int");
+	PUSH(ram_size & 0xffffffff);
+	fword("encode-int");
+	fword("encode+");
+	PUSH(0);
+	fword("encode-int");
+	fword("encode+");
+	PUSH(0);
+	fword("encode-int");
+	fword("encode+");
+	push_str("reg");
+	fword("property");
+
+	/* available memory */
+
+	PUSH(0);
+	fword("encode-int");
+	PUSH((unsigned long)get_ram_bottom());
+	fword("encode-int");
+	fword("encode+");
+	PUSH((unsigned long)get_ram_top());
+	fword("encode-int");
+	fword("encode+");
+	PUSH(ram_size);
+	fword("encode-int");
+	fword("encode+");
+	push_str("available");
+	fword("property");
+
 	modules_init();
 	setup_timers();
 #ifdef CONFIG_DRIVER_PCI
@@ -119,22 +173,13 @@ arch_of_init( void )
 		set_property( ph, "rtas-size", (char*)&size, sizeof(size) );
 	}
 #endif
-#if 0
-	/* tweak boot settings */
-	autoboot = !!getbool("autoboot?");
-#endif
-	autoboot = 0;
-	if( !autoboot )
-		printk("Autobooting disabled - dropping into OpenFirmware\n");
-	setenv("auto-boot?", autoboot ? "true" : "false" );
-	setenv("boot-command", "qemuboot");
 
 #if 0
 	if( getbool("tty-interface?") == 1 )
 #endif
 		fword("activate-tty-interface");
 
-	/* hack */
 	device_end();
-	bind_func("qemuboot", boot );
+
+	bind_func("platform-boot", boot );
 }
