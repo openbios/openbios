@@ -29,8 +29,6 @@
 #define MEMORY_SIZE	(256*1024)	/* 256K ram for hosted system */
 #define DICTIONARY_SIZE	(512*1024)	/* 128K for the dictionary   */
 
-extern unsigned char 	*dict;
-extern cell 		dicthead;
 static ucell 		*memory;
 
 /************************************************************************/

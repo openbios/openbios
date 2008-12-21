@@ -288,7 +288,7 @@ close_fs( fs_ops_t *fs )
 	/* callers responsibility to call free(fs) */
 }
 
-static char *
+static const char *
 get_fstype( fs_ops_t *fs )
 {
 	return ("HFS");

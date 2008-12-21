@@ -232,7 +232,7 @@ mmu_unmap( void )
 static void
 mmu_translate( void )
 {
-	ulong mode;
+        int mode;
 	int virt = POP();
 	int phys = ofmem_translate( virt, &mode );
 
@@ -240,7 +240,7 @@ mmu_translate( void )
 		PUSH( 0 );
 	} else {
 		PUSH( phys );
-		PUSH( (int)mode );
+                PUSH( mode );
 		PUSH( -1 );
 	}
 }

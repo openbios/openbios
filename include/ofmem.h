@@ -29,4 +29,13 @@ extern int 	ofmem_map( ulong phys, ulong virt, ulong size, int mode );
 extern void  	ofmem_release( ulong virt, ulong size );
 extern ulong 	ofmem_translate( ulong virt, int *ret_mode );
 
+#ifdef CONFIG_PPC
+ulong get_ram_size( void );
+ulong get_ram_top( void );
+ulong get_ram_bottom( void );
+void dsi_exception( void );
+void isi_exception( void );
+void setup_mmu( ulong ramsize );
+#endif
+
 #endif   /* _H_OFMEM */

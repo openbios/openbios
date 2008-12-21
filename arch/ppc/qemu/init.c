@@ -32,11 +32,6 @@ extern void unexpected_excep( int vector );
 extern void ob_pci_init( void );
 extern void setup_timers( void );
 
-extern ulong get_ram_size( void );
-extern ulong get_ram_top( void );
-extern ulong get_ram_bottom( void );
-
-
 void
 unexpected_excep( int vector )
 {
@@ -88,21 +83,12 @@ entry( void )
 		;
 }
 
-static void
-setenv( const char *env, const char *value )
-{
-	push_str( value );
-	push_str( env );
-	fword("$setenv");
-}
-
 void
 arch_of_init( void )
 {
 #ifdef USE_RTAS
 	phandle_t ph;
 #endif
-	int autoboot;
 	uint64_t ram_size;
 
 	devtree_init();

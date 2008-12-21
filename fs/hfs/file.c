@@ -86,8 +86,8 @@ void f_init(hfsfile *file, hfsvol *vol, long cnid, const char *name)
 
   file->flags = 0;
 
-  file->prev  = 0;
-  file->next  = 0;
+  file->prev  = NULL;
+  file->next  = NULL;
 }
 
 /*
@@ -156,7 +156,7 @@ int f_doblock(hfsfile *file, unsigned long num, block *bp,
     {
       ExtDataRec *extrec;
 
-      f_getptrs(file, &extrec, 0, 0);
+      f_getptrs(file, &extrec, NULL, NULL);
 
       fabn = file->fabn = 0;
       memcpy(&file->ext, extrec, sizeof(ExtDataRec));
@@ -179,7 +179,7 @@ int f_doblock(hfsfile *file, unsigned long num, block *bp,
 	  abnum -= n;
 	}
 
-      if (v_extsearch(file, fabn, &file->ext, 0) <= 0)
+      if (v_extsearch(file, fabn, &file->ext, NULL) <= 0)
 	goto fail;
 
       file->fabn = fabn;

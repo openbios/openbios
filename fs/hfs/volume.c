@@ -48,14 +48,14 @@ void v_init(hfsvol *vol, int flags)
   vol->vlen       = 0;
   vol->lpa        = 0;
 
-  vol->cache      = 0;
+  vol->cache      = NULL;
 
-  vol->vbm        = 0;
+  vol->vbm        = NULL;
   vol->vbmsz      = 0;
 
   f_init(&ext->f, vol, HFS_CNID_EXT, "extents overflow");
 
-  ext->map        = 0;
+  ext->map        = NULL;
   ext->mapsz      = 0;
   ext->flags      = 0;
 
@@ -64,7 +64,7 @@ void v_init(hfsvol *vol, int flags)
 
   f_init(&cat->f, vol, HFS_CNID_CAT, "catalog");
 
-  cat->map        = 0;
+  cat->map        = NULL;
   cat->mapsz      = 0;
   cat->flags      = 0;
 
@@ -74,11 +74,11 @@ void v_init(hfsvol *vol, int flags)
   vol->cwd        = HFS_CNID_ROOTDIR;
 
   vol->refs       = 0;
-  vol->files      = 0;
-  vol->dirs       = 0;
+  vol->files      = NULL;
+  vol->dirs       = NULL;
 
-  vol->prev       = 0;
-  vol->next       = 0;
+  vol->prev       = NULL;
+  vol->next       = NULL;
 }
 
 /*
@@ -126,14 +126,14 @@ int v_close(hfsvol *vol)
 
   FREE(vol->vbm);
 
-  vol->vbm   = 0;
+  vol->vbm   = NULL;
   vol->vbmsz = 0;
 
   FREE(vol->ext.map);
   FREE(vol->cat.map);
 
-  vol->ext.map = 0;
-  vol->cat.map = 0;
+  vol->ext.map = NULL;
+  vol->cat.map = NULL;
 
 done:
   return result;
@@ -275,8 +275,8 @@ int v_readvbm(hfsvol *vol)
     ERROR(EIO, "volume bitmap collides with volume data");
 
   vol->vbm = ALLOC(block, vbmsz);
-  if (vol->vbm == 0)
-    ERROR(ENOMEM, 0);
+  if (vol->vbm == NULL)
+    ERROR(ENOMEM, NULL);
 
   vol->vbmsz = vbmsz;
 
@@ -291,7 +291,7 @@ int v_readvbm(hfsvol *vol)
 fail:
   FREE(vol->vbm);
 
-  vol->vbm   = 0;
+  vol->vbm   = NULL;
   vol->vbmsz = 0;
 
   return -1;
@@ -339,11 +339,11 @@ int v_catsearch(hfsvol *vol, unsigned long parid, const char *name,
   node n;
   int found;
 
-  if (np == 0)
+  if (np == NULL)
     np = &n;
 
   r_makecatkey(&key, parid, name);
-  r_packcatkey(&key, pkey, 0);
+  r_packcatkey(&key, pkey, NULL);
 
   found = bt_search(&vol->cat, pkey, np);
   if (found <= 0)
@@ -378,11 +378,11 @@ int v_extsearch(hfsfile *file, unsigned int fabn,
   node n;
   int found;
 
-  if (np == 0)
+  if (np == NULL)
     np = &n;
 
   r_makeextkey(&key, file->fork, file->cat.u.fil.filFlNum, fabn);
-  r_packextkey(&key, pkey, 0);
+  r_packextkey(&key, pkey, NULL);
 
   /* in case bt_search() clobbers these */
 
@@ -416,10 +416,10 @@ int v_getthread(hfsvol *vol, unsigned long id,
   CatDataRec rec;
   int found;
 
-  if (thread == 0)
+  if (thread == NULL)
     thread = &rec;
 
-  found = v_catsearch(vol, id, "", thread, 0, np);
+  found = v_catsearch(vol, id, "", thread, NULL, np);
   if (found == 1 && thread->cdrType != type)
     ERROR(EIO, "bad thread record");
 
@@ -435,7 +435,7 @@ fail:
  * DESCRIPTION:	translate a pathname; return catalog information
  */
 int v_resolve(hfsvol **vol, const char *path,
-	      CatDataRec *data, long *parid, char *fname, node *np)
+              CatDataRec *data, unsigned long *parid, char *fname, node *np)
 {
   unsigned long dirid;
   char name[HFS_MAX_FLEN + 1], *nptr;
@@ -449,7 +449,7 @@ int v_resolve(hfsvol **vol, const char *path,
 
   nptr = strchr(path, ':');
 
-  if (*path == ':' || nptr == 0)
+  if (*path == ':' || nptr == NULL)
     {
       dirid = (*vol)->cwd;  /* relative path */
 
@@ -458,7 +458,7 @@ int v_resolve(hfsvol **vol, const char *path,
 
       if (*path == 0)
 	{
-	  found = v_getdthread(*vol, dirid, data, 0);
+          found = v_getdthread(*vol, dirid, data, NULL);
 	  if (found == -1)
 	    goto fail;
 
@@ -483,7 +483,7 @@ int v_resolve(hfsvol **vol, const char *path,
       dirid = HFS_CNID_ROOTPAR;  /* absolute path */
 
       if (nptr - path > HFS_MAX_VLEN)
-	ERROR(ENAMETOOLONG, 0);
+        ERROR(ENAMETOOLONG, NULL);
 
       strncpy(name, path, nptr - path);
       name[nptr - path] = 0;
@@ -504,7 +504,7 @@ int v_resolve(hfsvol **vol, const char *path,
 	{
 	  ++path;
 
-	  found = v_getdthread(*vol, dirid, data, 0);
+          found = v_getdthread(*vol, dirid, data, NULL);
 	  if (found == -1)
 	    goto fail;
 	  else if (! found)
@@ -515,7 +515,7 @@ int v_resolve(hfsvol **vol, const char *path,
 
       if (*path == 0)
 	{
-	  found = v_getdthread(*vol, dirid, data, 0);
+          found = v_getdthread(*vol, dirid, data, NULL);
 	  if (found == -1)
 	    goto fail;
 
@@ -538,7 +538,7 @@ int v_resolve(hfsvol **vol, const char *path,
 	*nptr++ = *path++;
 
       if (*path && *path != ':')
-	ERROR(ENAMETOOLONG, 0);
+        ERROR(ENAMETOOLONG, NULL);
 
       *nptr = 0;
       if (*path == ':')

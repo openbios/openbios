@@ -21,6 +21,7 @@
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
+#include "kernel.h"
 #include "ofmem.h"
 
 //#define DEBUG_ELF
@@ -33,11 +34,10 @@ do { printk("ELF - %s: " fmt, __func__ , ##args); } while (0)
 #endif
 
 static void
-transfer_control_to_elf( ulong entry )
+transfer_control_to_elf( ulong elf_entry )
 {
-	extern void call_elf( ulong entry );
 	ELF_DPRINTF("Starting ELF boot loader\n");
-	call_elf( entry );
+        call_elf( elf_entry );
 
 	fatal_error("call_elf returned unexpectedly\n");
 }
@@ -46,7 +46,7 @@ static int
 load_elf_rom( ulong *elf_entry, int fd )
 {
 	int i, lszz_offs, elf_offs;
-	char buf[128], *addr;
+        char *addr;
 	Elf_ehdr ehdr;
 	Elf_phdr *phdr;
 	size_t s;

@@ -70,7 +70,7 @@ get_hash_base( void )
 {
 	ulong sdr1;
 
-	asm volatile("mfsdr1 %0" :: "r" (sdr1) );
+	asm volatile("mfsdr1 %0" : "=r" (sdr1) );
 
 	return (sdr1 & 0xffff0000);
 }
@@ -80,7 +80,7 @@ get_hash_size( void )
 {
 	ulong sdr1;
 
-	asm volatile("mfsdr1 %0" :: "r" (sdr1) );
+	asm volatile("mfsdr1 %0" : "=r" (sdr1) );
 
 	return ((sdr1 << 16) | 0x0000ffff) + 1;
 }
@@ -107,7 +107,7 @@ get_ram_top( void )
 ulong
 get_ram_bottom( void )
 {
-	return OF_MALLOC_BASE;
+        return (ulong)OF_MALLOC_BASE;
 }
 
 /************************************************************************/
@@ -172,7 +172,7 @@ free( void *ptr )
 	if( !ptr )
 		return;
 
-	d = (alloc_desc_t*)(ptr - sizeof(alloc_desc_t));
+        d = (alloc_desc_t*)((char *)ptr - sizeof(alloc_desc_t));
 	d->next = ofmem->mfree;
 
 	/* insert in the (sorted) freelist */
@@ -185,7 +185,7 @@ free( void *ptr )
 void *
 realloc( void *ptr, size_t size )
 {
-	alloc_desc_t *d = (alloc_desc_t*)(ptr - sizeof(alloc_desc_t));
+        alloc_desc_t *d = (alloc_desc_t*)((char *)ptr - sizeof(alloc_desc_t));
 	char *p;
 
 	if( !ptr )
@@ -665,8 +665,7 @@ setup_mmu( ulong ramsize )
 {
 	ofmem_t *ofmem = OFMEM;
 	ulong sdr1, sr_base, msr;
-	ulong hash_base, page;
-	ulong data_size, bss_size;
+	ulong hash_base;
 	int i;
 
 	memset(ofmem, 0, sizeof(ofmem_t));
@@ -675,7 +674,7 @@ setup_mmu( ulong ramsize )
 	/* SDR1: Storage Description Register 1 */
 
 	hash_base = (ramsize - 0x00100000 - HASH_SIZE) & 0xffff0000;
-	memset(hash_base, 0, HASH_SIZE);
+        memset((void *)hash_base, 0, HASH_SIZE);
 	sdr1 = hash_base | ((HASH_SIZE-1) >> 16);
 	asm volatile("mtsdr1 %0" :: "r" (sdr1) );
 
@@ -687,7 +686,7 @@ setup_mmu( ulong ramsize )
 		asm volatile("mtsrin %0,%1" :: "r" (sr_base + i), "r" (j) );
 	}
 
-	memcpy(get_rom_base(), 0xfff00000, 0x00100000);
+	memcpy((void *)get_rom_base(), (void *)0xfff00000, 0x00100000);
 
 	/* Enable MMU */
 
@@ -699,8 +698,6 @@ setup_mmu( ulong ramsize )
 void
 ofmem_init( void )
 {
-	ulong top;
-
 	ofmem_claim_phys( 0, get_ram_bottom(), 0 );
 	ofmem_claim_virt( 0, get_ram_bottom(), 0 );
 	ofmem_claim_phys( get_ram_top(), get_ram_size() - get_ram_top(), 0);

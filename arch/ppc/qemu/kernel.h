@@ -22,6 +22,7 @@ extern void		exit( int status );
 /* start.S */
 extern void 		flush_icache_range( char *start, char *stop );
 extern char		of_rtas_start[], of_rtas_end[];
+extern void             call_elf( ulong elf_entry );
 
 /* methods.c */
 extern void		node_methods_init( void );

@@ -89,7 +89,7 @@ fail:
 int bt_readhdr(btree *bt)
 {
   const byte *ptr;
-  byte *map = 0;
+  byte *map = NULL;
   int i;
   unsigned long nnum;
 
@@ -128,8 +128,8 @@ int bt_readhdr(btree *bt)
   /* don't set bt->map until we're done, since getnode() checks it */
 
   map = ALLOC(byte, HFS_MAP1SZ);
-  if (map == 0)
-    ERROR(ENOMEM, 0);
+  if (map == NULL)
+    ERROR(ENOMEM, NULL);
 
   memcpy(map, HFS_NODEREC(bt->hdrnd, 2), HFS_MAP1SZ);
   bt->mapsz = HFS_MAP1SZ;
@@ -153,8 +153,8 @@ int bt_readhdr(btree *bt)
 	ERROR(EIO, "malformed b*-tree map node");
 
       newmap = REALLOC(map, byte, bt->mapsz + HFS_MAPXSZ);
-      if (newmap == 0)
-	ERROR(ENOMEM, 0);
+      if (newmap == NULL)
+	ERROR(ENOMEM, NULL);
 
       map = newmap;
 
@@ -186,7 +186,7 @@ int bt_search(btree *bt, const byte *key, node *np)
   nnum = bt->hdr.bthRoot;
 
   if (nnum == 0)
-    ERROR(ENOENT, 0);
+    ERROR(ENOENT, NULL);
 
   while (1)
     {
@@ -204,7 +204,7 @@ int bt_search(btree *bt, const byte *key, node *np)
 	{
 	case ndIndxNode:
 	  if (np->rnum == -1)
-	    ERROR(ENOENT, 0);
+            ERROR(ENOENT, NULL);
 
 	  rec  = HFS_NODEREC(*np, np->rnum);
 	  nnum = d_getul(HFS_RECDATA(rec));
@@ -213,7 +213,7 @@ int bt_search(btree *bt, const byte *key, node *np)
 
 	case ndLeafNode:
 	  if (! found)
-	    ERROR(ENOENT, 0);
+            ERROR(ENOENT, NULL);
 
 	  goto done;
 

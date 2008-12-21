@@ -45,9 +45,9 @@ hfsvol *curvol;				/* current volume */
 static
 int getvol(hfsvol **vol)
 {
-  if (*vol == 0)
+  if (*vol == NULL)
     {
-      if (curvol == 0)
+      if (curvol == NULL)
 	ERROR(EINVAL, "no volume is current");
 
       *vol = curvol;
@@ -81,8 +81,8 @@ hfsvol *hfs_mount( int os_fd, int pnum)
     }
 
   vol = ALLOC(hfsvol, 1);
-  if (vol == 0)
-    ERROR(ENOMEM, 0);
+  if (vol == NULL)
+    ERROR(ENOMEM, NULL);
 
   v_init(vol, mode);
 
@@ -98,7 +98,7 @@ hfsvol *hfs_mount( int os_fd, int pnum)
 
   /* add to linked list of volumes */
 
-  vol->prev = 0;
+  vol->prev = NULL;
   vol->next = hfs_mounts;
 
   if (hfs_mounts)
@@ -119,7 +119,7 @@ fail:
       FREE(vol);
     }
 
-  return 0;
+  return NULL;
 }
 
 
@@ -168,7 +168,7 @@ int hfs_umount(hfsvol *vol)
   if (vol == hfs_mounts)
     hfs_mounts = vol->next;
   if (vol == curvol)
-    curvol = 0;
+    curvol = NULL;
 
   FREE(vol);
 
@@ -197,7 +197,7 @@ hfsvol *hfs_getvol(const char *name)
 {
   hfsvol *vol;
 
-  if (name == 0)
+  if (name == NULL)
     return curvol;
 
   for (vol = hfs_mounts; vol; vol = vol->next)
@@ -206,7 +206,7 @@ hfsvol *hfs_getvol(const char *name)
 	return vol;
     }
 
-  return 0;
+  return NULL;
 }
 
 /*
@@ -264,11 +264,11 @@ int hfs_chdir(hfsvol *vol, const char *path)
   CatDataRec data;
 
   if (getvol(&vol) == -1 ||
-      v_resolve(&vol, path, &data, 0, 0, 0) <= 0)
+      v_resolve(&vol, path, &data, NULL, NULL, NULL) <= 0)
     goto fail;
 
   if (data.cdrType != cdrDirRec)
-    ERROR(ENOTDIR, 0);
+    ERROR(ENOTDIR, NULL);
 
   vol->cwd = data.u.dir.dirDirID;
 
@@ -304,7 +304,7 @@ int hfs_setcwd(hfsvol *vol, unsigned long id)
 
   /* make sure the directory exists */
 
-  if (v_getdthread(vol, id, 0, 0) <= 0)
+  if (v_getdthread(vol, id, NULL, NULL) <= 0)
     goto fail;
 
   vol->cwd = id;
@@ -325,7 +325,7 @@ int hfs_dirinfo(hfsvol *vol, unsigned long *id, char *name)
   CatDataRec thread;
 
   if (getvol(&vol) == -1 ||
-      v_getdthread(vol, *id, &thread, 0) <= 0)
+      v_getdthread(vol, *id, &thread, NULL) <= 0)
     goto fail;
 
   *id = thread.u.dthd.thdParID;
@@ -345,7 +345,7 @@ fail:
  */
 hfsdir *hfs_opendir(hfsvol *vol, const char *path)
 {
-  hfsdir *dir = 0;
+  hfsdir *dir = NULL;
   CatKeyRec key;
   CatDataRec data;
   byte pkey[HFS_CATKEYLEN];
@@ -354,8 +354,8 @@ hfsdir *hfs_opendir(hfsvol *vol, const char *path)
     goto fail;
 
   dir = ALLOC(hfsdir, 1);
-  if (dir == 0)
-    ERROR(ENOMEM, 0);
+  if (dir == NULL)
+    ERROR(ENOMEM, NULL);
 
   dir->vol = vol;
 
@@ -368,23 +368,23 @@ hfsdir *hfs_opendir(hfsvol *vol, const char *path)
     }
   else
     {
-      if (v_resolve(&vol, path, &data, 0, 0, 0) <= 0)
+      if (v_resolve(&vol, path, &data, NULL, NULL, NULL) <= 0)
 	goto fail;
 
       if (data.cdrType != cdrDirRec)
-	ERROR(ENOTDIR, 0);
+        ERROR(ENOTDIR, NULL);
 
       dir->dirid = data.u.dir.dirDirID;
-      dir->vptr  = 0;
+      dir->vptr  = NULL;
 
       r_makecatkey(&key, dir->dirid, "");
-      r_packcatkey(&key, pkey, 0);
+      r_packcatkey(&key, pkey, NULL);
 
       if (bt_search(&vol->cat, pkey, &dir->n) <= 0)
 	goto fail;
     }
 
-  dir->prev = 0;
+  dir->prev = NULL;
   dir->next = vol->dirs;
 
   if (vol->dirs)
@@ -396,7 +396,7 @@ hfsdir *hfs_opendir(hfsvol *vol, const char *path)
 
 fail:
   FREE(dir);
-  return 0;
+  return NULL;
 }
 
 /*
@@ -420,12 +420,12 @@ int hfs_readdir(hfsdir *dir, hfsdirent *ent)
 	    break;
 	}
 
-      if (vol == 0)
+      if (vol == NULL)
 	ERROR(ENOENT, "no more entries");
 
-      if (v_getdthread(vol, HFS_CNID_ROOTDIR, &data, 0) <= 0 ||
+      if (v_getdthread(vol, HFS_CNID_ROOTDIR, &data, NULL) <= 0 ||
 	  v_catsearch(vol, HFS_CNID_ROOTPAR, data.u.dthd.thdCName,
-		      &data, cname, 0) <= 0)
+                      &data, cname, NULL) <= 0)
 	goto fail;
 
       r_unpackdirent(HFS_CNID_ROOTPAR, cname, &data, ent);
@@ -523,20 +523,20 @@ int hfs_closedir(hfsdir *dir)
  */
 hfsfile *hfs_open(hfsvol *vol, const char *path)
 {
-  hfsfile *file = 0;
+  hfsfile *file = NULL;
 
   if (getvol(&vol) == -1)
     goto fail;
 
   file = ALLOC(hfsfile, 1);
-  if (file == 0)
-    ERROR(ENOMEM, 0);
+  if (file == NULL)
+    ERROR(ENOMEM, NULL);
 
-  if (v_resolve(&vol, path, &file->cat, &file->parid, file->name, 0) <= 0)
+  if (v_resolve(&vol, path, &file->cat, &file->parid, file->name, NULL) <= 0)
     goto fail;
 
   if (file->cat.cdrType != cdrFilRec)
-    ERROR(EISDIR, 0);
+    ERROR(EISDIR, NULL);
 
   /* package file handle for user */
 
@@ -545,7 +545,7 @@ hfsfile *hfs_open(hfsvol *vol, const char *path)
 
   f_selectfork(file, fkData);
 
-  file->prev = 0;
+  file->prev = NULL;
   file->next = vol->files;
 
   if (vol->files)
@@ -557,7 +557,7 @@ hfsfile *hfs_open(hfsvol *vol, const char *path)
 
 fail:
   FREE(file);
-  return 0;
+  return NULL;
 }
 
 /*
@@ -591,7 +591,7 @@ unsigned long hfs_read(hfsfile *file, void *buf, unsigned long len)
   unsigned long *lglen, count;
   byte *ptr = buf;
 
-  f_getptrs(file, 0, &lglen, 0);
+  f_getptrs(file, NULL, &lglen, NULL);
 
   if (file->pos + len > *lglen)
     len = *lglen - file->pos;
@@ -643,7 +643,7 @@ unsigned long hfs_seek(hfsfile *file, long offset, int from)
 {
   unsigned long *lglen, newpos;
 
-  f_getptrs(file, 0, &lglen, 0);
+  f_getptrs(file, NULL, &lglen, NULL);
 
   switch (from)
     {
@@ -666,7 +666,7 @@ unsigned long hfs_seek(hfsfile *file, long offset, int from)
       break;
 
     default:
-      ERROR(EINVAL, 0);
+      ERROR(EINVAL, NULL);
     }
 
   if (newpos > *lglen)
@@ -714,7 +714,7 @@ int hfs_stat(hfsvol *vol, const char *path, hfsdirent *ent)
   char name[HFS_MAX_FLEN + 1];
 
   if (getvol(&vol) == -1 ||
-      v_resolve(&vol, path, &data, &parid, name, 0) <= 0)
+      v_resolve(&vol, path, &data, &parid, name, NULL) <= 0)
     goto fail;
 
   r_unpackdirent(parid, name, &data, ent);

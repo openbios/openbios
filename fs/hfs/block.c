@@ -41,8 +41,8 @@ int b_init(hfsvol *vol)
   ASSERT(vol->cache == 0);
 
   cache = ALLOC(bcache, 1);
-  if (cache == 0)
-    ERROR(ENOMEM, 0);
+  if (cache == NULL)
+    ERROR(ENOMEM, NULL);
 
   vol->cache = cache;
 
@@ -65,15 +65,15 @@ int b_init(hfsvol *vol)
       b->cnext = b + 1;
       b->cprev = b - 1;
 
-      b->hnext = 0;
-      b->hprev = 0;
+      b->hnext = NULL;
+      b->hprev = NULL;
     }
 
   cache->chain[0].cprev = cache->tail;
   cache->tail->cnext    = &cache->chain[0];
 
   for (i = 0; i < HFS_HASHSZ; ++i)
-    cache->hash[i] = 0;
+    cache->hash[i] = NULL;
 
   return 0;
 
@@ -259,7 +259,7 @@ int b_finish(hfsvol *vol)
 {
   int result = 0;
 
-  if (vol->cache == 0)
+  if (vol->cache == NULL)
     goto done;
 
 # ifdef DEBUG
@@ -267,7 +267,7 @@ int b_finish(hfsvol *vol)
 # endif
 
   FREE(vol->cache);
-  vol->cache = 0;
+  vol->cache = NULL;
 
 done:
   return result;
@@ -469,7 +469,7 @@ bucket *getbucket(bcache *cache, unsigned long bnum, int fill)
   return b;
 
 fail:
-  return 0;
+  return NULL;
 }
 
 /*
@@ -524,7 +524,7 @@ int b_readlb(hfsvol *vol, unsigned long bnum, block *bp)
       bucket *b;
 
       b = getbucket(vol->cache, bnum, 1);
-      if (b == 0)
+      if (b == NULL)
 	goto fail;
 
       memcpy(bp, b->data, HFS_BLOCKSZ);

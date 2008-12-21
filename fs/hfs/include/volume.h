@@ -57,7 +57,8 @@ int v_putextrec(const ExtDataRec *, node *);
 int v_allocblocks(hfsvol *, ExtDescriptor *);
 int v_freeblocks(hfsvol *, const ExtDescriptor *);
 
-int v_resolve(hfsvol **, const char *, CatDataRec *, long *, char *, node *);
+int v_resolve(hfsvol **vol, const char *path,
+              CatDataRec *data, unsigned long *parid, char *fname, node *np);
 
 int v_adjvalence(hfsvol *, unsigned long, int, int);
 int v_mkdir(hfsvol *, unsigned long, const char *);
