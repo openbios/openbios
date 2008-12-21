@@ -62,7 +62,7 @@
 /************************************************************************/
 
 
-	.text
+        .section .text.vectors, "ax"
 	.space 0x0100
 GLOBL(_start):
 	/* clear MSR, disable MMU */
@@ -152,8 +152,10 @@ GLOBL(_start):
 	 *	r6 = address of client program arguments (unused)
 	 *	r7 = length of client program arguments (unsed)
 	 */
+        .data
 saved_stack:
 	.long	0
+        .previous
 	/* void call_elf( entry ) */
 GLOBL(call_elf):
 	mflr	r0
@@ -276,7 +278,9 @@ trap_error:
 	mflr	r3
 	b	unexpected_excep
 
-ILLEGAL_VECTOR( 0x100 )
+VECTOR( 0x100, "SRE" ):
+        b       _start
+
 ILLEGAL_VECTOR( 0x200 )
 
 VECTOR( 0x300, "DSI" ):
@@ -389,5 +393,6 @@ memloop:
 exit_memloop:
 	blr
 
+        /* Hard reset vector */
 	.section .romentry,"ax"
 	bl	_start
