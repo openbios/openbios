@@ -123,7 +123,7 @@ void macio_nvram_init(const char *path, uint32_t addr)
 }
 
 #ifdef DUMP_NVRAM
-void
+static void
 dump_nvram(void)
 {
   int i, j;
