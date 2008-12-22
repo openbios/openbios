@@ -42,6 +42,12 @@
 #define DEBUG_THIS 1
 #include "debug.h"
 
+#if defined(__sparc__) || defined(__PPC__)
+#define ENDIAN b
+#else
+#define ENDIAN l
+#endif
+
 struct iso_superblock {
     unsigned long vol_sector;
 
@@ -90,7 +96,7 @@ iso9660_mount (void)
 	{
 	  ISO_SUPER->vol_sector = sector;
 	  ISO_SUPER->file_start = 0;
-	  fsmax = PRIMDESC->volume_space_size.l;
+          fsmax = PRIMDESC->volume_space_size.ENDIAN;
 	  return 1;
 	}
     }
@@ -125,8 +131,8 @@ iso9660_dir (char *dirname)
 	  pathlen++)
 	;
 
-      size = idr->size.l;
-      extent = idr->extent.l;
+      size = idr->size.ENDIAN;
+      extent = idr->extent.ENDIAN;
 
       while (size > 0)
       {
@@ -138,13 +144,13 @@ iso9660_dir (char *dirname)
 	  extent++;
 
 	  idr = (struct iso_directory_record *)DIRREC;
-	  for (; idr->length.l > 0;
-		 idr = (struct iso_directory_record *)((char *)idr + idr->length.l) )
+	  for (; idr->length.ENDIAN > 0;
+                 idr = (struct iso_directory_record *)((char *)idr + idr->length.ENDIAN) )
 	  {
               const char *name = (char *)idr->name;
-	      unsigned int name_len = idr->name_len.l;
+              unsigned int name_len = idr->name_len.ENDIAN;
 
-	      file_type = (idr->flags.l & 2) ? ISO_DIRECTORY : ISO_REGULAR;
+              file_type = (idr->flags.ENDIAN & 2) ? ISO_DIRECTORY : ISO_REGULAR;
 	      if (name_len == 1)
 	      {
 		  if ((name[0] == 0) ||	/* self */
@@ -161,10 +167,10 @@ iso9660_dir (char *dirname)
 	      /*
 	       *  Parse Rock-Ridge extension
 	       */
-	      rr_len = (idr->length.l - idr->name_len.l
+              rr_len = (idr->length.ENDIAN - idr->name_len.ENDIAN
 			- (unsigned char)sizeof(struct iso_directory_record)
 			+ (unsigned char)sizeof(idr->name));
-	      rr_ptr.ptr = ((char *)idr + idr->name_len.l
+              rr_ptr.ptr = ((char *)idr + idr->name_len.ENDIAN
 			    + sizeof(struct iso_directory_record)
 			    - sizeof(idr->name));
 	      if (rr_ptr.i & 1)
@@ -187,7 +193,7 @@ iso9660_dir (char *dirname)
 		  }
 		  else if (rr_ptr.rr->signature == RRMAGIC('R', 'R')
 			   && rr_ptr.rr->len >= 5)
-		    rr_flag &= rr_ptr.rr->u.rr.flags.l;
+                      rr_flag &= rr_ptr.rr->u.rr.flags.ENDIAN;
 		  else if (rr_ptr.rr->signature == RRMAGIC('N', 'M'))
 		  {
 		      name = (char *)rr_ptr.rr->u.nm.name;
@@ -197,10 +203,10 @@ iso9660_dir (char *dirname)
 		  else if (rr_ptr.rr->signature == RRMAGIC('P', 'X')
 			   && rr_ptr.rr->len >= 36)
 		  {
-		      file_type = ((rr_ptr.rr->u.px.mode.l & POSIX_S_IFMT)
+                      file_type = ((rr_ptr.rr->u.px.mode.ENDIAN & POSIX_S_IFMT)
 				   == POSIX_S_IFREG
 				   ? ISO_REGULAR
-				   : ((rr_ptr.rr->u.px.mode.l & POSIX_S_IFMT)
+                                   : ((rr_ptr.rr->u.px.mode.ENDIAN & POSIX_S_IFMT)
 				      == POSIX_S_IFDIR
 				      ? ISO_DIRECTORY : ISO_OTHER));
 		      rr_flag &= ~RR_FLAG_PX;
@@ -224,9 +230,9 @@ iso9660_dir (char *dirname)
 			  memcpy(NAME_BUF, name, name_len);
 			  name = (char *)NAME_BUF;
 		      }
-                      rr_ptr.ptr = (char *)(RRCONT_BUF + ce_ptr->u.ce.offset.l);
-		      rr_len = ce_ptr->u.ce.size.l;
-                      if (!iso9660_devread(ce_ptr->u.ce.extent.l, 0,
+                      rr_ptr.ptr = (char *)(RRCONT_BUF + ce_ptr->u.ce.offset.ENDIAN);
+                      rr_len = ce_ptr->u.ce.size.ENDIAN;
+                      if (!iso9660_devread(ce_ptr->u.ce.extent.ENDIAN, 0,
                                            ISO_SECTOR_SIZE, (char *)RRCONT_BUF))
 		      {
 			  errnum = 0;	/* this is not fatal. */
@@ -238,7 +244,7 @@ iso9660_dir (char *dirname)
 
 	      filemax = MAXINT;
 	      if (name_len >= pathlen
-		  && !__builtin_memcmp(name, dirname, pathlen))
+                  && !strnicmp(name, dirname, pathlen))
 	      {
                 if (dirname[pathlen] == '/' || !print_possibilities)
 		{
@@ -262,9 +268,9 @@ iso9660_dir (char *dirname)
 		          errnum = ERR_BAD_FILETYPE;
 		          return 0;
 		      }
-		      ISO_SUPER->file_start = idr->extent.l;
+                      ISO_SUPER->file_start = idr->extent.ENDIAN;
 		      filepos = 0;
-		      filemax = idr->size.l;
+                      filemax = idr->size.ENDIAN;
 		      return 1;
 		  }
 		}
