@@ -15,6 +15,7 @@
 
 " chrp" device-type
 " OpenSource,QEMU" model
+" Power Macintosh" encode-string " compatible" property
 1 encode-int " #interrupt-cells" property
 1 encode-int " #size-cells" property
 
