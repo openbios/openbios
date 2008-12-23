@@ -32,6 +32,10 @@
 #define BIOS_CFG_CMD  0x510
 #define BIOS_CFG_DATA 0x511
 
+#define NVRAM_ADDR_LO 0x74
+#define NVRAM_ADDR_HI 0x75
+#define NVRAM_DATA    0x77
+
 #define APB_SPECIAL_BASE     0x1fe00000000ULL
 #define PCI_CONFIG           (APB_SPECIAL_BASE + 0x1000000ULL)
 #define APB_MEM_BASE         0x1ff00000000ULL
@@ -40,20 +44,21 @@ static unsigned char intdict[256 * 1024];
 
 // XXX
 #define NVRAM_SIZE       0x2000
-#define NVRAM_IDPROM     0x1fd0
+#define NVRAM_IDPROM     0x1fd8
+#define NVRAM_IDPROM_SIZE 32
 #define NVRAM_OB_START   (sizeof(ohwcfg_v3_t) + sizeof(struct sparc_arch_cfg))
-#define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_START) & ~15)
+#define NVRAM_OB_SIZE    ((0x1fd0 - NVRAM_OB_START) & ~15)
 
 static ohwcfg_v3_t nv_info;
 
 #define OBIO_CMDLINE_MAX 256
 static char obio_cmdline[OBIO_CMDLINE_MAX];
 
-static uint8_t idprom[32];
+static uint8_t idprom[NVRAM_IDPROM_SIZE];
 
 struct hwdef {
     pci_arch_t pci;
-    uint8_t machine_id_low, machine_id_high;
+    uint16_t machine_id_low, machine_id_high;
 };
 
 static const struct hwdef hwdefs[] = {
@@ -556,12 +561,80 @@ id_cpu(void)
     for (;;);
 }
 
+static void
+fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
+{
+    unsigned int i;
+
+    outw(__cpu_to_le16(cmd), BIOS_CFG_CMD);
+    for (i = 0; i < nbytes; i++)
+        buf[i] = inb(BIOS_CFG_DATA);
+}
+
+static uint64_t
+fw_cfg_read_i64(uint16_t cmd)
+{
+    char buf[sizeof(uint64_t)];
+
+    fw_cfg_read(cmd, buf, sizeof(uint64_t));
+
+    return __le64_to_cpu(*(uint64_t *)buf);
+}
+
+static uint32_t
+fw_cfg_read_i32(uint16_t cmd)
+{
+    char buf[sizeof(uint32_t)];
+
+    fw_cfg_read(cmd, buf, sizeof(uint32_t));
+
+    return __le32_to_cpu(*(uint32_t *)buf);
+}
+
+static uint16_t
+fw_cfg_read_i16(uint16_t cmd)
+{
+    char buf[sizeof(uint16_t)];
+
+    fw_cfg_read(cmd, buf, sizeof(uint16_t));
+
+    return __le16_to_cpu(*(uint16_t *)buf);
+}
+
+static uint8_t nvram_read_byte(uint16_t offset)
+{
+    outb(offset & 0xff, NVRAM_ADDR_LO);
+    outb(offset >> 8, NVRAM_ADDR_HI);
+    return inb(NVRAM_DATA);
+}
+
+static void nvram_read(uint16_t offset, char *buf, unsigned int nbytes)
+{
+    unsigned int i;
+
+    for (i = 0; i < nbytes; i++)
+        buf[i] = nvram_read_byte(offset + i);
+}
+
+static void nvram_write_byte(uint16_t offset, uint8_t val)
+{
+    outb(offset & 0xff, NVRAM_ADDR_LO);
+    outb(offset >> 8, NVRAM_ADDR_HI);
+    outb(val, NVRAM_DATA);
+}
+
+static void nvram_write(uint16_t offset, const char *buf, unsigned int nbytes)
+{
+    unsigned int i;
+
+    for (i = 0; i < nbytes; i++)
+        nvram_write_byte(offset + i, buf[i]);
+}
+
 static uint8_t qemu_uuid[16];
 
 void arch_nvram_get(char *data)
 {
-    unsigned short i;
-    unsigned char *nvptr = (unsigned char *)&nv_info;
     uint32_t size;
     const struct cpudef *cpu;
     const char *bootpath;
@@ -569,27 +642,19 @@ void arch_nvram_get(char *data)
     uint32_t temp;
     uint64_t ram_size;
     uint32_t clock_frequency;
+    uint16_t machine_id;
 
-    for (i = 0; i < sizeof(ohwcfg_v3_t); i++) {
-        outb(i & 0xff, 0x74);
-        outb(i  >> 8, 0x75);
-        *nvptr++ = inb(0x77);
-    }
+    nvram_read(0, (char *)&nv_info, sizeof(ohwcfg_v3_t));
 
-    outw(__cpu_to_le16(FW_CFG_SIGNATURE), BIOS_CFG_CMD);
-    for (i = 0; i < 4; i++)
-        buf[i] = inb(BIOS_CFG_DATA);
-
+    fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
     buf[4] = '\0';
 
     printk("Configuration device id %s", buf);
 
-    outw(__cpu_to_le16(FW_CFG_ID), BIOS_CFG_CMD);
-    for (i = 0; i < 4; i++)
-        buf[i] = inb(BIOS_CFG_DATA);
+    temp = fw_cfg_read_i32(FW_CFG_ID);
+    machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
 
-    temp = __le32_to_cpu(*(uint32_t *)buf);
-    printk(" version %d\n", temp);
+    printk(" version %d machine id %d\n", temp, machine_id);
 
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;
@@ -606,17 +671,9 @@ void arch_nvram_get(char *data)
     if (size)
         printk("kernel cmdline %s\n", obio_cmdline);
 
-    for (i = 0; i < NVRAM_OB_SIZE; i++) {
-        outb((i + NVRAM_OB_START) & 0xff, 0x74);
-        outb((i + NVRAM_OB_START) >> 8, 0x75);
-        data[i] = inb(0x77);
-    }
+    nvram_read(NVRAM_OB_START, data, NVRAM_OB_SIZE);
 
-    outw(__cpu_to_le16(FW_CFG_NB_CPUS), BIOS_CFG_CMD);
-    for (i = 0; i < 4; i++)
-        buf[i] = inb(BIOS_CFG_DATA);
-
-    temp = __le32_to_cpu(*(uint32_t *)buf);
+    temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
 
     printk("CPUs: %x", temp);
 
@@ -628,9 +685,7 @@ void arch_nvram_get(char *data)
     printk(" x %s\n", cpu->name);
 
     // Add /uuid
-    outw(__cpu_to_le16(FW_CFG_UUID), BIOS_CFG_CMD);
-    for (i = 0; i < 16; i++)
-        qemu_uuid[i] = inb(BIOS_CFG_DATA);
+    fw_cfg_read(FW_CFG_UUID, (char *)qemu_uuid, 16);
 
     printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
            qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
@@ -648,11 +703,7 @@ void arch_nvram_get(char *data)
     fword("property");
 
     // Add /idprom
-    for (i = 0; i < 32; i++) {
-        outb((i + 0x1fd8) & 0xff, 0x74);
-        outb((i + 0x1fd8) >> 8, 0x75);
-        idprom[i] = inb(0x77);
-    }
+    nvram_read(NVRAM_IDPROM, (char *)idprom, NVRAM_IDPROM_SIZE);
 
     PUSH((long)&idprom);
     PUSH(32);
@@ -668,11 +719,7 @@ void arch_nvram_get(char *data)
     push_str("/memory");
     fword("find-device");
 
-    outw(__cpu_to_le16(FW_CFG_RAM_SIZE), BIOS_CFG_CMD);
-    for (i = 0; i < 8; i++)
-        buf[i] = inb(BIOS_CFG_DATA);
-
-    ram_size = __le64_to_cpu(*(uint64_t *)buf);
+    ram_size = fw_cfg_read_i64(FW_CFG_RAM_SIZE);
 
     // All memory: 0 to RAM_size
     PUSH(0);
@@ -811,13 +858,7 @@ void arch_nvram_get(char *data)
 
 void arch_nvram_put(char *data)
 {
-    unsigned short i;
-
-    for (i = 0; i < NVRAM_OB_SIZE; i++) {
-        outb((i + NVRAM_OB_START) & 0xff, 0x74);
-        outb((i + NVRAM_OB_START) >> 8, 0x75);
-        outb(data[i], 0x77);
-    }
+    nvram_write(0, data, NVRAM_OB_SIZE);
 }
 
 int arch_nvram_size(void)
@@ -851,15 +892,14 @@ static void
 arch_init( void )
 {
         unsigned int i;
-        uint8_t qemu_machine_type;
-        const struct hwdef *hwdef;
+        uint16_t machine_id;
+        const struct hwdef *hwdef = NULL;
 
-        outw(__cpu_to_le16(FW_CFG_MACHINE_ID), BIOS_CFG_CMD);
-        qemu_machine_type = inb(BIOS_CFG_DATA);
+        machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
 
         for (i = 0; i < sizeof(hwdefs) / sizeof(struct hwdef); i++) {
-            if (hwdefs[i].machine_id_low <= qemu_machine_type &&
-                hwdefs[i].machine_id_high >= qemu_machine_type) {
+            if (hwdefs[i].machine_id_low <= machine_id &&
+                hwdefs[i].machine_id_high >= machine_id) {
                 hwdef = &hwdefs[i];
                 break;
             }

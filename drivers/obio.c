@@ -24,6 +24,8 @@
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 
+#define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
+
 #define	PROMDEV_KBD	0		/* input from keyboard */
 #define	PROMDEV_SCREEN	0		/* output to screen */
 #define	PROMDEV_TTYA	1		/* in/out to ttya */
@@ -964,6 +966,41 @@ id_machine(uint16_t machine_id)
     for (;;);
 }
 
+static volatile uint16_t *fw_cfg_cmd;
+static volatile uint8_t *fw_cfg_data;
+
+static void
+fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
+{
+    unsigned int i;
+
+    *fw_cfg_cmd = cmd;
+    for (i = 0; i < nbytes; i++)
+        buf[i] = *fw_cfg_data;
+}
+
+static uint32_t
+fw_cfg_read_i32(uint16_t cmd)
+{
+    char buf[sizeof(uint32_t)];
+
+    fw_cfg_read(cmd, buf, sizeof(uint32_t));
+
+    return __le32_to_cpu(*(uint32_t *)buf);
+}
+
+static uint16_t
+fw_cfg_read_i16(uint16_t cmd)
+{
+    char buf[sizeof(uint16_t)];
+
+    fw_cfg_read(cmd, buf, sizeof(uint16_t));
+
+    return __le16_to_cpu(*(uint16_t *)buf);
+}
+
+static uint8_t qemu_uuid[16];
+
 static void
 ob_nvram_init(uint64_t base, uint64_t offset)
 {
@@ -975,8 +1012,6 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     const struct cpudef *cpu;
     const struct machdef *mach;
     ohwcfg_v3_t *header;
-    volatile uint8_t *fw_cfg_data;
-    volatile uint16_t *fw_cfg_cmd;
     char buf[256];
     uint32_t temp;
 
@@ -989,28 +1024,23 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     push_str("address");
     fword("property");
 
+    push_str("mk48t08");
+    fword("model");
+
+    fword("finish-device");
+
     fw_cfg_cmd = map_io(CFG_ADDR, CFG_SIZE);
     fw_cfg_data = (uint8_t *)fw_cfg_cmd + 2;
 
-    *fw_cfg_cmd = FW_CFG_SIGNATURE;
-    for (i = 0; i < 4; i++)
-        buf[i] = *fw_cfg_data;
+    fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
     buf[4] = '\0';
+
     printk("Configuration device id %s", buf);
 
-    *fw_cfg_cmd = FW_CFG_ID;
-    for (i = 0; i < 4; i++)
-        buf[i] = *fw_cfg_data;
+    temp = fw_cfg_read_i32(FW_CFG_ID);
+    machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
 
-    temp = __le32_to_cpu(*(uint32_t *)buf);
-    printk(" version %d", temp);
-
-    *fw_cfg_cmd = FW_CFG_MACHINE_ID;
-    for (i = 0; i < 2; i++)
-        buf[i] = *fw_cfg_data;
-
-    machine_id = __le16_to_cpu(*(uint16_t *)buf);
-    printk(" machine id %d\n", machine_id);
+    printk(" version %d machine id %d\n", temp, machine_id);
 
     memcpy(&nv_info, nvram, sizeof(nv_info));
     kernel_image = nv_info.kernel_image;
@@ -1029,15 +1059,26 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     header->crc = OHW_compute_crc(header, 0x00, 0xF8);
 
     boot_device = nv_info.boot_devices[0];
-    *fw_cfg_cmd = FW_CFG_NOGRAPHIC;
-    nographic = *fw_cfg_data;
-    *fw_cfg_cmd = FW_CFG_SUN4M_DEPTH;
-    graphic_depth = *fw_cfg_data;
+    fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
+    graphic_depth = fw_cfg_read_i16(FW_CFG_SUN4M_DEPTH);
 
-    push_str("mk48t08");
-    fword("model");
+    // Add /uuid
+    fw_cfg_read(FW_CFG_UUID, (char *)qemu_uuid, 16);
 
-    fword("finish-device");
+    printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
+           qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
+           qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
+           qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
+           qemu_uuid[15]);
+
+    push_str("/");
+    fword("find-device");
+
+    PUSH((long)&qemu_uuid);
+    PUSH(16);
+    fword("encode-bytes");
+    push_str("uuid");
+    fword("property");
 
     // Add /idprom
     push_str("/");
@@ -1070,11 +1111,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     fword("property");
 
     // Add cpus
-    *fw_cfg_cmd = FW_CFG_NB_CPUS;
-    for (i = 0; i < 4; i++)
-        buf[i] = *fw_cfg_data;
-
-    temp = __le32_to_cpu(*(uint32_t *)buf);
+    temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
 
     printk("CPUs: %x", temp);
     cpu = id_cpu();
