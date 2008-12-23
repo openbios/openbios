@@ -1042,6 +1042,11 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 
     printk(" version %d machine id %d\n", temp, machine_id);
 
+    if (temp != 1) {
+        printk("Incompatible configuration device version, freezing\n");
+        for(;;);
+    }
+
     memcpy(&nv_info, nvram, sizeof(nv_info));
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;

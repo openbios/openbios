@@ -105,13 +105,22 @@ fw_cfg_read_i16(uint16_t cmd)
 void
 entry( void )
 {
-        uint32_t temp;
-        uint16_t machine_id;
+        uint32_t temp = 0;
+        uint16_t machine_id = 0;
         char buf[5], qemu_uuid[16];
 
-        machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
+        arch = &known_arch[ARCH_HEATHROW];
 
-        arch = &known_arch[machine_id];
+        fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
+        buf[4] = '\0';
+        if (strncmp(buf, "QEMU", 4) == 0) {
+            temp = fw_cfg_read_i32(FW_CFG_ID);
+            if (temp == 1) {
+                machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
+                arch = &known_arch[machine_id];
+            }
+        }
+
 	isa_io_base = arch->io_base;
 
 	serial_init();
@@ -120,12 +129,12 @@ entry( void )
 	printk("=============================================================\n");
 	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
 
-        fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
-        buf[4] = '\0';
 
+        if (temp != 1) {
+            printk("Incompatible configuration device version, freezing\n");
+            for(;;);
+        }
         printk("Configuration device id %s", buf);
-
-        temp = fw_cfg_read_i32(FW_CFG_ID);
 
         printk(" version %d machine id %d\n", temp, machine_id);
 

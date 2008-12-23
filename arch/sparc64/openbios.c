@@ -656,6 +656,11 @@ void arch_nvram_get(char *data)
 
     printk(" version %d machine id %d\n", temp, machine_id);
 
+    if (temp != 1) {
+        printk("Incompatible configuration device version, freezing\n");
+        for(;;);
+    }
+
     kernel_image = nv_info.kernel_image;
     kernel_size = nv_info.kernel_size;
     size = nv_info.cmdline_size;
