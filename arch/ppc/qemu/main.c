@@ -130,6 +130,82 @@ try_path(const char *path, const char *param)
     /* won't come here */
 }
 
+/*
+  Parse SGML structure like:
+  <chrp-boot>
+  <description>Debian/GNU Linux Installation on IBM CHRP hardware</description>
+  <os-name>Debian/GNU Linux for PowerPC</os-name>
+  <boot-script>boot &device;:\install\yaboot</boot-script>
+  <icon size=64,64 color-space=3,3,2>
+
+  CHRP system bindings are described at:
+  http://playground.sun.com/1275/bindings/chrp/chrp1_7a.ps
+*/
+static void
+try_bootinfo(const char *path)
+{
+    int fd;
+    char tagbuf[256], bootscript[256], c, *left, *right;
+    int len, tag, taglen, script, scriptlen;
+
+    snprintf(bootscript, sizeof(bootscript), "%s,ppc\\bootinfo.txt", path);
+    ELF_DPRINTF("Trying %s\n", bootscript);
+    if ((fd = open_io(bootscript)) == -1) {
+        ELF_DPRINTF("Can't open %s\n", bootscript);
+        return;
+    }
+    len = read_io(fd, tagbuf, 11);
+    tagbuf[11] = '\0';
+    if (len < 0 || strcasecmp(tagbuf, "<chrp-boot>") != 0)
+        goto badf;
+
+    tag = 0;
+    taglen = 0;
+    script = 0;
+    scriptlen = 0;
+    do {
+        len = read_io(fd, &c, 1);
+        if (len < 0)
+            goto badf;
+        if (c == '<') {
+            tag = 1;
+            taglen = 0;
+        } else if (c == '>') {
+            tag = 0;
+            tagbuf[taglen] = '\0';
+            if (strcasecmp(tagbuf, "boot-script") == 0)
+                script = 1;
+            else if (strcasecmp(tagbuf, "/boot-script") == 0) {
+                bootscript[scriptlen] = '\0';
+                break;
+            }
+        } else if (tag && taglen < sizeof(tagbuf)) {
+            tagbuf[taglen++] = c;
+        } else if (script && scriptlen < sizeof(bootscript)) {
+            bootscript[scriptlen++] = c;
+        }
+    } while (1);
+
+    ELF_DPRINTF("got bootscript %s\n", bootscript);
+
+    // Replace &device;: with original path
+    push_str(bootscript);
+    PUSH('&');
+    fword("left-split");
+    fword("2swap");
+    PUSH(':');
+    fword("left-split");
+    fword("2drop");
+    right = pop_fstr_copy();
+    left = pop_fstr_copy();
+    snprintf(bootscript, sizeof(bootscript), "%s%s,%s", left, path, right);
+    ELF_DPRINTF("fixed bootscript %s\n", bootscript);
+
+    feval(bootscript);
+ badf:
+    close_io( fd );
+}
+
 static void
 yaboot_startup( void )
 {
@@ -139,6 +215,7 @@ yaboot_startup( void )
         int i;
 
         if (!path) {
+            ELF_DPRINTF("Entering boot, no path\n");
             push_str("boot-device");
             push_str("/options");
             fword("(find-dev)");
@@ -159,8 +236,13 @@ yaboot_startup( void )
                     POP();
                     param = pop_fstr_copy();
                 }
+                try_bootinfo(path);
                 try_path(path, param);
             }
+        } else {
+            ELF_DPRINTF("Entering boot, path %s\n", path);
+            try_path(path, "");
+            try_bootinfo(path);
         }
         for( i=0; i < sizeof(paths) / sizeof(paths[0]); i++ ) {
             try_path(paths[i], args[i]);
