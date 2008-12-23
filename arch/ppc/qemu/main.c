@@ -33,6 +33,10 @@ do { printk("ELF - %s: " fmt, __func__ , ##args); } while (0)
 #define ELF_DPRINTF(fmt, args...) do { } while (0)
 #endif
 
+#define NVRAM_ADDR_LO 0x74
+#define NVRAM_ADDR_HI 0x75
+#define NVRAM_DATA    0x77
+
 static void
 transfer_control_to_elf( ulong elf_entry )
 {
@@ -206,6 +210,24 @@ try_bootinfo(const char *path)
     close_io( fd );
 }
 
+static uint8_t nvram_read(uint16_t offset)
+{
+    outb(offset & 0xff, NVRAM_ADDR_LO);
+    outb(offset >> 8, NVRAM_ADDR_HI);
+    return inb(NVRAM_DATA);
+}
+
+static uint32_t nvram_read_be32(uint16_t offset)
+{
+    uint32_t ret;
+
+    ret = nvram_read(offset) << 24;
+    ret |= nvram_read(offset + 1) << 16;
+    ret |= nvram_read(offset + 2) << 8;
+    ret |= nvram_read(offset + 3);
+    return ret;
+}
+
 static void
 yaboot_startup( void )
 {
@@ -238,6 +260,19 @@ yaboot_startup( void )
                 }
                 try_bootinfo(path);
                 try_path(path, param);
+            } else {
+                char boot_device = nvram_read(0x34);
+
+                switch (boot_device) {
+                case 'c':
+                    path = strdup("hd:0");
+                    break;
+                default:
+                case 'd':
+                    path = strdup("cdrom:0");
+                    break;
+                }
+                try_bootinfo(path);
             }
         } else {
             ELF_DPRINTF("Entering boot, path %s\n", path);
@@ -250,6 +285,22 @@ yaboot_startup( void )
 	printk("*** Boot failure! No secondary bootloader specified ***\n");
 }
 
+static void check_preloaded_kernel(void)
+{
+    unsigned long kernel_image, kernel_size, cmdline;
+    unsigned long initrd_image, initrd_size;
+
+    kernel_size = nvram_read_be32(0x3c);
+    if (kernel_size) {
+        kernel_image = nvram_read_be32(0x38);
+        cmdline = nvram_read_be32(0x40);
+        initrd_image = nvram_read_be32(0x48);
+        initrd_size = nvram_read_be32(0x4c);
+        printk("[ppc] Kernel already loaded (0x%8.8lx + 0x%8.8lx)\n",
+               kernel_image, kernel_size);
+        call_elf(kernel_image);
+    }
+}
 
 /************************************************************************/
 /*	entry								*/
@@ -259,5 +310,6 @@ void
 boot( void )
 {
 	fword("update-chosen");
+        check_preloaded_kernel();
 	yaboot_startup();
 }

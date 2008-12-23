@@ -27,6 +27,13 @@
 #include "qemu/qemu.h"
 #include "ofmem.h"
 #include "openbios-version.h"
+#include "libc/byteorder.h"
+#define NO_QEMU_PROTOS
+#include "openbios/fw_cfg.h"
+
+#define CFG_ADDR 0xf0000510
+
+#define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
 extern void unexpected_excep( int vector );
 extern void ob_pci_init( void );
@@ -62,10 +69,49 @@ static const pci_arch_t known_arch[] = {
 };
 uint32_t isa_io_base;
 
+static volatile uint16_t *fw_cfg_cmd = (void *)CFG_ADDR;
+static volatile uint8_t *fw_cfg_data = (void *)(CFG_ADDR + 2);
+
+static void
+fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
+{
+    unsigned int i;
+
+    *fw_cfg_cmd = cmd;
+    for (i = 0; i < nbytes; i++)
+        buf[i] = *fw_cfg_data;
+}
+
+static uint32_t
+fw_cfg_read_i32(uint16_t cmd)
+{
+    char buf[sizeof(uint32_t)];
+
+    fw_cfg_read(cmd, buf, sizeof(uint32_t));
+
+    return __le32_to_cpu(*(uint32_t *)buf);
+}
+
+static uint16_t
+fw_cfg_read_i16(uint16_t cmd)
+{
+    char buf[sizeof(uint16_t)];
+
+    fw_cfg_read(cmd, buf, sizeof(uint16_t));
+
+    return __le16_to_cpu(*(uint16_t *)buf);
+}
+
 void
 entry( void )
 {
-	arch = &known_arch[ARCH_HEATHROW];
+        uint32_t temp;
+        uint16_t machine_id;
+        char buf[5], qemu_uuid[16];
+
+        machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
+
+        arch = &known_arch[machine_id];
 	isa_io_base = arch->io_base;
 
 	serial_init();
@@ -73,6 +119,27 @@ entry( void )
 	printk("\n");
 	printk("=============================================================\n");
 	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
+
+        fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
+        buf[4] = '\0';
+
+        printk("Configuration device id %s", buf);
+
+        temp = fw_cfg_read_i32(FW_CFG_ID);
+
+        printk(" version %d machine id %d\n", temp, machine_id);
+
+        temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
+
+        printk("CPUs: %x\n", temp);
+
+        fw_cfg_read(FW_CFG_UUID, qemu_uuid, 16);
+
+        printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
+               qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
+               qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
+               qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
+               qemu_uuid[15]);
 
 	ofmem_init();
 	initialize_forth();
