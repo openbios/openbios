@@ -31,9 +31,6 @@ int		filemax;
 grub_error_t	errnum;
 char		FSYS_BUF[FSYS_BUFLEN];
 
-/* we fake this for now, assuming that the filesystem is not corrupt */
-unsigned long	part_length=(unsigned long)-1;
-
 /* these are not even used by us, instead
  * the grub fs drivers want them:
  */

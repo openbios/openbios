@@ -121,8 +121,8 @@ substring (const char *s1, const char *s2)
 #define current_slice 0
 #define current_partition 0
 
-extern unsigned long part_start;
-extern unsigned long part_length;
+/* we fake this for now, assuming that the filesystem is not corrupt */
+#define part_length -1
 extern int filepos;
 extern int filemax;
 extern int fsmax;
