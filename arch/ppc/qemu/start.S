@@ -356,42 +356,29 @@ GLOBL(flush_icache_range):
         isync
         blr
 
-	/* compute RAM size
-	 *
-	 * Exception vectors are beween 0x00000000 and 0x00004000
-	 * RAM size is limited to 2 MB (0x80000000)
-	 * MMIO and IO are after 0x80000000.
-	 * ROM is at 0xfff00000
-	 * so we can scan from 0x4000 to 0x80000000
-	 *
-	 */
+        /* Get RAM size from Qemu configuration device */
+
+#define CFG_ADDR 0xf0000510
+#define FW_CFG_RAM_SIZE         0x03
 
 compute_ramsize:
-	li	r3, 0x4000	/* start address */
-
-	/* how many pages between 0x4000 and 0x80000000 */
-
-	lis	r4, 0x0007
-	ori	r4, r4, 0xfffc
-	mtctr	r4
-
-	/* pattern to write in memory */
-
-	lis	r4, 0x55aa
-	ori	r4, r4, 0x55aa
-
-memloop:
-	/* store and re-read pattern */
-
-	stw	r4, 0(r3)
-	sync
-	lwz	r0, 0(r3)
-	cmpw	cr7, r0, r4
-	bne	cr7, exit_memloop
-	addi	r3, r3, 4096	/* add page size */
-	bdnz	memloop
-exit_memloop:
-	blr
+        lis     r9,HA(CFG_ADDR)
+        ori     r9,r9,LO(CFG_ADDR)
+        li      r0,FW_CFG_RAM_SIZE
+        sth     r0,0(r9)
+        lis     r9,HA(CFG_ADDR + 2)
+        ori     r9,r9,LO(CFG_ADDR + 2)
+        lbz     r1,0(r9)
+        lbz     r0,0(r9)
+        slwi    r0,r0,8
+        or      r1,r1,r0
+        lbz     r0,0(r9)
+        slwi    r0,r0,16
+        or      r1,r1,r0
+        lbz     r0,0(r9)
+        slwi    r0,r0,24
+        or      r3,r1,r0
+        blr
 
         /* Hard reset vector */
 	.section .romentry,"ax"

@@ -152,6 +152,9 @@ entry( void )
 
         printk("CPUs: %x\n", temp);
 
+        temp = fw_cfg_read_i32(FW_CFG_RAM_SIZE);
+        printk("Memory: %dM\n", temp / 1024 / 1024);
+
         fw_cfg_read(FW_CFG_UUID, qemu_uuid, 16);
 
         printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
