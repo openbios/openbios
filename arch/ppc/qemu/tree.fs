@@ -28,32 +28,10 @@ new-device
 finish-device
 
 new-device
-	" cpu" device-name
-	" cpu" device-type
-	" " encode-string " translations" property
-	0 encode-phys h# 8000000 encode-int encode+ " available" property
-	d# 32 encode-int " d-cache-block-size" property
-	8 encode-int " d-cache-sets" property
-	d# 32768 encode-int " d-cache-size" property
-	d# 32 encode-int " i-cache-block-size" property
-	8 encode-int " i-cache-sets" property
-	d# 32768 encode-int " i-cache-size" property
-	" " encode-string " cache-unified" property
-	2 encode-int " i-tlb-sets" property
-	d# 128 encode-int " i-tlb-size" property
-	2 encode-int " d-tlb-sets" property
-	d# 128 encode-int " d-tlb-size" property
-	" " encode-string " tlb-split" property
-	2 encode-int " tlb-sets" property
-	d# 256 encode-int " tlb-size" property
-	" " encode-string " performance-monitor" property
-	" " encode-string " graphics" property
-	4 encode-int " reservation-granule-size" property
-        d# 25000000 encode-int " timebase-frequency" property
-        d# 300000000 encode-int " clock-frequency" property
-        d# 66000000 encode-int " bus-frequency" property
-        h# 88201 encode-int " cpu-version" property
-	0 encode-int " reg" property
+        " cpus" device-name
+        " cpus" device-type
+	1 encode-int " #address-cells" property
+	0 encode-int " #size-cells" property
 finish-device
 
 " /pci" find-device

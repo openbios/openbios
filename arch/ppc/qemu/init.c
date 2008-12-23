@@ -35,6 +35,16 @@
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
+struct cpudef {
+    unsigned long iu_version;
+    const char *name;
+    int icache_size, dcache_size;
+    int icache_sets, dcache_sets;
+    int icache_block_size, dcache_block_size;
+    int clock_frequency;
+    void (*initfn)(const struct cpudef *cpu);
+};
+
 extern void unexpected_excep( int vector );
 extern void ob_pci_init( void );
 extern void setup_timers( void );
@@ -159,6 +169,124 @@ entry( void )
 		;
 }
 
+static void
+cpu_generic_init(const struct cpudef *cpu)
+{
+    unsigned long iu_version;
+
+    push_str("/cpus");
+    fword("find-device");
+
+    fword("new-device");
+
+    push_str(cpu->name);
+    fword("device-name");
+
+    push_str("cpu");
+    fword("device-type");
+
+    asm("mfpvr %0\n"
+        : "=r"(iu_version) :);
+    PUSH(iu_version);
+    fword("encode-int");
+    push_str("cpu-version");
+    fword("property");
+
+    PUSH(cpu->dcache_size);
+    fword("encode-int");
+    push_str("dcache-size");
+    fword("property");
+
+    PUSH(cpu->icache_size);
+    fword("encode-int");
+    push_str("icache-size");
+    fword("property");
+
+    PUSH(cpu->dcache_sets);
+    fword("encode-int");
+    push_str("dcache-sets");
+    fword("property");
+
+    PUSH(cpu->icache_sets);
+    fword("encode-int");
+    push_str("icache-sets");
+    fword("property");
+
+    PUSH(cpu->dcache_block_size);
+    fword("encode-int");
+    push_str("dcache-block-size");
+    fword("property");
+
+    PUSH(cpu->icache_block_size);
+    fword("encode-int");
+    push_str("icache-block-size");
+    fword("property");
+
+    push_str("running");
+    fword("encode-string");
+    push_str("state");
+    fword("property");
+
+    fword("finish-device");
+}
+
+static void
+cpu_750_init(const struct cpudef *cpu)
+{
+    cpu_generic_init(cpu);
+}
+
+static void
+cpu_g4_init(const struct cpudef *cpu)
+{
+    cpu_generic_init(cpu);
+}
+
+static const struct cpudef ppc_defs[] = {
+    {
+        .iu_version = 0x000080000,
+        .name = "PowerPC,750",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x14dc9380,
+        .initfn = cpu_750_init,
+    },
+    {
+        .iu_version = 0x0000c0000,
+        .name = "PowerPC,G4",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x1dcd6500,
+        .initfn = cpu_g4_init,
+    },
+};
+
+static const struct cpudef *
+id_cpu(void)
+{
+    unsigned long iu_version;
+    unsigned int i;
+
+    asm("mfpvr %0\n"
+        : "=r"(iu_version) :);
+    iu_version &= 0xffff0000;
+
+    for (i = 0; i < sizeof(ppc_defs)/sizeof(struct cpudef); i++) {
+        if (iu_version == ppc_defs[i].iu_version)
+            return &ppc_defs[i];
+    }
+    printk("Unknown cpu (pvr %lx), freezing!\n", iu_version);
+    for (;;);
+}
+
 void
 arch_of_init( void )
 {
@@ -166,6 +294,7 @@ arch_of_init( void )
 	phandle_t ph;
 #endif
 	uint64_t ram_size;
+        const struct cpudef *cpu;
 
 	devtree_init();
 
@@ -217,6 +346,10 @@ arch_of_init( void )
 	fword("encode+");
 	push_str("available");
 	fword("property");
+
+        cpu = id_cpu();
+        cpu->initfn(cpu);
+        printk("CPU type %s\n", cpu->name);
 
 	modules_init();
 	setup_timers();
