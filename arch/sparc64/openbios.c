@@ -385,7 +385,7 @@ set_trap_table(void)
         : : "r" (addr));
 }
 
-static void cpu_generic_init(const struct cpudef *cpu)
+static void cpu_generic_init(const struct cpudef *cpu, uint32_t clock_frequency)
 {
     unsigned long iu_version;
     char nodebuff[256];
@@ -427,6 +427,11 @@ static void cpu_generic_init(const struct cpudef *cpu)
     PUSH(0);
     fword("encode-int");
     push_str("cpuid");
+    fword("property");
+
+    PUSH(clock_frequency);
+    fword("encode-int");
+    push_str("clock-frequency");
     fword("property");
 
     fword("finish-device");
@@ -563,6 +568,7 @@ void arch_nvram_get(char *data)
     char buf[256];
     uint32_t temp;
     uint64_t ram_size;
+    uint32_t clock_frequency;
 
     for (i = 0; i < sizeof(ohwcfg_v3_t); i++) {
         outb(i & 0xff, 0x74);
@@ -614,9 +620,11 @@ void arch_nvram_get(char *data)
 
     printk("CPUs: %x", temp);
 
+    clock_frequency = 100000000;
+
     cpu = id_cpu();
     //cpu->initfn();
-    cpu_generic_init(cpu);
+    cpu_generic_init(cpu, clock_frequency);
     printk(" x %s\n", cpu->name);
 
     // Add /uuid
