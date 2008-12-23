@@ -56,7 +56,7 @@ load_elf_rom( ulong *elf_entry, int fd )
 
 	/* the ELF-image (usually) starts at offset 0x4000 */
 	if( (elf_offs=find_elf(fd)) < 0 ) {
-		ELF_DPRINTF("----> %s is not an ELF image\n", buf );
+                ELF_DPRINTF("----> %s is not an ELF image\n", get_file_path(fd));
 		exit(1);
 	}
 	if( !(phdr=elf_readhdrs(fd, elf_offs, &ehdr)) )
@@ -73,8 +73,8 @@ load_elf_rom( ulong *elf_entry, int fd )
 		seek_io( fd, elf_offs + phdr[i].p_offset );
 
 		ELF_DPRINTF("filesz: %08lX memsz: %08lX p_offset: %08lX p_vaddr %08lX\n",
-		   phdr[i].p_filesz, phdr[i].p_memsz, phdr[i].p_offset,
-		   phdr[i].p_vaddr );
+                   (ulong)phdr[i].p_filesz, (ulong)phdr[i].p_memsz, (ulong)phdr[i].p_offset,
+                   (ulong)phdr[i].p_vaddr );
 
 		if( phdr[i].p_vaddr != phdr[i].p_paddr )
 			ELF_DPRINTF("WARNING: ELF segment virtual addr != physical addr\n");
@@ -108,28 +108,63 @@ encode_bootpath( const char *spec, const char *args )
 /************************************************************************/
 /*	qemu booting							*/
 /************************************************************************/
+static void
+try_path(const char *path, const char *param)
+{
+    ulong elf_entry;
+    int fd;
+
+    ELF_DPRINTF("Trying %s %s\n", path, param);
+    if ((fd = open_io(path)) == -1) {
+        ELF_DPRINTF("Can't open %s\n", path);
+        return;
+    }
+    (void) load_elf_rom( &elf_entry, fd );
+    close_io( fd );
+    encode_bootpath( path, param );
+
+    update_nvram();
+    ELF_DPRINTF("Transfering control to %s %s\n",
+                path, param);
+    transfer_control_to_elf( elf_entry );
+    /* won't come here */
+}
 
 static void
 yaboot_startup( void )
 {
-	const char *paths[] = { "hd:2,\\ofclient", "hd:2,\\yaboot", NULL };
-	const char *args[] = { "", "conf=hd:2,\\yaboot.conf", NULL };
-        ulong elf_entry;
-	int i, fd;
+        static const char * const paths[] = { "hd:2,\\ofclient", "hd:2,\\yaboot" };
+        static const char * const args[] = { "", "conf=hd:2,\\yaboot.conf" };
+        char *path = pop_fstr_copy(), *param;
+        int i;
 
-	for( i=0; paths[i]; i++ ) {
-		if( (fd=open_io(paths[i])) == -1 )
-			continue;
-                (void) load_elf_rom( &elf_entry, fd );
-		close_io( fd );
-		encode_bootpath( paths[i], args[i] );
-
-		update_nvram();
-		ELF_DPRINTF("Transfering control to %s %s\n",
-			    paths[i], args[i]);
-                transfer_control_to_elf( elf_entry );
-		/* won't come here */
-	}
+        if (!path) {
+            push_str("boot-device");
+            push_str("/options");
+            fword("(find-dev)");
+            POP();
+            fword("get-package-property");
+            if (!POP()) {
+                path = pop_fstr_copy();
+                param = strchr(path, ' ');
+                if (param) {
+                    *param = '\0';
+                    param++;
+                } else {
+                    push_str("boot-args");
+                    push_str("/options");
+                    fword("(find-dev)");
+                    POP();
+                    fword("get-package-property");
+                    POP();
+                    param = pop_fstr_copy();
+                }
+                try_path(path, param);
+            }
+        }
+        for( i=0; i < sizeof(paths) / sizeof(paths[0]); i++ ) {
+            try_path(paths[i], args[i]);
+        }
 	printk("*** Boot failure! No secondary bootloader specified ***\n");
 }
 
