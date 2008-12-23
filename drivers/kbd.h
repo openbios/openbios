@@ -34,7 +34,7 @@ struct kbd_t {
      * Right modifiers -----------+
      */
     int nb_keys;
-    keymap_t *keymap;
+    const keymap_t *keymap;
 };
 
 /* Modifiers */
@@ -97,7 +97,7 @@ struct keymap_t {
 };
 
 void *kbd_new (int len);
-int kbd_set_keymap (kbd_t *kbd, int nb_keys, keymap_t *keymap);
+int kbd_set_keymap (kbd_t *kbd, int nb_keys, const keymap_t *keymap);
 int kbd_translate_key (kbd_t *kbd, int keycode, int up_down);
 
 #endif /* !defined (__OHW_KBD_H__) */

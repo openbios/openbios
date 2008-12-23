@@ -33,7 +33,7 @@
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_pci_node, INSTALL_OPEN, 2*sizeof(int) );
 
-pci_arch_t *arch;
+const pci_arch_t *arch;
 
 static void
 ob_pci_open(int *idx)

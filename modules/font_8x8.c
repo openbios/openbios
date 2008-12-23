@@ -8,7 +8,7 @@
 #define FONT_WIDTH 8
 #define FONT_HEIGHT 8
 
-static unsigned char fontdata[FONTDATAMAX] = {
+static const unsigned char fontdata[FONTDATAMAX] = {
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */

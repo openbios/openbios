@@ -65,7 +65,7 @@ NODE_METHODS( keyboard ) = {
  */
 
 
-static keymap_t ADB_kbd_us[] = {
+static const keymap_t ADB_kbd_us[] = {
     /* 0x00 */
     { KBD_SH_CAPS, { 0x61, 0x41,   -1,   -1,   -1,   -1,   -1,   -1,
                        -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,

@@ -30,7 +30,7 @@ do { printk("KBD - %s: " fmt, __func__ , ##args); } while (0)
 #define KBD_DPRINTF(fmt, args...) do { } while (0)
 #endif
 
-int kbd_set_keymap (kbd_t *kbd, int nb_keys, keymap_t *keymap)
+int kbd_set_keymap (kbd_t *kbd, int nb_keys, const keymap_t *keymap)
 {
     kbd->nb_keys = nb_keys;
     kbd->keymap = keymap;
@@ -40,7 +40,7 @@ int kbd_set_keymap (kbd_t *kbd, int nb_keys, keymap_t *keymap)
 
 int kbd_translate_key (kbd_t *kbd, int keycode, int up_down)
 {
-    keymap_t *keyt;
+    const keymap_t *keyt;
     int mod_state, key, type;
     int ret;
 

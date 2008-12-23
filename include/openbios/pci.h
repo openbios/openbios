@@ -21,6 +21,6 @@ struct pci_arch_t {
     unsigned long rlen;
 };
 
-extern pci_arch_t *arch;
+extern const pci_arch_t *arch;
 
 #endif	/* _H_PCI */
