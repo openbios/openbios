@@ -359,11 +359,8 @@ static unsigned char collect_interrupt(void)
 				printk_debug("SENSEI %02x %02x\n",
 					reply_buffer[0], reply_buffer[1]);
 			}
-#if 0
-		}while((nr == 2) && (reply_buffer[0] != 0x80));
-#else
+                        max_sensei--;
 		}while(((reply_buffer[0] & 0x83) != FD_DRIVE) && (nr == 2) && max_sensei);
-#endif
 		status = inb(FD_STATUS);
 		printk_debug("status = %x, reply_buffer=", status);
 		for(i = 0; i < nr; i++) {
