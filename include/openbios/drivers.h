@@ -59,6 +59,11 @@ int ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
                  unsigned long aux1_offset, unsigned long aux2_offset);
 int start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context,
               int cpu);
+void serial_putchar(int c);
+int uart_charav(int port);
+char uart_getchar(int port);
+void serial_cls(void);
+int uart_init(uint64_t port, unsigned long speed);
 
 /* drivers/iommu.c */
 extern struct mem cmem;
