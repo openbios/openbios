@@ -119,8 +119,8 @@ ob_intr(int intr)
 
 static volatile unsigned char *kbd_dev, *serial_dev;
 
-#define CTRL(port) serial_dev[(port) * 2 + 0]
-#define DATA(port) serial_dev[(port) * 2 + 2]
+#define CTRL(addr) (*(volatile unsigned char *)(addr))
+#define DATA(addr) (*(volatile unsigned char *)(addr + 2))
 
 /* Conversion routines to/from brg time constants from/to bits
  * per second.
@@ -177,7 +177,7 @@ static void uart_putchar(int port, unsigned char c)
     DATA(port) = c;
 }
 
-static void uart_init_line(int port, unsigned long baud)
+static void uart_init_line(volatile unsigned char *port, unsigned long baud)
 {
     CTRL(port) = 4; // reg 4
     CTRL(port) = SB1 | X16CLK; // no parity, async, 1 stop bit, 16x
@@ -203,19 +203,17 @@ static void uart_init_line(int port, unsigned long baud)
 
 int uart_init(uint64_t port, unsigned long speed)
 {
-    int line;
-
     serial_dev = map_io(port & ~7ULL, 2 * 4);
     serial_dev += port & 7ULL;
-    line = port & 3ULL;
-    uart_init_line(line, speed);
+    uart_init_line(serial_dev, speed);
 
     return -1;
 }
 
 void serial_putchar(int c)
 {
-    uart_putchar(CONFIG_SERIAL_PORT, (unsigned char) (c & 0xff));
+    uart_putchar((int)(serial_dev + CONFIG_SERIAL_PORT),
+                 (unsigned char) (c & 0xff));
 }
 
 void serial_cls(void)
