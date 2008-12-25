@@ -234,6 +234,12 @@ cpu_generic_init(const struct cpudef *cpu)
 }
 
 static void
+cpu_604_init(const struct cpudef *cpu)
+{
+    cpu_generic_init(cpu);
+}
+
+static void
 cpu_750_init(const struct cpudef *cpu)
 {
     cpu_generic_init(cpu);
@@ -247,8 +253,104 @@ cpu_g4_init(const struct cpudef *cpu)
 
 static const struct cpudef ppc_defs[] = {
     {
+        .iu_version = 0x00040000,
+        .name = "PowerPC,604",
+        .icache_size = 0x4000,
+        .dcache_size = 0x4000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x07de2900,
+        .initfn = cpu_604_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x00090000,
+        .name = "PowerPC,604e",
+        .icache_size = 0x4000,
+        .dcache_size = 0x4000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x07de2900,
+        .initfn = cpu_604_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x000a0000,
+        .name = "PowerPC,604r",
+        .icache_size = 0x4000,
+        .dcache_size = 0x4000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x07de2900,
+        .initfn = cpu_604_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x80040000,
+        .name = "PowerPC,MPC86xx",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x14dc9380,
+        .initfn = cpu_750_init,
+    },
+    {
         .iu_version = 0x000080000,
         .name = "PowerPC,750",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x14dc9380,
+        .initfn = cpu_750_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x10080000,
+        .name = "PowerPC,750",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x14dc9380,
+        .initfn = cpu_750_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x70000000,
+        .name = "PowerPC,750",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x14dc9380,
+        .initfn = cpu_750_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x70020000,
+        .name = "PowerPC,750",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x20,
+        .dcache_block_size = 0x20,
+        .clock_frequency = 0x14dc9380,
+        .initfn = cpu_750_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x800c0000,
+        .name = "PowerPC,74xx",
         .icache_size = 0x8000,
         .dcache_size = 0x8000,
         .icache_sets = 0x80,
