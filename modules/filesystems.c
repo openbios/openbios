@@ -256,6 +256,12 @@ files_probe( files_info_t *dummy )
 }
 
 static void
+files_block_size( files_info_t *dummy )
+{
+	PUSH(512);
+}
+
+static void
 files_initializer( files_info_t *dummy )
 {
 	fword("register-fs-package");
@@ -269,6 +275,7 @@ NODE_METHODS( files ) = {
 	{ "write",		files_write 		},
 	{ "seek",		files_seek 		},
 	{ "tell",		files_tell		},
+	{ "block-size",		files_block_size	},
 
 	/* special */
 	{ "reopen",		files_reopen 		},

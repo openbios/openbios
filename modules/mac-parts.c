@@ -55,7 +55,7 @@ macparts_open( macparts_info_t *di )
 		free( str );
 	}
 	if( parnum < 0 )
-		parnum = 1;
+		parnum = 0;
 
 	DPRINTF("macparts_open %d\n", parnum);
 	SEEK( 0 );

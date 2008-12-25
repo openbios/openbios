@@ -61,10 +61,12 @@ load_elf_rom( ulong *elf_entry, int fd )
 	/* the ELF-image (usually) starts at offset 0x4000 */
 	if( (elf_offs=find_elf(fd)) < 0 ) {
                 ELF_DPRINTF("----> %s is not an ELF image\n", get_file_path(fd));
-		exit(1);
+		return -1;
 	}
-	if( !(phdr=elf_readhdrs(fd, elf_offs, &ehdr)) )
-		fatal_error("elf_readhdrs failed\n");
+	if( !(phdr=elf_readhdrs(fd, elf_offs, &ehdr)) ) {
+		ELF_DPRINTF("elf_readhdrs failed\n");
+		return -1;
+	}
 
 	*elf_entry = ehdr.e_entry;
 
@@ -89,8 +91,10 @@ load_elf_rom( ulong *elf_entry, int fd )
 			fatal_error("Claim failed!\n");
 
 		addr = (char*)phdr[i].p_vaddr;
-		if( read_io(fd, addr, s) != s )
-			fatal_error("read failed\n");
+		if( read_io(fd, addr, s) != s ) {
+			ELF_DPRINTF("read failed\n");
+			return -1;
+		}
 
 		flush_icache_range( addr, addr+s );
 
@@ -116,14 +120,16 @@ static void
 try_path(const char *path, const char *param)
 {
     ulong elf_entry;
-    int fd;
+    int fd, ret;
 
     ELF_DPRINTF("Trying %s %s\n", path, param);
     if ((fd = open_io(path)) == -1) {
         ELF_DPRINTF("Can't open %s\n", path);
         return;
     }
-    (void) load_elf_rom( &elf_entry, fd );
+    ret = load_elf_rom( &elf_entry, fd );
+    if (ret < 0)
+        return;
     close_io( fd );
     encode_bootpath( path, param );
 
@@ -258,8 +264,8 @@ yaboot_startup( void )
                     POP();
                     param = pop_fstr_copy();
                 }
-                try_bootinfo(path);
                 try_path(path, param);
+                try_bootinfo(path);
             } else {
                 char boot_device = nvram_read(0x34);
 
