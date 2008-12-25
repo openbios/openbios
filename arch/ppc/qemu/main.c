@@ -269,7 +269,7 @@ yaboot_startup( void )
                     break;
                 default:
                 case 'd':
-                    path = strdup("cdrom:0");
+                    path = strdup("cd:0");
                     break;
                 }
                 try_bootinfo(path);

@@ -102,7 +102,7 @@ finish-device
     then
   then
 
-  " cdrom"
+  " cd"
   " /pci/pci-ata/ata-1/cdrom@0" ?devalias not if
     " /pci/pci-ata/ata-1/cdrom@1" ?devalias not if
       " /pci/pci-ata/ata-2/cdrom@0" ?devalias not if
