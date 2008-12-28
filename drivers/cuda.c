@@ -58,6 +58,10 @@
 #define ADB_PACKET      0
 #define CUDA_PACKET     1
 
+/* CUDA commands (2nd byte) */
+#define CUDA_POWERDOWN                  0xa
+#define CUDA_RESET_SYSTEM               0x11
+
 static uint8_t cuda_readb (cuda_t *dev, int reg)
 {
 	    return *(volatile uint8_t *)(dev->base + reg);
@@ -153,6 +157,26 @@ static int cuda_adb_req (void *host, const uint8_t *snd_buf, int len,
 
 DECLARE_UNNAMED_NODE(ob_cuda, INSTALL_OPEN, sizeof(int));
 
+static cuda_t *main_cuda;
+
+static void
+ppc32_reset_all(void)
+{
+        uint8_t cmdbuf[2], obuf[64];
+
+        cmdbuf[0] = CUDA_RESET_SYSTEM;
+        cuda_request(main_cuda, CUDA_PACKET, cmdbuf, sizeof(cmdbuf), obuf);
+}
+
+static void
+ppc32_poweroff(void)
+{
+        uint8_t cmdbuf[2], obuf[64];
+
+        cmdbuf[0] = CUDA_POWERDOWN;
+        cuda_request(main_cuda, CUDA_PACKET, cmdbuf, sizeof(cmdbuf), obuf);
+}
+
 static void
 ob_cuda_initialize (int *idx)
 {
@@ -174,6 +198,14 @@ ob_cuda_initialize (int *idx)
 	set_int_property(ph, "interrupt-parent", pic_handle);
 	// HEATHROW
 	set_int_property(ph, "interrupts", 0x12);
+
+        bind_func("ppc32-reset-all", ppc32_reset_all);
+        push_str("' ppc32-reset-all to reset-all");
+        fword("eval");
+
+        PUSH(0);
+        fword("active-package!");
+        bind_func("poweroff", ppc32_poweroff);
 }
 
 static void
@@ -268,6 +300,8 @@ cuda_t *cuda_init (const char *path, uint32_t base)
 #endif
 
 	rtc_init(buf);
+
+        main_cuda = cuda;
 
 	return cuda;
 }
