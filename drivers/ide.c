@@ -1313,8 +1313,6 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 		uint32_t io_port1, uint32_t ctl_port1)
 {
 	int i, j;
-	const char * nodetemp_chan = "%s/"DEV_NAME;
-	const char * nodetemp = "%s/"DEV_NAME"/%s";
 	char nodebuff[32];
 	phandle_t dnode;
 
@@ -1363,7 +1361,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 		ob_ide_identify_drives(chan);
 
-		snprintf(nodebuff, sizeof(nodebuff), nodetemp_chan, path,
+                snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
                          current_channel);
 		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
 		printk(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
@@ -1393,8 +1391,9 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 					break;
 			}
 			printk("%s]: %s\n", media, drive->model);
-			snprintf(nodebuff, sizeof(nodebuff), nodetemp, path,
-                                 current_channel, media);
+                        snprintf(nodebuff, sizeof(nodebuff),
+                                 "%s/" DEV_NAME "/%s", path, current_channel,
+                                 media);
 			REGISTER_NAMED_NODE(ob_ide, nodebuff);
 			dnode=find_dev(nodebuff);
 			set_int_property(dnode, "reg", j);
