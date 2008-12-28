@@ -229,26 +229,50 @@ cpu_generic_init(const struct cpudef *cpu)
     fword("encode-string");
     push_str("state");
     fword("property");
+}
 
-    fword("finish-device");
+static void
+cpu_add_pir_property(void)
+{
+    unsigned long pir;
+
+    asm("mfspr %0, 1023\n"
+        : "=r"(pir) :);
+    PUSH(pir);
+    fword("encode-int");
+    push_str("reg");
+    fword("property");
 }
 
 static void
 cpu_604_init(const struct cpudef *cpu)
 {
     cpu_generic_init(cpu);
+    cpu_add_pir_property();
+
+    fword("finish-device");
 }
 
 static void
 cpu_750_init(const struct cpudef *cpu)
 {
     cpu_generic_init(cpu);
+
+    PUSH(0);
+    fword("encode-int");
+    push_str("reg");
+    fword("property");
+
+    fword("finish-device");
 }
 
 static void
 cpu_g4_init(const struct cpudef *cpu)
 {
     cpu_generic_init(cpu);
+    cpu_add_pir_property();
+
+    fword("finish-device");
 }
 
 static const struct cpudef ppc_defs[] = {
