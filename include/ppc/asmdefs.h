@@ -22,7 +22,7 @@
 /*	High/low halfword compatibility macros				*/
 /************************************************************************/
 
-#ifdef __linux__
+#ifndef __darwin__
 #define 	ha16( v )	(v)##@ha
 #define 	hi16( v )	(v)##@h
 #define 	lo16( v )	(v)##@l
