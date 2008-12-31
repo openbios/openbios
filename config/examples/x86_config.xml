@@ -69,5 +69,6 @@
   <option name="CONFIG_IDE_NUM_CHANNELS" type="integer" value="4"/>
   <option name="CONFIG_DEBUG_IDE" type="boolean" value="false"/>
   <option name="CONFIG_DRIVER_FLOPPY" type="boolean" value="false"/>
+  <option name="CONFIG_DEBUG_FLOPPY" type="boolean" value="false"/>
 
 </config>

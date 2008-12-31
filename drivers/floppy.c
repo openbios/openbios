@@ -11,8 +11,13 @@
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_floppy, INSTALL_OPEN, 2*sizeof(int) );
 
+#ifdef CONFIG_DEBUG_FLOPPY
 #define printk_info printk
 #define printk_debug printk
+#else
+#define printk_info(x ...)
+#define printk_debug(x ...)
+#endif
 #define printk_err printk
 
 #ifndef FD_BASE
