@@ -110,6 +110,36 @@ get_ram_bottom( void )
         return (ulong)OF_MALLOC_BASE;
 }
 
+static phandle_t cpu_handle = 0;
+static void
+ofmem_update_translations( void )
+{
+	ofmem_t *ofmem = OFMEM;
+	translation_t *t;
+	int ncells;
+	cell *props;
+
+	if (cpu_handle == 0)
+		return;
+
+	for( t = ofmem->trans, ncells = 0; t ; t=t->next, ncells++ )
+		;
+
+	props = malloc(ncells * sizeof(cell) * 4);
+	if (props == NULL)
+		return;
+
+	for( t = ofmem->trans, ncells = 0 ; t ; t=t->next ) {
+		props[ncells++] = t->virt;
+		props[ncells++] = t->size;
+		props[ncells++] = t->phys;
+		props[ncells++] = t->mode;
+	}
+	set_property(cpu_handle, "translations",
+		     (char*)props, ncells * sizeof(cell));
+	free(props);
+}
+
 /************************************************************************/
 /*	OF private allocations						*/
 /************************************************************************/
@@ -502,6 +532,8 @@ map_page_range( ulong virt, ulong phys, ulong size, int mode )
 	t->next = *tt;
 	*tt = t;
 
+	ofmem_update_translations();
+
 	return 0;
 }
 
@@ -702,4 +734,11 @@ ofmem_init( void )
 	ofmem_claim_virt( 0, get_ram_bottom(), 0 );
 	ofmem_claim_phys( get_ram_top(), get_ram_size() - get_ram_top(), 0);
 	ofmem_claim_virt( get_ram_top(), get_ram_size() - get_ram_top(), 0);
+}
+
+void
+ofmem_register( phandle_t ph )
+{
+	cpu_handle = ph;
+	ofmem_update_translations();
 }

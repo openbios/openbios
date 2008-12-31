@@ -36,6 +36,7 @@ ulong get_ram_bottom( void );
 void dsi_exception( void );
 void isi_exception( void );
 void setup_mmu( ulong ramsize );
+void ofmem_register( phandle_t ph );
 #endif
 
 #endif   /* _H_OFMEM */

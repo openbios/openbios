@@ -28,6 +28,7 @@
 #include "ofmem.h"
 #include "openbios-version.h"
 #include "libc/byteorder.h"
+#include "libc/vsprintf.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 
@@ -424,6 +425,7 @@ arch_of_init( void )
 #endif
 	uint64_t ram_size;
         const struct cpudef *cpu;
+	char buf[64];
 
 	devtree_init();
 
@@ -485,6 +487,8 @@ arch_of_init( void )
 #ifdef CONFIG_DRIVER_PCI
 	ob_pci_init();
 #endif
+	snprintf(buf, sizeof(buf), "/cpus/%s", cpu->name);
+	ofmem_register(find_dev(buf));
 	node_methods_init();
 
 #ifdef USE_RTAS
