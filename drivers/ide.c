@@ -1314,7 +1314,12 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 {
 	int i, j;
 	char nodebuff[32];
-	phandle_t dnode;
+	phandle_t dnode, aliases;
+	int hd_found, cd_found;
+
+	aliases = find_dev("/aliases");
+	hd_found = 0;
+	cd_found = 0;
 
 	io_ports[0] = io_port0;
 	ctl_ports[0] = ctl_port0 + 2;
@@ -1404,6 +1409,19 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 			REGISTER_NAMED_NODE(ob_ide, nodebuff);
 			dnode=find_dev(nodebuff);
 			set_int_property(dnode, "reg", j);
+
+			/* create aliases */
+
+			if (drive->media == ide_media_cdrom && !cd_found) {
+				cd_found = 1;
+				set_property(aliases, "cd",
+					     nodebuff, strlen(nodebuff) + 1);
+			}
+			if (drive->media == ide_media_disk && !hd_found) {
+				hd_found = 1;
+				set_property(aliases, "hd",
+					     nodebuff, strlen(nodebuff) + 1);
+			}
 		}
 	}
 
