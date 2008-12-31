@@ -2,6 +2,7 @@
 
  <library name="drivers" type="static" target="target">
   <object source="pci.c"   condition="DRIVER_PCI"/>
+  <object source="pci_database.c" condition="DRIVER_PCI"/>
   <object source="ide.c"   condition="DRIVER_IDE"/>
   <object source="timer.c" condition="DRIVER_IDE"/>
   <object source="kbd.c"   condition="DRIVER_ADB"/>
