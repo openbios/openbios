@@ -64,7 +64,7 @@
  
   <!-- Drivers -->
   <option name="CONFIG_DRIVER_PCI" type="boolean" value="true"/>
-  <option name="CONFIG_DEBUG_PCI" type="boolean" value="true"/>
+  <option name="CONFIG_DEBUG_PCI" type="boolean" value="false"/>
   <option name="CONFIG_DRIVER_IDE" type="boolean" value="true"/>
   <option name="CONFIG_IDE_NUM_CHANNELS" type="integer" value="2"/>
   <option name="CONFIG_IDE_FIRST_UNIT" type="integer" value="1"/>

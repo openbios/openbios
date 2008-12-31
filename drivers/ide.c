@@ -1364,9 +1364,11 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
                 snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
                          current_channel);
 		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
+#ifdef CONFIG_DEBUG_IDE
 		printk(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
 		       current_channel, chan->io_regs[0],
 		       chan->io_regs[0] + 7, chan->io_regs[8]);
+#endif
 
 		for (j = 0; j < 2; j++) {
 			struct ide_drive *drive = &chan->drives[j];
@@ -1375,7 +1377,10 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 			if (!drive->present)
 				continue;
 
-			printk("    drive%d [ATA%s ", j, drive->type == ide_type_atapi ? "PI" : "");
+#ifdef CONFIG_DEBUG_IDE
+			printk("    drive%d [ATA%s ", j,
+			       drive->type == ide_type_atapi ? "PI" : "");
+#endif
 			switch (drive->media) {
 				case ide_media_floppy:
 					media = "floppy";
@@ -1390,7 +1395,9 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 					media = "disk";
 					break;
 			}
+#ifdef CONFIG_DEBUG_IDE
 			printk("%s]: %s\n", media, drive->model);
+#endif
                         snprintf(nodebuff, sizeof(nodebuff),
                                  "%s/" DEV_NAME "/%s", path, current_channel,
                                  media);
