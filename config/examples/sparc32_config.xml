@@ -15,7 +15,7 @@
   <option name="CONFIG_HOST_UNIX" type="boolean" value="true"/>
   <option name="CONFIG_UNIX_QT" type="boolean" value="false"/>
   <option name="CONFIG_PLUGINS" type="boolean" value="false"/>
- 
+
   <!-- Kernel Debugging -->
   <option name="CONFIG_DEBUG" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_BOOT" type="boolean" value="false"/>
@@ -33,13 +33,13 @@
   <option name="CONFIG_DEBUG_IOMMU" type="boolean" value="false"/>
   <option name="CONFIG_SERIAL_PORT" type="integer" value="0"/>
   <option name="CONFIG_SERIAL_SPEED" type="integer" value="9600"/>
-  
- 
+
+
   <!-- Module Configuration -->
   <option name="CONFIG_CMDLINE" type="boolean" value="true"/>
   <option name="CONFIG_DEBLOCKER" type="boolean" value="true"/>
- 
- 
+
+
   <!-- Filesystem Configuration -->
   <option name="CONFIG_DISK_LABEL" type="boolean" value="true"/>
   <option name="CONFIG_PART_SUPPORT" type="boolean" value="true"/>
@@ -63,10 +63,10 @@
   <option name="CONFIG_FSYS_AFFS" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_FS" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_EXT2FS" type="boolean" value="false"/>
-  
+
   <!-- Miscellaneous -->
   <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>
- 
+
   <!-- Drivers -->
   <option name="CONFIG_DRIVER_SBUS" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_OBIO" type="boolean" value="true"/>

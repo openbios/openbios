@@ -2,7 +2,6 @@
 <config>
 
   <!-- generic -->
-  <!--<option name="CONFIG_AMD64" type="boolean" value="true"/> -->
   <option name="CONFIG_PPC" type="boolean" value="true"/>
   <option name="CONFIG_MOL" type="boolean" value="false"/>
   <option name="CONFIG_BRIQ" type="boolean" value="false"/>
@@ -14,7 +13,7 @@
   <option name="CONFIG_HOST_UNIX" type="boolean" value="true"/>
   <option name="CONFIG_UNIX_QT" type="boolean" value="false"/>
   <option name="CONFIG_PLUGINS" type="boolean" value="false"/>
- 
+
   <!-- Kernel Debugging -->
   <option name="CONFIG_DEBUG" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_BOOT" type="boolean" value="false"/>
@@ -28,13 +27,13 @@
   <option name="CONFIG_SERIAL_PORT" type="integer" value="1"/>
   <option name="CONFIG_SERIAL_SPEED" type="integer" value="115200"/>
   <option name="CONFIG_DEBUG_CONSOLE_VGA" type="boolean" value="true"/>
-  
- 
+
+
   <!-- Module Configuration -->
   <option name="CONFIG_CMDLINE" type="boolean" value="true"/>
   <option name="CONFIG_DEBLOCKER" type="boolean" value="true"/>
- 
- 
+
+
   <!-- Filesystem Configuration -->
   <option name="CONFIG_DISK_LABEL" type="boolean" value="true"/>
   <option name="CONFIG_PART_SUPPORT" type="boolean" value="true"/>
@@ -58,10 +57,10 @@
   <option name="CONFIG_FSYS_NTFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_AFFS" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_FS" type="boolean" value="false"/>
-  
+
   <!-- Miscellaneous -->
   <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>
- 
+
   <!-- Drivers -->
   <option name="CONFIG_DRIVER_PCI" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_PCI" type="boolean" value="true"/>
