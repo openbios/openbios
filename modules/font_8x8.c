@@ -4,11 +4,9 @@
 /*                                            */
 /**********************************************/
 
-#define FONTDATAMAX 2048
-#define FONT_WIDTH 8
-#define FONT_HEIGHT 8
+#include "openbios/fontdata.h"
 
-static const unsigned char fontdata[FONTDATAMAX] = {
+const unsigned char fontdata_8x8[FONTDATAMAX_8X8] = {
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */

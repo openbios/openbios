@@ -7,10 +7,9 @@
  *                                            *
  **********************************************/
 
+#include "openbios/fontdata.h"
 
-#define FONTDATAMAX 4096
-
-static const unsigned char fontdata_8x16[FONTDATAMAX] = {
+const unsigned char fontdata_8x16[FONTDATAMAX_8X16] = {
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */

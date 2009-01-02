@@ -14,8 +14,21 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "openbios/fontdata.h"
 
-#include "font_8x8.c"
+#if !defined(fontdata)
+#if defined(CONFIG_FONT_8X8)
+#define fontdata fontdata_8x8
+#define FONT_HEIGHT FONT_HEIGHT_8X8
+#define FONT_WIDTH FONT_WIDTH_8X8
+#elif defined(CONFIG_FONT_8X16)
+#define fontdata fontdata_8x16
+#define FONT_HEIGHT FONT_HEIGHT_8X16
+#define FONT_WIDTH FONT_WIDTH_8X16
+#else
+#error no font selected
+#endif
+#endif
 
 #define FONT_ADJ_HEIGHT	 (FONT_HEIGHT + 2)
 #define NCOLS	80

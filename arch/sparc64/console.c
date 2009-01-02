@@ -9,6 +9,7 @@
 #include "openbios/bindings.h"
 #include "openbios/kernel.h"
 #include "openbios/drivers.h"
+#include "openbios/fontdata.h"
 #include "openbios.h"
 #include "video_subr.h"
 #include "libc/vsprintf.h"
@@ -244,17 +245,14 @@ static void video_cls(void)
 	video_poscursor(xpos, ypos);
 }
 
-#ifdef CONFIG_DRIVER_VGA
-#include "../../modules/font_8x16.c"
-#endif
-
 void video_init(void)
 {
 	video=(unsigned char *)TEXT_BASE;
 
 #ifdef CONFIG_DRIVER_VGA
         vga_load_regs();
-        vga_font_load((unsigned char *)VGA_BASE, fontdata_8x16, 16, 256);
+        vga_font_load((unsigned char *)VGA_BASE, fontdata_8x16,
+                      FONT_HEIGHT_8X16, 256);
         vga_set_amode();
 #endif
 }

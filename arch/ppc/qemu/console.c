@@ -130,8 +130,6 @@ typedef struct osi_fb_info {
 	int             rb, w, h, depth;
 } osi_fb_info_t;
 
-#include "../../../modules/font_8x16.c"
-#undef FONTDATAMAX
 #include "../../../modules/video.c"
 #include "../../../modules/console.c"
 
