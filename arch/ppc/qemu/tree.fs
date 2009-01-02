@@ -35,13 +35,6 @@ new-device
 	: close ;
 finish-device
 
-new-device
-        " cpus" device-name
-        " cpus" device-type
-	1 encode-int " #address-cells" property
-	0 encode-int " #size-cells" property
-finish-device
-
 \ -------------------------------------------------------------
 \ /packages
 \ -------------------------------------------------------------

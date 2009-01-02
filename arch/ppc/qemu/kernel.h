@@ -25,7 +25,7 @@ extern char		of_rtas_start[], of_rtas_end[];
 extern void             call_elf( ulong elf_entry );
 
 /* methods.c */
-extern void		node_methods_init( void );
+extern void		node_methods_init( const char *cpuname );
 
 /* main.c */
 extern void 		boot( void );

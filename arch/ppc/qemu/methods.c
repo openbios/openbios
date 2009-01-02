@@ -149,7 +149,7 @@ NODE_METHODS( ciface ) = {
 /************************************************************************/
 
 DECLARE_NODE( memory, INSTALL_OPEN, 0, "/memory" );
-DECLARE_NODE( mmu, INSTALL_OPEN, 0, "/cpu@0" );
+DECLARE_UNNAMED_NODE( mmu, INSTALL_OPEN, 0 );
 DECLARE_NODE( mmu_ciface, 0, 0, "+/openprom/client-services" );
 
 
@@ -291,14 +291,21 @@ NODE_METHODS( mmu_ciface ) = {
 /************************************************************************/
 
 void
-node_methods_init( void )
+node_methods_init( const char *cpuname )
 {
+	phandle_t chosen, ph;
 #ifdef USE_RTAS
 	REGISTER_NODE( rtas );
 #endif
 	REGISTER_NODE( ciface );
 	REGISTER_NODE( memory );
-	REGISTER_NODE( mmu );
+	REGISTER_NODE_METHODS( mmu, cpuname );
 	REGISTER_NODE( mmu_ciface );
 	REGISTER_NODE( tty );
+
+	chosen = find_dev("/chosen");
+	if (chosen) {
+		ph = find_dev(cpuname);
+		set_int_property(chosen, "mmu", ph);
+	}
 }

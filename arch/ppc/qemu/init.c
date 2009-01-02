@@ -489,7 +489,7 @@ arch_of_init( void )
 #endif
 	snprintf(buf, sizeof(buf), "/cpus/%s", cpu->name);
 	ofmem_register(find_dev(buf));
-	node_methods_init();
+	node_methods_init(buf);
 
 #ifdef USE_RTAS
 	if( !(ph=find_dev("/rtas")) )

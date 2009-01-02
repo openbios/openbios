@@ -37,7 +37,6 @@
 :noname
   " rtc" " rtc" preopen
   " memory" " /memory" preopen
-  " mmu" " /cpu@0" preopen
   \ " stdout" " /packages/terminal-emulator" preopen
   " stdout" " screen" preopen
   " stdin" " adb-keyboard" preopen
