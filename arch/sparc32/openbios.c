@@ -17,6 +17,7 @@
 #include "sys_info.h"
 #include "openbios.h"
 #include "boot.h"
+#include "video_subr.h"
 
 int qemu_machine_type;
 

@@ -13,18 +13,6 @@
 
 #include "openbios/config.h"
 
-/* modules/video.c */
-int video_get_res(int *w, int *h);
-void draw_pixel(int x, int y, int colind);
-void set_color(int ind, ulong color);
-void video_scroll(int height);
-void init_video(unsigned long fb, int width, int height, int depth, int rb);
-
-/* modules/console.c */
-int console_draw_str(const char *str);
-void console_close(void);
-void cls(void);
-
 #ifdef CONFIG_DRIVER_PCI
 /* drivers/pci.c */
 int ob_pci_init(void);

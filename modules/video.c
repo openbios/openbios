@@ -21,6 +21,11 @@
 #include "openbios/drivers.h"
 #include "video_subr.h"
 
+typedef struct osi_fb_info {
+    unsigned long mphys;
+    int rb, w, h, depth;
+} osi_fb_info_t;
+
 static struct {
 	int		has_video;
 	osi_fb_info_t	fb;

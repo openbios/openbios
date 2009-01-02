@@ -28,6 +28,7 @@
 #include "libc/vsprintf.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
+#include "video_subr.h"
 
 #define BIOS_CFG_CMD  0x510
 #define BIOS_CFG_DATA 0x511

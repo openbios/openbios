@@ -17,6 +17,7 @@
 #include "libc/diskio.h"
 #include "ofmem.h"
 #include "qemu/qemu.h"
+#include "video_subr.h"
 
 #ifdef CONFIG_DEBUG_CONSOLE
 
@@ -124,14 +125,6 @@ static void serial_cls(void)
 	serial_putchar('J');
 }
 #endif	// CONFIG_DEBUG_CONSOLE_SERIAL
-
-typedef struct osi_fb_info {
-	unsigned long   mphys;
-	int             rb, w, h, depth;
-} osi_fb_info_t;
-
-#include "../../../modules/video.c"
-#include "../../../modules/console.c"
 
 /* ******************************************************************
  *      common functions, implementing simple concurrent console

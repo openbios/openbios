@@ -15,6 +15,7 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "openbios/fontdata.h"
+#include "video_subr.h"
 
 #if !defined(fontdata)
 #if defined(CONFIG_FONT_8X8)
@@ -125,7 +126,7 @@ refresh( void )
 }
 #endif
 
-static int
+int
 console_init( void )
 {
 	if( video_get_res(&cons.physw,&cons.physh) < 0 )

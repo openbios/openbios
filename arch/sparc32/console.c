@@ -9,6 +9,7 @@
 #include "openbios/kernel.h"
 #include "openbios/drivers.h"
 #include "openbios.h"
+#include "video_subr.h"
 
 #ifdef CONFIG_DEBUG_CONSOLE
 
@@ -24,15 +25,7 @@
 #define DAC_SIZE  16
 
 unsigned char *vmem;
-static volatile uint32_t *dac;
-
-typedef struct osi_fb_info {
-	unsigned long   mphys;
-	int             rb, w, h, depth;
-} osi_fb_info_t;
-
-#include "../../modules/video.c"
-#include "../../modules/console.c"
+volatile uint32_t *dac;
 
 static void video_putchar(int c)
 {
