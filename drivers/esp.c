@@ -24,6 +24,7 @@
 #include "scsi.h"
 #include "asm/dma.h"
 #include "esp.h"
+#include "ofmem.h"
 
 #define BUFSIZE         4096
 

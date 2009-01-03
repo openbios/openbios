@@ -99,7 +99,7 @@ void boot(void)
             obp_arg.argv[1] = param;
         }
 
-        romvec = init_openprom(qemu_mem_size);
+        romvec = init_openprom();
 
         if (kernel_size) {
             int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);

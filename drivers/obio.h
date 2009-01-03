@@ -36,7 +36,6 @@
 #define SLAVIO_SIZE      0x01000000
 
 #define SUN4M_NCPUS      16
-#define PAGE_SIZE        4096
 
 #define CFG_ADDR         0xd00000510ULL
 #define CFG_SIZE         3

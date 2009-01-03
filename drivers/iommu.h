@@ -95,3 +95,8 @@ struct iommu_regs {
 #define IOPTE_WRITE         0x00000004 /* Writeable */
 #define IOPTE_VALID         0x00000002 /* IOPTE is valid */
 #define IOPTE_WAZ           0x00000001 /* Write as zeros */
+
+#define IOPERM        (IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID)
+#define MKIOPTE(phys) (((((phys)>>4) & IOPTE_PAGE) | IOPERM) & ~IOPTE_WAZ)
+
+#define IOMMU_REGS  0x300

@@ -111,10 +111,9 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
-	void setup_timers(void);
-
 	modules_init();
-        ob_init_mmu(hwdef->iommu_base);
+        ob_init_mmu();
+        ob_init_iommu(hwdef->iommu_base);
 #ifdef CONFIG_DRIVER_OBIO
 	ob_obio_init(hwdef->slavio_base, hwdef->fd_offset,
                      hwdef->counter_offset, hwdef->intr_offset,
@@ -146,9 +145,8 @@ int openbios(void)
         if (!hwdef)
             for(;;); // Internal inconsistency, hang
 
-        mem_init(&cmem, (char *) &_vmem, (char *)&_evmem);
 #ifdef CONFIG_DRIVER_SBUS
-        init_mmu_swift(hwdef->iommu_base);
+        init_mmu_swift();
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL

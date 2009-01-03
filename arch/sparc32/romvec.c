@@ -8,14 +8,9 @@
  */
 
 #include "openprom.h"
-#include "asm/io.h"
-#include "asm/types.h"
-#include "libc/vsprintf.h"
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "openbios/drivers.h"
-#include "openbios/kernel.h"
-#include "openbios/sysinclude.h"
 #include "sys_info.h"
 #include "boot.h"
 
@@ -26,15 +21,6 @@
 #define DPRINTF(fmt, args...)
 #endif
 
-#define PAGE_SIZE 4096
-
-static struct linux_mlist_v0 totphys[1];
-static struct linux_mlist_v0 totmap[1];
-static struct linux_mlist_v0 totavail[1];
-
-static struct linux_mlist_v0 *ptphys;
-static struct linux_mlist_v0 *ptmap;
-static struct linux_mlist_v0 *ptavail;
 char obp_stdin, obp_stdout;
 static int obp_fd_stdin, obp_fd_stdout;
 const char *obp_stdin_path, *obp_stdout_path;
@@ -321,37 +307,6 @@ static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
     return ret;
 }
 
-static char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
-                           unsigned int size)
-{
-    unsigned int npages;
-    unsigned int off;
-    unsigned int mva;
-    uint64_t mpa = ((uint64_t)which_io << 32) | (uint64_t)pa;
-
-    DPRINTF("obp_dumb_mmap: virta 0x%x, paddr 0x%llx, sz %d\n",
-            (unsigned int)va, mpa, size);
-
-    off = pa & (PAGE_SIZE-1);
-    npages = (off + (size - 1) + (PAGE_SIZE-1)) / PAGE_SIZE;
-    mpa &= ~(uint64_t)(PAGE_SIZE - 1);
-
-    mva = (unsigned int) va;
-    while (npages-- != 0) {
-        map_page(mva, mpa, 1);
-        mva += PAGE_SIZE;
-        mpa += (uint64_t)PAGE_SIZE;
-    }
-
-    return va;
-}
-
-static void obp_dumb_munmap(__attribute__((unused)) char *va,
-			    __attribute__((unused)) unsigned int size)
-{
-    DPRINTF("obp_dumb_munmap: virta 0x%x, sz %d\n", (unsigned int)va, size);
-}
-
 static int obp_devread(int dev_desc, char *buf, int nbytes)
 {
     int ret;
@@ -413,37 +368,6 @@ static int obp_inst2pkg(int dev_desc)
     return ret;
 }
 
-static void obp_dumb_memfree(__attribute__((unused))char *va,
-                             __attribute__((unused))unsigned sz)
-{
-    DPRINTF("obp_dumb_memfree 0x%x(%d)\n", va, sz);
-}
-
-static char * obp_dumb_memalloc(char *va, unsigned int size)
-{
-    static unsigned int next_free_address = 0xFFEDA000;
-
-    size = (size + 7) & ~7;
-    totmap[0].num_bytes -= size;
-    DPRINTF("obp_dumb_memalloc req 0x%x of %d at 0x%x\n", va, size,
-            totmap[0].num_bytes);
-
-    // If va is null, the allocator is supposed to pick a "suitable" address.
-    // (See OpenSolaric prom_alloc.c)  There's not any real guidance as
-    // to what might be "suitable".  So we mimic the behavior of a Sun boot
-    // ROM.
-
-    if (va == NULL) {
-        va = (char *)(next_free_address - size);
-        next_free_address -= size;
-        DPRINTF("obp_dumb_memalloc req null -> 0x%x\n", va);
-    }
-
-    obp_dumb_mmap(va, 0, totmap[0].num_bytes, size);
-
-    return va;
-}
-
 static int obp_cpustart(__attribute__((unused))unsigned int whichcpu,
                         __attribute__((unused))int ctxtbl_ptr,
                         __attribute__((unused))int thiscontext,
@@ -501,27 +425,8 @@ static void obp_fortheval_v2(char *str)
 }
 
 void *
-init_openprom(unsigned long memsize)
+init_openprom(void)
 {
-    ptphys = totphys;
-    ptmap = totmap;
-    ptavail = totavail;
-
-    /*
-     * Form memory descriptors.
-     */
-    totphys[0].theres_more = NULL;
-    totphys[0].start_adr = (char *) 0;
-    totphys[0].num_bytes = memsize;
-
-    totavail[0].theres_more = NULL;
-    totavail[0].start_adr = (char *) 0;
-    totavail[0].num_bytes = va2pa((int)&_start) - PAGE_SIZE;
-
-    totmap[0].theres_more = NULL;
-    totmap[0].start_adr = &_start;
-    totmap[0].num_bytes = (unsigned long) &_iomem - (unsigned long) &_start + PAGE_SIZE;
-
     // Linux wants a R/W romvec table
     romvec0.pv_magic_cookie = LINUX_OPPROM_MAGIC;
     romvec0.pv_romvers = 3;

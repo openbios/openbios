@@ -18,6 +18,7 @@
 
 #include "openbios/drivers.h"
 #include "openbios/nvram.h"
+#include "ofmem.h"
 #include "obio.h"
 #define cpu_to_be16(x) __cpu_to_be16(x)
 #include "openbios/firmware_abi.h"

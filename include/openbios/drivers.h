@@ -54,7 +54,8 @@ void serial_cls(void);
 int uart_init(uint64_t port, unsigned long speed);
 
 /* drivers/iommu.c */
-extern struct mem cmem;
+void ob_init_iommu(uint64_t base);
+void *dvma_alloc(int size, unsigned int *pphys);
 
 /* drivers/sbus.c */
 extern uint16_t graphic_depth;
