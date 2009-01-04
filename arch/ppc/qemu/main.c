@@ -41,7 +41,7 @@ static void
 transfer_control_to_elf( ulong elf_entry )
 {
 	ELF_DPRINTF("Starting ELF boot loader\n");
-        call_elf( elf_entry );
+        call_elf( 0, 0, elf_entry );
 
 	fatal_error("call_elf returned unexpectedly\n");
 }
@@ -302,9 +302,10 @@ static void check_preloaded_kernel(void)
         cmdline = nvram_read_be32(0x40);
         initrd_image = nvram_read_be32(0x48);
         initrd_size = nvram_read_be32(0x4c);
-        printk("[ppc] Kernel already loaded (0x%8.8lx + 0x%8.8lx)\n",
-               kernel_image, kernel_size);
-        call_elf(kernel_image);
+        printk("[ppc] Kernel already loaded (0x%8.8lx + 0x%8.8lx) "
+               "(initrd 0x%8.8lx + 0x%8.8lx)\n",
+               kernel_image, kernel_size, initrd_image, initrd_size);
+        call_elf(initrd_image, initrd_size, kernel_image);
     }
 }
 

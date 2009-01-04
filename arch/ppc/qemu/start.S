@@ -243,17 +243,19 @@ GLOBL(_entry):
 	 *	r5 = clint interface handler
 	 *	r6 = address of client program arguments (unused)
 	 *	r7 = length of client program arguments (unsed)
+         *
+         *      Yaboot and Linux use r3 and r4 for initrd address and size
 	 */
         .data
 saved_stack:
 	.long	0
         .previous
-	/* void call_elf( entry ) */
+	/* void call_elf( arg1, arg2, entry ) */
 GLOBL(call_elf):
 	mflr	r0
 	stwu	r1,-16(r1)
 	stw	r0,20(r1)
-	mtlr	r3
+	mtlr	r5
 	lis	r8,HA(saved_stack)
 	addi	r8,r8,LO(saved_stack)		// save our stack pointer
 	stw	r1,0(r8)
