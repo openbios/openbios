@@ -39,3 +39,6 @@ extern unsigned int qemu_mem_size;
 
 // console.c
 void ob_su_init(uint64_t base, uint64_t offset, int intr);
+
+// lib.c
+void ob_mmu_init(const char *cpuname, uint64_t ram_size);
