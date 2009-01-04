@@ -58,13 +58,105 @@
 
 
 /************************************************************************/
+/*	vectors								*/
+/************************************************************************/
+
+        .section .text.vectors, "ax"
+GLOBL(__vectors):
+	nop			// NULL-jmp trap
+1:	nop			//
+	b	1b
+
+exception_return:
+	addi	r1,r1,16	// pop ABI frame
+
+	lwz	r0,52(r1)
+	mtlr	r0
+	lwz	r0,56(r1)
+	mtcr	r0
+	lwz	r0,60(r1)
+	mtctr	r0
+	lwz	r0,64(r1)
+	mtxer	r0
+
+	lwz	r0,0(r1)	// restore r0
+	lwz	r2,8(r1)	// restore r2
+	lwz	r3,12(r1)	// restore r3
+	lwz	r4,16(r1)
+	lwz	r5,20(r1)
+	lwz	r6,24(r1)
+	lwz	r7,28(r1)
+	lwz	r8,32(r1)
+	lwz	r9,36(r1)
+	lwz	r10,40(r1)
+	lwz	r11,44(r1)
+	lwz	r12,48(r1)
+	lwz	r1,4(r1)	// restore r1
+	rfi
+
+	.globl	__divide_error
+__divide_error:
+trap_error:
+	mflr	r3
+	b	unexpected_excep
+
+VECTOR( 0x100, "SRE" ):
+        b       _entry
+
+ILLEGAL_VECTOR( 0x200 )
+
+VECTOR( 0x300, "DSI" ):
+	EXCEPTION_PREAMBLE
+	lis	r3,HA(dsi_exception)
+	addi	r3,r3,LO(dsi_exception)
+	mtctr	r3
+	bctrl
+	ba	exception_return
+
+VECTOR( 0x400, "ISI" ):
+	EXCEPTION_PREAMBLE
+	lis	r3,HA(isi_exception)
+	addi	r3,r3,LO(isi_exception)
+	mtctr	r3
+	bctrl
+	ba	exception_return
+
+	ILLEGAL_VECTOR( 0x500 )
+	ILLEGAL_VECTOR( 0x600 )
+	ILLEGAL_VECTOR( 0x700 )
+
+VECTOR( 0x800, "FPU" ):
+	mtsprg1	r3
+	mfsrr1	r3
+	ori	r3,r3,0x2000
+	mtsrr1	r3
+	mfsprg1	r3
+	rfi
+
+ILLEGAL_VECTOR( 0x900 )
+ILLEGAL_VECTOR( 0xa00 )
+ILLEGAL_VECTOR( 0xb00 )
+ILLEGAL_VECTOR( 0xc00 )
+ILLEGAL_VECTOR( 0xd00 )
+ILLEGAL_VECTOR( 0xe00 )
+ILLEGAL_VECTOR( 0xf00 )
+ILLEGAL_VECTOR( 0xf20 )
+ILLEGAL_VECTOR( 0x1000 )
+ILLEGAL_VECTOR( 0x1100 )
+ILLEGAL_VECTOR( 0x1200 )
+ILLEGAL_VECTOR( 0x1300 )
+ILLEGAL_VECTOR( 0x1400 )
+ILLEGAL_VECTOR( 0x1500 )
+ILLEGAL_VECTOR( 0x1600 )
+ILLEGAL_VECTOR( 0x1700 )
+
+GLOBL(__vectors_end):
+
+/************************************************************************/
 /*	entry								*/
 /************************************************************************/
 
-
-        .section .text.vectors, "ax"
-	.space 0x0100
-GLOBL(_start):
+GLOBL(_entry):
 	/* clear MSR, disable MMU */
 
 	li	r0,0
@@ -235,102 +327,6 @@ GLOBL(timer_calib_start):
 	blr
 GLOBL(timer_calib_end):
 
-
-/************************************************************************/
-/*	vectors								*/
-/************************************************************************/
-
-GLOBL(__vectors):
-	nop			// NULL-jmp trap
-1:	nop			//
-	b	1b
-
-exception_return:
-	addi	r1,r1,16	// pop ABI frame
-
-	lwz	r0,52(r1)
-	mtlr	r0
-	lwz	r0,56(r1)
-	mtcr	r0
-	lwz	r0,60(r1)
-	mtctr	r0
-	lwz	r0,64(r1)
-	mtxer	r0
-
-	lwz	r0,0(r1)	// restore r0
-	lwz	r2,8(r1)	// restore r2
-	lwz	r3,12(r1)	// restore r3
-	lwz	r4,16(r1)
-	lwz	r5,20(r1)
-	lwz	r6,24(r1)
-	lwz	r7,28(r1)
-	lwz	r8,32(r1)
-	lwz	r9,36(r1)
-	lwz	r10,40(r1)
-	lwz	r11,44(r1)
-	lwz	r12,48(r1)
-	lwz	r1,4(r1)	// restore r1
-	rfi
-
-	.globl	__divide_error
-__divide_error:
-trap_error:
-	mflr	r3
-	b	unexpected_excep
-
-VECTOR( 0x100, "SRE" ):
-        b       _start
-
-ILLEGAL_VECTOR( 0x200 )
-
-VECTOR( 0x300, "DSI" ):
-	EXCEPTION_PREAMBLE
-	lis	r3,HA(dsi_exception)
-	addi	r3,r3,LO(dsi_exception)
-	mtctr	r3
-	bctrl
-	ba	exception_return
-
-VECTOR( 0x400, "ISI" ):
-	EXCEPTION_PREAMBLE
-	lis	r3,HA(isi_exception)
-	addi	r3,r3,LO(isi_exception)
-	mtctr	r3
-	bctrl
-	ba	exception_return
-
-	ILLEGAL_VECTOR( 0x500 )
-	ILLEGAL_VECTOR( 0x600 )
-	ILLEGAL_VECTOR( 0x700 )
-
-VECTOR( 0x800, "FPU" ):
-	mtsprg1	r3
-	mfsrr1	r3
-	ori	r3,r3,0x2000
-	mtsrr1	r3
-	mfsprg1	r3
-	rfi
-
-ILLEGAL_VECTOR( 0x900 )
-ILLEGAL_VECTOR( 0xa00 )
-ILLEGAL_VECTOR( 0xb00 )
-ILLEGAL_VECTOR( 0xc00 )
-ILLEGAL_VECTOR( 0xd00 )
-ILLEGAL_VECTOR( 0xe00 )
-ILLEGAL_VECTOR( 0xf00 )
-ILLEGAL_VECTOR( 0xf20 )
-ILLEGAL_VECTOR( 0x1000 )
-ILLEGAL_VECTOR( 0x1100 )
-ILLEGAL_VECTOR( 0x1200 )
-ILLEGAL_VECTOR( 0x1300 )
-ILLEGAL_VECTOR( 0x1400 )
-ILLEGAL_VECTOR( 0x1500 )
-ILLEGAL_VECTOR( 0x1600 )
-ILLEGAL_VECTOR( 0x1700 )
-
-GLOBL(__vectors_end):
-
-
 #define CACHE_LINE_SIZE         32
 #define LG_CACHE_LINE_SIZE      5
 
@@ -382,4 +378,4 @@ compute_ramsize:
 
         /* Hard reset vector */
 	.section .romentry,"ax"
-	bl	_start
+	bl	_entry
