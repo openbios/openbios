@@ -37,7 +37,10 @@
 #define PCI_CONFIG           (APB_SPECIAL_BASE + 0x1000000ULL)
 #define APB_MEM_BASE         0x1ff00000000ULL
 
-static unsigned char intdict[256 * 1024];
+#define MEMORY_SIZE     (512*1024)      /* 512K ram for hosted system */
+#define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
+
+static ucell *memory;
 
 // XXX
 #define NVRAM_SIZE       0x2000
@@ -437,16 +440,17 @@ void udelay(unsigned int usecs)
 
 static void init_memory(void)
 {
+    memory = malloc(MEMORY_SIZE);
+    if (!memory)
+        printk("panic: not enough memory on host system.\n");
 
-	/* push start and end of available memory to the stack
-	 * so that the forth word QUIT can initialize memory
-	 * management. For now we use hardcoded memory between
-	 * 0x10000 and 0x9ffff (576k). If we need more memory
-	 * than that we have serious bloat.
-	 */
+    /* we push start and end of memory to the stack
+     * so that it can be used by the forth word QUIT
+     * to initialize the memory allocator
+     */
 
-	PUSH((ucell)&_heap);
-	PUSH((ucell)&_eheap);
+    PUSH((ucell)memory);
+    PUSH((ucell)memory + (ucell)MEMORY_SIZE);
 }
 
 static void
@@ -508,7 +512,7 @@ int openbios(void)
 
         collect_sys_info(&sys_info);
 
-	dict=intdict;
+        dict = malloc(DICTIONARY_SIZE);
 	load_dictionary((char *)sys_info.dict_start,
 			(unsigned long)sys_info.dict_end
                         - (unsigned long)sys_info.dict_start);
@@ -540,5 +544,6 @@ int openbios(void)
 
 	enterforth((xt_t)PC);
         printk("falling off...\n");
+        free(dict);
 	return 0;
 }

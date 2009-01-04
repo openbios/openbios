@@ -32,7 +32,7 @@ int printk( const char *fmt, ... )
 	return i;
 }
 
-#define MEMSIZE 128*1024
+#define MEMSIZE ((128 + 256 + 512) * 1024)
 static char memory[MEMSIZE];
 static void *memptr=memory;
 static int memsize=MEMSIZE;

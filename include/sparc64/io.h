@@ -4,8 +4,8 @@
 #include "asm/types.h"
 
 extern unsigned long va_shift; // Set in entry.S
-extern char _start, _data, _heap, _eheap, _stack, _estack, _end,
-    _vmem, _evmem,_iomem; // Defined in ldscript
+// Defined in ldscript
+extern char _start, _data, _stack, _estack, _end, _vmem, _evmem, _iomem;
 
 static inline unsigned long
 va2pa(unsigned long va)
