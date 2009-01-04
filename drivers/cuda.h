@@ -1,4 +1,4 @@
-#include "adb.h"
+#include "adb_bus.h"
 
 struct cuda_t {
 	uint32_t base;

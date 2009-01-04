@@ -17,9 +17,6 @@
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA, 02110-1301 USA
  */
 
-#if !defined(__OHW_ADB_H__)
-#define __OHW_ADB_H__
-
 typedef struct adb_bus_t adb_bus_t;
 typedef struct adb_dev_t adb_dev_t;
 
@@ -99,8 +96,9 @@ static inline int adb_reg_set (adb_dev_t *dev, uint8_t reg,
     return adb_cmd(dev, ADB_LISTEN, reg, buf, len);
 }
 
-void *adb_kbd_new (char *path, void *private);
-
-void adb_mouse_new (char *path, void *private);
-
-#endif /* !defined(__OHW_ADB_H__) */
+#ifdef DEBUG_ADB
+#define ADB_DPRINTF(fmt, args...) \
+do { printk("ADB - %s: " fmt, __func__ , ##args); } while (0)
+#else
+#define ADB_DPRINTF(fmt, args...) do { } while (0)
+#endif

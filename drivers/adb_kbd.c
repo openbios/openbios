@@ -1,5 +1,4 @@
 /*
- * <adbkbd.c>
  *
  * Open Hack'Ware BIOS ADB keyboard support, ported to OpenBIOS
  *
@@ -20,24 +19,14 @@
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA, 02110-1301 USA
  */
 
-
 #include "openbios/config.h"
 #include "openbios/bindings.h"
-#include "asm/types.h"
-#include "adb.h"
-#include "kbd.h"
-#include "cuda.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
+#include "kbd.h"
 
-//#define DEBUG_ADB 1
-
-#ifdef DEBUG_ADB
-#define ADB_DPRINTF(fmt, args...) \
-do { printk("ADB - %s: " fmt, __func__ , ##args); } while (0)
-#else
-#define ADB_DPRINTF(fmt, args...) do { } while (0)
-#endif
+#include "adb_bus.h"
+#include "adb_kbd.h"
 
 DECLARE_UNNAMED_NODE( keyboard, INSTALL_OPEN, sizeof(int));
 
@@ -524,108 +513,4 @@ static void keyboard_read(void)
 		*addr++ = (char)key;
 	}
 	PUSH(i);
-}
-
-DECLARE_UNNAMED_NODE( mouse, INSTALL_OPEN, sizeof(int));
-
-static void
-mouse_open(int *idx)
-{
-	RET(-1);
-}
-
-static void
-mouse_close(int *idx)
-{
-}
-
-NODE_METHODS( mouse ) = {
-	{ "open",		mouse_open		},
-	{ "close",		mouse_close		},
-};
-
-void adb_mouse_new (char *path, void *private)
-{
-	char buf[64];
-	int props[1];
-	phandle_t ph, aliases;
-	adb_dev_t *dev = private;
-
-        snprintf(buf, sizeof(buf), "%s/mouse", path);
-	REGISTER_NAMED_NODE( mouse, buf);
-
-	ph = find_dev(buf);
-
-	set_property(ph, "device_type", "mouse", 6);
-	props[0] = __cpu_to_be32(dev->addr);
-	set_property(ph, "reg", (char *)&props, sizeof(props));
-	set_int_property(ph, "#buttons", 3);
-
-	aliases = find_dev("/aliases");
-	set_property(aliases, "adb-mouse", buf, strlen(buf) + 1);
-}
-
-
-int adb_cmd (adb_dev_t *dev, uint8_t cmd, uint8_t reg,
-             uint8_t *buf, int len)
-{
-    uint8_t adb_send[ADB_BUF_SIZE], adb_rcv[ADB_BUF_SIZE];
-
-    //ADB_DPRINTF("cmd: %d reg: %d len: %d\n", cmd, reg, len);
-    if (dev->bus == NULL || dev->bus->req == NULL) {
-        ADB_DPRINTF("ERROR: invalid bus !\n");
-	for (;;);
-    }
-    /* Sanity checks */
-    if (cmd != ADB_LISTEN && len != 0) {
-        /* No buffer transmitted but for LISTEN command */
-        ADB_DPRINTF("in buffer for cmd %d\n", cmd);
-        return -1;
-    }
-    if (cmd == ADB_LISTEN && ((len < 2 || len > 8) || buf == NULL)) {
-        /* Need a buffer with a regular register size for LISTEN command */
-        ADB_DPRINTF("no/invalid buffer for ADB_LISTEN (%d)\n", len);
-        return -1;
-    }
-    if ((cmd == ADB_TALK || cmd == ADB_LISTEN) && reg > 3) {
-        /* Need a valid register number for LISTEN and TALK commands */
-        ADB_DPRINTF("invalid reg for TALK/LISTEN command (%d %d)\n", cmd, reg);
-        return -1;
-    }
-    switch (cmd) {
-    case ADB_SEND_RESET:
-        adb_send[0] = ADB_SEND_RESET;
-        break;
-    case ADB_FLUSH:
-        adb_send[0] = (dev->addr << 4) | ADB_FLUSH;
-        break;
-    case ADB_LISTEN:
-        memcpy(adb_send + 1, buf, len);
-        /* No break here */
-    case ADB_TALK:
-        adb_send[0] = (dev->addr << 4) | cmd | reg;
-        break;
-    }
-    memset(adb_rcv, 0, ADB_BUF_SIZE);
-    len = (*dev->bus->req)(dev->bus->host, adb_send, len + 1, adb_rcv);
-#ifdef DEBUG_ADB
-    //printk("%x %x %x %x\n", adb_rcv[0], adb_rcv[1], adb_rcv[2], adb_rcv[3]);
-#endif
-    switch (len) {
-    case 0:
-        /* No data */
-        break;
-    case 2 ... 8:
-        /* Register transmitted */
-        if (buf != NULL)
-            memcpy(buf, adb_rcv, len);
-        break;
-    default:
-        /* Should never happen */
-        //ADB_DPRINTF("Cmd %d returned %d bytes !\n", cmd, len);
-        return -1;
-    }
-    //ADB_DPRINTF("retlen: %d\n", len);
-
-    return len;
 }
