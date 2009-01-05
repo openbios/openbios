@@ -26,7 +26,7 @@ extern int eth_config_cb(const pci_config_t *config);
 extern int macio_config_cb(const pci_config_t *config);
 extern int vga_config_cb(const pci_config_t *config);
 
-static inline int pci_compat_len(pci_dev_t *dev)
+static inline int pci_compat_len(const pci_dev_t *dev)
 {
 	int len, ret;
 	const char *path = dev->compat;

@@ -185,6 +185,9 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 		push_str("model");
 		fword("property");
 	}
+	if (pci_dev->compat)
+		set_property(dev, "compatible",
+			     pci_dev->compat, pci_compat_len(pci_dev));
 	push_str(pci_dev->name);
 	fword("encode-string");
 	push_str("class");

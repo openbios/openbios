@@ -1287,7 +1287,6 @@ ob_ide_ctrl_initialize(int *idx)
 	props[0]=14; props[1]=0;
 	set_property(ph, "interrupts", (char *)&props, 2*sizeof(int));
 
-	set_property(ph, "compatible", "pci1095,646\0pci1095,646\0pciclass,01018f", 40);
 	set_int_property(ph, "#address-cells", 1);
 	set_int_property(ph, "#size-cells", 0);
 
