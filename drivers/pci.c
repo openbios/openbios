@@ -27,7 +27,10 @@
 #include "timer.h"
 #include "pci.h"
 #include "pci_database.h"
+#ifdef CONFIG_DRIVER_MACIO
 #include "cuda.h"
+#include "macio.h"
+#endif
 
 #define set_bool_property(ph, name) set_property(ph, name, NULL, 0);
 
@@ -93,28 +96,10 @@ int eth_config_cb (const pci_config_t *config)
         return 0;
 }
 
-phandle_t pic_handle;
 int macio_config_cb (const pci_config_t *config)
 {
-#ifdef CONFIG_PPC
-	char buf[64];
-	phandle_t ph;
-        cell props[2];
-
-        snprintf(buf, sizeof(buf), "%s/interrupt-controller", config->path);
-	REGISTER_NAMED_NODE(ob_pci_node, buf);
-
-	ph = find_dev(buf);
-	set_property(ph, "device_type", "interrupt-controller", 21);
-	set_property(ph, "compatible", "heathrow\0mac-risc", 18);
-	set_int_property(ph, "#interrupt-cells", 1);
-	props[0]= 0x10;
-	props[1]= 0x20;
-        set_property(ph, "reg", (char *)&props, sizeof(props));
-	pic_handle = ph;
-
-	cuda_init(config->path, config->regions[0]);
-	macio_nvram_init(config->path, config->regions[0]);
+#ifdef CONFIG_DRIVER_MACIO
+	ob_macio_init(config->path, config->regions[0] & ~0x0000000F);
 #endif
 	return 0;
 }

@@ -3,7 +3,9 @@
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 
+#include "macio.h"
 #include "cuda.h"
+
 //#define DEBUG_CUDA
 #ifdef DEBUG_CUDA
 #define CUDA_DPRINTF(fmt, args...) \

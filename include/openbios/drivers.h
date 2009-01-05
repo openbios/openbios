@@ -16,9 +16,6 @@
 #ifdef CONFIG_DRIVER_PCI
 /* drivers/pci.c */
 int ob_pci_init(void);
-
-/* arch/ppc/qemu/qemu.c */
-void macio_nvram_init(const char *path, uint32_t addr);
 #endif
 #ifdef CONFIG_DRIVER_SBUS
 /* drivers/sbus.c */
