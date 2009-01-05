@@ -21,7 +21,9 @@
 #include "openbios/bindings.h"
 #include "openbios/pci.h"
 #include "openbios/drivers.h"
+#include "openbios/fontdata.h"
 #include "asm/io.h"
+#include "libc/vsprintf.h"
 #include "video_subr.h"
 
 /* VGA init. We use the Bochs VESA VBE extensions  */
@@ -102,7 +104,8 @@ void vga_vbe_set_mode(int width, int height, int depth)
 void vga_vbe_init(const char *path, uint32_t fb, uint32_t fb_size,
                   unsigned long rom, uint32_t rom_size)
 {
-	phandle_t ph, chosen, aliases;
+	phandle_t ph, chosen, aliases, options;
+	char buf[6];
 
 	vga_vbe_set_mode(800, 600, 8);
 
@@ -121,6 +124,12 @@ void vga_vbe_init(const char *path, uint32_t fb, uint32_t fb_size,
 
 	aliases = find_dev("/aliases");
 	set_property(aliases, "screen", path, strlen(path) + 1);
+
+	options = find_dev("/options");
+	snprintf(buf, sizeof(buf), "%d", 800 / FONT_WIDTH);
+	set_property(options, "screen-#columns", buf, strlen(buf) + 1);
+	snprintf(buf, sizeof(buf), "%d", 600 / FONT_HEIGHT);
+	set_property(options, "screen-#rows", buf, strlen(buf) + 1);
 
 	if (rom_size >= 8) {
                 const char *p;
