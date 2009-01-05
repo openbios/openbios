@@ -115,10 +115,13 @@ void vga_vbe_init(const char *path, uint32_t fb, uint32_t fb_size,
 	set_int_property(ph, "address", fb & ~0x0000000F);
 
 	chosen = find_dev("/chosen");
-	set_int_property(chosen, "display", ph);
+	push_str(path);
+	fword("open-dev");
+	set_int_property(chosen, "display", POP());
 
 	aliases = find_dev("/aliases");
 	set_property(aliases, "screen", path, strlen(path) + 1);
+
 	if (rom_size >= 8) {
                 const char *p;
 		int size;
