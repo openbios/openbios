@@ -19,7 +19,7 @@
 " 0000000000000" encode-string " system-id" property
 1 encode-int " #address-cells" property
 1 encode-int " #size-cells" property
-h# 0x05f5e100 encode-int " clock-frequency" property
+h# 05f5e100 encode-int " clock-frequency" property
 
 new-device
 	" cpus" device-name
