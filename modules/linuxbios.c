@@ -67,7 +67,8 @@ static unsigned long count_lb_records(void *start, unsigned long length)
 	count = 0;
 	end = ((char *)start) + length;
 	for(rec = start; ((void *)rec < end) &&
-		((signed long)rec->size <= (end - (void *)rec));
+		((signed long)rec->size <=
+                 ((signed long)end - (signed long)rec));
 		rec = (void *)(((char *)rec) + rec->size)) {
 		count++;
 	}

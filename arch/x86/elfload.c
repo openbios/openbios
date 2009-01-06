@@ -19,7 +19,6 @@
 #define ADDRMASK 0x00ffffff
 /* #define ADDRMASK 0xffffffff // old behavior */
 
-extern unsigned int start_elf(unsigned long entry_point, unsigned long param);
 extern char _start, _end;
 
 static char *image_name, *image_version;
@@ -212,7 +211,7 @@ static int verify_image(Elf_ehdr *ehdr, Elf_phdr *phdr, int phnum,
     return 1;
 }
 
-static inline unsigned const padded(unsigned s)
+static inline unsigned padded(unsigned s)
 {
     return (s + 3) & ~3;
 }
@@ -310,7 +309,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     Elf_phdr *phdr = NULL;
     unsigned long phdr_size;
     unsigned long checksum_offset;
-    unsigned short checksum;
+    unsigned short checksum = 0;
     Elf_Bhdr *boot_notes = NULL;
     int retval = -1;
     int image_retval;

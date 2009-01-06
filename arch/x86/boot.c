@@ -15,11 +15,6 @@
 #include "sys_info.h"
 #include "boot.h"
 
-int elf_load(struct sys_info *, const char *filename, const char *cmdline);
-int linux_load(struct sys_info *, const char *filename, const char *cmdline);
-
-void boot(void);
-
 struct sys_info sys_info;
 
 void boot(void)

@@ -19,7 +19,7 @@
 
 void boot(void);
 
-static char intdict[256 * 1024];
+static unsigned char intdict[256 * 1024];
 
 static void init_memory(void)
 {

@@ -22,7 +22,7 @@ struct eregs {
 	uint32_t eflags;
 };
 
-static char *exception_names[]= {
+static const char * const exception_names[]= {
 	"division by zero",
 	"single step",
 	"NMI",

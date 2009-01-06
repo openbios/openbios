@@ -3,7 +3,7 @@
 
 #include "asm/io.h"
 
-#if !(PCI_CONFIG_1 || PCI_CONFIG_2)
+#if !(defined(PCI_CONFIG_1) || defined(PCI_CONFIG_2))
 #define PCI_CONFIG_1 1 /* default */
 #endif
 

@@ -65,7 +65,7 @@ void collect_multiboot_info(struct sys_info *info)
     mod = (module_t *) mbinfo->mods_addr;
     info->dict_start=(unsigned long *)mod->mod_start;
     info->dict_end=(unsigned long *)mod->mod_end;
-    debug("multiboot: dictionary at %x-%x\n",
+    debug("multiboot: dictionary at %p-%p\n",
 		    info->dict_start, info->dict_end);
 
     if (mbinfo->flags & MULTIBOOT_MMAP_VALID) {

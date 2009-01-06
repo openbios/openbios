@@ -9,8 +9,8 @@ struct sys_info {
     unsigned long boot_data;
     unsigned long boot_arg;
 
-    char *firmware; /* "PCBIOS", "LinuxBIOS", etc. */
-    char *command_line; /* command line given to us */
+    const char *firmware; /* "PCBIOS", "LinuxBIOS", etc. */
+    const char *command_line; /* command line given to us */
 
     /* memory map */
     int n_memranges;
