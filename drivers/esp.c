@@ -42,7 +42,7 @@ struct esp_dma {
 
 typedef struct sd_private {
     unsigned int bs;
-    const char *media_str;
+    const char *media_str[2];
     uint32_t sectors;
     uint8_t media;
     uint8_t id;
@@ -74,7 +74,8 @@ static void dump_drive(sd_private_t *drive)
 {
     printk("SCSI DRIVE @%lx:\n", (unsigned long)drive);
     printk("id: %d\n", drive->id);
-    printk("media: %s\n", drive->media_str);
+    printk("media: %s\n", drive->media_str[0]);
+    printk("media: %s\n", drive->media_str[1]);
     printk("model: %s\n", drive->model);
     printk("sectors: %d\n", drive->sectors);
     printk("present: %d\n", drive->present);
@@ -183,7 +184,7 @@ read_capacity(esp_private_t *esp, sd_private_t *sd)
 static unsigned int
 inquiry(esp_private_t *esp, sd_private_t *sd)
 {
-    const char *media = "UNKNOWN";
+    const char *media[2] = { "UNKNOWN", "UNKNOWN"};
 
     // Setup command = Inquiry
     memset(esp->buffer, 0, 7);
@@ -202,13 +203,16 @@ inquiry(esp_private_t *esp, sd_private_t *sd)
 
     switch (sd->media) {
     case TYPE_DISK:
-        media = "disk";
+        media[0] = "disk";
+        media[1] = "hd";
         break;
     case TYPE_ROM:
-        media = "cdrom";
+        media[0] = "cdrom";
+        media[1] = "cd";
         break;
     }
-    sd->media_str = media;
+    sd->media_str[0] = media[0];
+    sd->media_str[1] = media[1];
     memcpy(sd->model, &esp->buffer[16], 16);
     sd->model[17] = '\0';
 
@@ -406,6 +410,7 @@ NODE_METHODS(ob_esp) = {
 static void
 add_alias(const char *device, const char *alias)
 {
+    DPRINTF("add_alias dev \"%s\" = alias \"%s\"\n", device, alias);
     push_str("/aliases");
     fword("find-device");
     push_str(device);
@@ -517,10 +522,14 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
             counter_ptr = &diskcount;
         }
         if (*counter_ptr == 0) {
-            add_alias(nodebuff, esp->sd[id].media_str);
+            add_alias(nodebuff, esp->sd[id].media_str[0]);
+            add_alias(nodebuff, esp->sd[id].media_str[1]);
         }
-        snprintf(aliasbuff, sizeof(aliasbuff), "%s%d", esp->sd[id].media_str,
-                *counter_ptr);
+        snprintf(aliasbuff, sizeof(aliasbuff), "%s%d",
+                 esp->sd[id].media_str[0], *counter_ptr);
+        add_alias(nodebuff, aliasbuff);
+        snprintf(aliasbuff, sizeof(aliasbuff), "%s%d",
+                 esp->sd[id].media_str[1], *counter_ptr);
         add_alias(nodebuff, aliasbuff);
         snprintf(aliasbuff, sizeof(aliasbuff), "sd(0,%d,0)", id);
         add_alias(nodebuff, aliasbuff);

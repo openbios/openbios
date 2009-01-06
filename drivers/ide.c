@@ -1415,10 +1415,14 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 				cd_found = 1;
 				set_property(aliases, "cd",
 					     nodebuff, strlen(nodebuff) + 1);
+				set_property(aliases, "cdrom",
+					     nodebuff, strlen(nodebuff) + 1);
 			}
 			if (drive->media == ide_media_disk && !hd_found) {
 				hd_found = 1;
 				set_property(aliases, "hd",
+					     nodebuff, strlen(nodebuff) + 1);
+				set_property(aliases, "disk",
 					     nodebuff, strlen(nodebuff) + 1);
 			}
 		}
