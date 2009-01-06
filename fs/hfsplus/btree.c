@@ -293,7 +293,7 @@ void* btree_key_by_index(btree* bt, node_buf* buf, UInt16 index)
 
     // now we have the offset and can read the key ...
 #ifdef CONFIG_LITTLE_ENDIAN
-    return buf->node + bswap_16(*offset);
+    return buf->node + bswabU16(*offset);
 #else
     return buf->node + *offset;
 #endif

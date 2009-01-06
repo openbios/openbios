@@ -6,6 +6,8 @@ extern unsigned long virt_offset;
 #define phys_to_virt(phys) ((void *) ((unsigned long) (phys) - virt_offset))
 #define virt_to_phys(virt) ((unsigned long) (virt) + virt_offset)
 
+#ifndef BOOTSTRAP
+
 #define __SLOW_DOWN_IO "outb %%al,$0x80;"
 static inline void slow_down_io(void)
 {
@@ -46,4 +48,23 @@ BUILDIO(b,b,char)
 BUILDIO(w,w,short)
 BUILDIO(l,,int)
 
+#else /* BOOTSTRAP */
+#ifdef FCOMPILER
+#define inb(reg) ((u8)0xff)
+#define inw(reg) ((u16)0xffff)
+#define inl(reg) ((u32)0xffffffff)
+#define outb(reg, val) do{} while(0)
+#define outw(reg, val) do{} while(0)
+#define outl(reg, val) do{} while(0)
+#else
+extern u8 inb(u32 reg);
+extern u16 inw(u32 reg);
+extern u32 inl(u32 reg);
+extern void insw(u32 reg, void *addr, unsigned long count);
+extern void outb(u32 reg, u8 val);
+extern void outw(u32 reg, u16 val);
+extern void outl(u32 reg, u32 val);
+extern void outsw(u32 reg, const void *addr, unsigned long count);
+#endif
+#endif
 #endif
