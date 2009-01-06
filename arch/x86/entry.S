@@ -252,6 +252,12 @@ vec19:
         pushl   $19 /* vector */
         jmp     int_hand
 
+__divide_error:
+        pushl   $0 /* error code */
+        pushl   $20 /* vector */
+        jmp     int_hand
+        .global __divide_error
+
 int_hand:
         /* At this point on the stack there is:
          *  0(%esp) vector

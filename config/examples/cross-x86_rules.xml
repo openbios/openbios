@@ -12,12 +12,15 @@ HOSTCC := gcc
 HOSTCFLAGS := -O2 -g -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 
-CC := gcc
-AR := ar
-NM := nm
-STRIP := strip
-RANLIB := ranlib
-INSTALL := install
+#TARGET=i386-elf-
+TARGET=
+CC     := $(TARGET)gcc
+AS     := $(TARGET)as
+AR     := $(TARGET)ar
+LD     := $(TARGET)ld
+NM     := $(TARGET)nm
+STRIP  := $(TARGET)strip
+RANLIB := $(TARGET)ranlib
 
 ifeq ($(shell uname), Linux)
 	LIBDL_LDFLAGS=-ldl

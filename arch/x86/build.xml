@@ -20,41 +20,48 @@
   <object source="xbox/console.c" condition="XBOX"/>
   <object source="xbox/methods.c" condition="XBOX"/>
  </library>
- 
+
+ <executable name="target/arch/x86/entry.o" target="target">
+  <rule><![CDATA[ arch/x86/entry.S
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
+ </executable>
+
  <executable name="openbios.multiboot" target="target" condition="IMAGE_ELF_MULTIBOOT">
   <rule>
-	$(LD) -N -T arch/x86/ldscript -o $@.nostrip $^ \
-		$(shell $(CC) -print-libgcc-file-name)
+	$(LD) --warn-common -N -T arch/x86/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-multiboot.syms
 	cp $@.nostrip $@
 	$(STRIP) $@
   </rule>
-  <object source="entry.S"/>
+  <external-object source="target/arch/x86/entry.o"/>
   <object source="multiboot.c"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
+  <!-- Needs to be after drivers to avoid missing symbols -->
+  <external-object source="libmodules.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
   <rule>
-	$(LD) -N -T arch/x86/ldscript -o $@.nostrip $^ \
-		$(shell $(CC) -print-libgcc-file-name)
+	$(LD) --warn-common -N -T arch/x86/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms
 	cp $@.nostrip $@
 	$(STRIP) $@
   </rule>
-  <object source="entry.S"/>
+  <external-object source="target/arch/x86/entry.o"/>
   <object source="plainboot.c"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
+  <!-- Needs to be after drivers to avoid missing symbols -->
+  <external-object source="libmodules.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
 
  <!-- HACK ALERT -->
@@ -80,20 +87,20 @@
 
  <executable name="openbios-builtin.elf" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule>
-	$(LD) -N -T arch/x86/ldscript -o $@.nostrip $^ \
-		$(shell $(CC) -print-libgcc-file-name)
+	$(LD) --warn-common -N -T arch/x86/ldscript -o $@.nostrip $^
 	$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms
 	cp $@.nostrip $@
-	$(STRIP) $@
-  </rule>
-  <object source="entry.S"/>
+	$(STRIP) $@</rule>
+  <external-object source="target/arch/x86/entry.o"/>
   <external-object source="target/arch/x86/builtin.o"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
+  <!-- Needs to be after drivers to avoid missing symbols -->
+  <external-object source="libmodules.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="libgcc.a"/>
  </executable>
  
 </build>
