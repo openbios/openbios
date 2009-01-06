@@ -30,9 +30,9 @@ static void convert_memmap(struct lb_memory *lbmem, struct sys_info *info)
     info->memrange = malloc(lbcount * sizeof(struct memrange));
     info->n_memranges = 0;
     for (i = 0; i < lbcount; i++) {
-	debug("%#016Lx %#016Lx %d\n",
-		lbmem->map[i].start, lbmem->map[i].size,
-		(int) lbmem->map[i].type);
+	debug("%#016llx %#016llx %d\n",
+              (long long)lbmem->map[i].start, (long long)lbmem->map[i].size,
+              (int) lbmem->map[i].type);
 	if (lbmem->map[i].type != LB_MEM_RAM)
 	    continue;
 	info->memrange[info->n_memranges].base = lbmem->map[i].start;

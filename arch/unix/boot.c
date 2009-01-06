@@ -74,7 +74,7 @@ boot( void )
 	printk("[unix] Booting '%s'\n",path);
 	entry=load_elf(path);
 	if(entry)
-		printk("successfully loaded client at %x.\n", (ucell)entry);
+                printk("successfully loaded client at %llx.\n", (unsigned long long)(ucell)entry);
 	else
 		printk("failed.\n");
 }

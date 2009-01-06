@@ -10,6 +10,8 @@ ARCH := amd64
 ODIR := obj-$(ARCH)
 HOSTCC := gcc
 HOSTCFLAGS := -O2 -g -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
+HOSTCFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
+HOSTCFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
 HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 
 CC := gcc
@@ -22,6 +24,8 @@ RANLIB := ranlib
 INSTALL := install
 
 CFLAGS := -Os -Wall -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin -g
+CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
+CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
 INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 
 #
