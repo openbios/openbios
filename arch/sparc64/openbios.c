@@ -68,6 +68,7 @@ static const struct hwdef hwdefs[] = {
             .cfg_data = 0,
             .cfg_base = 0x80000000ULL,
             .cfg_len = 0,
+            .irqs = { 1, 2, 3, 4 },
         },
         .machine_id_low = 0,
         .machine_id_high = 255,

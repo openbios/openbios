@@ -5,6 +5,8 @@ struct pci_config_t {
 	uint32_t dev;		/* bus, dev, fn */
 	uint32_t regions[7];
 	uint32_t sizes[7];
+	int irq_pin;
+	int irq_line;
 };
 
 typedef struct pci_dev_t pci_dev_t;

@@ -195,6 +195,52 @@ int eth_config_cb (const pci_config_t *config)
         return 0;
 }
 
+static void pci_set_interrupt_map(const pci_config_t *config)
+{
+	phandle_t parent, dev;
+	cell props[4];
+	cell *old_props, *new_props;
+	int ncells;
+	int retlen;
+
+	if (config->irq_line != -1) {
+		dev = get_cur_dev();
+		activate_device(config->path);
+		activate_device("..");
+		parent = get_cur_dev();
+
+		ncells = 0;
+		if (get_property(parent, "interrupt-map-mask", NULL) == 0) {
+			props[ncells++] = 0xF800;
+			props[ncells++] = 0;
+			props[ncells++] = 0;
+			props[ncells++] = 0;
+			set_property(parent, "interrupt-map-mask",
+				     (char*)props, ncells * sizeof(cell));
+		}
+
+		old_props = (cell*)get_property(parent, "interrupt-map", &retlen);
+		if (old_props) {
+			new_props = malloc(retlen + 6 * 4);
+			memcpy(new_props, old_props, retlen);
+		} else {
+			retlen = 0;
+			new_props = malloc(6 * 4);
+		}
+		ncells = retlen / 4;
+		new_props[ncells++] = config->dev & 0xf800;	/* devfn */
+		new_props[ncells++] = 0;
+		new_props[ncells++] = 0;
+		new_props[ncells++] = 0;
+		new_props[ncells++] = 0;
+		new_props[ncells++] = config->irq_line;
+		set_property(parent, "interrupt-map",
+		             (char*)new_props, ncells * sizeof(cell));
+		free(new_props);
+		activate_dev(dev);
+	}
+}
+
 int macio_config_cb (const pci_config_t *config)
 {
 #ifdef CONFIG_DRIVER_MACIO
@@ -232,8 +278,8 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	set_int_property(dev, "revision-id", rev);
 	set_int_property(dev, "class-code", class_code << 8);
 
-	set_int_property(dev, "interrupts",
-			pci_config_read8(addr, PCI_INTERRUPT_LINE));
+	if (config->irq_pin)
+		set_int_property(dev, "interrupts", config->irq_pin);
 
 	set_int_property(dev, "min-grant", pci_config_read8(addr, PCI_MIN_GNT));
 	set_int_property(dev, "max-latency", pci_config_read8(addr, PCI_MAX_LAT));
@@ -275,10 +321,23 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	if (pci_dev->compat)
 		set_property(dev, "compatible",
 			     pci_dev->compat, pci_compat_len(pci_dev));
+
+	pci_set_interrupt_map(config);
+
+	if (pci_dev->acells)
+		set_int_property(dev, "#address-cells", pci_dev->acells);
+	if (pci_dev->scells)
+		set_int_property(dev, "#size-cells", pci_dev->scells);
+	if (pci_dev->icells)
+		set_int_property(dev, "#interrupt-cells", pci_dev->icells);
+
+#ifdef CONFIG_DEBUG_PCI
+	printk("\n");
+#endif
+
 	if (pci_dev->config_cb)
 		pci_dev->config_cb(config);
 }
-
 
 static void ob_pci_add_reg(pci_addr addr)
 {
@@ -342,6 +401,17 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
         unsigned long base;
 	pci_addr config_addr;
 	int reg;
+	uint8_t irq_pin, irq_line;
+
+	irq_pin =  pci_config_read8(addr, PCI_INTERRUPT_PIN);
+	if (irq_pin) {
+		config->irq_pin = irq_pin;
+		irq_pin = (((config->dev >> 11) & 0x1F) + irq_pin - 1) & 3;
+		irq_line = arch->irqs[irq_pin];
+		pci_config_write8(addr, PCI_INTERRUPT_LINE, irq_line);
+		config->irq_line = irq_line;
+	} else
+		config->irq_line = -1;
 
 	omask = 0x00000000;
 	for (reg = 0; reg < 7; reg++) {
