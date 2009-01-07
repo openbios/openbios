@@ -164,6 +164,88 @@ NODE_METHODS(ob_pci_node) = {
 	{ "encode-unit",	ob_pci_encode_unit	},
 };
 
+static void pci_set_bus_range(const pci_config_t *config)
+{
+	phandle_t dev = get_cur_dev();
+	cell props[2];
+
+	props[0] = (config->dev >> 16) & 0xFF;
+	props[1] = 1;
+	set_property(dev, "bus-range", (char *)props, 2 * sizeof(cell));
+}
+
+static void pci_host_set_reg(const pci_config_t *config)
+{
+	phandle_t dev = get_cur_dev();
+	cell props[2];
+
+	props[0] = arch->cfg_base;
+	props[1] = arch->cfg_len;
+	set_property(dev, "reg", (char *)props, 2 * sizeof(cell));
+}
+
+static void pci_host_set_ranges(const pci_config_t *config)
+{
+	phandle_t dev = get_cur_dev();
+	cell props[32];
+	int ncells;
+
+	ncells = 0;
+	if (arch->io_base) {
+		pci_encode_phys_addr(props + ncells, 0, IO_SPACE,
+				     config->dev, 0, 0);
+		ncells += 3;
+		props[ncells++] = arch->io_base;
+		props[ncells++] = 0x00000000;
+		props[ncells++] = arch->io_len;
+	}
+	if (arch->rbase) {
+		pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
+				     config->dev, 0, 0);
+		ncells += 3;
+		props[ncells++] = arch->rbase;
+		props[ncells++] = 0x00000000;
+		props[ncells++] = arch->rlen;
+	}
+	if (arch->mem_base) {
+		pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
+				     config->dev, 0, arch->mem_base);
+		ncells += 3;
+		props[ncells++] = arch->mem_base;
+		props[ncells++] = 0x00000000;
+		props[ncells++] = arch->mem_len;
+	}
+	set_property(dev, "ranges", (char *)props, ncells * sizeof(cell));
+}
+
+int host_config_cb(const pci_config_t *config)
+{
+	phandle_t aliases;
+
+	aliases = find_dev("/aliases");
+	if (aliases)
+		set_property(aliases, "pci",
+			     config->path, strlen(config->path) + 1);
+
+	pci_host_set_reg(config);
+	pci_host_set_ranges(config);
+	pci_set_bus_range(config);
+
+	return 0;
+}
+
+int bridge_config_cb(const pci_config_t *config)
+{
+	phandle_t aliases;
+
+	aliases = find_dev("/aliases");
+	set_property(aliases, "bridge", config->path, strlen(config->path) + 1);
+
+	pci_set_bus_range(config);
+
+	return 0;
+}
+
 int ide_config_cb2 (const pci_config_t *config)
 {
 	ob_ide_init(config->path,

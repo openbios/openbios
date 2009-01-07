@@ -269,7 +269,7 @@ static const pci_dev_t hbrg_devices[] = {
         0x1057, 0x0002, "pci",
         "pci", "MOT,MPC106", "grackle\0",
         3, 2, 1,
-        NULL, NULL
+        host_config_cb, NULL
     },
     {
         0x1057, 0x4801, NULL,
@@ -290,7 +290,7 @@ static const pci_dev_t PCIbrg_devices[] = {
         0x1011, 0x0026, NULL,
         "pci-bridge", "DEV,21154", "DEV,21154\0pci-bridge\0",
         3, 2, 1,
-        NULL, NULL,
+        bridge_config_cb, NULL,
     },
     {
         0xFFFF, 0xFFFF,
