@@ -323,8 +323,46 @@ static void pci_set_reg(const pci_config_t *config)
 	set_property(dev, "reg", (char *)props, ncells * sizeof(cell));
 }
 
+
+static void pci_set_ranges(const pci_config_t *config)
+{
+	phandle_t dev = get_cur_dev();
+	cell props[32];
+	int ncells;
+  	int i;
+	uint32_t mask;
+	int flags;
+	int space_code;
+
+	ncells = 0;
+	for (i = 0; i < 6; i++) {
+		if (!config->assigned[i] || !config->sizes[i])
+			continue;
+
+		/* child address */
+
+		props[ncells++] = 0x00000000;
+
+		/* parent address */
+
+		pci_decode_pci_addr(config->assigned[i],
+				    &flags, &space_code, &mask);
+		pci_encode_phys_addr(props + ncells, flags, space_code,
+				     config->dev, 0x10 + i * 4,
+				     config->assigned[i] & ~mask);
+		ncells += 3;
+
+		/* size */
+
+		props[ncells++] = config->sizes[i];
+  	}
+	set_property(dev, "ranges", (char *)props, ncells * sizeof(cell));
+}
+
 int macio_config_cb (const pci_config_t *config)
 {
+	pci_set_ranges(config);
+
 #ifdef CONFIG_DRIVER_MACIO
 	ob_macio_init(config->path, config->assigned[0] & ~0x0000000F);
 #endif
