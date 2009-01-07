@@ -176,22 +176,12 @@ int ide_config_cb2 (const pci_config_t *config)
 
 int eth_config_cb (const pci_config_t *config)
 {
-	phandle_t ph;
-	cell props[12];
-	int i;
-
-	ph = find_dev(config->path);
+	phandle_t ph = get_cur_dev();;
 
 	set_property(ph, "network-type", "ethernet", 9);
 	set_property(ph, "removable", "network", 8);
 	set_property(ph, "category", "net", 4);
 
-	for (i = 0; i < 7; i++)
-	{
-		props[i*2] = config->assigned[i] & ~0x0000000F;
-		props[i*2 + 1] = config->sizes[i];
-	}
-        set_property(ph, "reg", (char *)props, i * 2 * sizeof(cell));
         return 0;
 }
 
@@ -295,6 +285,44 @@ static void pci_set_assigned_addresses(const pci_config_t *config)
 			     ncells * sizeof(cell));
 }
 
+static void pci_set_reg(const pci_config_t *config)
+{
+	phandle_t dev = get_cur_dev();
+	cell props[38];
+	int ncells;
+	int i;
+	uint32_t mask;
+	int space_code, flags;
+
+	ncells = 0;
+	pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
+			     config->dev, 0, 0);
+	ncells += 3;
+
+	props[ncells++] = 0x00000000;
+	props[ncells++] = 0x00000000;
+
+	for (i = 0; i < 6; i++) {
+		if (!config->assigned[i] || !config->sizes[i])
+			continue;
+
+		pci_decode_pci_addr(config->regions[i],
+				    &flags, &space_code, &mask);
+
+		pci_encode_phys_addr(props + ncells,
+				     flags, space_code, config->dev,
+				     PCI_BASE_ADDR_0 + (i * sizeof(uint32_t)),
+				     config->regions[i] & ~mask);
+		ncells += 3;
+
+		/* set size */
+
+		props[ncells++] = 0x00000000;
+		props[ncells++] = config->sizes[i];
+	}
+	set_property(dev, "reg", (char *)props, ncells * sizeof(cell));
+}
+
 int macio_config_cb (const pci_config_t *config)
 {
 #ifdef CONFIG_DRIVER_MACIO
@@ -378,6 +406,7 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 		set_property(dev, "compatible",
 			     pci_dev->compat, pci_compat_len(pci_dev));
 
+	pci_set_reg(config);
 	pci_set_assigned_addresses(config);
 	pci_set_interrupt_map(config);
 
@@ -394,20 +423,6 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 
 	if (pci_dev->config_cb)
 		pci_dev->config_cb(config);
-}
-
-static void ob_pci_add_reg(pci_addr addr)
-{
-	PUSH(0);
-	PUSH(0);
-	PUSH(addr&(~arch->cfg_base));
-	fword("pci-addr-encode");
-	PUSH(0);
-	PUSH(0);
-	fword("pci-len-encode");
-	fword("encode+");
-	push_str("reg");
-	fword("property");
 }
 
 #ifdef CONFIG_XBOX
@@ -485,6 +500,8 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
 			config_addr = PCI_ROM_ADDRESS;
 		else
 			config_addr = PCI_BASE_ADDR_0 + reg * 4;
+
+		config->regions[reg] = pci_config_read32(addr, config_addr);
 
 		/* get region size */
 
@@ -594,7 +611,6 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 
                         ob_pci_configure(addr, &config, mem_base, io_base);
 			ob_pci_add_properties(addr, pci_dev, &config);
-			ob_pci_add_reg(addr);
 
 			if (ccode == 0x0600 || ccode == 0x0604) {
 				/* host or bridge */
