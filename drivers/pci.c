@@ -167,10 +167,10 @@ NODE_METHODS(ob_pci_node) = {
 int ide_config_cb2 (const pci_config_t *config)
 {
 	ob_ide_init(config->path,
-		    config->regions[0] & ~0x0000000F,
-		    config->regions[1] & ~0x0000000F,
-		    config->regions[2] & ~0x0000000F,
-		    config->regions[3] & ~0x0000000F);
+		    config->assigned[0] & ~0x0000000F,
+		    config->assigned[1] & ~0x0000000F,
+		    config->assigned[2] & ~0x0000000F,
+		    config->assigned[3] & ~0x0000000F);
 	return 0;
 }
 
@@ -188,7 +188,7 @@ int eth_config_cb (const pci_config_t *config)
 
 	for (i = 0; i < 7; i++)
 	{
-		props[i*2] = config->regions[i];
+		props[i*2] = config->assigned[i] & ~0x0000000F;
 		props[i*2 + 1] = config->sizes[i];
 	}
         set_property(ph, "reg", (char *)props, i * 2 * sizeof(cell));
@@ -241,19 +241,75 @@ static void pci_set_interrupt_map(const pci_config_t *config)
 	}
 }
 
+static inline void pci_decode_pci_addr(pci_addr addr, int *flags,
+				       int *space_code, uint32_t *mask)
+{
+	if (addr & 0x01) {
+
+		*space_code = IO_SPACE;
+		*flags = 0;
+		*mask = 0x00000001;
+
+	} else if (addr & 0x04) {
+
+		*flags = IS_NOT_RELOCATABLE;
+		*space_code = MEMORY_SPACE_64;
+		*mask = 0x0000000F;
+
+	} else {
+
+		*space_code = MEMORY_SPACE_32;
+		*flags = IS_NOT_RELOCATABLE;
+		*mask = 0x0000000F;
+
+	}
+}
+
+static void pci_set_assigned_addresses(const pci_config_t *config)
+{
+	phandle_t dev = get_cur_dev();
+	cell props[32];
+	int ncells;
+	int i;
+	uint32_t mask;
+	int flags, space_code;
+
+	ncells = 0;
+	for (i = 0; i < 6; i++) {
+		if (!config->assigned[i] || !config->sizes[i])
+			continue;
+		pci_decode_pci_addr(config->assigned[i],
+				    &flags, &space_code, &mask);
+
+		pci_encode_phys_addr(props + ncells,
+				     flags, space_code, config->dev,
+				     PCI_BASE_ADDR_0 + (i * sizeof(uint32_t)),
+				     config->assigned[i] & ~mask);
+		ncells += 3;
+
+		props[ncells++] = 0x00000000;
+		props[ncells++] = config->sizes[i];
+	}
+	if (ncells)
+		set_property(dev, "assigned-addresses", (char *)props,
+			     ncells * sizeof(cell));
+}
+
 int macio_config_cb (const pci_config_t *config)
 {
 #ifdef CONFIG_DRIVER_MACIO
-	ob_macio_init(config->path, config->regions[0] & ~0x0000000F);
+	ob_macio_init(config->path, config->assigned[0] & ~0x0000000F);
 #endif
 	return 0;
 }
 
 int vga_config_cb (const pci_config_t *config)
 {
-	if (config->regions[0] != 0x00000000)
-		vga_vbe_init(config->path, config->regions[0], config->sizes[0],
-			     config->regions[1], config->sizes[1]);
+	if (config->assigned[0] != 0x00000000)
+		vga_vbe_init(config->path, config->assigned[0] & ~0x0000000F,
+					   config->sizes[0],
+					   config->assigned[1] & ~0x0000000F,
+					   config->sizes[1]);
 	return 0;
 }
 
@@ -322,6 +378,7 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 		set_property(dev, "compatible",
 			     pci_dev->compat, pci_compat_len(pci_dev));
 
+	pci_set_assigned_addresses(config);
 	pci_set_interrupt_map(config);
 
 	if (pci_dev->acells)
@@ -416,7 +473,7 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
 	omask = 0x00000000;
 	for (reg = 0; reg < 7; reg++) {
 
-		config->regions[reg] = 0x00000000;
+		config->assigned[reg] = 0x00000000;
 		config->sizes[reg] = 0x00000000;
 
 		if ((omask & 0x0000000f) == 0x4) {
@@ -473,7 +530,7 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
 			*mem_base = reloc + size;
 		}
 		pci_config_write32(addr, config_addr, reloc | omask);
-		config->regions[reg] = reloc;
+		config->assigned[reg] = reloc | omask;
 	}
 }
 
