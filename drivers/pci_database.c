@@ -1022,7 +1022,9 @@ const pci_dev_t *pci_find_device (uint8_t class, uint8_t subclass,
             break;
         }
     }
-    find_device:
+find_device:
+    if (dev == NULL)
+	goto bad_device;
     for (;; dev++) {
         if (dev->vendor == 0xFFFF && dev->product == 0xFFFF) {
             goto bad_device;
@@ -1055,7 +1057,7 @@ const pci_dev_t *pci_find_device (uint8_t class, uint8_t subclass,
             return new;
         }
     }
- bad_device:
+bad_device:
     printk("Cannot manage '%s' PCI device type '%s':\n %x %x (%x %x %x)\n",
            name, type, vendor, product, class, subclass, iface);
 

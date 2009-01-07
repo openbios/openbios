@@ -510,38 +510,43 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	set_int_property(dev, "cache-line-size",
 			pci_config_read16(addr, PCI_CACHE_LINE_SIZE));
 
-	if (pci_dev->type) {
-		push_str(pci_dev->type);
-		fword("encode-string");
-		push_str("device_type");
-		fword("property");
+	if (pci_dev) {
+		if (pci_dev->type) {
+			push_str(pci_dev->type);
+			fword("encode-string");
+			push_str("device_type");
+			fword("property");
+		}
+		if (pci_dev->model) {
+			push_str(pci_dev->model);
+			fword("encode-string");
+			push_str("model");
+			fword("property");
+		}
+		if (pci_dev->compat)
+			set_property(dev, "compatible",
+				     pci_dev->compat, pci_compat_len(pci_dev));
+
+		if (pci_dev->acells)
+			set_int_property(dev, "#address-cells",
+					      pci_dev->acells);
+		if (pci_dev->scells)
+			set_int_property(dev, "#size-cells",
+					       pci_dev->scells);
+		if (pci_dev->icells)
+			set_int_property(dev, "#interrupt-cells",
+					      pci_dev->icells);
 	}
-	if (pci_dev->model) {
-		push_str(pci_dev->model);
-		fword("encode-string");
-		push_str("model");
-		fword("property");
-	}
-	if (pci_dev->compat)
-		set_property(dev, "compatible",
-			     pci_dev->compat, pci_compat_len(pci_dev));
 
 	pci_set_reg(config);
 	pci_set_assigned_addresses(config);
 	pci_set_interrupt_map(config);
 
-	if (pci_dev->acells)
-		set_int_property(dev, "#address-cells", pci_dev->acells);
-	if (pci_dev->scells)
-		set_int_property(dev, "#size-cells", pci_dev->scells);
-	if (pci_dev->icells)
-		set_int_property(dev, "#interrupt-cells", pci_dev->icells);
-
 #ifdef CONFIG_DEBUG_PCI
 	printk("\n");
 #endif
 
-	if (pci_dev->config_cb)
+	if (pci_dev && pci_dev->config_cb)
 		pci_dev->config_cb(config);
 }
 
