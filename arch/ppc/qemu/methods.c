@@ -305,7 +305,9 @@ node_methods_init( const char *cpuname )
 
 	chosen = find_dev("/chosen");
 	if (chosen) {
-		ph = find_dev(cpuname);
+		push_str(cpuname);
+		fword("open-dev");
+		ph = POP();
 		set_int_property(chosen, "mmu", ph);
 	}
 }
