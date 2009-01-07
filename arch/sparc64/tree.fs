@@ -33,6 +33,43 @@ finish-device
 " /openprom" find-device
   " OBP 3.10.24 1999/01/01 01:01" encode-string " version" property
 
+device-end
+
+\ we only implement DD and DD,F
+: encode-unit-pci ( phys.lo phy.mid phys.hi -- str len )
+  nip nip ff00 and 8 >> dup 3 >>
+  swap 7 and
+  ( ddddd fff )
+
+  ?dup if
+    pocket tohexstr
+    " ," pocket tmpstrcat
+  else
+    0 0 pocket tmpstrcpy
+  then
+  >r
+  rot pocket tohexstr r> tmpstrcat drop
+;
+
+dev /
+
+\ simple pci bus node
+new-device
+  " pci" device-name
+	3 encode-int " #address-cells" property
+	2 encode-int " #size-cells" property
+	0 encode-int 0 encode-int encode+ " bus-range" property
+	" pci" encode-string " device_type" property
+
+  external
+  : open ( cr ." opening PCI" cr ) true ;
+  : close ;
+  : decode-unit 0 decode-unit-pci-bus ;
+  : encode-unit encode-unit-pci ;
+finish-device
+
+device-end
+
 dev /pci
 
 \ simple isa bus node

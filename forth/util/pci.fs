@@ -93,27 +93,6 @@ hex
 
 \ only forth
 
-
-\ -------------------------------------------------------------------------
-\ PCI encode/decode unit
-\ -------------------------------------------------------------------------
-
-\ we only implement DD and DD,F
-: encode-unit-pci ( phys.lo phy.mid phys.hi -- str len )
-  nip nip ff00 and 8 >> dup 3 >>
-  swap 7 and
-  ( ddddd fff )
-
-  ?dup if
-    pocket tohexstr
-    " ," pocket tmpstrcat
-  else
-    0 0 pocket tmpstrcpy
-  then
-  >r
-  rot pocket tohexstr r> tmpstrcat drop
-;
-
 : decode-unit-pci-bus ( str len bus -- phys.lo phys.mid phys.hi )
   -rot ascii , left-split
   ( addr-R len-R addr-L len-L )

@@ -2,6 +2,7 @@ typedef struct pci_config_t pci_config_t;
 
 struct pci_config_t {
 	char path[256];
+	uint32_t dev;		/* bus, dev, fn */
 	uint32_t regions[7];
 	uint32_t sizes[7];
 };

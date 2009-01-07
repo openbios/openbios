@@ -427,18 +427,6 @@ arch_of_init( void )
         const struct cpudef *cpu;
 	char buf[64];
 
-	devtree_init();
-
-	/* ISA BASE */
-
-	push_str("/");
-	fword("find-device");
-
-	PUSH(isa_io_base);
-	fword("encode-int");
-	push_str("isa-io-base");
-	fword("property");
-
 	/* memory info */
 
 	push_str("/memory");

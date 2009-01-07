@@ -40,6 +40,34 @@ DECLARE_UNNAMED_NODE( ob_pci_node, INSTALL_OPEN, 2*sizeof(int) );
 
 const pci_arch_t *arch;
 
+#define IS_NOT_RELOCATABLE	0x80000000
+#define IS_PREFETCHABLE		0x40000000
+#define IS_ALIASED		0x20000000
+
+enum {
+	CONFIGURATION_SPACE = 0,
+	IO_SPACE = 1,
+	MEMORY_SPACE_32 = 2,
+	MEMORY_SPACE_64 = 3,
+};
+
+static inline void pci_encode_phys_addr(cell *phys, int flags, int space_code,
+				 pci_addr dev, uint8_t reg, uint64_t addr)
+{
+
+	/* phys.hi */
+
+	phys[0] = flags | (space_code << 24) | dev | reg;
+
+	/* phys.mid */
+
+	phys[1] = addr >> 32;
+
+	/* phys.lo */
+
+	phys[2] = addr;
+}
+
 static void
 ob_pci_open(int *idx)
 {
@@ -58,11 +86,82 @@ ob_pci_initialize(int *idx)
 {
 }
 
+/* ( str len -- phys.lo phys.mid phys.hi ) */
+
+static void
+ob_pci_decode_unit(int *idx)
+{
+	PUSH(0);
+	fword("decode-unit-pci-bus");
+}
+
+/*  ( phys.lo phy.mid phys.hi -- str len ) */
+
+static void
+ob_pci_encode_unit(int *idx)
+{
+	char buf[28];
+	cell hi = POP();
+	cell mid = POP();
+	cell lo = POP();
+	int n, p, t, ss, bus, dev, fn, reg;
+
+	n = hi & IS_NOT_RELOCATABLE;
+	p = hi & IS_PREFETCHABLE;
+	t = hi & IS_ALIASED;
+	ss = (hi >> 24) && 0x03;
+
+	bus = (hi >> 16) & 0xFF;
+	dev = (hi >> 11) & 0x1F;
+	fn = (hi >> 8) & 0x07;
+	reg = hi & 0xFF;
+
+	switch(ss) {
+	case CONFIGURATION_SPACE:
+
+		if (fn == 0)	/* DD */
+        		snprintf(buf, sizeof(buf), "%x", dev);
+		else		/* DD,F */
+        		snprintf(buf, sizeof(buf), "%x,%d", dev, fn);
+		break;
+
+	case IO_SPACE:
+
+		/* [n]i[t]DD,F,RR,NNNNNNNN */
+        	snprintf(buf, sizeof(buf), "%si%s%x,%x,%x,%x",
+			 n ? "n" : "",	/* relocatable */
+			 t ? "t" : "",	/* aliased */
+			 dev, fn, reg, t ? lo & 0x03FF : lo);
+		break;
+
+	case MEMORY_SPACE_32:
+
+		/* [n]m[t][p]DD,F,RR,NNNNNNNN */
+        	snprintf(buf, sizeof(buf), "%sm%s%s%x,%x,%x,%x",
+			 n ? "n" : "",	/* relocatable */
+			 t ? "t" : "",	/* aliased */
+			 p ? "p" : "",	/* prefetchable */
+			 dev, fn, reg, lo );
+		break;
+
+	case MEMORY_SPACE_64:
+
+		/* [n]x[p]DD,F,RR,NNNNNNNNNNNNNNNN */
+        	snprintf(buf, sizeof(buf), "%sx%s%x,%x,%x,%llx",
+			 n ? "n" : "",	/* relocatable */
+			 p ? "p" : "",	/* prefetchable */
+			 dev, fn, reg, ((uint64_t)mid << 32) | (uint64_t)lo );
+		break;
+	}
+	push_str(buf);
+}
 
 NODE_METHODS(ob_pci_node) = {
 	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
+	{ "decode-unit",	ob_pci_decode_unit	},
+	{ "encode-unit",	ob_pci_encode_unit	},
 };
 
 int ide_config_cb2 (const pci_config_t *config)
@@ -119,16 +218,19 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	int status,id;
 	uint16_t vendor_id, device_id;
 	uint8_t rev;
+	uint32_t class_code;
 
 	vendor_id = pci_config_read16(addr, PCI_VENDOR_ID);
 	device_id = pci_config_read16(addr, PCI_DEVICE_ID);
 	rev = pci_config_read8(addr, PCI_REVISION_ID);
+	class_code = pci_config_read16(addr, PCI_CLASS_DEVICE);
 
 	/* create properties as described in 2.5 */
 
 	set_int_property(dev, "vendor-id", vendor_id);
 	set_int_property(dev, "device-id", device_id);
 	set_int_property(dev, "revision-id", rev);
+	set_int_property(dev, "class-code", class_code << 8);
 
 	set_int_property(dev, "interrupts",
 			pci_config_read8(addr, PCI_INTERRUPT_LINE));
@@ -173,10 +275,6 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	if (pci_dev->compat)
 		set_property(dev, "compatible",
 			     pci_dev->compat, pci_compat_len(pci_dev));
-	push_str(pci_dev->name);
-	fword("encode-string");
-	push_str("class");
-	fword("property");
 	if (pci_dev->config_cb)
 		pci_dev->config_cb(config);
 }
@@ -310,17 +408,17 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
 }
 
 static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
-                            unsigned long *io_base, const char *path)
+                            unsigned long *io_base, char **path)
 {
 	int devnum, fn, is_multi, vid, did;
 	unsigned int htype;
 	pci_addr addr;
-	phandle_t dnode, dbus;
 	pci_config_t config;
         const pci_dev_t *pci_dev;
 	uint32_t ccode;
 	uint8_t class, subclass, iface, rev;
 
+	activate_device("/");
 	for (devnum = 0; devnum < 32; devnum++) {
 		is_multi = 0;
 		for (fn = 0; fn==0 || (is_multi && fn<8); fn++) {
@@ -341,7 +439,8 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 			iface = pci_config_read8(addr, PCI_CLASS_PROG);
 			rev = pci_config_read8(addr, PCI_REVISION_ID);
 
-			pci_dev = pci_find_device(class, subclass, iface, vid, did);
+			pci_dev = pci_find_device(class, subclass, iface,
+						  vid, did);
 
 #ifdef CONFIG_DEBUG_PCI
 			printk("%x:%x.%x - %x:%x - ", bus, devnum, fn,
@@ -351,43 +450,41 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 			if (fn == 0)
 				is_multi = htype & 0x80;
 
-			activate_device(path);
-
-			dbus=get_cur_dev();
 			if (pci_dev == NULL || pci_dev->name == NULL)
                             snprintf(config.path, sizeof(config.path),
-                                     "%s/pci%x,%x", path, vid, did);
+				     "%s/pci%x,%x", *path, vid, did);
 			else
                             snprintf(config.path, sizeof(config.path),
-                                     "%s/%s", path, pci_dev->name);
+				     "%s/%s", *path, pci_dev->name);
 #ifdef CONFIG_DEBUG_PCI
 			printk("%s - ", config.path);
 #endif
+			config.dev = addr & 0x00FFFFFF;
+
 			REGISTER_NAMED_NODE(ob_pci_node, config.path);
-			dnode=find_dev(config.path);
-			activate_dev( dnode );
+
+			activate_device(config.path);
+
                         ob_pci_configure(addr, &config, mem_base, io_base);
-{
-	int irq_pin, irq_line;
-	static const uint8_t heathrow_pci_irqs[4] = { 0x15, 0x16, 0x17, 0x18 };
-	irq_pin = pci_config_read8(addr, PCI_INTERRUPT_PIN);
-	if (irq_pin > 0) {
-		irq_pin = (devnum + irq_pin - 1) & 3;
-		irq_line = heathrow_pci_irqs[irq_pin];
-	}
-}
 			ob_pci_add_properties(addr, pci_dev, &config);
 			ob_pci_add_reg(addr);
-			device_end();
+
+			if (ccode == 0x0600 || ccode == 0x0604) {
+				/* host or bridge */
+				free(*path);
+				*path = strdup(config.path);
+			}
 
 		}
 	}
+	device_end();
 }
 
 int ob_pci_init(void)
 {
         int bus;
         unsigned long mem_base, io_base;
+	char *path;
 
 #ifdef CONFIG_DEBUG_PCI
 	printk("Initializing PCI devices...\n");
@@ -399,8 +496,10 @@ int ob_pci_init(void)
 
 	mem_base = arch->mem_base;
 	io_base = arch->io_base;
+	path = strdup("");
 	for (bus = 0; bus<0x100; bus++) {
-		ob_scan_pci_bus(bus, &mem_base, &io_base, "/pci");
+		ob_scan_pci_bus(bus, &mem_base, &io_base, &path);
 	}
+	free(path);
 	return 0;
 }

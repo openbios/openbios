@@ -142,7 +142,6 @@
   <external-object source="target/arch/ppc/qemu/kernel.o"/>
   <object source="qemu/main.c" flags="-Iarch/ppc"/>
   <object source="qemu/methods.c" flags="-Iarch/ppc"/>
-  <object source="qemu/tree.c" flags="-Iarch/ppc"/>
   <object source="qemu/vfd.c" flags="-Iarch/ppc"/>
   <object source="qemu/console.c" flags="-Iarch/ppc"/>
  </library>

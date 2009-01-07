@@ -1312,7 +1312,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 		uint32_t io_port1, uint32_t ctl_port1)
 {
 	int i, j;
-	char nodebuff[32];
+	char nodebuff[128];
 	phandle_t dnode, aliases;
 	int hd_found, cd_found;
 
