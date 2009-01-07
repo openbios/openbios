@@ -137,26 +137,6 @@ ob_macio_init(const char *path, uint32_t addr)
 	aliases = find_dev("/aliases");
 	set_property(aliases, "mac-io", path, strlen(path) + 1);
 
-        snprintf(buf, sizeof(buf), "%s/interrupt-controller", path);
-	REGISTER_NAMED_NODE(ob_intctrl_node, buf);
-
-	ph = find_dev(buf);
-	set_property(ph, "device_type", "interrupt-controller", 21);
-	set_property(ph, "compatible", "heathrow\0mac-risc", 18);
-	set_int_property(ph, "#interrupt-cells", 1);
-	props[0]= 0x00000010;
-	props[1]= 0x00000020;
-        set_property(ph, "reg", (char *)&props, 2 * sizeof(props));
-	set_property(ph, "interrupt-controller", NULL, 0);
-
-	chosen = find_dev("/chosen");
-	push_str(buf);
-	fword("open-dev");
-	ph = POP();
-	set_int_property(chosen, "interrupt-controller", ph);
-
-	pic_handle = ph;
-
 	cuda_init(path, addr);
 	macio_nvram_init(path, addr);
 }

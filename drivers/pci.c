@@ -267,52 +267,6 @@ int eth_config_cb (const pci_config_t *config)
         return 0;
 }
 
-static void pci_set_interrupt_map(const pci_config_t *config)
-{
-	phandle_t parent, dev;
-	cell props[4];
-	cell *old_props, *new_props;
-	int ncells;
-	int retlen;
-
-	if (config->irq_line != -1) {
-		dev = get_cur_dev();
-		activate_device(config->path);
-		activate_device("..");
-		parent = get_cur_dev();
-
-		ncells = 0;
-		if (get_property(parent, "interrupt-map-mask", NULL) == 0) {
-			props[ncells++] = 0xF800;
-			props[ncells++] = 0;
-			props[ncells++] = 0;
-			props[ncells++] = 0;
-			set_property(parent, "interrupt-map-mask",
-				     (char*)props, ncells * sizeof(cell));
-		}
-
-		old_props = (cell*)get_property(parent, "interrupt-map", &retlen);
-		if (old_props) {
-			new_props = malloc(retlen + 6 * 4);
-			memcpy(new_props, old_props, retlen);
-		} else {
-			retlen = 0;
-			new_props = malloc(6 * 4);
-		}
-		ncells = retlen / 4;
-		new_props[ncells++] = config->dev & 0xf800;	/* devfn */
-		new_props[ncells++] = 0;
-		new_props[ncells++] = 0;
-		new_props[ncells++] = 0;
-		new_props[ncells++] = 0;
-		new_props[ncells++] = config->irq_line;
-		set_property(parent, "interrupt-map",
-		             (char*)new_props, ncells * sizeof(cell));
-		free(new_props);
-		activate_dev(dev);
-	}
-}
-
 static inline void pci_decode_pci_addr(pci_addr addr, int *flags,
 				       int *space_code, uint32_t *mask)
 {
@@ -540,7 +494,6 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 
 	pci_set_reg(config);
 	pci_set_assigned_addresses(config);
-	pci_set_interrupt_map(config);
 
 #ifdef CONFIG_DEBUG_PCI
 	printk("\n");

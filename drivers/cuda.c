@@ -193,9 +193,14 @@ ob_cuda_initialize (int *idx)
 	props[1] = __cpu_to_be32(IO_CUDA_SIZE);
 
 	set_property(ph, "reg", (char *)&props, sizeof(props));
-	set_int_property(ph, "interrupt-parent", pic_handle);
-	// HEATHROW
+
 	set_int_property(ph, "interrupts", 0x12);
+
+	/* we emulate an oldworld hardware, so we must use
+	 * non-standard oldworld property (needed by linux 2.6.18)
+	 */
+
+	set_int_property(ph, "AAPL,interrupts", 0x12);
 
         bind_func("ppc32-reset-all", ppc32_reset_all);
         push_str("' ppc32-reset-all to reset-all");
