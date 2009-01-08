@@ -927,6 +927,13 @@ static const pci_class_t pci_classes[] = {
 };
 
 static const pci_dev_t misc_pci[] = {
+    /* Heathrow Mac I/O */
+    {
+        0x106B, 0x0010,
+        "mac-io", "mac-io", "AAPL,343S1201", "heathrow\0",
+        1, 1, 1,
+        &macio_config_cb, NULL,
+    },
     /* Paddington Mac I/O */
     {
         0x106B, 0x0017,
