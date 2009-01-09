@@ -101,7 +101,7 @@ void vga_vbe_set_mode(int width, int height, int depth)
         vga_build_rgb_palette();
 }
 
-void vga_vbe_init(const char *path, uint32_t fb, uint32_t fb_size,
+void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
                   unsigned long rom, uint32_t rom_size)
 {
 	phandle_t ph, chosen, aliases, options;

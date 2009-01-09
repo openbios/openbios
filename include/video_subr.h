@@ -12,7 +12,7 @@ void vga_font_load(unsigned char *vidmem, const unsigned char *font, int height,
 /* drivers/vga_vbe.c */
 void vga_set_color(int i, unsigned int r, unsigned int g, unsigned int b);
 void vga_vbe_set_mode(int width, int height, int depth);
-void vga_vbe_init(const char *path, uint32_t fb, uint32_t fb_size,
+void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
                   unsigned long rom, uint32_t rom_size);
 
 /* modules/video.c */
