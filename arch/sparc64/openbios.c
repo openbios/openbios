@@ -34,7 +34,6 @@
 #define NVRAM_DATA    0x77
 
 #define APB_SPECIAL_BASE     0x1fe00000000ULL
-#define PCI_CONFIG           (APB_SPECIAL_BASE + 0x1000000ULL)
 #define APB_MEM_BASE         0x1ff00000000ULL
 
 #define MEMORY_SIZE     (512*1024)      /* 512K ram for hosted system */
@@ -64,11 +63,18 @@ struct hwdef {
 static const struct hwdef hwdefs[] = {
     {
         .pci = {
-            .cfg_addr = PCI_CONFIG,
-            .cfg_data = 0,
+            .name = "SUNW,sabre",
+            .vendor_id = 0x108e,
+            .device_id = 0xa000,
+            .cfg_addr = APB_SPECIAL_BASE + 0x1000000ULL,
+            .cfg_data = APB_MEM_BASE,
             .cfg_base = 0x80000000ULL,
             .cfg_len = 0,
-            .irqs = { 1, 2, 3, 4 },
+            .mem_base = APB_MEM_BASE + 0x400000ULL,
+            .mem_len = 0x10000000,
+            .io_base = APB_SPECIAL_BASE + 0x2000000ULL,
+            .io_len = 0x10000,
+            .irqs = { 0, 1, 2, 3 },
         },
         .machine_id_low = 0,
         .machine_id_high = 255,
@@ -243,7 +249,7 @@ fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
 {
     unsigned int i;
 
-    outw(__cpu_to_le16(cmd), BIOS_CFG_CMD);
+    outw(cmd, BIOS_CFG_CMD);
     for (i = 0; i < nbytes; i++)
         buf[i] = inb(BIOS_CFG_DATA);
 }
@@ -457,35 +463,15 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
-        unsigned int i;
-        uint16_t machine_id;
-        const struct hwdef *hwdef = NULL;
-
-        machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
-
-        for (i = 0; i < sizeof(hwdefs) / sizeof(struct hwdef); i++) {
-            if (hwdefs[i].machine_id_low <= machine_id &&
-                hwdefs[i].machine_id_high >= machine_id) {
-                hwdef = &hwdefs[i];
-                break;
-            }
-        }
-        if (!hwdef)
-            for(;;); // Internal inconsistency, hang
-
 	modules_init();
-#ifdef CONFIG_DRIVER_PCI
-        //ob_pci_init();
-#endif
-#ifdef CONFIG_DRIVER_IDE
+        // XXX use PCI IDE
 	setup_timers();
 	ob_ide_init("/pci/isa", 0x1f0, 0x3f4, 0x170, 0x374);
+#ifdef CONFIG_DRIVER_PCI
+        ob_pci_init();
 #endif
 #ifdef CONFIG_DRIVER_FLOPPY
 	ob_floppy_init();
-#endif
-#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	init_video();
 #endif
 
         nvconf_init();
@@ -494,17 +480,33 @@ arch_init( void )
         device_end();
 
 	bind_func("platform-boot", boot );
-        printk("\n"); // XXX needed for boot, why?
 }
+
+unsigned long isa_io_base;
 
 int openbios(void)
 {
+        unsigned int i;
+        uint16_t machine_id;
+        const struct hwdef *hwdef = NULL;
+
+
+        for (i = 0; i < sizeof(hwdefs) / sizeof(struct hwdef); i++) {
+            isa_io_base = hwdefs[i].pci.io_base;
+            machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
+            if (hwdefs[i].machine_id_low <= machine_id &&
+                hwdefs[i].machine_id_high >= machine_id) {
+                hwdef = &hwdefs[i];
+                arch = &hwdefs[i].pci;
+                break;
+            }
+        }
+        if (!hwdef)
+            for(;;); // Internal inconsistency, hang
+
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);
-#endif
-#ifdef CONFIG_DEBUG_CONSOLE_VGA
-	video_init();
 #endif
 	/* Clear the screen.  */
 	cls();

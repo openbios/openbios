@@ -35,8 +35,8 @@
   <!-- Module Configuration -->
   <option name="CONFIG_CMDLINE" type="boolean" value="true"/>
   <option name="CONFIG_DEBLOCKER" type="boolean" value="true"/>
-  <option name="CONFIG_FONT_8X8" type="boolean" value="false"/>
-  <option name="CONFIG_FONT_8X16" type="boolean" value="true"/>
+  <option name="CONFIG_FONT_8X8" type="boolean" value="true"/>
+  <option name="CONFIG_FONT_8X16" type="boolean" value="false"/>
 
   <!-- Filesystem Configuration -->
   <option name="CONFIG_DISK_LABEL" type="boolean" value="true"/>
@@ -67,7 +67,7 @@
 
   <!-- Drivers -->
   <option name="CONFIG_DRIVER_PCI" type="boolean" value="true"/>
-  <option name="CONFIG_DEBUG_PCI" type="boolean" value="true"/>
+  <option name="CONFIG_DEBUG_PCI" type="boolean" value="false"/>
   <option name="CONFIG_DRIVER_IDE" type="boolean" value="true"/>
   <option name="CONFIG_IDE_NUM_CHANNELS" type="integer" value="4"/>
   <option name="CONFIG_DEBUG_IDE" type="boolean" value="false"/>

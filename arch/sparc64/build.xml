@@ -41,8 +41,9 @@
   <external-object source="target/arch/sparc64/entry.o"/>
   <external-object source="libsparc64.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
+  <!-- Needs to be after drivers to avoid missing symbols -->
+  <external-object source="libmodules.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
   <external-object source="libgcc.a"/>
@@ -78,8 +79,9 @@
   <external-object source="target/arch/sparc64/builtin.o"/>
   <external-object source="libsparc64.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
+  <!-- Needs to be after drivers to avoid missing symbols -->
+  <external-object source="libmodules.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
   <external-object source="libgcc.a"/>

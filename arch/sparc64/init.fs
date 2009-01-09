@@ -36,12 +36,12 @@
 ; SYSTEM-initializer
 
 \ use the tty interface if available
-:noname
-  " /builtin/console" find-dev if drop
-    " /builtin/console" " input-device" $setenv
-    " /builtin/console" " output-device" $setenv
+: activate-tty-interface
+  " /packages/terminal-emulator" find-dev if drop
+    " keyboard" " input-device" $setenv
+    " screen" " output-device" $setenv
   then
-; SYSTEM-initializer
+;
 
 :noname
   " keyboard" input

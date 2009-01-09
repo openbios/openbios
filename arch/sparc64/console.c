@@ -122,141 +122,6 @@ static void serial_cls(void)
  *          simple polling video/keyboard console functions
  * ****************************************************************** */
 
-#ifdef CONFIG_DEBUG_CONSOLE_VGA
-
-/* raw vga text mode */
-#define COLUMNS			80	/* The number of columns.  */
-#define LINES			25	/* The number of lines.  */
-#define ATTRIBUTE		7	/* The attribute of an character.  */
-
-#define APB_MEM_BASE	     0x1ff00000000ULL
-#define VGA_BASE	     (APB_MEM_BASE + 0x4a0000ULL) /* Beginning of video memory address.  */
-#define TEXT_BASE	     (VGA_BASE + 0x18000ULL) /* The text memory address.  */
-
-/* VGA Index and Data Registers */
-#define VGA_REG_INDEX    0x03D4	/* VGA index register */
-#define VGA_REG_DATA     0x03D5	/* VGA data register */
-
-#define VGA_IDX_CURMSL   0x09	/* cursor maximum scan line */
-#define VGA_IDX_CURSTART 0x0A	/* cursor start */
-#define VGA_IDX_CUREND   0x0B	/* cursor end */
-#define VGA_IDX_CURLO    0x0F	/* cursor position (low 8 bits) */
-#define VGA_IDX_CURHI    0x0E	/* cursor position (high 8 bits) */
-
-/* Save the X and Y position.  */
-static int xpos, ypos;
-/* Point to the video memory.  */
-static unsigned char *video = (unsigned char *) TEXT_BASE;
-
-static void video_initcursor(void)
-{
-	u8 val;
-	outb(VGA_IDX_CURMSL, VGA_REG_INDEX);
-	val = inb(VGA_REG_DATA) & 0x1f;	/* maximum scan line -1 */
-
-	outb(VGA_IDX_CURSTART, VGA_REG_INDEX);
-	outb(0, VGA_REG_DATA);
-
-	outb(VGA_IDX_CUREND, VGA_REG_INDEX);
-	outb(val, VGA_REG_DATA);
-}
-
-
-
-static void video_poscursor(unsigned int x, unsigned int y)
-{
-	unsigned short pos;
-
-	/* Calculate new cursor position as a function of x and y */
-	pos = (y * COLUMNS) + x;
-
-	/* Output the new position to VGA card */
-	outb(VGA_IDX_CURLO, VGA_REG_INDEX);	/* output low 8 bits */
-	outb((u8) (pos), VGA_REG_DATA);
-	outb(VGA_IDX_CURHI, VGA_REG_INDEX);	/* output high 8 bits */
-	outb((u8) (pos >> 8), VGA_REG_DATA);
-
-};
-
-
-static void video_newline(void)
-{
-	xpos = 0;
-
-	if (ypos < LINES - 1) {
-		ypos++;
-	} else {
-		int i;
-		memmove((void *) video, (void *) (video + 2 * COLUMNS),
-			(LINES - 1) * COLUMNS * 2);
-
-		for (i = ((LINES - 1) * 2 * COLUMNS);
-		     i < 2 * COLUMNS * LINES;) {
-			video[i++] = 0;
-			video[i++] = ATTRIBUTE;
-		}
-	}
-
-}
-
-/* Put the character C on the screen.  */
-static void video_putchar(int c)
-{
-	int p=1;
-
-	if (c == '\n' || c == '\r') {
-		video_newline();
-		return;
-	}
-
-	if (c == '\b') {
-		if (xpos) xpos--;
-		c=' ';
-		p=0;
-	}
-
-
-	if (xpos >= COLUMNS)
-		video_newline();
-
-	*(video + (xpos + ypos * COLUMNS) * 2) = c & 0xFF;
-	*(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
-
-	if (p)
-		xpos++;
-
-	video_poscursor(xpos, ypos);
-}
-
-static void video_cls(void)
-{
-	int i;
-
-	for (i = 0; i < 2 * COLUMNS * LINES;) {
-		video[i++] = 0;
-		video[i++] = ATTRIBUTE;
-	}
-
-
-	xpos = 0;
-	ypos = 0;
-
-	video_initcursor();
-	video_poscursor(xpos, ypos);
-}
-
-void video_init(void)
-{
-	video=(unsigned char *)TEXT_BASE;
-
-#ifdef CONFIG_DRIVER_VGA
-        vga_load_regs();
-        vga_font_load((unsigned char *)VGA_BASE, fontdata_8x16,
-                      FONT_HEIGHT_8X16, 256);
-        vga_set_amode();
-#endif
-}
-
 /*
  *  keyboard driver
  */
@@ -373,8 +238,6 @@ static unsigned char keyboard_readdata(void)
 	last_key = 0;
 	return tmp;
 }
-#endif
-
 
 /* ******************************************************************
  *      common functions, implementing simple concurrent console
@@ -384,9 +247,6 @@ int putchar(int c)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	serial_putchar(c);
-#endif
-#ifdef CONFIG_DEBUG_CONSOLE_VGA
-	video_putchar(c);
 #endif
 	return c;
 }
@@ -421,9 +281,6 @@ void cls(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	serial_cls();
-#endif
-#ifdef CONFIG_DEBUG_CONSOLE_VGA
-	video_cls();
 #endif
 }
 
