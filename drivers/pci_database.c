@@ -278,6 +278,12 @@ static const pci_dev_t hbrg_devices[] = {
         NULL, NULL,
     },
     {
+        0x108e, 0xa000, NULL,
+        "pci", "SUNW,simba", "pci108e,a000\0pciclass,0\0",
+        3, 2, 1,
+        host_config_cb, NULL,
+    },
+    {
         0xFFFF, 0xFFFF,
         NULL, NULL, NULL, NULL,
         -1, -1, -1,
@@ -289,6 +295,12 @@ static const pci_dev_t PCIbrg_devices[] = {
     {
         0x1011, 0x0026, NULL,
         "pci-bridge", "DEV,21154", "DEV,21154\0pci-bridge\0",
+        3, 2, 1,
+        bridge_config_cb, NULL,
+    },
+    {
+        0x108e, 0x5000, NULL,
+        "pci", "SUNW,sabre", "pci108e,5000\0pciclass,060400\0",
         3, 2, 1,
         bridge_config_cb, NULL,
     },
