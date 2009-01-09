@@ -161,6 +161,9 @@ grubfs_file_read( file_desc_t *fd, void *buf, size_t count )
 	filepos=file->pos;
 	filemax=file->len;
 
+	if (count > filemax - filepos)
+		count = filemax - filepos;
+
 	ret=curfs->fsys->read_func(buf, count);
 
 	file->pos=filepos;
