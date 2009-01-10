@@ -19,6 +19,8 @@
   <object source="vga_set_mode.c" condition="DRIVER_VGA"/>
   <object source="vga_vbe.c" condition="DRIVER_VGA"/>
   <object source="macio.c" condition="DRIVER_MACIO"/>
+  <object source="pc_kbd.c" condition="DRIVER_PC_KBD"/>
+  <object source="pc_serial.c" condition="DRIVER_PC_SERIAL"/>
  </library>
 
  <dictionary name="openbios" target="forth">
@@ -26,5 +28,5 @@
   <object source="sbus.fs" condition="DRIVER_SBUS"/>
   <object source="esp.fs" condition="DRIVER_ESP"/>
  </dictionary>
-  
+
 </build>

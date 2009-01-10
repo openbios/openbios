@@ -1112,9 +1112,12 @@ NODE_METHODS(ob_floppy) = {
 };
 
 
-int ob_floppy_init(void)
+int ob_floppy_init(const char *path, const char *dev_name)
 {
-	REGISTER_NAMED_NODE(ob_floppy, "/isa/floppy0");
+        char nodebuff[128];
+
+        snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
+        REGISTER_NAMED_NODE(ob_floppy, nodebuff);
 	floppy_init();
 	return 0;
 }

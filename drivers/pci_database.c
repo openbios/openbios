@@ -312,6 +312,21 @@ static const pci_dev_t PCIbrg_devices[] = {
     },
 };
 
+static const pci_dev_t miscbrg_devices[] = {
+    {
+        0x108e, 0x1000, NULL,
+        "ebus", "ebus", "pci108e,1000\0pciclass,068000\0",
+        3, 2, 1,
+        ebus_config_cb, NULL,
+    },
+    {
+        0xFFFF, 0xFFFF,
+        NULL, NULL, NULL, NULL,
+        -1, -1, -1,
+        NULL, NULL,
+    },
+};
+
 static const pci_subclass_t bridg_subclass[] = {
     {
         0x00, "PCI host bridge",           NULL,  hbrg_devices, NULL,
@@ -358,7 +373,7 @@ static const pci_subclass_t bridg_subclass[] = {
         NULL, NULL,
     },
     {
-        0x80, "misc PCI bridge",           NULL,  NULL, NULL,
+        0x80, "misc PCI bridge",           NULL,  miscbrg_devices, NULL,
         NULL, NULL,
     },
     {

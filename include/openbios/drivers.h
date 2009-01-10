@@ -74,7 +74,21 @@ extern uint32_t cmdline_size;
 extern char boot_device;
 #endif
 #ifdef CONFIG_DRIVER_FLOPPY
-int ob_floppy_init(void);
+int ob_floppy_init(const char *path, const char *dev_name);
+#endif
+#ifdef CONFIG_DRIVER_PC_KBD
+void ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
+                    uint64_t offset, int intr);
+int pc_kbd_dataready(void);
+unsigned char pc_kbd_readdata(void);
+#endif
+#ifdef CONFIG_DRIVER_PC_SERIAL
+void ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
+                       uint64_t offset, int intr);
+int uart_init(int port, unsigned long speed);
+int uart_charav(int port);
+char uart_getchar(int port);
+void serial_putchar(int c);
 #endif
 
 #endif /* OPENBIOS_DRIVERS_H */

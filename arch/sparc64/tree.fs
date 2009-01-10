@@ -32,17 +32,3 @@ finish-device
 
 " /openprom" find-device
   " OBP 3.10.24 1999/01/01 01:01" encode-string " version" property
-
-dev /
-
-\ simple pci bus node
-new-device
-  " pci" device-name
-finish-device
-
-dev /pci
-
-\ simple isa bus node
-new-device
-  " isa" device-name
-finish-device

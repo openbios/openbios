@@ -326,6 +326,7 @@ void arch_nvram_get(char *data)
     uint64_t ram_size;
     uint32_t clock_frequency;
     uint16_t machine_id;
+    const char *stdin_path, *stdout_path;
 
     nvram_read(0, (char *)&nv_info, sizeof(ohwcfg_v3_t));
 
@@ -413,9 +414,9 @@ void arch_nvram_get(char *data)
     fword("find-device");
 
     if (nv_info.boot_devices[0] == 'c')
-        bootpath = "/pci/isa/ide0/disk@0,0:a";
+        bootpath = "disk:a";
     else
-        bootpath = "/pci/isa/ide1/cdrom@0,0:a";
+        bootpath = "cdrom:a";
     push_str(bootpath);
     fword("encode-string");
     push_str("bootpath");
@@ -424,6 +425,24 @@ void arch_nvram_get(char *data)
     push_str(obio_cmdline);
     fword("encode-string");
     push_str("bootargs");
+    fword("property");
+
+    if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
+        stdin_path = stdout_path = "/pci/pci/pci/ebus/su";
+    } else {
+        stdin_path = "/pci/pci/pci/ebus/kb_ps2";
+        stdout_path = "/pci/pci/pci/QEMU,VGA";
+    }
+    push_str(stdin_path);
+    fword("open-dev");
+    fword("encode-int");
+    push_str("stdin");
+    fword("property");
+
+    push_str(stdout_path);
+    fword("open-dev");
+    fword("encode-int");
+    push_str("stdout");
     fword("property");
 }
 
@@ -466,17 +485,11 @@ arch_init( void )
 	modules_init();
         // XXX use PCI IDE
 	setup_timers();
-	ob_ide_init("/pci/isa", 0x1f0, 0x3f4, 0x170, 0x374);
+	ob_ide_init("/pci/pci/pci/ebus", 0x1f0, 0x3f4, 0x170, 0x374);
 #ifdef CONFIG_DRIVER_PCI
         ob_pci_init();
 #endif
-#ifdef CONFIG_DRIVER_FLOPPY
-	ob_floppy_init();
-#endif
-
         nvconf_init();
-        ob_su_init(0x1fe02000000ULL, 0x3f8ULL, 0);
-
         device_end();
 
 	bind_func("platform-boot", boot );

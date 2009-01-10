@@ -415,6 +415,24 @@ int vga_config_cb (const pci_config_t *config)
 	return 0;
 }
 
+int ebus_config_cb(const pci_config_t *config)
+{
+    printk("ebus config %s addr %x size %x\n", config->path,
+           config->assigned[0] & ~0x0000000F, config->sizes[0]);
+#ifdef CONFIG_DRIVER_EBUS
+#ifdef CONFIG_DRIVER_FLOPPY
+    ob_floppy_init(config->path, "fdthree");
+#endif
+#ifdef CONFIG_DRIVER_PC_SERIAL
+    ob_pc_serial_init(config->path, "su", arch->io_base, 0x3f8ULL, 0);
+#endif
+#ifdef CONFIG_DRIVER_PC_KBD
+    ob_pc_kbd_init(config->path, "kb_ps2", arch->io_base, 0x60ULL, 0);
+#endif
+#endif
+    return 0;
+}
+
 static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
                                   const pci_config_t *config)
 {
