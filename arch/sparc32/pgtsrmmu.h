@@ -10,13 +10,6 @@
 #ifndef _PGTSRMMU_H
 #define _PGTSRMMU_H
 
-/* Replacement for <asm/page.h> */
-#define PAGE_SHIFT   12
-#define PAGE_SIZE    (1 << PAGE_SHIFT)
-#define PAGE_MASK    (~(PAGE_SIZE-1))
-#define PAGE_ALIGN(addr)  (((addr)+PAGE_SIZE-1)&PAGE_MASK)
-/* */
-
 /* PMD_SHIFT determines the size of the area a second-level page table can map */
 #define SRMMU_PMD_SHIFT         18
 #define SRMMU_PMD_SIZE          (1UL << SRMMU_PMD_SHIFT)
