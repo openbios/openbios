@@ -9,5 +9,5 @@
 \ the copyright and warranty status of this work.
 \ 
 
-encode-file romfont.bin
-drop value (romfont-8x16)
+\ encode-file romfont.bin
+\ drop value (romfont-8x16)
