@@ -417,8 +417,6 @@ int vga_config_cb (const pci_config_t *config)
 
 int ebus_config_cb(const pci_config_t *config)
 {
-    printk("ebus config %s addr %x size %x\n", config->path,
-           config->assigned[0] & ~0x0000000F, config->sizes[0]);
 #ifdef CONFIG_DRIVER_EBUS
 #ifdef CONFIG_DRIVER_FLOPPY
     ob_floppy_init(config->path, "fdthree");
