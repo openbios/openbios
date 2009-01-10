@@ -130,9 +130,7 @@ phandle_t pic_handle;
 void
 ob_macio_init(const char *path, uint32_t addr)
 {
-	char buf[64];
-	phandle_t ph, chosen, aliases;
-        cell props[2];
+        phandle_t aliases;
 
 	aliases = find_dev("/aliases");
 	set_property(aliases, "mac-io", path, strlen(path) + 1);
