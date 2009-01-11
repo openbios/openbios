@@ -234,6 +234,77 @@ static uint32_t nvram_read_be32(uint16_t offset)
     return ret;
 }
 
+#define QUIK_SECOND_BASEADDR	0x3e0000
+#define QUIK_FIRST_BASEADDR	0x3f4000
+#define QUIK_SECOND_SIZE	(QUIK_FIRST_BASEADDR - QUIK_SECOND_BASEADDR)
+#define QUIK_FIRST_INFO_OFF	0x2c8
+
+struct first_info {
+	char		quik_vers[8];
+	int		nblocks;
+	int		blocksize;
+	unsigned	second_base;
+	int		conf_part;
+	char		conf_file[32];
+	unsigned	blknos[64];
+};
+
+
+static void
+quik_startup( void )
+{
+	int fd;
+	int len;
+	const char *path = "hd:2";
+	union {
+		char buffer[1024];
+		int first_word;
+		struct {
+			char pad[QUIK_FIRST_INFO_OFF];
+			struct first_info fi;
+		} fi;
+	} u;
+	phandle_t ph;
+
+	if ((fd = open_io(path)) == -1) {
+		ELF_DPRINTF("Can't open %s\n", path);
+		return;
+	}
+
+	seek_io(fd, 0);
+	len = read_io(fd, u.buffer, sizeof(u));
+	close_io( fd );
+
+	if (len == -1) {
+		ELF_DPRINTF("Can't read %s\n", path);
+		return;
+	}
+
+	/* is it quik ? */
+
+	if (memcmp(u.fi.fi.quik_vers, "QUIK", 4))
+		return;
+
+	ph = find_dev("/options");
+	set_property(ph, "boot-device", path, strlen(path) + 1);
+	ph = find_dev("/chosen");
+	set_property(ph, "bootargs", "Linux", 6);
+
+	if( ofmem_claim( QUIK_FIRST_BASEADDR, len, 0 ) == -1 )
+		fatal_error("Claim failed!\n");
+
+	memcpy(QUIK_FIRST_BASEADDR, u.buffer, len);
+
+	/* quik fist level doesn't claim second level memory */
+
+	if( ofmem_claim( QUIK_SECOND_BASEADDR, QUIK_SECOND_SIZE, 0 ) == -1 )
+		fatal_error("Claim failed!\n");
+
+	call_elf(0, 0, QUIK_FIRST_BASEADDR);
+
+        return;
+}
+
 static void
 yaboot_startup( void )
 {
@@ -318,5 +389,6 @@ boot( void )
 {
 	fword("update-chosen");
         check_preloaded_kernel();
+	quik_startup();
 	yaboot_startup();
 }
