@@ -257,6 +257,7 @@ tl1_resv1d0:	BTRAPS(0x1d0) BTRAPS(0x1d8)
 tl1_resv1e0:	BTRAPS(0x1e0) BTRAPS(0x1e8)
 tl1_resv1f0:	BTRAPS(0x1f0) BTRAPS(0x1f8)
 
+        .section ".text", "ax"
 spill_32bit:
         srl     %sp, 0, %sp
         stw     %l0, [%sp + 0x00]
