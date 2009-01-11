@@ -545,7 +545,8 @@ ofmem_map( ulong phys, ulong virt, ulong size, int mode )
 	   virt, phys, size, mode ); */
 
 	if( (phys & 0xfff) || (virt & 0xfff) || (size & 0xfff) ) {
-		printk("ofmem_map: Bad parameters (%08lX %08lX %08lX)\n", phys, virt, size );
+		/* printk("ofmem_map: Bad parameters (%08lX %08lX %08lX)\n",
+		       phys, virt, size ); */
 		phys &= ~0xfff;
 		virt &= ~0xfff;
 		size = (size + 0xfff) & ~0xfff;
