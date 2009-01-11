@@ -279,36 +279,127 @@ GLOBL(call_elf):
 	// we should not really come here though
 	blr
 
+#define SAVE_SPACE 140
 GLOBL(of_client_callback):
+
+	stwu	r1, -12(r1)
+
+	/* save r4 */
+
+	stw	r4, 8(r1)
+
+	/* save lr */
+
+	mflr	r4
+	stw	r4, 4(r1)
+
+	/* restore OF stack */
+
 	lis	r4,HA(saved_stack)
 	addi	r4,r4,LO(saved_stack)
 	lwz	r4,0(r4)
-	stwu	r4,-32(r4)
-	mflr	r5
-	stw	r5,32+4(r4)
+
+	stwu	r4,-SAVE_SPACE(r4)
 	stw	r1,8(r4)		// save caller stack
 	mr	r1,r4
+
 	stw	r2,12(r1)
 	stw	r0,16(r1)
+
+	/* save ctr, cr and xer */
+
 	mfctr	r2
 	stw	r2,20(r1)
 	mfcr	r2
 	stw	r2,24(r1)
 	mfxer	r2
 	stw	r2,28(r1)
-	// do we need to save more registers?
+
+	/* save r5 - r31 */
+
+	stw	r5, 32(r1)
+	stw	r6,36(r1)
+	stw	r7,40(r1)
+	stw	r8,44(r1)
+	stw	r9,48(r1)
+	stw	r10,52(r1)
+	stw	r11,56(r1)
+	stw	r12,60(r1)
+	stw	r13,64(r1)
+	stw	r14,68(r1)
+	stw	r15,72(r1)
+	stw	r16,76(r1)
+	stw	r17,80(r1)
+	stw	r18,84(r1)
+	stw	r19,88(r1)
+	stw	r20,92(r1)
+	stw	r21,96(r1)
+	stw	r22,100(r1)
+	stw	r23,104(r1)
+	stw	r24,108(r1)
+	stw	r25,112(r1)
+	stw	r26,116(r1)
+	stw	r27,120(r1)
+	stw	r28,124(r1)
+	stw	r29,128(r1)
+	stw	r30,132(r1)
+	stw	r31,136(r1)
+
 	bl	of_client_interface
-	lwz	r4,32+4(r1)
-	mtlr	r4
+
+	/* restore r5 - r31 */
+
+	lwz	r5,32(r1)
+	lwz	r6,36(r1)
+	lwz	r7,40(r1)
+	lwz	r8,44(r1)
+	lwz	r9,48(r1)
+	lwz	r10,52(r1)
+	lwz	r11,56(r1)
+	lwz	r12,60(r1)
+	lwz	r13,64(r1)
+	lwz	r14,68(r1)
+	lwz	r15,72(r1)
+	lwz	r16,76(r1)
+	lwz	r17,80(r1)
+	lwz	r18,84(r1)
+	lwz	r19,88(r1)
+	lwz	r20,92(r1)
+	lwz	r21,96(r1)
+	lwz	r22,100(r1)
+	lwz	r23,104(r1)
+	lwz	r24,108(r1)
+	lwz	r25,112(r1)
+	lwz	r26,116(r1)
+	lwz	r27,120(r1)
+	lwz	r28,124(r1)
+	lwz	r29,128(r1)
+	lwz	r30,132(r1)
+	lwz	r31,136(r1)
+
+	/* restore ctr, cr and xer */
+
 	lwz	r2,20(r1)
 	mtctr	r2
 	lwz	r2,24(r1)
 	mtcr	r2
 	lwz	r2,28(r1)
 	mtxer	r2
+
+	/* restore r0 and r2 */
+
 	lwz	r2,12(r1)
 	lwz	r0,16(r1)
-	lwz	r1,8(r1)		// restore caller stack
+
+	/* restore caller stack */
+
+	lwz	r1,8(r1)
+
+	lwz	r4, 4(r1)
+	mtlr	r4
+	lwz	r4, 8(r1)
+	lwz	r1, 0(r1)
+
 	blr
 
 	/* rtas glue (must be reloctable) */
