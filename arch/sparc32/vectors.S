@@ -30,7 +30,7 @@
 #define SER_ADDR10 0xf1100004
 
         .section ".text.vectors", "ax"
-        .align 16384
+        .align 4 /* Should be 16384, but alignment is handled by the ldscript */
 /* Sparc32 trap table */
         .globl trap_table, t_zero, t_wovf, t_wunf, __divide_error
 trap_table:
@@ -95,6 +95,8 @@ t_irq14:        TRAP_ENTRY_INTERRUPT(14)            /* IRQ Timer #2             
                 BTRAPS(0xe0) BTRAPS(0xe8)
                 BTRAPS(0xf0) BTRAPS(0xf8)
 
+        .section ".text", "ax"
+        .align 4
 __divide_error:
 bug:
         /* Dump the exception and its context */
