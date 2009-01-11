@@ -293,7 +293,7 @@ quik_startup( void )
 	if( ofmem_claim( QUIK_FIRST_BASEADDR, len, 0 ) == -1 )
 		fatal_error("Claim failed!\n");
 
-	memcpy(QUIK_FIRST_BASEADDR, u.buffer, len);
+	memcpy((char*)QUIK_FIRST_BASEADDR, u.buffer, len);
 
 	/* quik fist level doesn't claim second level memory */
 
