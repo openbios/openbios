@@ -1,5 +1,6 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "openbios/drivers.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 
@@ -200,7 +201,7 @@ ob_cuda_initialize (int *idx)
 	 * non-standard oldworld property (needed by linux 2.6.18)
 	 */
 
-	set_int_property(ph, "AAPL,interrupts", 0x12);
+	OLDWORLD(set_int_property(ph, "AAPL,interrupts", 0x12));
 
         bind_func("ppc32-reset-all", ppc32_reset_all);
         push_str("' ppc32-reset-all to reset-all");

@@ -291,6 +291,30 @@ static inline void pci_decode_pci_addr(pci_addr addr, int *flags,
 	}
 }
 
+/*
+ * "Designing PCI Cards and Drivers for Power Macintosh Computers", p. 454
+ *
+ *  "AAPL,address" provides an array of 32-bit logical addresses
+ *  Nth entry corresponding to Nth "assigned-address" base address entry.
+ */
+
+static void pci_set_AAPL_address(const pci_config_t *config)
+{
+	phandle_t dev = get_cur_dev();
+	cell props[7];
+	int ncells, i;
+
+	ncells = 0;
+	for (i = 0; i < 6; i++) {
+		if (!config->assigned[i] || !config->sizes[i])
+			continue;
+		props[ncells++] = config->assigned[i] & ~0x0000000F;
+	}
+	if (ncells)
+		set_property(dev, "AAPL,address", (char *)props,
+			     ncells * sizeof(cell));
+}
+
 static void pci_set_assigned_addresses(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
@@ -452,8 +476,11 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	set_int_property(dev, "revision-id", rev);
 	set_int_property(dev, "class-code", class_code << 8);
 
-	if (config->irq_pin)
+	if (config->irq_pin) {
+		OLDWORLD(set_int_property(dev, "AAPL,interrupts",
+					  config->irq_line));
 		set_int_property(dev, "interrupts", config->irq_pin);
+	}
 
 	set_int_property(dev, "min-grant", pci_config_read8(addr, PCI_MIN_GNT));
 	set_int_property(dev, "max-latency", pci_config_read8(addr, PCI_MAX_LAT));
@@ -510,6 +537,7 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 
 	pci_set_reg(config);
 	pci_set_assigned_addresses(config);
+	OLDWORLD(pci_set_AAPL_address(config));
 
 #ifdef CONFIG_DEBUG_PCI
 	printk("\n");

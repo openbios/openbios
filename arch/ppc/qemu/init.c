@@ -24,6 +24,7 @@
 #include "openbios/bindings.h"
 #include "openbios/pci.h"
 #include "openbios/nvram.h"
+#include "openbios/drivers.h"
 #include "qemu/qemu.h"
 #include "ofmem.h"
 #include "openbios-version.h"
@@ -46,8 +47,9 @@ struct cpudef {
     void (*initfn)(const struct cpudef *cpu);
 };
 
+static uint16_t machine_id = 0;
+
 extern void unexpected_excep( int vector );
-extern void ob_pci_init( void );
 extern void setup_timers( void );
 
 void
@@ -63,6 +65,16 @@ enum {
     ARCH_MAC99,
     ARCH_HEATHROW,
 };
+
+int is_apple(void)
+{
+	return 1;
+}
+
+int is_oldworld(void)
+{
+	return machine_id == ARCH_HEATHROW;
+}
 
 static const pci_arch_t known_arch[] = {
 	[ARCH_PREP] = { "PREP", 0x1057, 0x4801, 0x80800000, 0x800c0000,
@@ -120,7 +132,6 @@ void
 entry( void )
 {
         uint32_t temp = 0;
-        uint16_t machine_id = 0;
         char buf[5], qemu_uuid[16];
 
         arch = &known_arch[ARCH_HEATHROW];
@@ -429,6 +440,88 @@ arch_of_init( void )
 	uint64_t ram_size;
         const struct cpudef *cpu;
 	char buf[64];
+
+	/* set device tree root info */
+
+	push_str("/");
+	fword("find-device");
+
+	switch(machine_id) {
+	case ARCH_HEATHROW:	/* OldWord */
+
+		/* model */
+
+		push_str("Power Macintosh");
+		fword("model");
+
+		/* compatible */
+
+		push_str("AAPL,PowerMac G3");
+		fword("encode-string");
+		push_str("MacRISC");
+		fword("encode-string");
+		fword("encode+");
+		push_str("compatible");
+		fword("property");
+
+		/* misc */
+
+		push_str("device-tree");
+		fword("encode-string");
+		push_str("AAPL,original-name");
+		fword("property");
+
+		PUSH(0);
+		fword("encode-int");
+		push_str("AAPL,cpu-id");
+		fword("property");
+
+		PUSH(66 * 1000 * 1000);
+		fword("encode-int");
+		push_str("clock-frequency");
+		fword("property");
+		break;
+
+	case ARCH_MAC99:
+	case ARCH_PREP:
+	default:
+
+		/* model */
+
+		push_str("PowerMac1,1");
+		fword("model");
+
+		/* compatible */
+
+		push_str("PowerMac1,1");
+		fword("encode-string");
+		push_str("MacRISC");
+		fword("encode-string");
+		fword("encode+");
+		push_str("Power Macintosh");
+		fword("encode-string");
+		fword("encode+");
+		push_str("compatible");
+		fword("property");
+
+		/* misc */
+
+		push_str("bootrom");
+		fword("device-type");
+
+		PUSH(100 * 1000 * 1000);
+		fword("encode-int");
+		push_str("clock-frequency");
+		fword("property");
+		break;
+	}
+
+	/* Perhaps we can store UUID here ? */
+
+	push_str("0000000000000");
+	fword("encode-string");
+	push_str("system-id");
+	fword("property");
 
 	/* memory info */
 

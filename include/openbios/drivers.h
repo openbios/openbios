@@ -16,6 +16,21 @@
 #ifdef CONFIG_DRIVER_PCI
 /* drivers/pci.c */
 int ob_pci_init(void);
+#ifdef CONFIG_PPC
+extern int is_apple(void);
+extern int is_oldworld(void);
+#else
+static inline int is_apple(void)
+{
+	return 0;
+}
+static inline int is_oldworld(void)
+{
+	return 0;
+}
+#endif
+#define AAPL(_cmd)      do { if (is_apple()) _cmd; } while(0)
+#define OLDWORLD(_cmd)  do { if (is_oldworld()) _cmd; } while(0)
 #endif
 #ifdef CONFIG_DRIVER_SBUS
 /* drivers/sbus.c */

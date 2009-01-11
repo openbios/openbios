@@ -11,12 +11,6 @@
 
 " /" find-device
 
-" bootrom" device-type
-" PowerMac1,1" model
-" PowerMac1,1" encode-string
-" MacRisc" encode-string encode+
-" Power Macintosh" encode-string encode+ " compatible" property
-" 0000000000000" encode-string " system-id" property
 1 encode-int " #address-cells" property
 1 encode-int " #size-cells" property
 h# 05f5e100 encode-int " clock-frequency" property
