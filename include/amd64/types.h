@@ -18,8 +18,8 @@
 
 /* cell based types */
 
-typedef int64_t       cell;
-typedef uint64_t     ucell;
+typedef long long     cell;
+typedef unsigned long long ucell;
 typedef __int128_t   dcell;
 typedef __uint128_t ducell;
 
