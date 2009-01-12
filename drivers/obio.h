@@ -3,7 +3,6 @@
 #define SLAVIO_ZS        0x00000000ULL
 #define SLAVIO_ZS1       0x00100000ULL
 #define ZS_INTR          0x2c
-#define ZS_REGS          8
 
 #define SLAVIO_NVRAM     0x00200000ULL
 #define NVRAM_SIZE       0x2000

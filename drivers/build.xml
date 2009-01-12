@@ -21,6 +21,7 @@
   <object source="macio.c" condition="DRIVER_MACIO"/>
   <object source="pc_kbd.c" condition="DRIVER_PC_KBD"/>
   <object source="pc_serial.c" condition="DRIVER_PC_SERIAL"/>
+  <object source="escc.c" condition="DRIVER_ESCC"/>
  </library>
 
  <dictionary name="openbios" target="forth">

@@ -24,6 +24,7 @@
 #include "openbios/firmware_abi.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
+#include "escc.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
@@ -48,7 +49,7 @@ static char obio_cmdline[OBIO_CMDLINE_MAX];
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_obio, INSTALL_OPEN, sizeof(int) );
 
-static void
+void
 ob_new_obio_device(const char *name, const char *type)
 {
     push_str("/obio");
@@ -96,13 +97,13 @@ map_reg(uint64_t base, uint64_t offset, unsigned long size, int map,
     return 0;
 }
 
-static unsigned long
+unsigned long
 ob_reg(uint64_t base, uint64_t offset, unsigned long size, int map)
 {
     return map_reg(base, offset, size, map, 0);
 }
 
-static void
+void
 ob_intr(int intr)
 {
     PUSH(intr);
@@ -112,336 +113,6 @@ ob_intr(int intr)
     fword("encode+");
     push_str("intr");
     fword("property");
-}
-
-/* ******************************************************************
- *                       serial console functions
- * ****************************************************************** */
-
-static volatile unsigned char *kbd_dev, *serial_dev;
-
-#define CTRL(addr) (*(volatile unsigned char *)(addr))
-#define DATA(addr) (*(volatile unsigned char *)(addr + 2))
-
-/* Conversion routines to/from brg time constants from/to bits
- * per second.
- */
-#define BRG_TO_BPS(brg, freq) ((freq) / 2 / ((brg) + 2))
-#define BPS_TO_BRG(bps, freq) ((((freq) + (bps)) / (2 * (bps))) - 2)
-
-#define ZS_CLOCK		4915200 /* Zilog input clock rate. */
-#define ZS_CLOCK_DIVISOR	16      /* Divisor this driver uses. */
-
-/* Write Register 3 */
-#define	RxENAB  	0x1	/* Rx Enable */
-#define	Rx8		0xc0	/* Rx 8 Bits/Character */
-
-/* Write Register 4 */
-#define	SB1		0x4	/* 1 stop bit/char */
-#define	X16CLK		0x40	/* x16 clock mode */
-
-/* Write Register 5 */
-#define	RTS		0x2	/* RTS */
-#define	TxENAB		0x8	/* Tx Enable */
-#define	Tx8		0x60	/* Tx 8 bits/character */
-#define	DTR		0x80	/* DTR */
-
-/* Write Register 14 (Misc control bits) */
-#define	BRENAB 	1	/* Baud rate generator enable */
-#define	BRSRC	2	/* Baud rate generator source */
-
-/* Read Register 0 */
-#define	Rx_CH_AV	0x1	/* Rx Character Available */
-#define	Tx_BUF_EMP	0x4	/* Tx Buffer empty */
-
-int uart_charav(int port)
-{
-    return (CTRL(port) & Rx_CH_AV) != 0;
-}
-
-char uart_getchar(int port)
-{
-    while (!uart_charav(port))
-        ;
-    return DATA(port) & 0177;
-}
-
-static void uart_putchar(int port, unsigned char c)
-{
-    if (!serial_dev)
-        return;
-
-    if (c == '\n')
-        uart_putchar(port, '\r');
-    while (!(CTRL(port) & Tx_BUF_EMP))
-        ;
-    DATA(port) = c;
-}
-
-static void uart_init_line(volatile unsigned char *port, unsigned long baud)
-{
-    CTRL(port) = 4; // reg 4
-    CTRL(port) = SB1 | X16CLK; // no parity, async, 1 stop bit, 16x
-                               // clock
-
-    baud = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
-
-    CTRL(port) = 12; // reg 12
-    CTRL(port) = baud & 0xff;
-    CTRL(port) = 13; // reg 13
-    CTRL(port) = (baud >> 8) & 0xff;
-    CTRL(port) = 14; // reg 14
-    CTRL(port) = BRSRC | BRENAB;
-
-    CTRL(port) = 3; // reg 3
-    CTRL(port) = RxENAB | Rx8; // enable rx, 8 bits/char
-
-    CTRL(port) = 5; // reg 5
-    CTRL(port) = RTS | TxENAB | Tx8 | DTR; // enable tx, 8 bits/char,
-                                           // set RTS & DTR
-
-}
-
-int uart_init(uint64_t port, unsigned long speed)
-{
-    serial_dev = map_io(port & ~7ULL, 2 * 4);
-    serial_dev += port & 7ULL;
-    uart_init_line(serial_dev, speed);
-
-    return -1;
-}
-
-void serial_putchar(int c)
-{
-    uart_putchar((int)(serial_dev + CONFIG_SERIAL_PORT),
-                 (unsigned char) (c & 0xff));
-}
-
-void serial_cls(void)
-{
-    serial_putchar(27);
-    serial_putchar('[');
-    serial_putchar('H');
-    serial_putchar(27);
-    serial_putchar('[');
-    serial_putchar('J');
-}
-
-/* ( addr len -- actual ) */
-static void
-zs_read(unsigned long *address)
-{
-    char *addr;
-    int len;
-
-    len = POP();
-    addr = (char *)POP();
-
-    if (len != 1)
-        printk("zs_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
-
-    if (uart_charav(*address)) {
-        *addr = (char)uart_getchar(*address);
-        PUSH(1);
-    } else {
-        PUSH(0);
-    }
-}
-
-void kbd_init(uint64_t base)
-{
-    kbd_dev = map_io(base, 2 * 4);
-    kbd_dev += 4;
-}
-
-static const unsigned char sunkbd_keycode[128] = {
-    0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 0, 8,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 9,
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '\\', 13,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ' ',
-};
-
-static const unsigned char sunkbd_keycode_shifted[128] = {
-    0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
-    '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 0, 8,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 9,
-    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '|', 13,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ' ',
-};
-
-static int shiftstate;
-
-int
-keyboard_dataready(void)
-{
-    return ((kbd_dev[0] & 1) == 1);
-}
-
-unsigned char
-keyboard_readdata(void)
-{
-    unsigned char ch;
-
-    while (!keyboard_dataready()) { }
-
-    do {
-        ch = kbd_dev[2] & 0xff;
-        if (ch == 99)
-            shiftstate |= 1;
-        else if (ch == 110)
-            shiftstate |= 2;
-        else if (ch == 227)
-            shiftstate &= ~1;
-        else if (ch == 238)
-            shiftstate &= ~2;
-        //printk("getch: %d\n", ch);
-    }
-    while ((ch & 0x80) == 0 || ch == 238 || ch == 227); // Wait for key release
-    //printk("getch rel: %d\n", ch);
-    ch &= 0x7f;
-    if (shiftstate)
-        ch = sunkbd_keycode_shifted[ch];
-    else
-        ch = sunkbd_keycode[ch];
-    //printk("getch xlate: %d\n", ch);
-
-    return ch;
-}
-
-/* ( addr len -- actual ) */
-static void
-zs_read_keyboard(void)
-{
-    unsigned char *addr;
-    int len;
-
-    len = POP();
-    addr = (unsigned char *)POP();
-
-    if (len != 1)
-        printk("zs_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
-
-    if (keyboard_dataready()) {
-        *addr = keyboard_readdata();
-        PUSH(1);
-    } else {
-        PUSH(0);
-    }
-}
-
-/* ( addr len -- actual ) */
-static void
-zs_write(unsigned long *address)
-{
-    unsigned char *addr;
-    int i, len;
-
-    len = POP();
-    addr = (unsigned char *)POP();
-
-     for (i = 0; i < len; i++) {
-        uart_putchar(*address, addr[i]);
-    }
-    PUSH(len);
-}
-
-static void
-zs_close(void)
-{
-}
-
-static void
-zs_open(unsigned long *address)
-{
-    int len;
-    phandle_t ph;
-    unsigned long *prop;
-    char *args;
-
-    fword("my-self");
-    fword("ihandle>phandle");
-    ph = (phandle_t)POP();
-    prop = (unsigned long *)get_property(ph, "address", &len);
-    *address = *prop;
-    fword("my-args");
-    args = pop_fstr_copy();
-    if (args) {
-        if (args[0] == 'a')
-            *address += 4;
-        //printk("zs_open: address %lx, args %s\n", *address, args);
-        free(args);
-    }
-
-    RET ( -1 );
-}
-
-DECLARE_UNNAMED_NODE(zs, INSTALL_OPEN, sizeof(unsigned long));
-
-NODE_METHODS(zs) = {
-	{ "open",               zs_open              },
-	{ "close",              zs_close             },
-	{ "read",               zs_read              },
-	{ "write",              zs_write             },
-};
-
-DECLARE_UNNAMED_NODE(zs_keyboard, INSTALL_OPEN, sizeof(unsigned long));
-
-NODE_METHODS(zs_keyboard) = {
-	{ "open",               zs_open              },
-	{ "close",              zs_close             },
-	{ "read",               zs_read_keyboard     },
-};
-
-static void
-ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
-{
-    char nodebuff[256];
-
-    ob_new_obio_device("zs", "serial");
-
-    ob_reg(base, offset, ZS_REGS, 1);
-
-    PUSH(slave);
-    fword("encode-int");
-    push_str("slave");
-    fword("property");
-
-    if (keyboard) {
-        PUSH(-1);
-        fword("encode-int");
-        push_str("keyboard");
-        fword("property");
-
-        PUSH(-1);
-        fword("encode-int");
-        push_str("mouse");
-        fword("property");
-    }
-
-    ob_intr(intr);
-
-    fword("finish-device");
-
-    snprintf(nodebuff, sizeof(nodebuff), "/obio/zs@0,%x",
-             (int)offset & 0xffffffff);
-    if (keyboard) {
-        REGISTER_NODE_METHODS(zs_keyboard, nodebuff);
-    } else {
-        REGISTER_NODE_METHODS(zs, nodebuff);
-    }
 }
 
 static void

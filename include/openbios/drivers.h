@@ -39,8 +39,6 @@ int ob_sbus_init(uint64_t base, int machine_id);
 /* arch/sparc32/console.c */
 void tcx_init(uint64_t base);
 void kbd_init(uint64_t base);
-int keyboard_dataready(void);
-unsigned char keyboard_readdata(void);
 #endif
 #ifdef CONFIG_DRIVER_IDE
 /* drivers/ide.c */
@@ -59,11 +57,6 @@ int ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
                  unsigned long aux1_offset, unsigned long aux2_offset);
 int start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context,
               int cpu);
-void serial_putchar(int c);
-int uart_charav(int port);
-char uart_getchar(int port);
-void serial_cls(void);
-int uart_init(uint64_t port, unsigned long speed);
 
 /* drivers/iommu.c */
 void ob_init_iommu(uint64_t base);
@@ -76,6 +69,10 @@ extern uint16_t graphic_depth;
 extern volatile unsigned char *power_reg;
 extern volatile unsigned int *reset_reg;
 extern volatile struct sun4m_timer_regs *counter_regs;
+
+void ob_new_obio_device(const char *name, const char *type);
+unsigned long ob_reg(uint64_t base, uint64_t offset, unsigned long size, int map);
+void ob_intr(int intr);
 
 /* arch/sparc32/romvec.c */
 extern const char *obp_stdin_path, *obp_stdout_path;
@@ -105,5 +102,15 @@ int uart_charav(int port);
 char uart_getchar(int port);
 void serial_putchar(int c);
 #endif
-
+#ifdef CONFIG_DRIVER_ESCC
+int uart_init(uint64_t port, unsigned long speed);
+int uart_charav(int port);
+char uart_getchar(int port);
+void serial_putchar(int c);
+void serial_cls(void);
+#ifdef CONFIG_DRIVER_ESCC_SUN
+int keyboard_dataready(void);
+unsigned char keyboard_readdata(void);
+#endif
+#endif
 #endif /* OPENBIOS_DRIVERS_H */
