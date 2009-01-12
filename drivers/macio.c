@@ -16,6 +16,7 @@
 
 #include "macio.h"
 #include "cuda.h"
+#include "escc.h"
 
 #define IO_NVRAM_SIZE   0x00020000
 #define IO_NVRAM_OFFSET 0x00060000
@@ -137,4 +138,5 @@ ob_macio_init(const char *path, uint32_t addr)
 
 	cuda_init(path, addr);
 	macio_nvram_init(path, addr);
+        escc_init(path, addr);
 }

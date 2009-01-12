@@ -19,9 +19,6 @@
 extern int		vfd_draw_str( const char *str );
 extern void		vfd_close( void );
 
-/* console.c */
-int serial_init(void);
-
 #include "kernel.h"
 
 #endif   /* _H_QEMU */

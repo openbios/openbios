@@ -148,7 +148,7 @@ entry( void )
 
 	isa_io_base = arch->io_base;
 
-	serial_init();
+	uart_init(0x80013000ULL, CONFIG_SERIAL_SPEED);
 
 	printk("\n");
 	printk("=============================================================\n");
