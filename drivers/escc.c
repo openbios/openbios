@@ -407,7 +407,7 @@ escc_init(const char *path, unsigned long addr)
     set_property(dnode, "reg", (char *)&props, sizeof(props));
     set_property(dnode, "device_type", "escc",
                  strlen("escc") + 1);
-    set_property(dnode, "compatible", "chrp\0CHRP,es0", 14);
+    set_property(dnode, "compatible", "escc\0CHRP,es0", 14);
 
     fword("finish-device");
 
