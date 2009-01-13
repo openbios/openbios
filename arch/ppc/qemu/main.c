@@ -364,18 +364,24 @@ yaboot_startup( void )
 
 static void check_preloaded_kernel(void)
 {
-    unsigned long kernel_image, kernel_size, cmdline;
+    unsigned long kernel_image, kernel_size;
     unsigned long initrd_image, initrd_size;
+    unsigned long cmdline, cmdline_len;
 
     kernel_size = nvram_read_be32(0x3c);
     if (kernel_size) {
         kernel_image = nvram_read_be32(0x38);
         cmdline = nvram_read_be32(0x40);
+        cmdline_len = nvram_read_be32(0x44);
         initrd_image = nvram_read_be32(0x48);
         initrd_size = nvram_read_be32(0x4c);
         printk("[ppc] Kernel already loaded (0x%8.8lx + 0x%8.8lx) "
                "(initrd 0x%8.8lx + 0x%8.8lx)\n",
                kernel_image, kernel_size, initrd_image, initrd_size);
+        if (cmdline_len > 0) {
+               phandle_t ph = find_dev("/chosen");
+               set_property(ph, "bootargs", strdup((char *)cmdline), cmdline_len + 1);
+        }
         call_elf(initrd_image, initrd_size, kernel_image);
     }
 }
