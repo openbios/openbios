@@ -360,27 +360,40 @@ static void
 escc_add_channel(const char *path, const char *node, uint32_t addr,
                  uint32_t offset)
 {
-    char buf[64];
-    phandle_t dnode;
+    char buf[64], tty[32];
+    phandle_t dnode, aliases;
+    int len;
 
-    push_str(path);
-    fword("find-device");
-    fword("new-device");
+    /* add device */
 
-    push_str(node);
-    fword("device-name");
+    snprintf(buf, sizeof(buf), "%s/ch-%s", path, node);
 
-    snprintf(buf, sizeof(buf), "%s/%s", path, node);
+    REGISTER_NAMED_NODE(escc, buf);
 
-    REGISTER_NODE_METHODS(escc, buf);
+    activate_device(buf);
+
+    /* add aliases */
+
+    aliases = find_dev("/aliases");
+
+    snprintf(buf, sizeof(buf), "%s/ch-%s", path, node);
+    OLDWORLD(snprintf(tty, sizeof(tty), "tty%s", node));
+    OLDWORLD(set_property(aliases, tty, buf, strlen(buf) + 1));
+    snprintf(tty, sizeof(tty), "scc%s", node);
+    set_property(aliases, tty, buf, strlen(buf) + 1);
+
+    /* add properties */
 
     dnode = find_dev(buf);
     set_property(dnode, "device_type", "serial",
                  strlen("serial") + 1);
-    memcpy(buf, node, 5);
-    memcpy(&buf[5], "CHRP,es2", 9);
-    set_property(dnode, "compatible", buf, 5 + 9);
-    fword("finish-device");
+
+    snprintf(buf, sizeof(buf), "ch-%s", node);
+    len = strlen(buf) + 1;
+    snprintf(buf + len, sizeof(buf) - len, "CHRP,es2");
+    set_property(dnode, "compatible", buf, len + 9);
+
+    device_end();
 }
 
 void
@@ -411,8 +424,8 @@ escc_init(const char *path, unsigned long addr)
 
     fword("finish-device");
 
-    escc_add_channel(buf, "ch-a", IO_ESCC_OFFSET, 2);
-    escc_add_channel(buf, "ch-b", IO_ESCC_OFFSET, 0);
+    escc_add_channel(buf, "a", IO_ESCC_OFFSET, 2);
+    escc_add_channel(buf, "b", IO_ESCC_OFFSET, 0);
 
     /* Reinitialize uart */
     uart_init(addr + IO_ESCC_OFFSET, CONFIG_SERIAL_SPEED);
