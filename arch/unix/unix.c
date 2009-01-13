@@ -61,6 +61,8 @@ int verbose = 0;
 
 #ifdef CONFIG_PPC
 uint32_t isa_io_base;
+#elif defined(CONFIG_SPARC64)
+unsigned long isa_io_base;
 #endif
 
 int errno_int;	/* implement for fs drivers, needed to build on Mac OS X */
