@@ -117,8 +117,7 @@ int uart_init(uint64_t port, unsigned long speed)
 
 void serial_putchar(int c)
 {
-    uart_putchar((int)(serial_dev + CONFIG_SERIAL_PORT),
-                 (unsigned char) (c & 0xff));
+    uart_putchar((int)serial_dev, (unsigned char) (c & 0xff));
 }
 
 void serial_cls(void)
