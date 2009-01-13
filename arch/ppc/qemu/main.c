@@ -393,8 +393,13 @@ static void check_preloaded_kernel(void)
 void
 boot( void )
 {
+	char boot_device = nvram_read(0x34);
 	fword("update-chosen");
-        check_preloaded_kernel();
-	quik_startup();
+	if (boot_device == 'm') {
+	        check_preloaded_kernel();
+	}
+	if (boot_device == 'c') {
+		quik_startup();
+	}
 	yaboot_startup();
 }
