@@ -363,6 +363,7 @@ escc_add_channel(const char *path, const char *node, uint32_t addr,
     char buf[64], tty[32];
     phandle_t dnode, aliases;
     int len;
+    cell props[2];
 
     /* add device */
 
@@ -393,7 +394,22 @@ escc_add_channel(const char *path, const char *node, uint32_t addr,
     snprintf(buf + len, sizeof(buf) - len, "CHRP,es2");
     set_property(dnode, "compatible", buf, len + 9);
 
+    props[0] = IO_ESCC_OFFSET + offset * 0x20;
+    props[1] = 0x00000020;
+    set_property(dnode, "reg", (char *)&props, 2 * sizeof(cell));
+
+    props[0] = addr + IO_ESCC_OFFSET + offset * 0x20;
+    OLDWORLD(set_property(dnode, "AAPL,address",
+            (char *)&props, 1 * sizeof(cell)));
+
+    props[0] = 0x00000010 - offset;
+    OLDWORLD(set_property(dnode, "AAPL,interrupts",
+            (char *)&props, 1 * sizeof(cell)));
+
     device_end();
+
+    uart_init_line((unsigned char*)addr + IO_ESCC_OFFSET + offset * 0x20,
+                   CONFIG_SERIAL_SPEED);
 }
 
 void
@@ -424,10 +440,10 @@ escc_init(const char *path, unsigned long addr)
 
     fword("finish-device");
 
-    escc_add_channel(buf, "a", IO_ESCC_OFFSET, 2);
-    escc_add_channel(buf, "b", IO_ESCC_OFFSET, 0);
+    escc_add_channel(buf, "a", addr, 1);
+    escc_add_channel(buf, "b", addr, 0);
 
-    /* Reinitialize uart */
-    uart_init(addr + IO_ESCC_OFFSET, CONFIG_SERIAL_SPEED);
+    serial_dev = (unsigned char *)addr + IO_ESCC_OFFSET +
+                 0x20 * CONFIG_SERIAL_PORT;
 }
 #endif
