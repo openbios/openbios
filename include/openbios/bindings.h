@@ -69,8 +69,9 @@ extern char		*get_property( phandle_t ph, const char *name,
 
 /* device tree iteration */
 extern phandle_t	dt_iter_begin( void );
-extern phandle_t	dt_iterate( phandle_t last );
-extern phandle_t	dt_iterate_type( phandle_t last, const char *type );
+extern phandle_t	dt_iterate( phandle_t last_tree );
+extern phandle_t	dt_iterate_type( phandle_t last_tree,
+                                         const char *type );
 static inline phandle_t dt_find_type( const char *type ) {
 	return dt_iterate_type( 0, type );
 }

@@ -374,29 +374,29 @@ dt_iter_begin( void )
 }
 
 phandle_t
-dt_iterate( phandle_t last )
+dt_iterate( phandle_t last_tree )
 {
-	if( !last )
+        if( !last_tree )
 		return dt_iter_begin();
 
-	PUSH_ph( last );
+        PUSH_ph( last_tree );
 	fword("iterate-tree");
 	return POP_ph();
 }
 
 phandle_t
-dt_iterate_type( phandle_t last, const char *type )
+dt_iterate_type( phandle_t last_tree, const char *type )
 {
-	if( !last )
-		last = dt_iter_begin();
+        if( !last_tree )
+                last_tree = dt_iter_begin();
 
 	/* root node is never matched but we don't care about that */
-	while( (last=dt_iterate(last)) ) {
-		char *s = get_property( last, "device_type", NULL );
+        while( (last_tree = dt_iterate(last_tree)) ) {
+                char *s = get_property( last_tree, "device_type", NULL );
 		if( s && !strcmp(type, s) )
 			break;
 	}
-	return last;
+        return last_tree;
 }
 
 
