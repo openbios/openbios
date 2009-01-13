@@ -27,7 +27,7 @@ NM     := $(TARGET)nm
 STRIP  := $(TARGET)strip
 RANLIB := $(TARGET)ranlib
 CFLAGS := -Os -Wall -msoft-float -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin-bcopy -fno-builtin-log2
-CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
+CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations -Werror
 CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
 INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
 
