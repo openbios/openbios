@@ -443,6 +443,6 @@ escc_init(const char *path, unsigned long addr)
     escc_add_channel(buf, "b", addr, 0);
 
     serial_dev = (unsigned char *)addr + IO_ESCC_OFFSET +
-                 0x20 * CONFIG_SERIAL_PORT;
+                 (CONFIG_SERIAL_PORT ? 0 : 0x20);
 }
 #endif
