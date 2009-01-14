@@ -122,19 +122,28 @@ ciface_quiesce( ulong args[], ulong ret[] )
 }
 
 /* ( -- ms ) */
+#define TIMER_FREQUENCY 16600000ULL
+
 static void
 ciface_milliseconds( ulong args[], ulong ret[] )
 {
-        extern unsigned long get_timer_freq(void);
-	static ulong mticks=0, usecs=0;
-	ulong t;
+	ulong tbu, tbl, temp;
+	ullong ticks, msecs;
 
-	asm volatile("mftb %0" : "=r" (t) : );
-	if( mticks )
-		usecs += get_timer_freq() / 1000000 * ( t-mticks );
-	mticks = t;
+	asm volatile(
+		"1:\n"
+		"mftbu  %2\n"
+		"mftb   %0\n"
+		"mftbu  %1\n"
+		"cmpw   %2,%1\n"
+		"bne    1b\n"
+		: "=r"(tbl), "=r"(tbu), "=r"(temp)
+		:
+		: "cc");
 
-	PUSH( usecs/1000 );
+	ticks = (((ullong)tbu) << 32) | (ullong)tbl;
+	msecs = (1000 * ticks) / TIMER_FREQUENCY;
+	PUSH( msecs );
 }
 
 
