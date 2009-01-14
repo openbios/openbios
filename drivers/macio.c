@@ -101,33 +101,6 @@ arch_nvram_get( char *buf )
 #endif
 }
 
-DECLARE_UNNAMED_NODE( ob_intctrl_node, INSTALL_OPEN, 2*sizeof(int) );
-
-static void
-ob_intctrl_open(int *idx)
-{
-        int ret=1;
-        RET ( -ret );
-}
-
-static void
-ob_intctrl_close(int *idx)
-{
-}
-
-static void
-ob_intctrl_initialize(int *idx)
-{
-}
-
-NODE_METHODS(ob_intctrl_node) = {
-        { NULL,                 ob_intctrl_initialize       },
-        { "open",               ob_intctrl_open             },
-        { "close",              ob_intctrl_close            },
-};
-
-phandle_t pic_handle;
-
 void
 ob_macio_init(const char *path, uint32_t addr)
 {
