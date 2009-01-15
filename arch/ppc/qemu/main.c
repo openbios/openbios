@@ -249,7 +249,6 @@ struct first_info {
 	unsigned	blknos[64];
 };
 
-
 static void
 quik_startup( void )
 {

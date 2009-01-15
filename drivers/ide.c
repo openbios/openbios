@@ -25,7 +25,7 @@
 #include "timer.h"
 
 /* DECLARE data structures for the nodes.  */
-DECLARE_UNNAMED_NODE( ob_ide, INSTALL_OPEN, 2*sizeof(int) );
+DECLARE_UNNAMED_NODE( ob_ide, INSTALL_OPEN, sizeof(struct ide_drive*) );
 DECLARE_UNNAMED_NODE( ob_ide_ctrl, INSTALL_OPEN, sizeof(int));
 
 /*
@@ -58,10 +58,26 @@ DECLARE_UNNAMED_NODE( ob_ide_ctrl, INSTALL_OPEN, sizeof(int));
 
 static int current_channel = FIRST_UNIT;
 
-static struct ide_channel ob_ide_channels[IDE_MAX_CHANNELS];
+static struct ide_channel *channels = NULL;
 
-static int io_ports[IDE_MAX_CHANNELS];
-static int ctl_ports[IDE_MAX_CHANNELS];
+static inline void ide_add_channel(struct ide_channel *chan)
+{
+	chan->next = channels;
+	channels = chan;
+}
+
+static struct ide_channel *ide_seek_channel(const char *name)
+{
+	struct ide_channel *current;
+
+	current = channels;
+	while (current) {
+		if (!strcmp(current->name, name))
+			return current;
+		current = current->next;
+	}
+	return NULL;
+}
 
 /*
  * don't be pedantic
@@ -1150,7 +1166,7 @@ ob_ide_probe(struct ide_channel *chan)
 static void
 ob_ide_max_transfer(int *idx)
 {
-	struct ide_drive *drive=&ob_ide_channels[idx[1]].drives[idx[0]];
+	struct ide_drive *drive = *(struct ide_drive **)idx;
 #ifdef CONFIG_DEBUG_IDE
 	printk("max_transfer %x\n", drive->max_sectors * drive->bs);
 #endif
@@ -1164,7 +1180,7 @@ ob_ide_read_blocks(int *idx)
 	cell n = POP(), cnt=n;
 	ucell blk = POP();
         unsigned char *dest = (unsigned char *)POP();
-	struct ide_drive *drive=&ob_ide_channels[idx[1]].drives[idx[0]];
+	struct ide_drive *drive = *(struct ide_drive **)idx;
 
 #ifdef CONFIG_DEBUG_IDE
         printk("ob_ide_read_blocks %lx block=%ld n=%ld\n", (unsigned long)dest,
@@ -1192,7 +1208,7 @@ ob_ide_read_blocks(int *idx)
 static void
 ob_ide_block_size(int *idx)
 {
-	struct ide_drive *drive=&ob_ide_channels[idx[1]].drives[idx[0]];
+	struct ide_drive *drive = *(struct ide_drive **)idx;
 #ifdef CONFIG_DEBUG_IDE
 	printk("ob_ide_block_size: block size %x\n", drive->bs);
 #endif
@@ -1225,21 +1241,25 @@ ob_ide_open(int *idx)
 	int ret=1, len;
 	phandle_t ph;
 	struct ide_drive *drive;
+	struct ide_channel *chan;
 	char *idename;
+	int unit;
 
 	fword("my-unit");
-	idx[0]=POP();
+	unit = POP();
 
 	fword("my-parent");
 	fword("ihandle>phandle");
 	ph=(phandle_t)POP();
 	idename=get_property(ph, "name", &len);
-	idx[1]=(idename[strlen(idename) - 1] - '0' - FIRST_UNIT) % 2;
+
+	chan = ide_seek_channel(idename);
+	drive = &chan->drives[unit];
+	*(struct ide_drive **)idx = drive;
 
 #ifdef CONFIG_DEBUG_IDE
 	printk("opening channel %d unit %d\n", idx[1], idx[0]);
 #endif
-	drive=&ob_ide_channels[idx[1]].drives[idx[0]];
 	dump_drive(drive);
 
 	if (drive->type != ide_type_ata)
@@ -1274,16 +1294,17 @@ NODE_METHODS(ob_ide) = {
 static void
 ob_ide_ctrl_initialize(int *idx)
 {
-	int len, devnum, props[6];
+	int len, props[6];
 	phandle_t ph=get_cur_dev();
 	char *idename;
+	struct ide_channel *chan;
 
 	/* set device type */
 	push_str(DEV_TYPE);
 	fword("device-type");
 
 	idename=get_property(ph, "name", &len);
-	devnum=idename[strlen(idename) - 1] - '0' - FIRST_UNIT;
+	chan = ide_seek_channel(idename);
 
 	/* Create interrupt properties. */
 	props[0]=14; props[1]=0;
@@ -1292,9 +1313,9 @@ ob_ide_ctrl_initialize(int *idx)
 	set_int_property(ph, "#address-cells", 1);
 	set_int_property(ph, "#size-cells", 0);
 
-	props[0] = __cpu_to_be32(io_ports[devnum]);
+	props[0] = __cpu_to_be32(chan->io_regs[0]);
 	props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
-	props[3] = __cpu_to_be32(ctl_ports[devnum]);
+	props[3] = __cpu_to_be32(chan->io_regs[8]);
 	props[4] = __cpu_to_be32(1); props[5] = __cpu_to_be32(2);
 	set_property(ph, "reg", (char *)&props, 6*sizeof(int));
 }
@@ -1354,6 +1375,9 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	int i, j;
 	char nodebuff[128];
 	phandle_t dnode;
+	struct ide_channel *chan;
+	int io_ports[IDE_MAX_CHANNELS];
+	int ctl_ports[IDE_MAX_CHANNELS];
 
 	io_ports[0] = io_port0;
 	ctl_ports[0] = ctl_port0 + 2;
@@ -1361,7 +1385,11 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	ctl_ports[1] = ctl_port1 + 2;
 
 	for (i = 0; i < IDE_NUM_CHANNELS; i++, current_channel++) {
-		struct ide_channel *chan = &ob_ide_channels[i];
+
+		chan = malloc(sizeof(struct ide_channel));
+
+		snprintf(chan->name, sizeof(chan->name),
+			 DEV_NAME, current_channel);
 
 		chan->mmio = 0;
 
@@ -1392,6 +1420,8 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 			chan->drives[j].nr = i * 2 + j;
 		}
+
+		ide_add_channel(chan);
 
 		ob_ide_probe(chan);
 

@@ -166,6 +166,10 @@ struct ide_drive {
 };
 
 struct ide_channel {
+
+	char name[32];
+	struct ide_channel *next;
+
 	/*
 	 * either mmio or io_regs is set to indicate mmio or not
 	 */
