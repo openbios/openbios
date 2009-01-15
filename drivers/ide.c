@@ -89,27 +89,29 @@ static void dump_drive(struct ide_drive *drive)
  * old style io port operations
  */
 static unsigned char
-ob_ide_inb(unsigned long port)
+ob_ide_inb(struct ide_channel *chan, unsigned int port)
 {
-	return inb(port);
+	return inb(chan->io_regs[port]);
 }
 
 static void
-ob_ide_outb(unsigned char data, unsigned long port)
+ob_ide_outb(struct ide_channel *chan, unsigned char data, unsigned int port)
 {
-	outb(data, port);
+	outb(data, chan->io_regs[port]);
 }
 
 static void
-ob_ide_insw(unsigned long port, unsigned char *addr, unsigned int count)
+ob_ide_insw(struct ide_channel *chan,
+	    unsigned int port, unsigned char *addr, unsigned int count)
 {
-	insw(port, addr, count);
+	insw(chan->io_regs[port], addr, count);
 }
 
 static void
-ob_ide_outsw(unsigned long port, unsigned char *addr, unsigned int count)
+ob_ide_outsw(struct ide_channel *chan,
+	     unsigned int port, unsigned char *addr, unsigned int count)
 {
-	outsw(port, addr, count);
+	outsw(chan->io_regs[port], addr, count);
 }
 
 static inline unsigned char
@@ -117,7 +119,7 @@ ob_ide_pio_readb(struct ide_drive *drive, unsigned int offset)
 {
 	struct ide_channel *chan = drive->channel;
 
-	return chan->obide_inb(chan->io_regs[offset]);
+	return chan->obide_inb(chan, offset);
 }
 
 static inline void
@@ -126,7 +128,7 @@ ob_ide_pio_writeb(struct ide_drive *drive, unsigned int offset,
 {
 	struct ide_channel *chan = drive->channel;
 
-	chan->obide_outb(data, chan->io_regs[offset]);
+	chan->obide_outb(chan, data, offset);
 }
 
 static inline void
@@ -140,7 +142,7 @@ ob_ide_pio_insw(struct ide_drive *drive, unsigned int offset,
 		return;
 	}
 
-	chan->obide_insw(chan->io_regs[offset], addr, len / 2);
+	chan->obide_insw(chan, offset, addr, len / 2);
 }
 
 static inline void
@@ -154,7 +156,7 @@ ob_ide_pio_outsw(struct ide_drive *drive, unsigned int offset,
 		return;
 	}
 
-	chan->obide_outsw(chan->io_regs[offset], addr, len / 2);
+	chan->obide_outsw(chan, offset, addr, len / 2);
 }
 
 static void

@@ -169,16 +169,22 @@ struct ide_channel {
 	/*
 	 * either mmio or io_regs is set to indicate mmio or not
 	 */
-	int mmio;
+	unsigned long mmio;
 	int io_regs[10];
 
 	/*
 	 * can be set to a mmio hook, default it legacy outb/inb
 	 */
-	void (*obide_outb)(unsigned char addr, unsigned long port);
-	unsigned char (*obide_inb)(unsigned long port);
-	void (*obide_insw)(unsigned long port, unsigned char *addr, unsigned int count);
-	void (*obide_outsw)(unsigned long port, unsigned char *addr, unsigned int count);
+	void (*obide_outb)(struct ide_channel *chan,
+			   unsigned char addr, unsigned int port);
+	unsigned char (*obide_inb)(struct ide_channel *chan,
+				   unsigned int port);
+	void (*obide_insw)(struct ide_channel *chan,
+			   unsigned int port, unsigned char *addr,
+			   unsigned int count);
+	void (*obide_outsw)(struct ide_channel *chan,
+			    unsigned int port, unsigned char *addr,
+			    unsigned int count);
 
 	struct ide_drive drives[2];
 	char selected;
