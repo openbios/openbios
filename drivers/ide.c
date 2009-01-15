@@ -1310,19 +1310,50 @@ NODE_METHODS(ob_ide_ctrl) = {
 	{ "decode-unit",	ob_ide_ctrl_decodeunit  },
 };
 
+static void set_cd_alias(const char *path)
+{
+	phandle_t aliases;
+
+	aliases = find_dev("/aliases");
+
+	if (get_property(aliases, "cd", NULL))
+		return;
+
+	set_property(aliases, "cd", path, strlen(path) + 1);
+	set_property(aliases, "cdrom", path, strlen(path) + 1);
+}
+
+static void set_hd_alias(const char *path)
+{
+	phandle_t aliases;
+
+	aliases = find_dev("/aliases");
+
+	if (get_property(aliases, "hd", NULL))
+		return;
+
+	set_property(aliases, "hd", path, strlen(path) + 1);
+	set_property(aliases, "disk", path, strlen(path) + 1);
+}
+
+static void set_ide_alias(const char *path)
+{
+	phandle_t aliases;
+	static int ide_counter = 0;
+	char idestr[8];
+
+	aliases = find_dev("/aliases");
+
+	snprintf(idestr, sizeof(idestr), "ide%d", ide_counter++);
+	set_property(aliases, idestr, path, strlen(path) + 1);
+}
+
 int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 		uint32_t io_port1, uint32_t ctl_port1)
 {
 	int i, j;
 	char nodebuff[128];
-	phandle_t dnode, aliases;
-	int hd_found, cd_found;
-	static int ide_counter = 0;
-	char idestr[8];
-
-	aliases = find_dev("/aliases");
-	hd_found = 0;
-	cd_found = 0;
+	phandle_t dnode;
 
 	io_ports[0] = io_port0;
 	ctl_ports[0] = ctl_port0 + 2;
@@ -1415,25 +1446,11 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 			/* create aliases */
 
-			snprintf(idestr, sizeof(idestr),
-				"ide%d", ide_counter++);
-			set_property(aliases, idestr,
-				     nodebuff, strlen(nodebuff) + 1);
-
-			if (drive->media == ide_media_cdrom && !cd_found) {
-				cd_found = 1;
-				set_property(aliases, "cd",
-					     nodebuff, strlen(nodebuff) + 1);
-				set_property(aliases, "cdrom",
-					     nodebuff, strlen(nodebuff) + 1);
-			}
-			if (drive->media == ide_media_disk && !hd_found) {
-				hd_found = 1;
-				set_property(aliases, "hd",
-					     nodebuff, strlen(nodebuff) + 1);
-				set_property(aliases, "disk",
-					     nodebuff, strlen(nodebuff) + 1);
-			}
+			set_ide_alias(nodebuff);
+			if (drive->media == ide_media_cdrom)
+				set_cd_alias(nodebuff);
+			if (drive->media == ide_media_disk)
+				set_hd_alias(nodebuff);
 		}
 	}
 
