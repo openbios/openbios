@@ -498,9 +498,6 @@ static void
 arch_init( void )
 {
 	modules_init();
-        // XXX use PCI IDE
-	setup_timers();
-	ob_ide_init("/pci/pci/pci/ebus", 0x1f0, 0x3f4, 0x170, 0x374);
 #ifdef CONFIG_DRIVER_PCI
         ob_pci_init();
 #endif
