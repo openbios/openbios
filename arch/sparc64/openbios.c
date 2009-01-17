@@ -433,6 +433,7 @@ void arch_nvram_get(char *data)
         stdin_path = "/pci/pci/pci/ebus/kb_ps2";
         stdout_path = "/pci/pci/pci/QEMU,VGA";
     }
+
     push_str(stdin_path);
     fword("open-dev");
     fword("encode-int");
@@ -444,6 +445,20 @@ void arch_nvram_get(char *data)
     fword("encode-int");
     push_str("stdout");
     fword("property");
+
+    push_str(stdin_path);
+    push_str("input-device");
+    fword("$setenv");
+
+    push_str(stdout_path);
+    push_str("output-device");
+    fword("$setenv");
+
+    push_str(stdin_path);
+    fword("input");
+
+    push_str(stdout_path);
+    fword("output");
 }
 
 void arch_nvram_put(char *data)

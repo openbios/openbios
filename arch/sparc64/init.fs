@@ -38,14 +38,8 @@
 \ use the tty interface if available
 : activate-tty-interface
   " /packages/terminal-emulator" find-dev if drop
-    " keyboard" " input-device" $setenv
-    " screen" " output-device" $setenv
   then
 ;
-
-:noname
-  " keyboard" input
-; CONSOLE-IN-initializer
 
 device-end
 
