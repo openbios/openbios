@@ -89,9 +89,11 @@ ob_le_init(unsigned int slot, unsigned long leoffset, unsigned long dmaoffset)
 uint16_t graphic_depth;
 
 static void
-ob_tcx_init(unsigned int slot)
+ob_tcx_init(unsigned int slot, const char *path)
 {
-    push_str("/iommu/sbus/SUNW,tcx");
+    phandle_t chosen, aliases;
+
+    push_str(path);
     fword("find-device");
 
     PUSH(slot);
@@ -277,6 +279,14 @@ ob_tcx_init(unsigned int slot)
         push_str("tcx-8-bit");
         fword("property");
     }
+
+    chosen = find_dev("/chosen");
+    push_str(path);
+    fword("open-dev");
+    set_int_property(chosen, "screen", POP());
+
+    aliases = find_dev("/aliases");
+    set_property(aliases, "screen", path, strlen(path) + 1);
 }
 
 static void
@@ -373,7 +383,7 @@ sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
     case 3: // SUNW,tcx
-        ob_tcx_init(slot);
+        ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 4:
         // SUNW,CS4231
@@ -395,7 +405,7 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
-        ob_tcx_init(slot);
+        ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 0xf: // le, esp, bpp, power-management
         ob_macio_init(slot, base, 0);
@@ -413,7 +423,7 @@ sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
     // OpenBIOS and Qemu don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
-        ob_tcx_init(slot);
+        ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 0xf: // le, esp, bpp, power-management
 #ifdef CONFIG_DRIVER_ESP

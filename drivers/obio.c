@@ -907,24 +907,26 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     if (nographic) {
         obp_stdin = PROMDEV_TTYA;
         obp_stdout = PROMDEV_TTYA;
-        stdin = "/obio/zs@0,100000:a";
-        stdout = "/obio/zs@0,100000:a";
+        stdin = "ttya";
+        stdout = "ttya";
     } else {
         obp_stdin = PROMDEV_KBD;
         obp_stdout = PROMDEV_SCREEN;
-        stdin = "/obio/zs@0,0:a";
-        stdout = "/iommu/sbus/SUNW,tcx";
+        stdin = "keyboard";
+        stdout = "screen";
     }
 
     push_str("/");
     fword("find-device");
 
     push_str(stdin);
+    fword("pathres-resolve-aliases");
     fword("encode-string");
     push_str("stdin-path");
     fword("property");
 
     push_str(stdout);
+    fword("pathres-resolve-aliases");
     fword("encode-string");
     push_str("stdout-path");
     fword("property");

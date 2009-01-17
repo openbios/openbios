@@ -318,6 +318,7 @@ void
 ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
 {
     char nodebuff[256];
+    phandle_t aliases;
 
     ob_new_obio_device("zs", "serial");
 
@@ -348,8 +349,21 @@ ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
              (int)offset & 0xffffffff);
     if (keyboard) {
         REGISTER_NODE_METHODS(escc_keyboard, nodebuff);
+
+        aliases = find_dev("/aliases");
+        set_property(aliases, "keyboard", nodebuff, strlen(nodebuff) + 1);
     } else {
         REGISTER_NODE_METHODS(escc, nodebuff);
+
+        aliases = find_dev("/aliases");
+        snprintf(nodebuff, sizeof(nodebuff), "/obio/zs@0,%x:a",
+                 (int)offset & 0xffffffff);
+        set_property(aliases, "ttya", nodebuff, strlen(nodebuff) + 1);
+
+        snprintf(nodebuff, sizeof(nodebuff), "/obio/zs@0,%x:b",
+                 (int)offset & 0xffffffff);
+        set_property(aliases, "ttyb", nodebuff, strlen(nodebuff) + 1);
+
     }
 }
 
