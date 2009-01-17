@@ -33,22 +33,7 @@
 :noname
   " memory" " /memory" preopen
   " mmu" " /cpus/@0" preopen
-  " stdout" " /builtin/console" preopen
-  " stdin" " /builtin/console" preopen
-
 ; SYSTEM-initializer
-
-\ use the tty interface if available
-:noname
-  " /builtin/console" find-dev if drop
-    " /builtin/console" " input-device" $setenv
-    " /builtin/console" " output-device" $setenv
-  then
-; SYSTEM-initializer
-
-:noname
-  " keyboard" input
-; CONSOLE-IN-initializer
 
 device-end
 

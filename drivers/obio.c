@@ -684,6 +684,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     ohwcfg_v3_t *header;
     char buf[256];
     uint32_t temp;
+    phandle_t chosen;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -917,6 +918,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 
     push_str("/");
     fword("find-device");
+
     push_str(stdin);
     fword("encode-string");
     push_str("stdin-path");
@@ -926,6 +928,27 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     fword("encode-string");
     push_str("stdout-path");
     fword("property");
+
+    chosen = find_dev("/chosen");
+    push_str(stdin);
+    fword("open-dev");
+    set_int_property(chosen, "stdin", POP());
+
+    chosen = find_dev("/chosen");
+    push_str(stdout);
+    fword("open-dev");
+    set_int_property(chosen, "stdout", POP());
+
+    push_str(stdin);
+    push_str("input-device");
+    fword("$setenv");
+
+    push_str(stdout);
+    push_str("output-device");
+    fword("$setenv");
+
+    push_str(stdin);
+    fword("input");
 
     obp_stdin_path = stdin;
     obp_stdout_path = stdout;
