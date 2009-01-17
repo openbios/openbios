@@ -447,9 +447,7 @@ static FILE *fopen_include(const char *fil)
 	include *incl = &includes;
 
 	while (incl) {
-		strncpy(fullpath, incl->path, MAX_PATH_LEN);
-		strncat(fullpath, "/", MAX_PATH_LEN);
-		strncat(fullpath, fil, MAX_PATH_LEN);
+                snprintf(fullpath, sizeof(fullpath), "%s/%s", incl->path, fil);
 		ret = fopen(fullpath, "r");
 		if (ret != NULL)
 			return ret;
