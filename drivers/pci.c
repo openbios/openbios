@@ -760,7 +760,9 @@ int ob_pci_init(void)
 	/* Find all PCI bridges */
 
 	mem_base = arch->mem_base;
-	io_base = arch->io_base;
+        /* I/O ports under 0x400 are used by devices mapped at fixed
+           location. */
+        io_base = arch->io_base + 0x400;
 	path = strdup("");
 	for (bus = 0; bus<0x100; bus++) {
 		ob_scan_pci_bus(bus, &mem_base, &io_base, &path);
