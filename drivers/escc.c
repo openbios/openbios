@@ -272,8 +272,8 @@ keyboard_readdata(void)
         else if (ch == 238)
             shiftstate &= ~2;
         //printk("getch: %d\n", ch);
-    }
-    while ((ch & 0x80) == 0 || ch == 238 || ch == 227); // Wait for key release
+    } // If release, wait for key press
+    while ((ch & 0x80) == 0x80 || ch == 238 || ch == 227);
     //printk("getch rel: %d\n", ch);
     ch &= 0x7f;
     if (shiftstate)
