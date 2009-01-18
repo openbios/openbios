@@ -1,8 +1,11 @@
 #!/bin/sh
 
 if [ x"$1" = x ]; then
-  printf "Usage:\n  $0 [arch-config]"
-  printf "\narch-config: cross-ppc, x86\n"
+  printf "Usage:\n  $0 [arch-config]\n"
+  printf "arch-config values supported for native builds:\n"
+  printf " amd64, ppc, sparc32, sparc64, x86\n"
+  printf "arch-config values supported for cross compiled builds:\n"
+  printf " cross-ppc, cross-sparc32, cross-sparc64, cross-x86\n"
   exit 0
 fi
 
