@@ -44,8 +44,8 @@
   
   <xsl:choose>
    <xsl:when test="$expression!=''">
-    <xsl:variable name="value"><xsl:value-of select="document('../../config.xml')//option[@name=$confexpr]/attribute::value"/></xsl:variable>
-    <xsl:variable name="type"><xsl:value-of select="document('../../config.xml')//option[@name=$confexpr]/attribute::type"/></xsl:variable>
+    <xsl:variable name="value"><xsl:value-of select="document('config.xml',.)//option[@name=$confexpr]/attribute::value"/></xsl:variable>
+    <xsl:variable name="type"><xsl:value-of select="document('config.xml',.)//option[@name=$confexpr]/attribute::type"/></xsl:variable>
     <xsl:choose>
      <xsl:when test="$type='boolean'">
       <xsl:choose>

@@ -52,6 +52,7 @@
     <xsl:text>.o: </xsl:text>
  
     <!-- path of source file -->
+    <xsl:text>$(SRCDIR)/</xsl:text>
     <xsl:value-of select="$path"/>
     <xsl:value-of select="@source"/>
 
@@ -68,7 +69,7 @@
        <xsl:text>" ;\</xsl:text>
       </xsl:if>
       <!-- FIXME this requires strict spaces in rules.xml -->
-      <xsl:value-of select="document('../../rules.xml')//rule[@target=$target][@entity='object']"/>
+      <xsl:value-of select="document('rules.xml',.)//rule[@target=$target][@entity='object']"/>
      </xsl:otherwise>
     </xsl:choose>
  
@@ -154,7 +155,7 @@
       </xsl:when>
       <xsl:otherwise>
        <!-- FIXME this requires strict spaces in rules.xml -->
-       <xsl:value-of select="document('../../rules.xml')//rule[@target=$target][@entity='executable']"/>
+       <xsl:value-of select="document('rules.xml',.)//rule[@target=$target][@entity='executable']"/>
       </xsl:otherwise>
      </xsl:choose>
        
@@ -252,7 +253,7 @@
        
 
      <!-- FIXME this requires strict spaces in rules.xml -->
-     <xsl:value-of select="document('../../rules.xml')//rule[@target=$target][@entity='library']"/>
+     <xsl:value-of select="document('rules.xml',.)//rule[@target=$target][@entity='library']"/>
      
     </xsl:if>
    </xsl:if>

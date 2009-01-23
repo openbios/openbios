@@ -7,12 +7,15 @@
 #
 
 ARCH := ppc
-ODIR := obj-$(ARCH)
+ODIR := .
+SRCDIR := ..
 HOSTCC := gcc
+HOSTARCH=$(shell $(SRCDIR)/config/scripts/archname)
+CROSSCFLAGS=$(shell $(SRCDIR)/config/scripts/crosscflags $(HOSTARCH) $(ARCH))
 HOSTCFLAGS := -Os -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
 HOSTCFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
 HOSTCFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
-HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
+HOSTINCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel -I$(SRCDIR)/kernel/include -I$(ODIR)/target/include
 #
 # MOLPATH is needed if you want to build openbios-mol.elf
 #
@@ -29,7 +32,7 @@ RANLIB := $(TARGET)ranlib
 CFLAGS := -Os -Wall -msoft-float -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fno-builtin-bcopy -fno-builtin-log2
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations -Werror
 CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
-INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
+INCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel/include -I$(ODIR)/target/include
 
 M4 := m4
 

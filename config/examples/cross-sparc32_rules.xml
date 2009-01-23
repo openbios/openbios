@@ -7,12 +7,15 @@
 #
 
 ARCH := sparc32
-ODIR := obj-$(ARCH)
+ODIR := .
+SRCDIR := ..
 HOSTCC := gcc
+HOSTARCH=$(shell $(SRCDIR)/config/scripts/archname)
+CROSSCFLAGS=$(shell $(SRCDIR)/config/scripts/crosscflags $(HOSTARCH) $(ARCH))
 HOSTCFLAGS := -O2 -g -Wall -W -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
 HOSTCFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
 HOSTCFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
-HOSTINCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
+HOSTINCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel -I$(SRCDIR)/kernel/include -I$(ODIR)/target/include
 
 TARGET=sparc-elf-
 CC     := $(TARGET)gcc
@@ -26,7 +29,7 @@ CFLAGS := -Os -Wall -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -fn
 CFLAGS+=  -Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
 CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
-INCLUDES := -Iinclude -Ikernel/include -I$(ODIR)/target/include
+INCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel/include -I$(ODIR)/target/include
 AS_FLAGS := -Wa,-xarch=v8 -Wa,-32 -g
 
 #

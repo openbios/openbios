@@ -7,7 +7,7 @@
   <xsl:include href="object.xsl"/>
 
   <xsl:template match="/">
-   <xsl:value-of select="document('../../rules.xml')/rules/pre"/>
+   <xsl:value-of select="document('rules.xml',.)/rules/pre"/>
    <xsl:apply-templates select="." mode="dictionaries"/>
    <xsl:apply-templates select="." mode="objects"/>
   </xsl:template>

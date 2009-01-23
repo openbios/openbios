@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ x"$1" = x ]; then
-  printf "Usage:\n  $0 [arch-config]\n"
+  printf "Usage:\n  $0 [arch-config]...\n"
   printf "arch-config values supported for native builds:\n"
   printf " amd64, ppc, sparc32, sparc64, x86\n"
   printf "arch-config values supported for cross compiled builds:\n"
@@ -9,9 +9,64 @@ if [ x"$1" = x ]; then
   exit 0
 fi
 
-ARCH=$1
+# This is needed because viewvc messes with the permissions of executables:
+chmod 755 utils/dist/debian/rules
+chmod 755 config/scripts/switch-arch
+chmod 755 config/scripts/archname
+chmod 755 config/scripts/reldir
+chmod 755 config/scripts/crosscflags
+HOSTARCH=`config/scripts/archname`
 
-rm -f rules.xml
-rm -f config.xml
-ln -s config/examples/${ARCH}_rules.xml rules.xml
-ln -s config/examples/${ARCH}_config.xml config.xml
+echo "Configuring OpenBIOS on $HOSTARCH for $*"
+for RULES_ARCH in $*; do
+    ARCH=`cat config/examples/${RULES_ARCH}_rules.xml |grep "^ARCH" |cut -d\= -f2|tr -d \ `
+    OBJDIR=obj-$ARCH
+    printf "Initializing build tree $OBJDIR..."
+    rm -rf "$OBJDIR"
+    mkdir "$OBJDIR"
+    mkdir -p $OBJDIR/target
+    mkdir -p $OBJDIR/target/include
+    mkdir -p $OBJDIR/target/arch
+    mkdir -p $OBJDIR/target/arch/unix
+    mkdir -p $OBJDIR/target/arch/$ARCH
+    mkdir -p $OBJDIR/target/arch/ppc
+    mkdir -p $OBJDIR/target/arch/ppc/briq # no autodetection of those..
+    mkdir -p $OBJDIR/target/arch/ppc/pearpc
+    mkdir -p $OBJDIR/target/arch/ppc/qemu
+    mkdir -p $OBJDIR/target/arch/ppc/mol
+    mkdir -p $OBJDIR/target/arch/x86
+    mkdir -p $OBJDIR/target/arch/x86/xbox
+    mkdir -p $OBJDIR/target/libgcc
+    mkdir -p $OBJDIR/target/kernel
+    mkdir -p $OBJDIR/target/modules
+    mkdir -p $OBJDIR/target/fs
+    mkdir -p $OBJDIR/target/fs/grubfs
+    mkdir -p $OBJDIR/target/fs/hfs
+    mkdir -p $OBJDIR/target/fs/hfsplus
+    mkdir -p $OBJDIR/target/drivers
+    mkdir -p $OBJDIR/target/libc
+    mkdir -p $OBJDIR/host/include
+    mkdir -p $OBJDIR/host/kernel
+    mkdir -p $OBJDIR/forth
+    ln -s ../../../include/$ARCH $OBJDIR/target/include/asm
+    #compile the host binary with target settings instead
+    #ln -s ../../../include/$HOSTARCH $OBJDIR/host/include/asm
+    echo "ok."
+
+    cd $OBJDIR
+    SRCDIR=..
+    ODIR=.
+
+    printf "Creating target Makefile..."
+    ln -s $SRCDIR/config/examples/${RULES_ARCH}_rules.xml $ODIR/rules.xml
+    ln -s $SRCDIR/config/examples/${RULES_ARCH}_config.xml $ODIR/config.xml
+    xsltproc $SRCDIR/config/xml/xinclude.xsl $SRCDIR/build.xml > $ODIR/build-full.xml
+    xsltproc $SRCDIR/config/xml/makefile.xsl $ODIR/build-full.xml > $ODIR/Makefile
+    echo "ok."
+    printf "Creating config files..."
+    xsltproc $SRCDIR/config/xml/config-c.xsl $SRCDIR/config/examples/${RULES_ARCH}_config.xml > $ODIR/host/include/autoconf.h
+    xsltproc $SRCDIR/config/xml/config-c.xsl $SRCDIR/config/examples/${RULES_ARCH}_config.xml > $ODIR/target/include/autoconf.h
+    xsltproc $SRCDIR/config/xml/config-forth.xsl $SRCDIR/config/examples/${RULES_ARCH}_config.xml > $ODIR/forth/config.fs
+    echo "ok."
+    cd $SRCDIR
+done

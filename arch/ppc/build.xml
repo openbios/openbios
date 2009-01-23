@@ -39,7 +39,7 @@
  
  <executable name="target/arch/ppc/briq/kernel.o" target="target" condition="BRIQ">
   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/briq/kernel.c
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/briq/kernel.c
   ]]></rule>
   <external-object source="target/include/briq-dict.h"/>
  </executable>
@@ -57,7 +57,7 @@
  
  <executable name="target/arch/ppc/pearpc/kernel.o" target="target" condition="PEARPC">
   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/pearpc/kernel.c
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/pearpc/kernel.c
   ]]></rule>
   <external-object source="target/include/pearpc-dict.h"/>
  </executable>
@@ -74,7 +74,7 @@
 
  <executable name="target/arch/ppc/qemu/kernel.o" target="target" condition="QEMU">
   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/qemu/kernel.c
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/qemu/kernel.c
   ]]></rule>
   <external-object source="target/include/qemu-dict.h"/>
  </executable>
@@ -92,7 +92,7 @@
  
  <executable name="target/arch/ppc/mol/kernel.o" target="target" condition="MOL">
   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ arch/ppc/mol/kernel.c
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/mol/kernel.c
   ]]></rule>
   <external-object source="target/include/mol-dict.h"/>
  </executable>
@@ -105,13 +105,13 @@
 	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="ofmem.c"/>
-  <object source="briq/briq.c" flags="-Iarch/ppc"/>
-  <object source="briq/init.c" flags="-Iarch/ppc"/>
+  <object source="briq/briq.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="briq/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <external-object source="target/arch/ppc/briq/kernel.o"/>
-  <object source="briq/main.c" flags="-Iarch/ppc"/>
-  <object source="briq/methods.c" flags="-Iarch/ppc"/>
-  <object source="briq/tree.c" flags="-Iarch/ppc"/>
-  <object source="briq/vfd.c" flags="-Iarch/ppc"/>
+  <object source="briq/main.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="briq/methods.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="briq/tree.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="briq/vfd.c" flags="-I$(SRCDIR)/arch/ppc"/>
  </library>
  
  <library name="pearpc" target="target" type="static" condition="PEARPC">
@@ -120,15 +120,15 @@
 	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="ofmem.c"/>
-  <object source="pearpc/pearpc.c" flags="-Iarch/ppc"/>
-  <object source="pearpc/init.c" flags="-Iarch/ppc"/>
+  <object source="pearpc/pearpc.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="pearpc/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <external-object source="target/arch/ppc/pearpc/kernel.o"/>
-  <object source="pearpc/main.c" flags="-Iarch/ppc"/>
-  <object source="pearpc/methods.c" flags="-Iarch/ppc"/>
-  <object source="pearpc/tree.c" flags="-Iarch/ppc"/>
-  <object source="pearpc/vfd.c" flags="-Iarch/ppc"/>
+  <object source="pearpc/main.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="pearpc/methods.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="pearpc/tree.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="pearpc/vfd.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <!-- taken from mol: generalize -->
-  <object source="pearpc/console.c" flags="-Iarch/ppc"/>
+  <object source="pearpc/console.c" flags="-I$(SRCDIR)/arch/ppc"/>
  </library>
  
  <library name="qemu" target="target" type="static" condition="QEMU">
@@ -137,13 +137,13 @@
 	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="qemu/ofmem.c"/>
-  <object source="qemu/qemu.c" flags="-Iarch/ppc"/>
-  <object source="qemu/init.c" flags="-Iarch/ppc"/>
+  <object source="qemu/qemu.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="qemu/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <external-object source="target/arch/ppc/qemu/kernel.o"/>
-  <object source="qemu/main.c" flags="-Iarch/ppc"/>
-  <object source="qemu/methods.c" flags="-Iarch/ppc"/>
-  <object source="qemu/vfd.c" flags="-Iarch/ppc"/>
-  <object source="qemu/console.c" flags="-Iarch/ppc"/>
+  <object source="qemu/main.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="qemu/methods.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="qemu/vfd.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="qemu/console.c" flags="-I$(SRCDIR)/arch/ppc"/>
  </library>
 
  
@@ -153,16 +153,16 @@
 	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
   </object>
   <object source="ofmem.c"/>
-  <object source="mol/init.c" flags="-Iarch/ppc"/>
-  <object source="mol/main.c" flags="-Iarch/ppc"/>
-  <object source="mol/mol.c" flags="-Iarch/ppc"/>
-  <object source="mol/console.c" flags="-Iarch/ppc"/>
-  <object source="mol/osi-blk.c" flags="-Iarch/ppc"/>
-  <object source="mol/osi-scsi.c" flags="-Iarch/ppc"/>
-  <object source="mol/pseudodisk.c" flags="-Iarch/ppc"/>
-  <object source="mol/methods.c" flags="-Iarch/ppc"/>
-  <object source="mol/prom.c" flags="-Iarch/ppc"/>
-  <object source="mol/tree.c" flags="-Iarch/ppc"/>
+  <object source="mol/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/main.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/mol.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/console.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/osi-blk.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/osi-scsi.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/pseudodisk.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/methods.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/prom.c" flags="-I$(SRCDIR)/arch/ppc"/>
+  <object source="mol/tree.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <external-object source="target/arch/ppc/mol/kernel.o"/>
  </library>
  
@@ -215,7 +215,7 @@
 
  <executable name="openbios-qemu.elf" target="target" condition="QEMU">
   <rule>
-	$(LD) --warn-common -N -T arch/ppc/qemu/ldscript $^ -o $@
+	$(LD) --warn-common -N -T $(SRCDIR)/arch/ppc/qemu/ldscript $^ -o $@
 	$(NM) $@ | sort > $(ODIR)/openbios-qemu.syms
 	cp $@ $@.nostrip
 	$(STRIP) $@

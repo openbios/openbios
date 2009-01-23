@@ -56,6 +56,7 @@
       <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY:=$(</xsl:text>
       <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY) </xsl:text>
 
+      <xsl:text>$(SRCDIR)/</xsl:text>
       <xsl:value-of select="$path"/>
       <xsl:value-of select="@source"/>
       <xsl:text>&#10;</xsl:text>
@@ -116,6 +117,7 @@
       
       <xsl:if test="$conditions = 0">
        <xsl:text> -I</xsl:text>
+       <xsl:text>$(SRCDIR)/</xsl:text>
        <xsl:value-of select="$path"/>
       </xsl:if>
      </xsl:for-each>
