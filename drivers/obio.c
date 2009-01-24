@@ -116,7 +116,7 @@ ob_intr(int intr)
 }
 
 static void
-ob_eccmemctl_init(void)
+ob_eccmemctl_init(uint64_t base)
 {
     uint32_t version, *regs;
     const char *mc_type;
@@ -535,8 +535,18 @@ id_cpu(void)
     for (;;);
 }
 
-static void dummy_mach_init(void)
+static void dummy_mach_init(uint64_t base)
 {
+}
+
+static void
+ss5_init(uint64_t base)
+{
+    ob_new_obio_device("slavioconfig", NULL);
+
+    ob_reg(base, SLAVIO_SCONFIG, SCONFIG_REGS, 0);
+
+    fword("finish-device");
 }
 
 struct machdef {
@@ -545,7 +555,7 @@ struct machdef {
     const char *model;
     const char *name;
     int mid_offset;
-    void (*initfn)(void);
+    void (*initfn)(uint64_t base);
 };
 
 static const struct machdef sun4m_defs[] = {
@@ -555,7 +565,7 @@ static const struct machdef sun4m_defs[] = {
         .model = "SUNW,501-3059",
         .name = "SUNW,SPARCstation-5",
         .mid_offset = 0,
-        .initfn = dummy_mach_init,
+        .initfn = ss5_init,
     },
     {
         .machine_id = 33,
@@ -579,7 +589,7 @@ static const struct machdef sun4m_defs[] = {
         .model = "SUNW,501-2572",
         .name = "SUNW,SPARCstation-4",
         .mid_offset = 0,
-        .initfn = dummy_mach_init,
+        .initfn = ss5_init,
     },
     {
         .machine_id = 36,
@@ -595,7 +605,7 @@ static const struct machdef sun4m_defs[] = {
         .model = "S3",
         .name = "Tadpole_S3GX",
         .mid_offset = 0,
-        .initfn = dummy_mach_init,
+        .initfn = ss5_init,
     },
     {
         .machine_id = 64,
@@ -768,8 +778,6 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 
     mach = id_machine(machine_id);
 
-    mach->initfn();
-
     push_str(mach->banner_name);
     fword("encode-string");
     push_str("banner-name");
@@ -785,6 +793,8 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     fword("encode-string");
     push_str("name");
     fword("property");
+
+    mach->initfn(base);
 
     // Add cpus
     temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
@@ -964,17 +974,6 @@ ob_fd_init(uint64_t base, uint64_t offset, int intr)
     ob_reg(base, offset, FD_REGS, 0);
 
     ob_intr(intr);
-
-    fword("finish-device");
-}
-
-
-static void
-ob_sconfig_init(uint64_t base, uint64_t offset)
-{
-    ob_new_obio_device("slavioconfig", NULL);
-
-    ob_reg(base, offset, SCONFIG_REGS, 0);
 
     fword("finish-device");
 }
@@ -1261,8 +1260,6 @@ ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
     // 82078 FDC
     if (fd_offset != (unsigned long) -1)
         ob_fd_init(slavio_base, fd_offset, FD_INTR);
-
-    ob_sconfig_init(slavio_base, SLAVIO_SCONFIG);
 
     ob_auxio_init(slavio_base, aux1_offset);
 
