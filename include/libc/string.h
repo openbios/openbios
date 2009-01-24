@@ -99,4 +99,9 @@ static inline unsigned char __toupper(unsigned char c) {
 
 extern int errno_int;
 
+// Propolice support
+extern long __guard[8];
+
+void __stack_smash_handler(const char *func, int damaged);
+
 #endif   /* _H_STRING */

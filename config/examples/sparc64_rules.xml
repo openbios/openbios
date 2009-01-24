@@ -38,10 +38,6 @@ CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prot
 INCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel/include -I$(ODIR)/target/include
 AS_FLAGS := -Wa,-xarch=v9b -Wa,-64 -g
 
-ifeq ($(shell uname), OpenBSD)
-	CFLAGS+= -fno-stack-protector
-endif
-
 #
 # pre rules
 #

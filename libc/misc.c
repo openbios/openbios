@@ -75,3 +75,24 @@ strtol( const char *nptr, char **endptr, int base )
 
 	return sum * sign;
 }
+
+// Propolice support
+long __guard[8] = {
+#ifdef CONFIG_BIG_ENDIAN
+    (0 << 24) | (0 << 16) | ('\n' << 8) | 255,
+#else
+    (255 << 24) | ('\n' << 16) | (0 << 8) | 0,
+#endif
+    0, 0, 0, 0, 0, 0, 0
+};
+
+void __stack_smash_handler(const char *func, int damaged)
+{
+    printk("Propolice detected a stack smashing attack %x at function %s,"
+           " freezing\n", damaged, func);
+
+    // Freeze
+    // XXX: Disable interrupts?
+    for(;;)
+        ;
+}
