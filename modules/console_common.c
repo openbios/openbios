@@ -21,6 +21,18 @@
 #define NCOLS	80
 #define NROWS	48
 
+// Warning: will hang on purpose when encountering unknown codes
+//#define DEBUG_CONSOLE
+#ifdef DEBUG_CONSOLE
+#define DPRINTF(fmt, args...)                   \
+    do {                                        \
+        printk(fmt , ##args);                   \
+        for (;;);                               \
+    } while (0)
+#else
+#define DPRINTF(fmt, args...) do {} while(0)
+#endif
+
 typedef enum {
     ESnormal, ESesc, ESsquare, ESgetpars, ESgotpars, ESfunckey,
     EShash, ESsetG0, ESsetG1, ESpercent, ESignore, ESnonstd,
@@ -150,40 +162,86 @@ rec_char( int ch, int x, int y )
 static void
 scroll1( void )
 {
-	int x;
+    int x, y;
 
-	video_scroll( FONT_ADJ_HEIGHT );
+    video_scroll(FONT_ADJ_HEIGHT);
 
-	for( x=0; x<cons.w; x++ )
-		cons.buf[(cons.h-1)*cons.w + x] = 0;
-	draw_line(cons.h-1);
+    for (y = 1; y < cons.h - 1; y++) {
+        for (x = 0; x < cons.w; x++)
+            cons.buf[(y - 1) * cons.w + x] = cons.buf[y * cons.w + x];
+    }
+    for (x = 0; x < cons.w; x++)
+        cons.buf[(cons.h - 1) * cons.w + x] = ' ';
+    draw_line(cons.h - 1);
+}
+
+// Insert char
+static void csi_at(unsigned int nr)
+{
+    unsigned int x;
+
+    if (nr > cons.w - cons.x)
+        nr = cons.w - cons.x;
+    else if (!nr)
+        return;
+
+    for (x = cons.x + nr; x < cons.w - 1; x++)
+        cons.buf[cons.y * cons.w + x - nr] = cons.buf[cons.y * cons.w + x];
+    for (x = cons.x; x < cons.x + nr; x++)
+        cons.buf[cons.y * cons.w + x] = ' ';
+    draw_line(cons.y);
 }
 
 static void
-do_con_trol(int ch)
+do_con_trol(unsigned char ch)
 {
     unsigned int i, j;
 
     switch (ch) {
+    case 7:
+        // BEL
+        return;
     case 8:
+        // BS
         if (cons.x)
             cons.x--;
         return;
-    case 10 ... 12:
+    case 9:
+        // HT
+        cons.x = (cons.x + 8) & ~7;
+        return;
+    case 10:
+        // LF
         cons.x = 0;
         cons.y++;
         return;
+    case 12:
+        // FF
+        for (i = 0; i < cons.h; i++) {
+            for (j = 0; j < cons.w; j++)
+                cons.buf[i * cons.w + j] = ' ';
+            draw_line(i);
+        }
+        cons.x = cons.y = 0;
+        return;
     case 13:
+        // CR
         cons.x = 0;
         return;
-    case 24:
-    case 26:
+    case 25:
+        // EM
+        return;
+    case 24: // CAN
+    case 26: // SUB
         cons.vc_state = ESnormal;
         return;
     case 27:
+        // ESC
         cons.vc_state = ESesc;
         return;
     }
+    if (ch < 32)
+        DPRINTF("Unhandled control char %d\n", ch);
 
     switch (cons.vc_state) {
     case ESesc:
@@ -196,7 +254,7 @@ do_con_trol(int ch)
             scroll1();
             return;
         default:
-            printk("Unhandled escape code '%c'\n", ch);
+            DPRINTF("Unhandled basic escape code '%c'\n", ch);
             return;
         }
         return;
@@ -220,8 +278,37 @@ do_con_trol(int ch)
     case ESgotpars:
         cons.vc_state = ESnormal;
         switch(ch) {
+        case 'A':
+            // Cursor up
+            if (cons.vc_par[0] == 0)
+                cons.vc_par[0] = 1;
+            if (cons.y - cons.vc_par[0] > 0)
+                cons.y -= cons.vc_par[0];
+            return;
+        case 'B':
+            // Cursor down
+            if (cons.vc_par[0] == 0)
+                cons.vc_par[0] = 1;
+            if (cons.y + cons.vc_par[0] < cons.h - 1)
+                cons.y += cons.vc_par[0];
+            return;
+        case 'C':
+            // Cursor right
+            if (cons.vc_par[0] == 0)
+                cons.vc_par[0] = 1;
+            if (cons.x + cons.vc_par[0] < cons.w - 1)
+                cons.x += cons.vc_par[0];
+            return;
+        case 'D':
+            // Cursor left
+            if (cons.vc_par[0] == 0)
+                cons.vc_par[0] = 1;
+            if (cons.x - cons.vc_par[0] > 0)
+                cons.x -= cons.vc_par[0];
+            return;
         case 'H':
         case 'f':
+            // Set cursor position
             if (cons.vc_par[0])
                 cons.vc_par[0]--;
 
@@ -243,6 +330,8 @@ do_con_trol(int ch)
                         cons.buf[j * cons.w + i] = ' ';
                     draw_line(j);
                 }
+            } else {
+                DPRINTF("Unhandled CSI J code '%c'\n", cons.vc_par[0]);
             }
             return;
         case 'K':
@@ -263,20 +352,26 @@ do_con_trol(int ch)
                 draw_line(cons.y);
                 return;
             default:
+                DPRINTF("Unhandled CSI K code '%c'\n", cons.vc_par[0]);
                 return;
             }
             return;
         case 'M':
-            scroll1();
+            if (cons.vc_par[0] == 1)
+                scroll1();
+            else
+                DPRINTF("Unhandled CSI M %d\n", cons.vc_par[0]);
             return;
         case 'm':
+            // Attributes are ignored
             return;
         case '@':
+            csi_at(cons.vc_par[0]);
             return;
         default:
-            printk("Unhandled escape code '%c', par[%d, %d, %d, %d, %d]\n",
-                   ch, cons.vc_par[0], cons.vc_par[1], cons.vc_par[2],
-                   cons.vc_par[3], cons.vc_par[4]);
+            DPRINTF("Unhandled escape code '%c', par[%d, %d, %d, %d, %d]\n",
+                    ch, cons.vc_par[0], cons.vc_par[1], cons.vc_par[2],
+                    cons.vc_par[3], cons.vc_par[4]);
             return;
         }
         return;
@@ -290,7 +385,8 @@ do_con_trol(int ch)
 int
 console_draw_str( const char *str )
 {
-	int ch, y, x;
+        unsigned int y, x;
+        unsigned char ch;
 
 	if( !cons.inited && console_init() )
 		return -1;
