@@ -443,7 +443,7 @@ int ebus_config_cb(const pci_config_t *config)
 {
 #ifdef CONFIG_DRIVER_EBUS
 #ifdef CONFIG_DRIVER_FLOPPY
-    ob_floppy_init(config->path, "fdthree");
+    ob_floppy_init(config->path, "fdthree", 0x3f0ULL, 0);
 #endif
 #ifdef CONFIG_DRIVER_PC_SERIAL
     ob_pc_serial_init(config->path, "su", arch->io_base, 0x3f8ULL, 0);

@@ -14,6 +14,7 @@
 #include "openbios/kernel.h"
 #include "openbios/stack.h"
 #include "openbios/nvram.h"
+#include "../../drivers/timer.h" // XXX
 #include "sys_info.h"
 #include "openbios.h"
 #include "boot.h"
@@ -97,6 +98,18 @@ static const struct hwdef hwdefs[] = {
 };
 
 static const struct hwdef *hwdef;
+
+void setup_timers(void)
+{
+}
+
+void udelay(unsigned int usecs)
+{
+}
+
+void mdelay(unsigned int msecs)
+{
+}
 
 static void init_memory(void)
 {

@@ -20,22 +20,18 @@ DECLARE_UNNAMED_NODE( ob_floppy, INSTALL_OPEN, 2*sizeof(int) );
 #endif
 #define printk_err printk
 
-#ifndef FD_BASE
-#define FD_BASE 0x3f0
-#endif
-
 #define FD_DRIVE 0
 
 
-#define FD_STATUS_A	(FD_BASE + 0)	/* Status register A */
-#define FD_STATUS_B	(FD_BASE + 1)	/* Status register B */
-#define FD_DOR		(FD_BASE + 2)	/* Digital Output Register */
-#define FD_TDR		(FD_BASE + 3)	/* Tape Drive Register */
-#define FD_STATUS	(FD_BASE + 4)	/* Main Status Register */
-#define FD_DSR		(FD_BASE + 4)	/* Data Rate Select Register (old) */
-#define FD_DATA		(FD_BASE + 5)	/* Data Transfer (FIFO) register */
-#define FD_DIR		(FD_BASE + 7)	/* Digital Input Register (read) */
-#define FD_DCR		(FD_BASE + 7)	/* Diskette Control Register (write)*/
+#define FD_STATUS_A     (0)             /* Status register A */
+#define FD_STATUS_B     (1)             /* Status register B */
+#define FD_DOR          (2)             /* Digital Output Register */
+#define FD_TDR          (3)             /* Tape Drive Register */
+#define FD_STATUS       (4)             /* Main Status Register */
+#define FD_DSR          (4)             /* Data Rate Select Register (old) */
+#define FD_DATA         (5)             /* Data Transfer (FIFO) register */
+#define FD_DIR          (7)             /* Digital Input Register (read) */
+#define FD_DCR          (7)             /* Diskette Control Register (write)*/
 
 /* Bit of FD_STATUS_A */
 #define	STA_INT_PENDING	0x80		/* Interrupt Pending */
@@ -210,9 +206,11 @@ static struct floppy_fdc_state {
 	int dtr;
 	unsigned char dor;
 	unsigned char version;	/* FDC version code */
+        void (*fdc_outb)(unsigned char data, unsigned long port);
+        unsigned char (*fdc_inb)(unsigned long port);
+        unsigned long io_base;
+        unsigned long mmio_base;
 } fdc_state;
-
-
 
 /* Synchronization of FDC access. */
 #define FD_COMMAND_NONE -1
@@ -227,6 +225,35 @@ static struct floppy_fdc_state {
 static void show_floppy(void);
 static void floppy_reset(void);
 
+/*
+ * IO port operations
+ */
+static unsigned char
+ob_fdc_inb(unsigned long port)
+{
+    return inb(fdc_state.io_base + port);
+}
+
+static void
+ob_fdc_outb(unsigned char data, unsigned long port)
+{
+    outb(data, fdc_state.io_base + port);
+}
+
+/*
+ * MMIO operations
+ */
+static unsigned char
+ob_fdc_mmio_readb(unsigned long port)
+{
+    return *(unsigned char *)(fdc_state.mmio_base + port);
+}
+
+static void
+ob_fdc_mmio_writeb(unsigned char data, unsigned long port)
+{
+    *(unsigned char *)(fdc_state.mmio_base + port) = data;
+}
 
 static int set_dor(char mask, char data)
 {
@@ -236,7 +263,7 @@ static int set_dor(char mask, char data)
 	newdor =  (olddor & mask) | data;
 	if (newdor != olddor){
 		fdc_state.dor = newdor;
-		outb(newdor, FD_DOR);
+                fdc_state.fdc_outb(newdor, FD_DOR);
 	}
 	return olddor;
 }
@@ -246,7 +273,7 @@ static int wait_til_ready(void)
 {
 	int counter, status;
 	for (counter = 0; counter < 10000; counter++) {
-		status = inb(FD_STATUS);
+                status = fdc_state.fdc_inb(FD_STATUS);
 		if (status & STATUS_READY) {
 			return status;
 		}
@@ -265,7 +292,7 @@ static int output_byte(unsigned char byte)
 	if ((status = wait_til_ready()) < 0)
 		return status;
 	if ((status & (STATUS_READY|STATUS_DIR|STATUS_NON_DMA)) == STATUS_READY){
-		outb(byte,FD_DATA);
+                fdc_state.fdc_outb(byte,FD_DATA);
 		return 0;
 	}
 	printk_debug("Unable to send byte %x to FDC_STATE. Status=%x\n",
@@ -288,7 +315,7 @@ static int result(unsigned char *reply_buffer, int max_replies)
 			return i;
 		}
 		if (status == (STATUS_DIR|STATUS_READY|STATUS_BUSY))
-			reply_buffer[i] = inb(FD_DATA);
+                        reply_buffer[i] = fdc_state.fdc_inb(FD_DATA);
 		else
 			break;
 	}
@@ -366,7 +393,7 @@ static unsigned char collect_interrupt(void)
 			}
                         max_sensei--;
 		}while(((reply_buffer[0] & 0x83) != FD_DRIVE) && (nr == 2) && max_sensei);
-		status = inb(FD_STATUS);
+                status = fdc_state.fdc_inb(FD_STATUS);
 		printk_debug("status = %x, reply_buffer=", status);
 		for(i = 0; i < nr; i++) {
 			printk_debug(" %x",
@@ -405,7 +432,7 @@ static void set_drive(int drive)
 
 	mdelay(DRIVE_H1440_SPINUP);
 
-	status = inb(FD_STATUS);
+        status = fdc_state.fdc_inb(FD_STATUS);
 	printk_debug("set_drive status = %02x, new_dor = %02x\n",
 		status, new_dor);
 	if (status != STATUS_READY) {
@@ -440,7 +467,7 @@ static void fdc_dtr(unsigned rate)
 		return;
 
 	/* Set dtr */
-	outb(rate, FD_DCR);
+        fdc_state.fdc_outb(rate, FD_DCR);
 
 	/* TODO: some FDC/drive combinations (C&T 82C711 with TEAC 1.2MB)
 	 * need a stabilization period of several milliseconds to be
@@ -586,11 +613,11 @@ static void reset_fdc(void)
 	/* Irrelevant for systems with true DMA (i386).          */
 
 	if (fdc_state.version >= FDC_82072A)
-		outb(0x80 | (fdc_state.dtr &3), FD_DSR);
+                fdc_state.fdc_outb(0x80 | (fdc_state.dtr &3), FD_DSR);
 	else {
-		outb(fdc_state.dor & ~DOR_NO_RESET, FD_DOR);
+                fdc_state.fdc_outb(fdc_state.dor & ~DOR_NO_RESET, FD_DOR);
 		udelay(FD_RESET_DELAY);
-		outb(fdc_state.dor, FD_DOR);
+                fdc_state.fdc_outb(fdc_state.dor, FD_DOR);
 	}
 	result(reply, MAX_REPLIES);
 }
@@ -605,11 +632,14 @@ static void show_floppy(void)
 	printk_debug("-------------------\n");
 
 	printk_debug("fdc_bytes: %02x %02x xx %02x %02x %02x xx %02x\n",
-		inb(FD_BASE + 0), inb(FD_BASE + 1),
-		inb(FD_BASE + 3), inb(FD_BASE + 4), inb(FD_BASE + 5),
-		inb(FD_BASE + 7));
+                     fdc_state.fdc_inb(FD_STATUS_A),
+                     fdc_state.fdc_inb(FD_STATUS_B),
+                     fdc_state.fdc_inb(FD_TDR),
+                     fdc_state.fdc_inb(FD_STATUS),
+                     fdc_state.fdc_inb(FD_DATA),
+                     fdc_state.fdc_inb(FD_DIR));
 
-	printk_debug("status=%x\n", inb(FD_STATUS));
+        printk_debug("status=%x\n", fdc_state.fdc_inb(FD_STATUS));
 	printk_debug("\n");
 }
 
@@ -719,7 +749,7 @@ static int floppy_seek(unsigned track)
 		printk_debug("nr = %d\n", nr);
 		printk_debug("ST0 = %02x\n", reply[0]);
 		printk_debug("PCN = %02x\n", reply[1]);
-		printk_debug("status = %d\n", inb(FD_STATUS));
+                printk_debug("status = %d\n", fdc_state.fdc_inb(FD_STATUS));
 	}
 	return success;
 }
@@ -818,7 +848,7 @@ static int floppy_read_sectors(
 
 	/* The execution stage begins when STATUS_READY&STATUS_NON_DMA is set */
 	do {
-		status = inb(FD_STATUS);
+                status = fdc_state.fdc_inb(FD_STATUS);
 		status &= STATUS_READY | STATUS_NON_DMA;
 	} while(status != (STATUS_READY|STATUS_NON_DMA));
 
@@ -831,7 +861,7 @@ static int floppy_read_sectors(
 		if (status != (STATUS_READY|STATUS_DIR|STATUS_NON_DMA)) {
 			break;
 		}
-		byte = inb(FD_DATA);
+                byte = fdc_state.fdc_inb(FD_DATA);
 		if ((i >= byte_offset) && (i < end_offset)) {
 			dest[i - byte_offset] = byte;
 		}
@@ -839,12 +869,12 @@ static int floppy_read_sectors(
 	bytes_read = i;
 
 	/* The result stage begins when STATUS_NON_DMA is cleared */
-	while((status = inb(FD_STATUS)) & STATUS_NON_DMA) {
+        while((status = fdc_state.fdc_inb(FD_STATUS)) & STATUS_NON_DMA) {
 		/* We get extra bytes in the fifo  past
 		 * the end of the sector and drop them on the floor.
 		 * Otherwise the fifo is polluted.
 		 */
-		inb(FD_DATA);
+                fdc_state.fdc_inb(FD_DATA);
 	}
 	/* Did I get an error? */
 	result_ok = read_ok(head);
@@ -995,7 +1025,7 @@ static char get_fdc_version(void)
 } /* get_fdc_version */
 
 
-static int floppy_init(void)
+static int floppy_init(unsigned long io_base, unsigned long mmio_base)
 {
 	printk_debug("floppy_init\n");
 	fdc_state.in_sync = 0;
@@ -1004,6 +1034,15 @@ static int floppy_init(void)
 	fdc_state.dtr = -1;
 	fdc_state.dor = DOR_NO_RESET;
 	fdc_state.version = FDC_UNKNOWN;
+        if (mmio_base) {
+            fdc_state.fdc_inb = ob_fdc_mmio_readb;
+            fdc_state.fdc_outb = ob_fdc_mmio_writeb;
+        } else {
+            fdc_state.fdc_inb = ob_fdc_inb;
+            fdc_state.fdc_outb = ob_fdc_outb;
+        }
+        fdc_state.io_base = io_base;
+        fdc_state.mmio_base = mmio_base;
 	reset_fdc();
 	/* Try to determine the floppy controller type */
 	fdc_state.version = get_fdc_version();
@@ -1032,10 +1071,10 @@ static void floppy_reset(void)
 }
 
 static void
-ob_floppy_initialize(int *idx)
+ob_floppy_initialize(const char *path)
 {
         int props[3];
-        phandle_t ph=get_cur_dev();
+        phandle_t ph = find_dev(path);
 
         push_str("block");
         fword("device-type");
@@ -1103,7 +1142,6 @@ ob_floppy_max_transfer(int *idx)
 }
 
 NODE_METHODS(ob_floppy) = {
-        { NULL,                 ob_floppy_initialize       },
         { "open",               ob_floppy_open             },
         { "close",              ob_floppy_close            },
         { "read-blocks",        ob_floppy_read_blocks      },
@@ -1112,12 +1150,19 @@ NODE_METHODS(ob_floppy) = {
 };
 
 
-int ob_floppy_init(const char *path, const char *dev_name)
+int ob_floppy_init(const char *path, const char *dev_name,
+                   unsigned long io_base, unsigned long mmio_base)
 {
         char nodebuff[128];
 
         snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
-        REGISTER_NAMED_NODE(ob_floppy, nodebuff);
-	floppy_init();
+        if (!mmio_base) {
+            REGISTER_NAMED_NODE(ob_floppy, nodebuff);
+            ob_floppy_initialize(nodebuff);
+        } else {
+            // Already in tree and mapped
+            REGISTER_NODE_METHODS(ob_floppy, nodebuff);
+        }
+        floppy_init(io_base, mmio_base);
 	return 0;
 }

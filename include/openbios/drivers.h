@@ -86,7 +86,8 @@ extern uint32_t cmdline_size;
 extern char boot_device;
 #endif
 #ifdef CONFIG_DRIVER_FLOPPY
-int ob_floppy_init(const char *path, const char *dev_name);
+int ob_floppy_init(const char *path, const char *dev_name,
+                   unsigned long io_base, unsigned long mmio_base);
 #endif
 #ifdef CONFIG_DRIVER_PC_KBD
 void ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,

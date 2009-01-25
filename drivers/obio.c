@@ -969,11 +969,17 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 static void
 ob_fd_init(uint64_t base, uint64_t offset, int intr)
 {
+    unsigned long addr;
+
     ob_new_obio_device("SUNW,fdtwo", "block");
 
-    ob_reg(base, offset, FD_REGS, 0);
+    addr = ob_reg(base, offset, FD_REGS, 1);
 
     ob_intr(intr);
+
+    fword("is-deblocker");
+
+    ob_floppy_init("/obio", "SUNW,fdtwo", 0, addr);
 
     fword("finish-device");
 }

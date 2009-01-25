@@ -61,7 +61,7 @@ static inline int in_8(volatile unsigned char *addr)
 {
     int ret;
 
-    __asm__ __volatile__("lduba [%1] 0x20, %0\n\t"
+    __asm__ __volatile__("ldub [%1], %0\n\t"
                          "stbar\n\t"
                          :"=r"(ret):"r"(addr):"memory");
 
@@ -70,7 +70,7 @@ static inline int in_8(volatile unsigned char *addr)
 
 static inline void out_8(volatile unsigned char *addr, int val)
 {
-    __asm__ __volatile__("stba %0, [%1] 0x20\n\t"
+    __asm__ __volatile__("stb %0, [%1]\n\t"
                          "stbar\n\t"
                          : : "r"(val), "r"(addr):"memory");
 }
@@ -80,7 +80,7 @@ static inline int in_le16(volatile unsigned short *addr)
     int ret;
 
     // XXX
-    __asm__ __volatile__("lduha [%1] 0x20, %0\n\t"
+    __asm__ __volatile__("lduh [%1], %0\n\t"
                          "stbar\n\t"
                          :"=r"(ret):"r"(addr):"memory");
 
@@ -91,7 +91,7 @@ static inline int in_be16(volatile unsigned short *addr)
 {
     int ret;
 
-    __asm__ __volatile__("lduha [%1] 0x20, %0\n\t"
+    __asm__ __volatile__("lduh [%1], %0\n\t"
                          "stbar\n\t"
                          :"=r"(ret):"r"(addr):"memory");
 
@@ -101,14 +101,14 @@ static inline int in_be16(volatile unsigned short *addr)
 static inline void out_le16(volatile unsigned short *addr, int val)
 {
     // XXX
-    __asm__ __volatile__("stha %0, [%1] 0x20\n\t"
+    __asm__ __volatile__("sth %0, [%1]\n\t"
                          "stbar\n\t"
                          : : "r"(val), "r"(addr):"memory");
 }
 
 static inline void out_be16(volatile unsigned short *addr, int val)
 {
-    __asm__ __volatile__("stha %0, [%1] 0x20\n\t"
+    __asm__ __volatile__("sth %0, [%1]\n\t"
                          "stbar\n\t"
                          : : "r"(val), "r"(addr):"memory");
 }
@@ -118,7 +118,7 @@ static inline unsigned in_le32(volatile unsigned *addr)
     unsigned ret;
 
     // XXX
-    __asm__ __volatile__("lda [%1] 0x20, %0\n\t"
+    __asm__ __volatile__("ld [%1], %0\n\t"
                          "stbar\n\t"
                          :"=r"(ret):"r"(addr):"memory");
 
@@ -129,7 +129,7 @@ static inline unsigned in_be32(volatile unsigned *addr)
 {
     unsigned ret;
 
-    __asm__ __volatile__("lda [%1] 0x20, %0\n\t"
+    __asm__ __volatile__("ld [%1], %0\n\t"
                          "stbar\n\t"
                          :"=r"(ret):"r"(addr):"memory");
 
@@ -139,14 +139,14 @@ static inline unsigned in_be32(volatile unsigned *addr)
 static inline void out_le32(volatile unsigned *addr, int val)
 {
     // XXX
-    __asm__ __volatile__("sta %0, [%1] 0x20\n\t"
+    __asm__ __volatile__("st %0, [%1]\n\t"
                          "stbar\n\t"
                          : : "r"(val), "r"(addr):"memory");
 }
 
 static inline void out_be32(volatile unsigned *addr, int val)
 {
-    __asm__ __volatile__("sta %0, [%1] 0x20\n\t"
+    __asm__ __volatile__("st %0, [%1]\n\t"
                          "stbar\n\t"
                          : : "r"(val), "r"(addr):"memory");
 }

@@ -48,7 +48,7 @@ arch_init( void )
 	ob_ide_init("/pci/isa", 0x1f0, 0x3f4, 0x170, 0x374);
 #endif
 #ifdef CONFIG_DRIVER_FLOPPY
-	ob_floppy_init("/isa", "floppy0");
+	ob_floppy_init("/isa", "floppy0", 0x3f0, 0);
 #endif
 #ifdef CONFIG_XBOX
 	init_video(phys_to_virt(0x3C00000), 640, 480, 32, 2560);
