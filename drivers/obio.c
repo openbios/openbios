@@ -1132,27 +1132,44 @@ ob_interrupt_init(uint64_t base, unsigned long offset)
     fword("finish-device");
 }
 
+/* SMP CPU boot structure */
+struct smp_cfg {
+    uint32_t smp_ctx;
+    uint32_t smp_ctxtbl;
+    uint32_t smp_entry;
+    uint32_t valid;
+};
+
+static struct smp_cfg *smp_header;
+
 int
 start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context, int cpu)
 {
-    ohwcfg_v3_t *header = (ohwcfg_v3_t *)nvram;
-    struct sparc_arch_cfg *sparc_header;
-
     if (!cpu)
         return -1;
 
-    sparc_header = (struct sparc_arch_cfg *)&nvram[header->nvram_arch_ptr];
-    sparc_header->smp_entry = pc;
-    sparc_header->smp_ctxtbl = context_ptr;
-    sparc_header->smp_ctx = context;
-    sparc_header->valid = 1;
-
     cpu &= 7;
+
+    smp_header->smp_entry = pc;
+    smp_header->smp_ctxtbl = context_ptr;
+    smp_header->smp_ctx = context;
+    smp_header->valid = cpu;
+
     intregs->cpu_intregs[cpu].set = SUN4M_SOFT_INT(14);
 
     return 0;
 }
 
+static void
+ob_smp_init(void)
+{
+    unsigned long mem_size;
+
+    // See arch/sparc32/entry.S for memory layout
+    mem_size = fw_cfg_read_i32(FW_CFG_RAM_SIZE);
+    smp_header = (struct smp_cfg *)map_io((uint64_t)(mem_size - 0x100),
+                                          sizeof(struct smp_cfg));
+}
 
 static void
 ob_obio_open(__attribute__((unused))int *idx)
@@ -1275,6 +1292,8 @@ ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
     ob_counter_init(slavio_base, counter_offset);
 
     ob_interrupt_init(slavio_base, intr_offset);
+
+    ob_smp_init();
 
     return 0;
 }

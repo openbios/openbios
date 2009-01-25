@@ -10,25 +10,19 @@
 #include "psr.h"
 #include "asm/asi.h"
 #include "asm/crs.h"
-#define __ASSEMBLY__
-#include "openbios/firmware_abi.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 
 #define CFG_ADDR 0x00000510
 #define CFG_ASI  0x2d
 
-#define PHYS_JJ_EEPROM	0x71200000  /* [2000] MK48T08 */
 #define PHYS_JJ_INTR0	0x71E00000  /* CPU0 interrupt control registers */
 
-#define PHYS_SS10_EEPROM	0xf1200000
 #define PHYS_SS10_INTR0 	0xf1400000
 
-#define PHYS_SS2_EEPROM	0xf2000000
 #define PHYS_SS2_INTR0 	0xf5000000
 #define SER_ADDR2       0xf1000004
 
-#define PHYS_SS1000_EEPROM      0x00280000
 #define PHYS_SS1000_SBI         0x02800000
 #define SER_ADDR1000            0x00200004
 
@@ -38,6 +32,40 @@
 
 	.section ".text", "ax"
 	.align	8
+
+        /* Memory map:
+	 *
+	 * Top +-------------------------+
+	 *     | SMP CPU table           |
+	 *     | s + 0xf00 ... 0xf0f     |
+	 *     | s + 0xf0c valid         |
+	 *     | s + 0xf08 entry         |
+	 *     | s + 0xf04 ctxtbl        |
+	 *     | s + 0xf00 ctx           |
+	 *     +-------------------------+
+	 *     | Bootstrap               |
+	 *     | MMU L3 tables 5 * 0x100 |
+	 *     | s + 0xa00 ... 0xeff     |
+	 *     +-------------------------+
+	 *     | Bootstrap               |
+	 *     | MMU L2 tables 2 * 0x100 |
+	 *     | s + 0x800 ... 0x9ff     |
+	 *     +-------------------------+
+	 *     | Bootstrap               |
+	 *     | MMU L1 table 0x400      |
+	 *     | s + 0x400 ... 0x7ff     |
+	 *     +-------------------------+
+	 *     | Bootstrap               |
+	 *     | MMU L0/ctx table 0x400  |
+	 *     | s + 0x000 ... 0x3ff     |
+	 *     +-------------------------+
+	 *     |                         |
+	 *     | ROM into RAM            |
+	 *     |                         |
+	 *     +-------------------------+
+	 *     :                         :
+	 * Bottom
+	 */
 
 /*
  * Entry point
@@ -92,6 +120,16 @@ entry:
         or      %g3, %g4, %g1
         ! %g1 contains end of memory
 
+
+        ! Start of private memory in %g6
+        set     0x1000, %g3
+        sub     %g1, %g3, %g6
+
+        ! Calculate SMP table location
+        add     %g6, 0xf0c, %g2                 ! valid?
+        lda     [%g2] ASI_M_BYPASS, %g7
+        sta     %g0, [%g2] ASI_M_BYPASS
+
         ! Get machine ID from configuration device
         mov     FW_CFG_MACHINE_ID, %g2
         sub     %g5, 2, %g5
@@ -113,20 +151,12 @@ entry:
          nop
 
         ! Ok, this is SS-5
-        ! Find architecture specific part
-        set     PHYS_JJ_EEPROM + OHW_ARCH_PTR, %g5
-        lduha   [%g5] ASI_M_BYPASS, %g2
-        set     PHYS_JJ_EEPROM, %g5
-        add     %g5, %g2, %g3
-        ! Check if this not the first SMP CPU, if so, bypass PROM entirely
-        add     %g3, SPARC_SMP_VALID, %g5
-        lduba   [%g5] ASI_M_BYPASS, %g2
-        stba    %g0, [%g5] ASI_M_BYPASS
-        tst     %g2
+
+        tst     %g7
         bz      first_cpu
          nop
 
-        ! SMP init, jump to user specified address
+        ! Clear softints used for SMP CPU startup
         set     PHYS_JJ_INTR0 + 0x04, %g1
         sll     %g2, 12, %g2
         add     %g1, %g2, %g2
@@ -134,62 +164,41 @@ entry:
         sta     %g1, [%g2] ASI_M_BYPASS         ! clear softints
         add     %g2, 4, %g2
         sta     %g0, [%g2] ASI_M_BYPASS         ! clear softints
-        add     %g3, SPARC_SMP_CTXTBL, %g1
-        lda     [%g1] ASI_M_BYPASS, %g2
-        sta     %g0, [%g1] ASI_M_BYPASS
+
+load_ctx:
+        ! SMP init, jump to user specified address
+        add     %g6, 0xf04, %g5                 ! ctxtbl
+        lda     [%g5] ASI_M_BYPASS, %g2
+        sta     %g0, [%g5] ASI_M_BYPASS
         set     AC_M_CTPR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
-        add     %g3, SPARC_SMP_CTX, %g1
-        lda     [%g1] ASI_M_BYPASS, %g2
-        sta     %g0, [%g1] ASI_M_BYPASS
+        add     %g6, 0xf00, %g5                 ! ctx
+        lda     [%g5] ASI_M_BYPASS, %g2
+        sta     %g0, [%g5] ASI_M_BYPASS
         set     AC_M_CXR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
-        add     %g3, SPARC_SMP_ENTRY, %g1
-        lda     [%g1] ASI_M_BYPASS, %g2
-        sta     %g0, [%g1] ASI_M_BYPASS
+        add     %g6, 0xf08, %g5                 ! entry
+        lda     [%g5] ASI_M_BYPASS, %g2
+        sta     %g0, [%g5] ASI_M_BYPASS
         set     1, %g1
         jmp     %g2                             ! jump to kernel
          sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
 
 ss10:
         ! Ok, this is SS-10 or SS-600MP
-        ! Find architecture specific part
-        set     PHYS_SS10_EEPROM + OHW_ARCH_PTR, %g5
-        lduha   [%g5] ASI_M_CTL, %g2
-        set     PHYS_SS10_EEPROM, %g5
-        add     %g5, %g2, %g3
-        ! Check if this not the first SMP CPU, if so, bypass PROM entirely
-        add     %g3, SPARC_SMP_VALID, %g5
-        lduba   [%g5] ASI_M_CTL, %g2
-        stba    %g0, [%g5] ASI_M_CTL
-        tst     %g2
+        tst     %g7
         bz      first_cpu
          nop
 
-        ! SMP init, jump to user specified address
+        ! Clear softints used for SMP CPU startup
         set     PHYS_SS10_INTR0 + 0x04, %g1
         sll     %g2, 12, %g2
         add     %g1, %g2, %g2
         set     0xffffffff, %g1
-        sta     %g1, [%g2] ASI_M_CTL         ! clear softints
+        sta     %g1, [%g2] ASI_M_CTL            ! clear softints
         add     %g2, 4, %g2
-        sta     %g0, [%g2] ASI_M_CTL         ! clear softints
-        add     %g3, SPARC_SMP_CTXTBL, %g1
-        lda     [%g1] ASI_M_CTL, %g2
-        sta     %g0, [%g1] ASI_M_CTL
-        set     AC_M_CTPR, %g1
-        sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
-        add     %g3, SPARC_SMP_CTX, %g1
-        lda     [%g1] ASI_M_CTL, %g2
-        sta     %g0, [%g1] ASI_M_CTL
-        set     AC_M_CXR, %g1
-        sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
-        add     %g3, SPARC_SMP_ENTRY, %g1
-        lda     [%g1] ASI_M_CTL, %g2
-        sta     %g0, [%g1] ASI_M_CTL
-        set     1, %g1
-        jmp     %g2                             ! jump to kernel
-         sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
+        b       load_ctx
+         sta    %g0, [%g2] ASI_M_CTL            ! clear softints
 
 ss2:
         ! Ok, this is SS-2
@@ -206,16 +215,11 @@ ss1000:
 first_cpu:
         /* Create temporary page tables and map the ROM area to end of
 	RAM. This will be done properly in iommu.c later. */
-        set     _end, %g3
-        set     0xfff, %g2
-        add     %g3, %g2, %g3
-        andn    %g3, %g2, %g3
-        set     _start, %g2
-        sub     %g3, %g2, %g3
-        set     0x1000, %g4                     ! add 0x1000 for page tables
-        add     %g4, %g3, %g2
-        sub	%g1, %g2, %g2			! start of private memory
-        srl	%g2, 0x4, %g7			! ctx table at s+0x0
+        ! Calculate start of page tables etc. to %g6
+        set     0x1000, %g4
+        sub     %g1, %g4, %g6                   ! start of private memory
+
+        mov     %g6, %g2                        ! ctx table at s+0x0
         add	%g2, 0x400, %g3			! l1 table at s+0x400
         srl	%g3, 0x4, %g3
         or	%g3, 0x1, %g3
@@ -264,7 +268,7 @@ first_cpu:
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
         add	%g2, 4, %g2			! s+0x9e0
-        add	%g2, 0xd00 - 0x9e0, %g3		! 5th l3 table for rom at s+0xe00
+        add	%g2, 0xe00 - 0x9e0, %g3		! 5th l3 table for rom at s+0xe00
         srl	%g3, 0x4, %g3
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
@@ -275,10 +279,11 @@ first_cpu:
         set	_end, %g6
         set	_start, %g4
         sub     %g6, %g4, %g6
-        srl     %g6, 12, %g6                    ! # of all pages
+        sub     %g1, %g6, %g3
         set	0x1000, %g5
-        sll	%g7, 0x4, %g3
-        add	%g5, %g3, %g3                   ! ctx table + 0x1000
+        sub     %g3, %g5, %g3                   ! start of ROM copy
+        mov     %g3, %g7                        ! save in %g7
+        srl     %g6, 12, %g6                    ! # of all pages
 1:      srl	%g3, 0x4, %g4
         or	%g4, ((7 << 2) | 2), %g4        ! 7 = U: --- S: RWX
         sta	%g4, [%g2] ASI_M_BYPASS
@@ -291,10 +296,8 @@ first_cpu:
         mov	%g1, %g6                        ! %g6 = memory size
 
         /* Copy the code, rodata and data sections from ROM. */
-        set	0x1000 - 4, %g4
-        sll	%g7, 0x4, %g3
-        add	%g4, %g3, %g3                   ! ctx table + 0x1000 - 4
-        set	_start - 4, %g4                 ! First address of TEXT
+        sub     %g7, 4, %g3
+        set	_start - 4, %g4                 ! First address of TEXT - 4
         set	_bss, %g5                       ! Last address of DATA
         ba	2f
          nop
@@ -307,8 +310,10 @@ first_cpu:
         bl      1b
          add    %g4, 0x4, %g4
 
-
+        set     0x1000, %g3
+        sub     %g6, %g3, %g7                   ! ctx table at s+0x0
         set     AC_M_CTPR, %g2
+        srl     %g7, 4, %g7
         sta     %g7, [%g2] ASI_M_MMUREGS	! set ctx table ptr
         set     AC_M_CXR, %g2
         sta     %g0, [%g2] ASI_M_MMUREGS	! context 0
@@ -350,11 +355,15 @@ highmem:
         set     qemu_mem_size, %g1
         st      %g6, [%g1]
 
-        sll     %g7, 4, %g7                     ! Store va->pa conversion factor
-        set     _start - 0x1000, %g1
-        sub     %g1, %g7, %g7
+        set     _end, %o0                       ! Store va->pa conversion factor
+        set     _start, %o2
+        sub     %o0, %o2, %o0
+        sub     %g6, %o0, %o0
+        set     0x1000, %o1
+        sub     %o0, %o1, %o0                   ! start of ROM copy
+        sub     %o2, %o0, %o0                   ! start of ROM copy
         set     va_shift, %g1
-        st      %g7, [%g1]
+        st      %o0, [%g1]
 
         set     qemu_machine_type, %g1
         mov     %y, %g2
