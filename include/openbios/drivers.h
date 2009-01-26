@@ -16,6 +16,9 @@
 #ifdef CONFIG_DRIVER_PCI
 /* drivers/pci.c */
 int ob_pci_init(void);
+#endif
+
+#if defined(CONFIG_DRIVER_PCI) || defined(CONFIG_DRIVER_ESCC)
 #ifdef CONFIG_PPC
 extern int is_apple(void);
 extern int is_oldworld(void);
