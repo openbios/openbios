@@ -208,6 +208,8 @@ try_bootinfo(const char *path)
     fword("2drop");
     right = pop_fstr_copy();
     left = pop_fstr_copy();
+    while (right[0] != '\\' && right[0] != '\0')
+    right++; 
     snprintf(bootscript, sizeof(bootscript), "%s%s,%s", left, path, right);
     ELF_DPRINTF("fixed bootscript %s\n", bootscript);
 
