@@ -145,8 +145,12 @@ files_volume_name( files_info_t *mi )
 
 	if( !mi->volname )
 		mi->volname = malloc( VOLNAME_SIZE );
-
-	ret = mi->fs->vol_name( mi->fs, mi->volname, VOLNAME_SIZE );
+	/* handle case where there is no vol_name function in fs */
+	if( !mi->fs->vol_name ) {
+		mi->volname[0] = '\0';
+		ret = mi->volname;
+	} else
+		ret = mi->fs->vol_name( mi->fs, mi->volname, VOLNAME_SIZE );
 	PUSH( (ucell)ret );
 }
 
