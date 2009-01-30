@@ -1294,30 +1294,14 @@ NODE_METHODS(ob_ide) = {
 static void
 ob_ide_ctrl_initialize(int *idx)
 {
-	int len, props[6];
 	phandle_t ph=get_cur_dev();
-	char *idename;
-	struct ide_channel *chan;
 
 	/* set device type */
 	push_str(DEV_TYPE);
 	fword("device-type");
 
-	idename=get_property(ph, "name", &len);
-	chan = ide_seek_channel(idename);
-
-	/* Create interrupt properties. */
-	props[0]=14; props[1]=0;
-	set_property(ph, "interrupts", (char *)&props, 2*sizeof(int));
-
 	set_int_property(ph, "#address-cells", 1);
 	set_int_property(ph, "#size-cells", 0);
-
-	props[0] = __cpu_to_be32(chan->io_regs[0]);
-	props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
-	props[3] = __cpu_to_be32(chan->io_regs[8]);
-	props[4] = __cpu_to_be32(1); props[5] = __cpu_to_be32(2);
-	set_property(ph, "reg", (char *)&props, 6*sizeof(int));
 }
 
 static void
@@ -1378,6 +1362,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	struct ide_channel *chan;
 	int io_ports[IDE_MAX_CHANNELS];
 	int ctl_ports[IDE_MAX_CHANNELS];
+	cell props[6];
 
 	io_ports[0] = io_port0;
 	ctl_ports[0] = ctl_port0 + 2;
@@ -1433,6 +1418,19 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
                 snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
                          current_channel);
 		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
+
+		dnode = find_dev(nodebuff);
+
+		props[0]=14; props[1]=0;
+		set_property(dnode, "interrupts",
+			     (char *)&props, 2*sizeof(cell));
+
+		props[0] = __cpu_to_be32(chan->io_regs[0]);
+		props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
+		props[3] = __cpu_to_be32(chan->io_regs[8]);
+		props[4] = __cpu_to_be32(1); props[5] = __cpu_to_be32(2);
+		set_property(dnode, "reg", (char *)&props, 6*sizeof(cell));
+
 #ifdef CONFIG_DEBUG_IDE
 		printk(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
 		       current_channel, chan->io_regs[0],
@@ -1486,3 +1484,177 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 	return 0;
 }
+
+#if defined(CONFIG_DRIVER_MACIO)
+static unsigned char
+macio_ide_inb(struct ide_channel *chan, unsigned int port)
+{
+	return in_8((unsigned char*)(chan->mmio + (port << 4)));
+}
+
+static void
+macio_ide_outb(struct ide_channel *chan, unsigned char data, unsigned int port)
+{
+	out_8((unsigned char*)(chan->mmio + (port << 4)), data);
+}
+
+static void
+macio_ide_insw(struct ide_channel *chan,
+	       unsigned int port, unsigned char *addr, unsigned int count)
+{
+	_insw((uint16_t*)(chan->mmio + (port << 4)), addr, count);
+}
+
+static void
+macio_ide_outsw(struct ide_channel *chan,
+		unsigned int port, unsigned char *addr, unsigned int count)
+{
+	_outsw((uint16_t*)(chan->mmio + (port << 4)), addr, count);
+}
+
+#define MACIO_IDE_OFFSET	0x00020000
+#define MACIO_IDE_SIZE		0x00001000
+
+int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
+{
+	int i, j;
+	char nodebuff[128];
+	phandle_t dnode;
+	cell props[8];
+	struct ide_channel *chan;
+
+	for (i = 0; i < nb_channels; i++, current_channel++) {
+
+		chan = malloc(sizeof(struct ide_channel));
+
+		snprintf(chan->name, sizeof(chan->name),
+			 DEV_NAME, current_channel);
+
+		chan->mmio = addr + MACIO_IDE_OFFSET + i * MACIO_IDE_SIZE;
+
+		chan->obide_inb = macio_ide_inb;
+		chan->obide_insw = macio_ide_insw;
+		chan->obide_outb = macio_ide_outb;
+		chan->obide_outsw = macio_ide_outsw;
+
+		chan->selected = -1;
+
+		/*
+		 * assume it's there, if not io port dead check will clear
+		 */
+		chan->present = 1;
+
+		for (j = 0; j < 2; j++) {
+			chan->drives[j].present = 0;
+			chan->drives[j].unit = j;
+			chan->drives[j].channel = chan;
+			/* init with a decent value */
+			chan->drives[j].bs = 512;
+
+			chan->drives[j].nr = i * 2 + j;
+		}
+
+		ob_ide_probe(chan);
+
+		if (!chan->present) {
+			free(chan);
+			continue;
+		}
+
+		ide_add_channel(chan);
+
+		ob_ide_identify_drives(chan);
+
+                snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
+                         current_channel);
+		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
+
+		dnode = find_dev(nodebuff);
+
+		set_property(dnode, "compatible", "heathrow-ata", 13);
+
+		props[0] = 0x00000526;
+		props[1] = 0x00000085;
+		props[2] = 0x00000025;
+		props[3] = 0x00000025;
+		props[4] = 0x00000025;
+		props[5] = 0x00000000;
+		props[6] = 0x00000000;
+		props[7] = 0x00000000;
+		OLDWORLD(set_property(dnode, "AAPL,pio-timing",
+				      (char *)&props, 8*sizeof(cell)));
+
+		props[0] = 0x0000000d;
+		props[1] = 0x00000000;
+		set_property(dnode, "interrupts",
+			     (char *)&props, 2*sizeof(cell));
+		OLDWORLD(set_property(dnode, "AAPL,interrupts",
+				      (char *)&props, 2*sizeof(cell)));
+
+		props[0] = MACIO_IDE_OFFSET + i * MACIO_IDE_SIZE;
+		props[1] = MACIO_IDE_SIZE;
+		props[2] = 0x00008b00 + i * 0x0200;
+		props[3] = 0x0200;
+		set_property(dnode, "reg", (char *)&props, 4*sizeof(cell));
+
+		props[0] = addr + MACIO_IDE_OFFSET  + i * MACIO_IDE_SIZE;
+		props[1] = addr + 0x00008b00 + i * 0x0200;
+		OLDWORLD(set_property(dnode, "AAPL,address",
+				      (char *)&props, 2*sizeof(cell)));
+
+		props[0] = 0;
+		OLDWORLD(set_property(dnode, "AAPL,bus-id", (char*)props,
+			 1 * sizeof(cell)));
+#ifdef CONFIG_DEBUG_IDE
+		printk(DEV_NAME": [io ports 0x%lx]\n",
+		       current_channel, chan->mmio);
+#endif
+
+		for (j = 0; j < 2; j++) {
+			struct ide_drive *drive = &chan->drives[j];
+                        const char *media = "UNKNOWN";
+
+			if (!drive->present)
+				continue;
+
+#ifdef CONFIG_DEBUG_IDE
+			printk("    drive%d [ATA%s ", j,
+			       drive->type == ide_type_atapi ? "PI" : "");
+#endif
+			switch (drive->media) {
+				case ide_media_floppy:
+					media = "floppy";
+					break;
+				case ide_media_cdrom:
+					media = "cdrom";
+					break;
+				case ide_media_optical:
+					media = "mo";
+					break;
+				case ide_media_disk:
+					media = "disk";
+					break;
+			}
+#ifdef CONFIG_DEBUG_IDE
+			printk("%s]: %s\n", media, drive->model);
+#endif
+                        snprintf(nodebuff, sizeof(nodebuff),
+                                 "%s/" DEV_NAME "/%s", path, current_channel,
+                                 media);
+			REGISTER_NAMED_NODE(ob_ide, nodebuff);
+			dnode = find_dev(nodebuff);
+			set_int_property(dnode, "reg", j);
+
+			/* create aliases */
+
+			set_ide_alias(nodebuff);
+			if (drive->media == ide_media_cdrom)
+				set_cd_alias(nodebuff);
+			if (drive->media == ide_media_disk)
+				set_hd_alias(nodebuff);
+		}
+	}
+
+	return 0;
+}
+#endif /* CONFIG_DRIVER_MACIO */

@@ -14,6 +14,7 @@
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 
+#include "openbios/drivers.h"
 #include "macio.h"
 #include "cuda.h"
 #include "escc.h"
@@ -112,4 +113,5 @@ ob_macio_init(const char *path, uint32_t addr)
 	cuda_init(path, addr);
 	macio_nvram_init(path, addr);
         escc_init(path, addr);
+	macio_ide_init(path, addr, 1);
 }
