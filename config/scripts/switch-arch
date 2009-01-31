@@ -15,7 +15,9 @@ chmod 755 config/scripts/switch-arch
 chmod 755 config/scripts/archname
 chmod 755 config/scripts/reldir
 chmod 755 config/scripts/crosscflags
-HOSTARCH=`config/scripts/archname`
+if test "x$HOSTARCH" = "x"; then
+    HOSTARCH=`config/scripts/archname`
+fi
 
 echo "Configuring OpenBIOS on $HOSTARCH for $*"
 for RULES_ARCH in $*; do
