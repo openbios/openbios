@@ -1108,5 +1108,9 @@ int main(int argc, char *argv[])
 	}
 
 	free(ressources);
-	return 0;
+
+        if (errors)
+            return 1;
+        else
+            return 0;
 }
