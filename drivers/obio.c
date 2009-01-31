@@ -646,39 +646,6 @@ id_machine(uint16_t machine_id)
     for (;;);
 }
 
-static volatile uint16_t *fw_cfg_cmd;
-static volatile uint8_t *fw_cfg_data;
-
-static void
-fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
-{
-    unsigned int i;
-
-    *fw_cfg_cmd = cmd;
-    for (i = 0; i < nbytes; i++)
-        buf[i] = *fw_cfg_data;
-}
-
-static uint32_t
-fw_cfg_read_i32(uint16_t cmd)
-{
-    char buf[sizeof(uint32_t)];
-
-    fw_cfg_read(cmd, buf, sizeof(uint32_t));
-
-    return __le32_to_cpu(*(uint32_t *)buf);
-}
-
-static uint16_t
-fw_cfg_read_i16(uint16_t cmd)
-{
-    char buf[sizeof(uint16_t)];
-
-    fw_cfg_read(cmd, buf, sizeof(uint16_t));
-
-    return __le16_to_cpu(*(uint16_t *)buf);
-}
-
 static uint8_t qemu_uuid[16];
 
 static void
@@ -710,8 +677,7 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 
     fword("finish-device");
 
-    fw_cfg_cmd = map_io(CFG_ADDR, CFG_SIZE);
-    fw_cfg_data = (uint8_t *)fw_cfg_cmd + 2;
+    fw_cfg_init();
 
     fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
     buf[4] = '\0';

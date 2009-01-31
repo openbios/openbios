@@ -75,5 +75,6 @@
   <option name="CONFIG_DRIVER_VGA" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_MACIO" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_ESCC" type="boolean" value="true"/>
-
+  <option name="CONFIG_DRIVER_FW_CFG" type="boolean" value="true"/>
+  <option name="CONFIG_FW_CFG_ADDR" type="integer" value="0xf0000510"/>
 </config>

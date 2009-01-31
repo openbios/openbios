@@ -24,9 +24,6 @@
 #include "openbios/fw_cfg.h"
 #include "video_subr.h"
 
-#define BIOS_CFG_CMD  0x510
-#define BIOS_CFG_DATA 0x511
-
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
 #define NVRAM_ADDR_LO 0x74
@@ -244,46 +241,6 @@ id_cpu(void)
     for (;;);
 }
 
-static void
-fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
-{
-    unsigned int i;
-
-    outw(cmd, BIOS_CFG_CMD);
-    for (i = 0; i < nbytes; i++)
-        buf[i] = inb(BIOS_CFG_DATA);
-}
-
-static uint64_t
-fw_cfg_read_i64(uint16_t cmd)
-{
-    char buf[sizeof(uint64_t)];
-
-    fw_cfg_read(cmd, buf, sizeof(uint64_t));
-
-    return __le64_to_cpu(*(uint64_t *)buf);
-}
-
-static uint32_t
-fw_cfg_read_i32(uint16_t cmd)
-{
-    char buf[sizeof(uint32_t)];
-
-    fw_cfg_read(cmd, buf, sizeof(uint32_t));
-
-    return __le32_to_cpu(*(uint32_t *)buf);
-}
-
-static uint16_t
-fw_cfg_read_i16(uint16_t cmd)
-{
-    char buf[sizeof(uint16_t)];
-
-    fw_cfg_read(cmd, buf, sizeof(uint16_t));
-
-    return __le16_to_cpu(*(uint16_t *)buf);
-}
-
 static uint8_t nvram_read_byte(uint16_t offset)
 {
     outb(offset & 0xff, NVRAM_ADDR_LO);
@@ -329,6 +286,8 @@ void arch_nvram_get(char *data)
     const char *stdin_path, *stdout_path;
 
     nvram_read(0, (char *)&nv_info, sizeof(ohwcfg_v3_t));
+
+    fw_cfg_init();
 
     fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
     buf[4] = '\0';

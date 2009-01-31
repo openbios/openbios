@@ -76,5 +76,6 @@
   <option name="CONFIG_DEBUG_FLOPPY" type="boolean" value="false"/>
   <option name="CONFIG_DRIVER_ESCC" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_ESCC_SUN" type="boolean" value="true"/>
-
+  <option name="CONFIG_DRIVER_FW_CFG" type="boolean" value="true"/>
+  <option name="CONFIG_FW_CFG_ADDR" type="integer" value="0xd00000510ULL"/>
 </config>

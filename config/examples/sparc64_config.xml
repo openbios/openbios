@@ -77,5 +77,6 @@
   <option name="CONFIG_DRIVER_EBUS" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_PC_KBD" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_PC_SERIAL" type="boolean" value="true"/>
-
+  <option name="CONFIG_DRIVER_FW_CFG" type="boolean" value="true"/>
+  <option name="CONFIG_FW_CFG_ADDR" type="integer" value="0x510"/>
 </config>

@@ -30,4 +30,12 @@ void *fw_cfg_init(uint32_t ctl_port, uint32_t data_port,
 
 #endif /* NO_QEMU_PROTOS */
 
+#ifndef NO_OPENBIOS_PROTOS
+void fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes);
+uint64_t fw_cfg_read_i64(uint16_t cmd);
+uint32_t fw_cfg_read_i32(uint16_t cmd);
+uint16_t fw_cfg_read_i16(uint16_t cmd);
+void fw_cfg_init(void);
+#endif /* NO_OPENBIOS_PROTOS */
+
 #endif

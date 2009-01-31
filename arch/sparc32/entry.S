@@ -11,6 +11,7 @@
 #include "asm/asi.h"
 #include "asm/crs.h"
 #define NO_QEMU_PROTOS
+#define NO_OPENBIOS_PROTOS
 #include "openbios/fw_cfg.h"
 
 #define CFG_ADDR 0x00000510

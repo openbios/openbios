@@ -22,6 +22,7 @@
   <object source="pc_kbd.c" condition="DRIVER_PC_KBD"/>
   <object source="pc_serial.c" condition="DRIVER_PC_SERIAL"/>
   <object source="escc.c" condition="DRIVER_ESCC"/>
+  <object source="fw_cfg.c" condition="DRIVER_FW_CFG"/>
  </library>
 
  <dictionary name="openbios" target="forth">

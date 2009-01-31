@@ -33,8 +33,6 @@
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 
-#define CFG_ADDR 0xf0000510
-
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
 struct cpudef {
@@ -95,39 +93,6 @@ static const pci_arch_t known_arch[] = {
 };
 uint32_t isa_io_base;
 
-static volatile uint16_t *fw_cfg_cmd = (void *)CFG_ADDR;
-static volatile uint8_t *fw_cfg_data = (void *)(CFG_ADDR + 2);
-
-static void
-fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
-{
-    unsigned int i;
-
-    *fw_cfg_cmd = cmd;
-    for (i = 0; i < nbytes; i++)
-        buf[i] = *fw_cfg_data;
-}
-
-static uint32_t
-fw_cfg_read_i32(uint16_t cmd)
-{
-    char buf[sizeof(uint32_t)];
-
-    fw_cfg_read(cmd, buf, sizeof(uint32_t));
-
-    return __le32_to_cpu(*(uint32_t *)buf);
-}
-
-static uint16_t
-fw_cfg_read_i16(uint16_t cmd)
-{
-    char buf[sizeof(uint16_t)];
-
-    fw_cfg_read(cmd, buf, sizeof(uint16_t));
-
-    return __le16_to_cpu(*(uint16_t *)buf);
-}
-
 void
 entry( void )
 {
@@ -135,6 +100,8 @@ entry( void )
         char buf[5], qemu_uuid[16];
 
         arch = &known_arch[ARCH_HEATHROW];
+
+        fw_cfg_init();
 
         fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
         buf[4] = '\0';
