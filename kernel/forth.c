@@ -330,8 +330,18 @@ static void mudivmod(void)
 	const ucell b = POP();
 	const ducell a = DPOP();
 #ifdef NEED_FAKE_INT128_T
-        fprintf(stderr, "mudivmode called\n");
-        exit(-1);
+        if (a.hi != 0) {
+            fprintf(stderr, "mudivmod called (0x%016llx %016llx / 0x%016llx)\n",
+                    a.hi, a.lo, b);
+            exit(-1);
+        } else {
+            ducell c;
+
+            PUSH(a.lo % b);
+            c.hi = 0;
+            c.lo = a.lo / b;
+            DPUSH(c);
+        }
 #else
 	PUSH(a % b);
 	DPUSH(a / b);
@@ -480,8 +490,16 @@ static void dplus(void)
 	const dcell d2 = DPOP();
 	const dcell d1 = DPOP();
 #ifdef NEED_FAKE_INT128_T
-        fprintf(stderr, "dplus called\n");
-        exit(-1);
+        ducell c;
+
+        if (d1.hi != 0 || d2.hi != 0) {
+            fprintf(stderr, "dplus called (0x%016llx %016llx + 0x%016llx %016llx)\n",
+                    d1.hi, d1.lo, d2.hi, d2.lo);
+            exit(-1);
+        }
+        c.hi = 0;
+        c.lo = d1.lo + d2.lo;
+        DPUSH(c);
 #else
 	DPUSH(d1 + d2);
 #endif
@@ -497,8 +515,16 @@ static void dminus(void)
 	const dcell d2 = DPOP();
 	const dcell d1 = DPOP();
 #ifdef NEED_FAKE_INT128_T
-        fprintf(stderr, "dminus called\n");
-        exit(-1);
+        ducell c;
+
+        if (d1.hi != 0 || d2.hi != 0) {
+            fprintf(stderr, "dminus called (0x%016llx %016llx + 0x%016llx %016llx)\n",
+                    d1.hi, d1.lo, d2.hi, d2.lo);
+            exit(-1);
+        }
+        c.hi = 0;
+        c.lo = d1.lo - d2.lo;
+        DPUSH(c);
 #else
 	DPUSH(d1 - d2);
 #endif
@@ -514,8 +540,15 @@ static void mmult(void)
 	const cell u2 = POP();
 	const cell u1 = POP();
 #ifdef NEED_FAKE_INT128_T
-        fprintf(stderr, "mmult called\n");
-        exit(-1);
+        ducell c;
+
+        if (0) { // XXX How to detect overflow?
+            fprintf(stderr, "mmult called (%016llx * 0x%016llx)\n", u1, u2);
+            exit(-1);
+        }
+        c.hi = 0;
+        c.lo = u1 * u2;
+        DPUSH(c);
 #else
 	DPUSH((dcell) u1 * u2);
 #endif
@@ -531,8 +564,15 @@ static void ummult(void)
 	const ucell u2 = POP();
 	const ucell u1 = POP();
 #ifdef NEED_FAKE_INT128_T
-        fprintf(stderr, "ummult called\n");
-        exit(-1);
+        ducell c;
+
+        if (0) { // XXX How to detect overflow?
+            fprintf(stderr, "ummult called (%016llx * 0x%016llx)\n", u1, u2);
+            exit(-1);
+        }
+        c.hi = 0;
+        c.lo = u1 * u2;
+        DPUSH(c);
 #else
 	DPUSH((ducell) u1 * u2);
 #endif

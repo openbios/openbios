@@ -116,7 +116,7 @@ static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, 
 		bit=i&~(-BITS);
 
 		if(d1[i]==d2[i]) {
-			reloc_table[pos] &= target_ucell(~((ucell)1UL<<bit));
+                        reloc_table[pos] &= target_ucell(~((ucell)1ULL << bit));
 
 			// This check might bring false positives in data.
 			//if(d1[i] >= pointer2cell(dict_one) &&
@@ -124,7 +124,7 @@ static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, 
 			//	printk("\nWARNING: inconsistent relocation (%x:%x)!\n", d1[i], d2[i]);
 		} else {
 			/* This is a pointer, it needs relocation, d2==dict */
-			reloc_table[pos] |= target_ucell((ucell)1UL<<bit);
+                        reloc_table[pos] |= target_ucell((ucell)1ULL << bit);
 			d2[i] = target_ucell(target_ucell(d2[i]) - pointer2cell(d2));
 		}
 	}
@@ -175,8 +175,9 @@ static void write_dictionary(const char *filename)
 		.checksum	= 0,
 		.compression	= 0,
 		.relocation	= -1,
-		.length		= target_ulong(dicthead),
-		.last		= target_ucell(((unsigned long)last-(unsigned long)dict)),
+                .length         = target_ulong((uint32_t)dicthead),
+                .last           = target_ucell((ucell)((unsigned long)last
+                                                       - (unsigned long)dict)),
                 .reserved[0]    = 0,
                 .reserved[1]    = 0,
                 .reserved[2]    = 0,
@@ -464,7 +465,7 @@ static int interpret_source(char *fil)
 {
 	FILE *f;
 	char tib[160];
-	long num;
+        cell num;
 	char *test;
 
 	const ucell SEMIS = (ucell)findword("(semis)");
@@ -627,11 +628,12 @@ static int interpret_source(char *fil)
 			u8 flags = read_byte((u8*)cell2pointer(res) -
 						sizeof(cell) - 1);
 #ifdef CONFIG_DEBUG_INTERPRETER
-			printk("%s is 0x%p\n", tib, (ucell) res);
+                        printk("%s is 0x%" FMT_CELL_x "\n", tib, (ucell) res);
 #endif
 			if (!(*state) || (flags & 3)) {
 #ifdef CONFIG_DEBUG_INTERPRETER
-				printk("executing %s, %p (flags: %s %s)\n",
+                                printk("executing %s, %" FMT_CELL_d
+                                       " (flags: %s %s)\n",
 				       tib, res,
 				       (flags & 1) ? "immediate" : "",
 				       (flags & 2) ? "compile-only" : "");
@@ -649,9 +651,9 @@ static int interpret_source(char *fil)
 
 		/* if not look if it's a number */
 		if (tib[0] == '-')
-			num = strtol(tib, &test, read_ucell(base));
+			num = strtoll(tib, &test, read_ucell(base));
 		else
-			num = strtoul(tib, &test, read_ucell(base));
+			num = strtoull(tib, &test, read_ucell(base));
 
 
 		if (*test != 0) {
@@ -667,12 +669,12 @@ static int interpret_source(char *fil)
 
 		if (*state == 0) {
 #ifdef CONFIG_DEBUG_INTERPRETER
-			printk("pushed %x to stack\n\n", num);
+                        printk("pushed %" FMT_CELL_x " to stack\n\n", num);
 #endif
 			PUSH(num);
 		} else {
 #ifdef CONFIG_DEBUG_INTERPRETER
-			printk("writing lit, %x to dict\n\n", num);
+                        printk("writing lit, %" FMT_CELL_x " to dict\n\n", num);
 #endif
 			writecell(LIT);	/* lit */
 			writecell(num);

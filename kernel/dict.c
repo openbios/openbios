@@ -167,7 +167,7 @@ ucell load_dictionary(const char *data, ucell len)
 		l=(walk-(ucell *)dict);
 		pos=l/BITS;
 		bit=l&~(-BITS);
-		if (reloc_table[pos]&target_ucell(1UL<<bit)) {
+                if (reloc_table[pos] & target_ucell((ucell)1ULL << bit)) {
 			// printk("%lx, pos %x, bit %d\n",*walk, pos, bit);
 			write_ucell(walk, read_ucell(walk)+pointer2cell(dict));
 		}

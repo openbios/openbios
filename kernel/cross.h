@@ -46,15 +46,12 @@
 #define target_ucell(value) ((ucell)target_long(value))
 #define target_cell(value) ((cell)target_long(value))
 #elif BITS==64
-#ifdef NATIVE_BITWIDTH_LARGER_THAN_HOST_BITWIDTH
-#define target_ucell(value) ( ((ucell)target_long((value)&0xffffffff))<<32 )
-#define target_cell(value) ( ((cell)target_long((value)&0xffffffff))<<32 )
-#else
-#define target_ucell(value) ( ((ucell)target_long((value)&0xffffffff))<<32 | \
-			   ((ucell)target_long((value)>>32)) )
-#define target_cell(value) ( ((cell)target_long((value)&0xffffffff))<<32 | \
-			   ((cell)target_long((value)>>32)) )
-#endif
+#define target_ucell(value)                                             \
+    ((((ucell)target_long((value) & 0xffffffff)) << 32) |               \
+     ((ucell)target_long((value) >> 32)))
+#define target_cell(value)                                              \
+    ((((cell)target_long((value) & 0xffffffff)) << 32) |                \
+     ((cell)target_long((value) >> 32)))
 #else
 #error "Endianness not supported. Please report."
 #endif
