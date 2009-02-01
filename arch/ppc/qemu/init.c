@@ -75,17 +75,23 @@ int is_oldworld(void)
 }
 
 static const pci_arch_t known_arch[] = {
-	[ARCH_PREP] = { "PREP", 0x1057, 0x4801, 0x80800000, 0x800c0000,
+        [ARCH_PREP] = { "PREP", PCI_VENDOR_ID_MOTOROLA,
+                        PCI_DEVICE_ID_MOTOROLA_RAVEN,
+                        0x80800000, 0x800c0000,
 			0x80000000, 0x00100000, 0xf0000000, 0x10000000,
 			0x80000000, 0x00010000, 0x00000000, 0x00400000,
 			{ 9, 11, 9, 11 }
 		      },
-	[ARCH_MAC99] = { "MAC99", 0x106b, 0x001F, 0xf2800000, 0xf2c00000,
+        [ARCH_MAC99] = { "MAC99", PCI_VENDOR_ID_APPLE,
+                         PCI_DEVICE_ID_APPLE_UNI_N_PCI,
+                         0xf2800000, 0xf2c00000,
 			  0xf2000000, 0x02000000, 0x80000000, 0x10000000,
 			  0xf2000000, 0x00800000, 0x00000000, 0x01000000,
 			  { 8, 9, 10, 11 }
 		       },
-	[ARCH_HEATHROW] = { "HEATHROW", 0x1057, 0x0002, 0xfec00000, 0xfee00000,
+        [ARCH_HEATHROW] = { "HEATHROW", PCI_VENDOR_ID_MOTOROLA,
+                            PCI_DEVICE_ID_MOTOROLA_MPC106,
+                            0xfec00000, 0xfee00000,
 			    0x80000000, 0x7f000000, 0x80000000, 0x01000000,
 			    0xfe000000, 0x00800000, 0xfd000000, 0x01000000,
 			    { 21, 22, 23, 24 }

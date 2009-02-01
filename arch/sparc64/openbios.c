@@ -61,8 +61,8 @@ static const struct hwdef hwdefs[] = {
     {
         .pci = {
             .name = "SUNW,sabre",
-            .vendor_id = 0x108e,
-            .device_id = 0x5000,
+            .vendor_id = PCI_VENDOR_ID_SUN,
+            .device_id = PCI_DEVICE_ID_SUN_SABRE,
             .cfg_addr = APB_SPECIAL_BASE + 0x1000000ULL,
             .cfg_data = APB_MEM_BASE,
             .cfg_base = 0x80000000ULL,

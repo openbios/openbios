@@ -1,5 +1,6 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
+#include "openbios/pci.h"
 #include "libc/vsprintf.h"
 
 #include "pci_database.h"
@@ -46,7 +47,7 @@ static const pci_subclass_t undef_subclass[] = {
 
 static const pci_dev_t ide_devices[] = {
     {
-        0x1095, 0x0646, /* CMD646 IDE controller */
+        PCI_VENDOR_ID_CMD, PCI_DEVICE_ID_CMD_646, /* CMD646 IDE controller */
         "pci-ide", "pci-ata", NULL,
 	"pci1095,646\0pci1095,646\0pciclass,01018f\0",
         0, 0, 0,
@@ -96,10 +97,11 @@ static const pci_subclass_t mass_subclass[] = {
 };
 
 static const pci_dev_t eth_devices[] = {
-    { 0x10EC, 0x8029,
-      NULL, "NE2000",   "NE2000 PCI",  NULL,
-      0, 0, 0,
-      NULL, "ethernet",
+    {
+        PCI_VENDOR_ID_REALTEK, PCI_DEVICE_ID_REALTEK_RTL8029,
+        NULL, "NE2000",   "NE2000 PCI",  NULL,
+        0, 0, 0,
+        NULL, "ethernet",
     },
     {
         0xFFFF, 0xFFFF,
@@ -150,13 +152,13 @@ static const pci_subclass_t net_subclass[] = {
 
 static const pci_dev_t vga_devices[] = {
     {
-        0x1002, 0x5046,
+        PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_RAGE128_PF,
         NULL, "ATY",      "ATY Rage128", "VGA\0",
         0, 0, 0,
         NULL, NULL,
     },
     {
-        0x1234, 0x1111,
+        PCI_VENDOR_ID_QEMU, PCI_DEVICE_ID_QEMU_VGA,
         NULL, "QEMU,VGA", "Qemu VGA",    "VGA\0",
         0, 0, 0,
         NULL, NULL,
@@ -248,38 +250,38 @@ static const pci_subclass_t mem_subclass[] = {
 
 static const pci_dev_t hbrg_devices[] = {
     {
-        0x106B, 0x0020, NULL,
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_AGP, NULL,
         "pci", "AAPL,UniNorth", "uni-north\0",
         3, 2, 1,
         NULL, NULL
     },
     {
-        0x106B, 0x001F, NULL,
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_PCI, NULL,
         "pci", "AAPL,UniNorth", "uni-north\0",
         3, 2, 1,
         NULL, NULL
     },
     {
-        0x106B, 0x001E, NULL,
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_I_PCI, NULL,
         "pci", "AAPL,UniNorth", "uni-north\0",
         3, 2, 1,
         NULL, NULL
     },
     {
-        0x1057, 0x0002, "pci",
+        PCI_VENDOR_ID_MOTOROLA, PCI_DEVICE_ID_MOTOROLA_MPC106, "pci",
         "pci", "MOT,MPC106", "grackle\0",
         3, 2, 1,
         host_config_cb, NULL
     },
     {
-        0x1057, 0x4801, NULL,
+        PCI_VENDOR_ID_MOTOROLA, PCI_DEVICE_ID_MOTOROLA_RAVEN, NULL,
         "pci-bridge", "PREP Host PCI Bridge - Motorola Raven", NULL,
         3, 2, 1,
         NULL, NULL,
     },
     {
-        0x108e, 0xa000, NULL,
-        "pci", "SUNW,simba", "pci108e,a000\0pciclass,0\0",
+        PCI_VENDOR_ID_SUN, PCI_DEVICE_ID_SUN_SABRE, NULL,
+        "pci", "SUNW,sabre", "pci108e,a000\0pciclass,0\0",
         3, 2, 1,
         host_config_cb, NULL,
     },
@@ -293,14 +295,14 @@ static const pci_dev_t hbrg_devices[] = {
 
 static const pci_dev_t PCIbrg_devices[] = {
     {
-        0x1011, 0x0026, NULL,
+        PCI_VENDOR_ID_DEC, PCI_DEVICE_ID_DEC_21154, NULL,
         "pci-bridge", "DEV,21154", "DEV,21154\0pci-bridge\0",
         3, 2, 1,
         bridge_config_cb, NULL,
     },
     {
-        0x108e, 0x5000, NULL,
-        "pci", "SUNW,sabre", "pci108e,5000\0pciclass,060400\0",
+        PCI_VENDOR_ID_SUN, PCI_DEVICE_ID_SUN_SIMBA, NULL,
+        "pci", "SUNW,simba", "pci108e,5000\0pciclass,060400\0",
         3, 2, 1,
         bridge_config_cb, NULL,
     },
@@ -314,7 +316,7 @@ static const pci_dev_t PCIbrg_devices[] = {
 
 static const pci_dev_t miscbrg_devices[] = {
     {
-        0x108e, 0x1000, NULL,
+        PCI_VENDOR_ID_SUN, PCI_DEVICE_ID_SUN_EBUS, NULL,
         "ebus", "ebus", "pci108e,1000\0pciclass,068000\0",
         3, 2, 1,
         ebus_config_cb, NULL,
@@ -589,14 +591,14 @@ static const pci_iface_t rtc_iface[] = {
 static const pci_dev_t sys_devices[] = {
     /* IBM MPIC controller */
     {
-        0x1014, 0x0002,
+        PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OPENPIC,
         "open-pic", "MPIC", NULL, "chrp,open-pic\0",
         0, 0, 2,
         NULL, NULL,
     },
     /* IBM MPIC2 controller */
     {
-        0x1014, 0xFFFF,
+        PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OPENPIC2,
         "open-pic", "MPIC2", NULL, "chrp,open-pic\0",
         0, 0, 2,
         NULL, NULL,
@@ -956,21 +958,21 @@ static const pci_class_t pci_classes[] = {
 static const pci_dev_t misc_pci[] = {
     /* Heathrow Mac I/O */
     {
-        0x106B, 0x0010,
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_343S1201,
         "mac-io", "mac-io", "AAPL,343S1201", "heathrow\0",
         1, 1, 1,
         &macio_config_cb, NULL,
     },
     /* Paddington Mac I/O */
     {
-        0x106B, 0x0017,
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_343S1211,
         "mac-io", "mac-io", "AAPL,343S1211", "paddington\0heathrow\0",
         1, 1, 1,
         &macio_config_cb, NULL,
     },
     /* KeyLargo Mac I/O */
     {
-        0x106B, 0x0022,
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_KEYL,
         "mac-io", "mac-io", "AAPL,Keylargo", "Keylargo\0",
         1, 1, 2,
         &macio_config_cb, NULL,
