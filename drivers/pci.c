@@ -734,7 +734,9 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
                         ob_pci_configure(addr, &config, mem_base, io_base);
 			ob_pci_add_properties(addr, pci_dev, &config);
 
-			if (ccode == 0x0600 || ccode == 0x0604) {
+                        if (class == PCI_BASE_CLASS_BRIDGE &&
+                            (subclass == PCI_SUBCLASS_BRIDGE_HOST ||
+                             subclass == PCI_SUBCLASS_BRIDGE_PCI)) {
 				/* host or bridge */
 				free(*path);
 				*path = strdup(config.path);

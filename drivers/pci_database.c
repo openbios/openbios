@@ -63,35 +63,43 @@ static const pci_dev_t ide_devices[] = {
 
 static const pci_subclass_t mass_subclass[] = {
     {
-        0x00, "SCSI bus controller",        NULL,  NULL, NULL,
+        PCI_SUBCLASS_STORAGE_SCSI, "SCSI bus controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "IDE controller",             "ide", ide_devices, NULL,
+        PCI_SUBCLASS_STORAGE_IDE, "IDE controller",
+        "ide", ide_devices, NULL,
         NULL, NULL,
     },
     {
-        0x02, "Floppy disk controller",     NULL,  NULL, NULL,
+        PCI_SUBCLASS_STORAGE_FLOPPY, "Floppy disk controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x03, "IPI bus controller",         NULL,  NULL, NULL,
+        PCI_SUBCLASS_STORAGE_IPI, "IPI bus controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x04, "RAID controller",            NULL,  NULL, NULL,
+        PCI_SUBCLASS_STORAGE_RAID, "RAID controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x05, "ATA controller",             "ata", NULL, NULL,
+        PCI_SUBCLASS_STORAGE_ATA, "ATA controller",
+        "ata", NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc mass-storage controller", NULL, NULL, NULL,
+        PCI_SUBCLASS_STORAGE_OTHER, "misc mass-storage controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
@@ -113,39 +121,48 @@ static const pci_dev_t eth_devices[] = {
 
 static const pci_subclass_t net_subclass[] = {
     {
-        0x00, "ethernet controller",       NULL, eth_devices, NULL,
+        PCI_SUBCLASS_NETWORK_ETHERNET, "ethernet controller",
+        NULL, eth_devices, NULL,
         eth_config_cb, "ethernet",
     },
     {
-        0x01, "token ring controller",      NULL,  NULL, NULL,
+        PCI_SUBCLASS_NETWORK_TOKEN_RING, "token ring controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "FDDI controller",            NULL,  NULL, NULL,
+        PCI_SUBCLASS_NETWORK_FDDI, "FDDI controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x03, "ATM controller",             NULL,  NULL, NULL,
+        PCI_SUBCLASS_NETWORK_ATM, "ATM controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x04, "ISDN controller",            NULL,  NULL, NULL,
+        PCI_SUBCLASS_NETWORK_ISDN, "ISDN controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x05, "WordFip controller",         NULL,  NULL, NULL,
+        PCI_SUBCLASS_NETWORK_WORDFIP, "WordFip controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x06, "PICMG 2.14 controller",      NULL,  NULL, NULL,
+        PCI_SUBCLASS_NETWORK_PICMG214, "PICMG 2.14 controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc network controller",    NULL,  NULL, NULL,
+        PCI_SUBCLASS_NETWORK_OTHER, "misc network controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
@@ -188,61 +205,74 @@ static const struct pci_iface_t vga_iface[] = {
 
 static const pci_subclass_t displ_subclass[] = {
     {
-        0x00, "display controller",         NULL,  NULL, vga_iface,
+        PCI_SUBCLASS_DISPLAY_VGA, "display controller",
+        NULL, NULL, vga_iface,
         NULL, NULL,
     },
     {
-        0x01, "XGA display controller",     NULL,  NULL, NULL,
+        PCI_SUBCLASS_DISPLAY_XGA, "XGA display controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "3D display controller",      NULL,  NULL, NULL,
+        PCI_SUBCLASS_DISPLAY_3D, "3D display controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc display controller",    NULL,  NULL, NULL,
+        PCI_SUBCLASS_DISPLAY_OTHER, "misc display controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t media_subclass[] = {
     {
-        0x00, "video device",              NULL,  NULL, NULL,
+        PCI_SUBCLASS_MULTIMEDIA_VIDEO, "video device",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "audio device",              NULL,  NULL, NULL,
+        PCI_SUBCLASS_MULTIMEDIA_AUDIO, "audio device",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "computer telephony device", NULL,  NULL, NULL,
+        PCI_SUBCLASS_MULTIMEDIA_PHONE, "computer telephony device",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc multimedia device",    NULL,  NULL, NULL,
+        PCI_SUBCLASS_MULTIMEDIA_OTHER, "misc multimedia device",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t mem_subclass[] = {
     {
-        0x00, "RAM controller",             NULL,  NULL, NULL,
+        PCI_SUBCLASS_MEMORY_RAM, "RAM controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "flash controller",           NULL,  NULL, NULL,
+        PCI_SUBCLASS_MEMORY_FLASH, "flash controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
@@ -331,55 +361,68 @@ static const pci_dev_t miscbrg_devices[] = {
 
 static const pci_subclass_t bridg_subclass[] = {
     {
-        0x00, "PCI host bridge",           NULL,  hbrg_devices, NULL,
+        PCI_SUBCLASS_BRIDGE_HOST, "PCI host bridge",
+        NULL, hbrg_devices, NULL,
         NULL, NULL,
     },
     {
-        0x01, "ISA bridge",                NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_ISA, "ISA bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "EISA bridge",               NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_EISA, "EISA bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x03, "MCA bridge",                NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_MC, "MCA bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x04, "PCI-to-PCI bridge",         NULL,  PCIbrg_devices, NULL,
+        PCI_SUBCLASS_BRIDGE_PCI, "PCI-to-PCI bridge",
+        NULL, PCIbrg_devices, NULL,
         NULL, NULL,
     },
     {
-        0x05, "PCMCIA bridge",             NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_PCMCIA, "PCMCIA bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x06, "NUBUS bridge",              NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_NUBUS, "NUBUS bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x07, "cardbus bridge",            NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_CARDBUS, "cardbus bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x08, "raceway bridge",            NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_RACEWAY, "raceway bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x09, "semi-transparent PCI-to-PCI bridge", NULL, NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_PCI_SEMITP, "semi-transparent PCI-to-PCI bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x0A, "infiniband-to-PCI bridge",  NULL,  NULL, NULL,
+        PCI_SUBCLASS_BRIDGE_IB_PCI, "infiniband-to-PCI bridge",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc PCI bridge",           NULL,  miscbrg_devices, NULL,
+        PCI_SUBCLASS_BRIDGE_OTHER, "misc PCI bridge",
+        NULL, miscbrg_devices, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
@@ -475,35 +518,43 @@ static const pci_iface_t modem_iface[] = {
 
 static const pci_subclass_t comm_subclass[] = {
     {
-        0x00, "serial controller",          NULL, NULL, serial_iface,
+        PCI_SUBCLASS_COMMUNICATION_SERIAL, "serial controller",
+        NULL, NULL, serial_iface,
         NULL, NULL,
     },
     {
-        0x01, "parallel port",             NULL, NULL, par_iface,
+        PCI_SUBCLASS_COMMUNICATION_PARALLEL, "parallel port",
+        NULL, NULL, par_iface,
         NULL, NULL,
     },
     {
-        0x02, "multiport serial controller", NULL, NULL, NULL,
+        PCI_SUBCLASS_COMMUNICATION_MULTISERIAL, "multiport serial controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x03, "modem",                     NULL, NULL, modem_iface,
+        PCI_SUBCLASS_COMMUNICATION_MODEM, "modem",
+        NULL, NULL, modem_iface,
         NULL, NULL,
     },
     {
-        0x04, "GPIB controller",           NULL, NULL, NULL,
+        PCI_SUBCLASS_COMMUNICATION_GPIB, "GPIB controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x05, "smart card",                NULL, NULL, NULL,
+        PCI_SUBCLASS_COMMUNICATION_SC, "smart card",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc communication device", NULL, NULL, NULL,
+        PCI_SUBCLASS_COMMUNICATION_OTHER, "misc communication device",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL, NULL, NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
@@ -613,112 +664,137 @@ static const pci_dev_t sys_devices[] = {
 
 static const pci_subclass_t sys_subclass[] = {
     {
-        0x00, "PIC",                       NULL, NULL, pic_iface,
+        PCI_SUBCLASS_SYSTEM_PIC, "PIC",
+        NULL, NULL, pic_iface,
         NULL, NULL,
     },
     {
-        0x01, "DMA controller",             NULL, NULL, dma_iface,
+        PCI_SUBCLASS_SYSTEM_DMA, "DMA controller",
+        NULL, NULL, dma_iface,
         NULL, NULL,
     },
     {
-        0x02, "system timer",              NULL, NULL, tmr_iface,
+        PCI_SUBCLASS_SYSTEM_TIMER, "system timer",
+        NULL, NULL, tmr_iface,
         NULL, NULL,
     },
     {
-        0x03, "RTC controller",             NULL, NULL, rtc_iface,
+        PCI_SUBCLASS_SYSTEM_RTC, "RTC controller",
+        NULL, NULL, rtc_iface,
         NULL, NULL,
     },
     {
-        0x04, "PCI hotplug controller",     NULL, NULL, NULL,
+        PCI_SUBCLASS_SYSTEM_PCI_HOTPLUG, "PCI hotplug controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc system peripheral",    NULL, sys_devices, NULL,
+        PCI_SUBCLASS_SYSTEM_OTHER, "misc system peripheral",
+        NULL, sys_devices, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t inp_subclass[] = {
     {
-        0x00, "keyboard controller",        NULL, NULL, NULL,
+        PCI_SUBCLASS_INPUT_KEYBOARD, "keyboard controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "digitizer",                 NULL, NULL, NULL,
+        PCI_SUBCLASS_INPUT_PEN, "digitizer",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "mouse controller",           NULL, NULL, NULL,
+        PCI_SUBCLASS_INPUT_MOUSE, "mouse controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x03, "scanner controller",         NULL, NULL, NULL,
+        PCI_SUBCLASS_INPUT_SCANNER, "scanner controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x04, "gameport controller",        NULL, NULL, NULL,
+        PCI_SUBCLASS_INPUT_GAMEPORT, "gameport controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc input device",         NULL, NULL, NULL,
+        PCI_SUBCLASS_INPUT_OTHER, "misc input device",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t dock_subclass[] = {
     {
-        0x00, "generic docking station",   NULL, NULL,  NULL,
+        PCI_SUBCLASS_DOCKING_GENERIC, "generic docking station",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc docking station",      NULL, NULL,  NULL,
+        PCI_SUBCLASS_DOCKING_OTHER, "misc docking station",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t cpu_subclass[] = {
     {
-        0x00, "i386 processor",            NULL, NULL,  NULL,
+        PCI_SUBCLASS_PROCESSOR_386, "i386 processor",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "i486 processor",            NULL, NULL,  NULL,
+        PCI_SUBCLASS_PROCESSOR_486, "i486 processor",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "pentium processor",         NULL, NULL,  NULL,
+        PCI_SUBCLASS_PROCESSOR_PENTIUM, "pentium processor",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x10, "alpha processor",           NULL, NULL,  NULL,
+        PCI_SUBCLASS_PROCESSOR_ALPHA, "alpha processor",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x20, "PowerPC processor",         NULL, NULL,  NULL,
+        PCI_SUBCLASS_PROCESSOR_POWERPC, "PowerPC processor",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x30, "MIPS processor",            NULL, NULL,  NULL,
+        PCI_SUBCLASS_PROCESSOR_MIPS, "MIPS processor",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x40, "co-processor",              NULL, NULL,  NULL,
+        PCI_SUBCLASS_PROCESSOR_CO, "co-processor",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
@@ -771,147 +847,181 @@ static const pci_iface_t ipmi_iface[] = {
 
 static const pci_subclass_t ser_subclass[] = {
     {
-        0x00, "Firewire bus controller",    "ieee1394", NULL, NULL,
+        PCI_SUBCLASS_SERIAL_FIREWIRE, "Firewire bus controller",
+        "ieee1394", NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "ACCESS bus controller",      NULL, NULL,  NULL,
+        PCI_SUBCLASS_SERIAL_ACCESS, "ACCESS bus controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "SSA controller",             NULL, NULL,  NULL,
+        PCI_SUBCLASS_SERIAL_SSA, "SSA controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x03, "USB controller",             "usb", NULL, usb_iface,
+        PCI_SUBCLASS_SERIAL_USB, "USB controller",
+        "usb", NULL, usb_iface,
         NULL, NULL,
     },
     {
-        0x04, "fibre channel controller",   NULL, NULL,  NULL,
+        PCI_SUBCLASS_SERIAL_FIBER, "fibre channel controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x05, "SMBus controller",           NULL, NULL,  NULL,
+        PCI_SUBCLASS_SERIAL_SMBUS, "SMBus controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x06, "InfiniBand controller",      NULL, NULL,  NULL,
+        PCI_SUBCLASS_SERIAL_IB, "InfiniBand controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x07, "IPMI interface",            NULL, NULL,  ipmi_iface,
+        PCI_SUBCLASS_SERIAL_IPMI, "IPMI interface",
+        NULL, NULL, ipmi_iface,
         NULL, NULL,
     },
     {
-        0x08, "SERCOS controller",          NULL, NULL,  ipmi_iface,
+        PCI_SUBCLASS_SERIAL_SERCOS, "SERCOS controller",
+        NULL, NULL, ipmi_iface,
         NULL, NULL,
     },
     {
-        0x09, "CANbus controller",          NULL, NULL,  ipmi_iface,
+        PCI_SUBCLASS_SERIAL_CANBUS, "CANbus controller",
+        NULL, NULL, ipmi_iface,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t wrl_subclass[] = {
     {
-        0x00, "IRDA controller",           NULL, NULL,  NULL,
+        PCI_SUBCLASS_WIRELESS_IRDA, "IRDA controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "consumer IR controller",    NULL, NULL,  NULL,
+        PCI_SUBCLASS_WIRELESS_CIR, "consumer IR controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x10, "RF controller",             NULL, NULL,  NULL,
+        PCI_SUBCLASS_WIRELESS_RF_CONTROLLER, "RF controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x11, "bluetooth controller",      NULL, NULL,  NULL,
+        PCI_SUBCLASS_WIRELESS_BLUETOOTH, "bluetooth controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x12, "broadband controller",      NULL, NULL,  NULL,
+        PCI_SUBCLASS_WIRELESS_BROADBAND, "broadband controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc wireless controller",  NULL, NULL,  NULL,
+        PCI_SUBCLASS_WIRELESS_OTHER, "misc wireless controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t sat_subclass[] = {
     {
-        0x01, "satellite TV controller",   NULL, NULL,  NULL,
+        PCI_SUBCLASS_SATELLITE_TV, "satellite TV controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x02, "satellite audio controller", NULL, NULL, NULL,
+        PCI_SUBCLASS_SATELLITE_AUDIO, "satellite audio controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x03, "satellite voice controller", NULL, NULL, NULL,
+        PCI_SUBCLASS_SATELLITE_VOICE, "satellite voice controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x04, "satellite data controller", NULL, NULL,  NULL,
+        PCI_SUBCLASS_SATELLITE_DATA, "satellite data controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t crypt_subclass[] = {
     {
-        0x00, "cryptographic network controller", NULL, NULL, NULL,
+        PCI_SUBCLASS_CRYPT_NETWORK, "cryptographic network controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x10, "cryptographic entertainment controller", NULL, NULL, NULL,
+        PCI_SUBCLASS_CRYPT_ENTERTAINMENT,
+        "cryptographic entertainment controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc cryptographic controller",    NULL, NULL, NULL,
+        PCI_SUBCLASS_CRYPT_OTHER, "misc cryptographic controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
 
 static const pci_subclass_t spc_subclass[] = {
     {
-        0x00, "DPIO module",               NULL, NULL,  NULL,
+        PCI_SUBCLASS_SP_DPIO, "DPIO module",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x01, "performances counters",     NULL, NULL,  NULL,
+        PCI_SUBCLASS_SP_PERF, "performances counters",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x10, "communication synchronisation", NULL, NULL, NULL,
+        PCI_SUBCLASS_SP_SYNCH, "communication synchronisation",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x20, "management card",           NULL, NULL,  NULL,
+        PCI_SUBCLASS_SP_MANAGEMENT, "management card",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0x80, "misc signal processing controller", NULL, NULL, NULL,
+        PCI_SUBCLASS_SP_OTHER, "misc signal processing controller",
+        NULL, NULL, NULL,
         NULL, NULL,
     },
     {
-        0xFF, NULL,                        NULL,  NULL,  NULL,
+        0xFF, NULL,
+        NULL, NULL, NULL,
         NULL, NULL,
     },
 };
