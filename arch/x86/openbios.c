@@ -13,6 +13,7 @@
 #include "openbios/kernel.h"
 #include "openbios/stack.h"
 #include "openbios/drivers.h"
+#include "openbios/pci.h"
 #include "sys_info.h"
 #include "openbios.h"
 #include "relocate.h"
@@ -20,6 +21,15 @@
 void boot(void);
 
 static unsigned char intdict[256 * 1024];
+
+#ifdef CONFIG_DRIVER_PCI
+static const pci_arch_t default_pci_host = {
+    .name = "Intel,i440FX",
+    .vendor_id = PCI_VENDOR_ID_INTEL,
+    .device_id = PCI_DEVICE_ID_INTEL_82441,
+    .io_base = 0x1000,
+};
+#endif
 
 static void init_memory(void)
 {
@@ -41,6 +51,7 @@ arch_init( void )
 
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI
+        arch = &default_pci_host;
 	ob_pci_init();
 #endif
 #ifdef CONFIG_DRIVER_IDE
