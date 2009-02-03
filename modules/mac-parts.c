@@ -29,6 +29,7 @@ do { printk("MAC-PARTS: " fmt , ##args); } while (0)
 typedef struct {
 	ullong		offs;
 	ullong		size;
+	uint		blocksize;
 } macparts_info_t;
 
 DECLARE_NODE( macparts, INSTALL_OPEN, sizeof(macparts_info_t), "+/packages/mac-parts" );
@@ -90,6 +91,7 @@ macparts_open( macparts_info_t *di )
 	if( par.pmSig != 0x504d /* 'PM' */ || !par.pmPartBlkCnt )
 		RET(0);
 
+	di->blocksize =(uint)bs;
 	di->offs = (llong)par.pmPyPartStart * bs;
 	di->size = (llong)par.pmPartBlkCnt * bs;
 
@@ -119,9 +121,10 @@ macparts_get_info( macparts_info_t *di )
 }
 
 static void
-macparts_block_size( __attribute__((unused))macparts_info_t *di )
+macparts_block_size( macparts_info_t *di )
 {
-	PUSH(512);
+	DPRINTF("macparts_block_size = %x\n", di->blocksize);
+	PUSH(di->blocksize);
 }
 
 static void
