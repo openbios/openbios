@@ -24,6 +24,13 @@
 #include "hdreg.h"
 #include "timer.h"
 
+#ifdef CONFIG_DEBUG_IDE
+#define IDE_DPRINTF(fmt, args...) \
+do { printk("IDE - %s: " fmt, __func__ , ##args); } while (0)
+#else
+#define IDE_DPRINTF(fmt, args...) do { } while (0)
+#endif
+
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_ide, INSTALL_OPEN, sizeof(struct ide_drive*) );
 DECLARE_UNNAMED_NODE( ob_ide_ctrl, INSTALL_OPEN, sizeof(int));
@@ -154,7 +161,7 @@ ob_ide_pio_insw(struct ide_drive *drive, unsigned int offset,
 	struct ide_channel *chan = drive->channel;
 
 	if (len & 1) {
-		printk("%d: command not word aligned\n", drive->nr);
+		IDE_DPRINTF("%d: command not word aligned\n", drive->nr);
 		return;
 	}
 
@@ -168,7 +175,7 @@ ob_ide_pio_outsw(struct ide_drive *drive, unsigned int offset,
 	struct ide_channel *chan = drive->channel;
 
 	if (len & 1) {
-		printk("%d: command not word aligned\n", drive->nr);
+		IDE_DPRINTF("%d: command not word aligned\n", drive->nr);
 		return;
 	}
 
@@ -195,14 +202,14 @@ ob_ide_error(struct ide_drive *drive, unsigned char stat, const char *msg)
 	if (!stat)
 		stat = ob_ide_pio_readb(drive, IDEREG_STATUS);
 
-	printk("ob_ide_error drive<%d>: %s:\n", drive->nr, msg);
-	printk("    cmd=%x, stat=%x", chan->ata_cmd.command, stat);
+	IDE_DPRINTF("ob_ide_error drive<%d>: %s:\n", drive->nr, msg);
+	IDE_DPRINTF("    cmd=%x, stat=%x", chan->ata_cmd.command, stat);
 
 	if ((stat & (BUSY_STAT | ERR_STAT)) == ERR_STAT) {
 		err = ob_ide_pio_readb(drive, IDEREG_ERROR);
-		printk(", err=%x", err);
+		IDE_DPRINTF(", err=%x", err);
 	}
-	printk("\n");
+	IDE_DPRINTF("\n");
 
 	/*
 	 * see if sense is valid and dump that
@@ -214,19 +221,21 @@ ob_ide_error(struct ide_drive *drive, unsigned char stat, const char *msg)
 		if (cmd->cdb[0] == ATAPI_REQ_SENSE) {
 			old_cdb = cmd->old_cdb;
 
-			printk("    atapi opcode=%02x", old_cdb);
+			IDE_DPRINTF("    atapi opcode=%02x", old_cdb);
 		} else {
 			int i;
 
-			printk("    cdb: ");
+			IDE_DPRINTF("    cdb: ");
 			for (i = 0; i < sizeof(cmd->cdb); i++)
-				printk("%02x ", cmd->cdb[i]);
+				IDE_DPRINTF("%02x ", cmd->cdb[i]);
 		}
 		if (cmd->sense_valid)
-			printk(", sense: %02x/%02x/%02x", cmd->sense.sense_key, cmd->sense.asc, cmd->sense.ascq);
+			IDE_DPRINTF(", sense: %02x/%02x/%02x",
+                                    cmd->sense.sense_key, cmd->sense.asc,
+                                    cmd->sense.ascq);
 		else
-			printk(", no sense");
-		printk("\n");
+			IDE_DPRINTF(", no sense");
+		IDE_DPRINTF("\n");
 	}
 }
 
@@ -269,7 +278,7 @@ ob_ide_select_drive(struct ide_drive *drive)
 	unsigned char control = IDEHEAD_DEV0;
 
 	if (ob_ide_wait_stat(drive, 0, BUSY_STAT, NULL)) {
-		printk("select_drive: timed out\n");
+		IDE_DPRINTF("select_drive: timed out\n");
 		return 1;
 	}
 
@@ -287,7 +296,7 @@ ob_ide_select_drive(struct ide_drive *drive)
 	ob_ide_400ns_delay(drive);
 
 	if (ob_ide_wait_stat(drive, 0, BUSY_STAT, NULL)) {
-		printk("select_drive: timed out\n");
+		IDE_DPRINTF("select_drive: timed out\n");
 		return 1;
 	}
 
@@ -452,7 +461,7 @@ ob_ide_pio_data_in(struct ide_drive *drive, struct ata_command *cmd)
 	} while (bytes);
 
 	if (bytes)
-		printk("bytes=%d, stat=%x\n", bytes, stat);
+		IDE_DPRINTF("bytes=%d, stat=%x\n", bytes, stat);
 
 	return bytes ? 1 : 0;
 }
@@ -472,7 +481,7 @@ ob_ide_pio_packet(struct ide_drive *drive, struct atapi_command *cmd)
 		return 1;
 
 	if (cmd->buflen && cmd->data_direction == atapi_ddir_none)
-		printk("non-zero buflen but no data direction\n");
+		IDE_DPRINTF("non-zero buflen but no data direction\n");
 
 	memset(acmd, 0, sizeof(*acmd));
 	acmd->lcyl = cmd->buflen & 0xff;
@@ -504,7 +513,8 @@ ob_ide_pio_packet(struct ide_drive *drive, struct atapi_command *cmd)
 		 * we are doing a sense, ERR_STAT == CHECK_CONDITION
 		 */
 		if (cmd->cdb[0] != ATAPI_REQ_SENSE) {
-			printk("odd, drive didn't want to transfer %x\n", stat);
+			IDE_DPRINTF("odd, drive didn't want to transfer %x\n",
+                                     stat);
 			return 1;
 		}
 	}
@@ -573,7 +583,7 @@ ob_ide_pio_packet(struct ide_drive *drive, struct atapi_command *cmd)
 		(void) ob_ide_wait_stat(drive, 0, BUSY_STAT, &stat);
 
 	if (bytes)
-		printk("cdb failed, bytes=%d, stat=%x\n", bytes, stat);
+		IDE_DPRINTF("cdb failed, bytes=%d, stat=%x\n", bytes, stat);
 
 	return (stat & ERR_STAT) || bytes;
 }
@@ -664,9 +674,8 @@ ob_ide_atapi_drive_ready(struct ide_drive *drive)
 	struct atapi_command *cmd = &drive->channel->atapi_cmd;
 	struct atapi_capacity cap;
 
-#ifdef CONFIG_DEBUG_IDE
-	printk("ob_ide_atapi_drive_ready\n");
-#endif
+	IDE_DPRINTF("ob_ide_atapi_drive_ready\n");
+
 	/*
 	 * Test Unit Ready is like a ping
 	 */
@@ -674,7 +683,7 @@ ob_ide_atapi_drive_ready(struct ide_drive *drive)
 	cmd->cdb[0] = ATAPI_TUR;
 
 	if (ob_ide_atapi_packet(drive, cmd)) {
-		printk("%d: TUR failed\n", drive->nr);
+		IDE_DPRINTF("%d: TUR failed\n", drive->nr);
 		return 1;
 	}
 
@@ -688,7 +697,7 @@ ob_ide_atapi_drive_ready(struct ide_drive *drive)
 	cmd->cdb[4] = 0x01;
 
 	if (ob_ide_atapi_packet(drive, cmd)) {
-		printk("%d: START_STOP unit failed\n", drive->nr);
+		IDE_DPRINTF("%d: START_STOP unit failed\n", drive->nr);
 		return 1;
 	}
 
@@ -867,10 +876,8 @@ ob_ide_read_sectors(struct ide_drive *drive, unsigned long long block,
 	if (block + sectors > drive->sectors)
 		return 1;
 
-#ifdef CONFIG_DEBUG_IDE
-	printk("ob_ide_read_sectors: block=%lu sectors=%u\n",
-	       (unsigned long) block, sectors);
-#endif
+	IDE_DPRINTF("ob_ide_read_sectors: block=%lu sectors=%u\n",
+	            (unsigned long) block, sectors);
 
 	if (drive->type == ide_type_ata)
 		return ob_ide_read_ata(drive, block, buf, sectors);
@@ -938,7 +945,8 @@ ob_ide_identify_drive(struct ide_drive *drive)
 	else if (drive->type == ide_type_atapi)
 		cmd->command = WIN_IDENTIFY_PACKET;
 	else {
-		printk("%s: called with bad device type %d\n", __FUNCTION__, drive->type);
+		IDE_DPRINTF("%s: called with bad device type %d\n",
+                            __FUNCTION__, drive->type);
 		return 1;
 	}
 
@@ -1167,9 +1175,8 @@ static void
 ob_ide_max_transfer(int *idx)
 {
 	struct ide_drive *drive = *(struct ide_drive **)idx;
-#ifdef CONFIG_DEBUG_IDE
-	printk("max_transfer %x\n", drive->max_sectors * drive->bs);
-#endif
+
+	IDE_DPRINTF("max_transfer %x\n", drive->max_sectors * drive->bs);
 
 	PUSH(drive->max_sectors * drive->bs);
 }
@@ -1182,10 +1189,8 @@ ob_ide_read_blocks(int *idx)
         unsigned char *dest = (unsigned char *)POP();
 	struct ide_drive *drive = *(struct ide_drive **)idx;
 
-#ifdef CONFIG_DEBUG_IDE
-        printk("ob_ide_read_blocks %lx block=%ld n=%ld\n", (unsigned long)dest,
-               (unsigned long)blk, (long)n);
-#endif
+        IDE_DPRINTF("ob_ide_read_blocks %lx block=%ld n=%ld\n",
+                    (unsigned long)dest, (unsigned long)blk, (long)n);
 
 	while (n) {
 		int len = n;
@@ -1193,7 +1198,7 @@ ob_ide_read_blocks(int *idx)
 			len = drive->max_sectors;
 
 		if (ob_ide_read_sectors(drive, blk, dest, len)) {
-			printk("ob_ide_read_blocks: error\n");
+			IDE_DPRINTF("ob_ide_read_blocks: error\n");
 			RET(0);
 		}
 
@@ -1209,9 +1214,9 @@ static void
 ob_ide_block_size(int *idx)
 {
 	struct ide_drive *drive = *(struct ide_drive **)idx;
-#ifdef CONFIG_DEBUG_IDE
-	printk("ob_ide_block_size: block size %x\n", drive->bs);
-#endif
+
+	IDE_DPRINTF("ob_ide_block_size: block size %x\n", drive->bs);
+
 	PUSH(drive->bs);
 }
 
@@ -1257,9 +1262,7 @@ ob_ide_open(int *idx)
 	drive = &chan->drives[unit];
 	*(struct ide_drive **)idx = drive;
 
-#ifdef CONFIG_DEBUG_IDE
-	printk("opening channel %d unit %d\n", idx[1], idx[0]);
-#endif
+	IDE_DPRINTF("opening channel %d unit %d\n", idx[1], idx[0]);
 	dump_drive(drive);
 
 	if (drive->type != ide_type_ata)
@@ -1431,11 +1434,9 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 		props[4] = __cpu_to_be32(1); props[5] = __cpu_to_be32(2);
 		set_property(dnode, "reg", (char *)&props, 6*sizeof(cell));
 
-#ifdef CONFIG_DEBUG_IDE
-		printk(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
-		       current_channel, chan->io_regs[0],
-		       chan->io_regs[0] + 7, chan->io_regs[8]);
-#endif
+		IDE_DPRINTF(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
+		            current_channel, chan->io_regs[0],
+		            chan->io_regs[0] + 7, chan->io_regs[8]);
 
 		for (j = 0; j < 2; j++) {
 			struct ide_drive *drive = &chan->drives[j];
@@ -1444,10 +1445,8 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 			if (!drive->present)
 				continue;
 
-#ifdef CONFIG_DEBUG_IDE
-			printk("    drive%d [ATA%s ", j,
-			       drive->type == ide_type_atapi ? "PI" : "");
-#endif
+			IDE_DPRINTF("    drive%d [ATA%s ", j,
+			            drive->type == ide_type_atapi ? "PI" : "");
 			switch (drive->media) {
 				case ide_media_floppy:
 					media = "floppy";
@@ -1462,9 +1461,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 					media = "disk";
 					break;
 			}
-#ifdef CONFIG_DEBUG_IDE
-			printk("%s]: %s\n", media, drive->model);
-#endif
+			IDE_DPRINTF("%s]: %s\n", media, drive->model);
                         snprintf(nodebuff, sizeof(nodebuff),
                                  "%s/" DEV_NAME "/%s", path, current_channel,
                                  media);
@@ -1605,10 +1602,8 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 		props[0] = 0;
 		OLDWORLD(set_property(dnode, "AAPL,bus-id", (char*)props,
 			 1 * sizeof(cell)));
-#ifdef CONFIG_DEBUG_IDE
-		printk(DEV_NAME": [io ports 0x%lx]\n",
-		       current_channel, chan->mmio);
-#endif
+		IDE_DPRINTF(DEV_NAME": [io ports 0x%lx]\n",
+		            current_channel, chan->mmio);
 
 		for (j = 0; j < 2; j++) {
 			struct ide_drive *drive = &chan->drives[j];
@@ -1617,10 +1612,8 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 			if (!drive->present)
 				continue;
 
-#ifdef CONFIG_DEBUG_IDE
-			printk("    drive%d [ATA%s ", j,
-			       drive->type == ide_type_atapi ? "PI" : "");
-#endif
+			IDE_DPRINTF("    drive%d [ATA%s ", j,
+			            drive->type == ide_type_atapi ? "PI" : "");
 			switch (drive->media) {
 				case ide_media_floppy:
 					media = "floppy";
@@ -1635,9 +1628,7 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 					media = "disk";
 					break;
 			}
-#ifdef CONFIG_DEBUG_IDE
-			printk("%s]: %s\n", media, drive->model);
-#endif
+			IDE_DPRINTF("%s]: %s\n", media, drive->model);
                         snprintf(nodebuff, sizeof(nodebuff),
                                  "%s/" DEV_NAME "/%s", path, current_channel,
                                  media);
