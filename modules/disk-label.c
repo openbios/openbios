@@ -24,6 +24,7 @@ typedef struct {
 
         ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
+	int		block_size;
 	int		type;		/* partition type or -1 */
 
 	ihandle_t	part_ih;
@@ -114,6 +115,12 @@ dlabel_open( dlabel_info_t *di )
 		di->offs_hi = POP();
 		di->offs_lo = POP();
 		di->type = POP();
+		di->block_size = 512;
+		xt = find_ih_method("block-size", di->part_ih);
+		if (xt) {
+			call_package(xt, di->part_ih);
+			di->block_size = POP();
+		}
 	}
 
 	/* probe for filesystem */
@@ -218,19 +225,7 @@ dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 static void
 dlabel_block_size( dlabel_info_t *di )
 {
-	xt_t xt;
-
-	if( !di->part_ih )
-		goto no_handler;
-
-	xt = find_ih_method("block-size", di->part_ih);
-	if ( !xt )
-		goto no_handler;
-
-	call_package( xt , di->part_ih );
-	return;
-no_handler:
-	PUSH(512);
+	PUSH(di->block_size);
 }
 
 NODE_METHODS( dlabel ) = {
