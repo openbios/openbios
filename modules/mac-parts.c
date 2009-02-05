@@ -74,6 +74,7 @@ macparts_open( macparts_info_t *di )
 			bs = 512;
 	}
 	if (parnum == 0) {
+		di->blocksize =(uint)bs;
 		di->offs = (llong)0;
 		di->size = (llong)dmap.sbBlkCount * bs;
 		PUSH( -1 );
