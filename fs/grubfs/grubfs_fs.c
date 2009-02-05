@@ -246,6 +246,8 @@ fs_grubfs_open( int fd, fs_ops_t *fs )
 	grubfs_t *gfs;
 	int i;
 
+	curfs=&dummy_fs;
+
 	curfs->dev_fd = fd;
 
 	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {
