@@ -105,11 +105,70 @@ load_elf_rom( ulong *elf_entry, int fd )
 	return lszz_offs;
 }
 
+static char *
+get_device( const char *path )
+{
+	int i;
+	static char buf[1024];
+
+	for (i = 0; i < sizeof(buf) && path[i] && path[i] != ':'; i++)
+		buf[i] = path[i];
+	buf[i] = 0;
+
+	return buf;
+}
+
+static int
+get_partition( const char *path )
+{
+	while ( *path && *path != ':' )
+		path++;
+
+	if (!*path)
+		return 0;
+	path++;
+
+	if (!strchr(path, ','))	/* check if there is a ',' */
+		return 0;
+
+	return atol(path);
+}
+
+static char *
+get_filename( const char * path )
+{
+	static char buf[1024];
+
+	while ( *path && *path != ':' )
+		path++;
+
+	if (!*path)
+		return NULL;
+	path++;
+
+	while ( *path && isdigit(*path) )
+		path++;
+
+	if (*path == ',')
+		path++;
+
+	strncpy(buf, path, sizeof(buf));
+	buf[sizeof(buf) - 1] = 0;
+
+	return buf;
+}
+
 static void
 encode_bootpath( const char *spec, const char *args )
 {
+	char path[1024];
 	phandle_t chosen_ph = find_dev("/chosen");
-	set_property( chosen_ph, "bootpath", spec, strlen(spec)+1 );
+
+	snprintf(path, sizeof(path), "%s:%d,%s", get_device(spec),
+		 get_partition(spec), get_filename(spec));
+
+        ELF_DPRINTF("bootpath %s bootargs %s\n", path, args);
+	set_property( chosen_ph, "bootpath", path, strlen(spec)+1 );
 	set_property( chosen_ph, "bootargs", args, strlen(args)+1 );
 }
 
@@ -154,11 +213,19 @@ try_path(const char *path, const char *param)
 static void
 try_bootinfo(const char *path)
 {
-    int fd;
-    char tagbuf[256], bootscript[256], c, *left, *right;
-    int len, tag, taglen, script, scriptlen;
+    int fd, len, tag, taglen, script, scriptlen, entity;
+    char tagbuf[256], bootscript[256], c;
+    char *device;
+    int partition;
 
-    snprintf(bootscript, sizeof(bootscript), "%s,ppc\\bootinfo.txt", path);
+    device = get_device(path);
+    partition = get_partition(path);
+
+    /* read boot script */
+
+    snprintf(bootscript, sizeof(bootscript), "%s:%d,ppc\\bootinfo.txt",
+             device, partition);
+
     ELF_DPRINTF("Trying %s\n", bootscript);
     if ((fd = open_io(bootscript)) == -1) {
         ELF_DPRINTF("Can't open %s\n", bootscript);
@@ -173,11 +240,13 @@ try_bootinfo(const char *path)
     taglen = 0;
     script = 0;
     scriptlen = 0;
+    entity = 0;
     do {
         len = read_io(fd, &c, 1);
         if (len < 0)
             goto badf;
         if (c == '<') {
+            script = 0;
             tag = 1;
             taglen = 0;
         } else if (c == '>') {
@@ -191,27 +260,33 @@ try_bootinfo(const char *path)
             }
         } else if (tag && taglen < sizeof(tagbuf)) {
             tagbuf[taglen++] = c;
+        } else if (script && c == '&') {
+            entity = 1;
+            taglen = 0;
+        } else if (entity && c ==';') {
+            entity = 0;
+            tagbuf[taglen] = '\0';
+            if (strcasecmp(tagbuf, "device") == 0) {
+                strcpy(bootscript + scriptlen, device);
+                scriptlen += strlen(device);
+            } else if (strcasecmp(tagbuf, "partition") == 0) {
+		sprintf(bootscript + scriptlen, "%d", partition);
+                scriptlen = strlen(bootscript);
+            } else { /* unknown, keep it */
+                bootscript[scriptlen] = '&';
+                strcpy(bootscript + scriptlen + 1, tagbuf);
+                scriptlen += taglen + 1;
+                bootscript[scriptlen] = ';';
+                scriptlen++;
+            }
+        } else if (entity && taglen < sizeof(tagbuf)) {
+            tagbuf[taglen++] = c;
         } else if (script && scriptlen < sizeof(bootscript)) {
             bootscript[scriptlen++] = c;
         }
     } while (1);
 
     ELF_DPRINTF("got bootscript %s\n", bootscript);
-
-    // Replace &device;: with original path
-    push_str(bootscript);
-    PUSH('&');
-    fword("left-split");
-    fword("2swap");
-    PUSH(':');
-    fword("left-split");
-    fword("2drop");
-    right = pop_fstr_copy();
-    left = pop_fstr_copy();
-    while (right[0] != '\\' && right[0] != '\0')
-    right++; 
-    snprintf(bootscript, sizeof(bootscript), "%s%s,%s", left, path, right);
-    ELF_DPRINTF("fixed bootscript %s\n", bootscript);
 
     feval(bootscript);
  badf:
