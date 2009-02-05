@@ -67,7 +67,7 @@ os_seek( int fd, ulong blknum, int blksize_bits )
 		offs = -1;
 
 	if( seek_io(fd, offs) ) {
-		printk("os_seek failure\n");
+		/* printk("os_seek failure\n"); */
 		return (ulong)-1;
 	}
 
