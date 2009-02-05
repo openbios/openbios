@@ -52,6 +52,7 @@ dlabel_open( dlabel_info_t *di )
 	char block0[512];
 	phandle_t ph;
 	int fd, success=0;
+	xt_t xt;
 
 	parstr = my_args_copy();
 	/* printk("dlabel-open '%s'\n", parstr ); */
@@ -81,11 +82,23 @@ dlabel_open( dlabel_info_t *di )
 
         /* try to see if there is a filesystem without partition */
 
-        if (atol(parstr) == 0 || atol(parstr) == 1) {
+        if (atol(parstr) == 1) {
 		PUSH_ih( my_self() );
 		selfword("find-filesystem");
 		ph = POP_ph();
 		if( ph ) {
+			di->offs_hi = 0;
+			di->offs_lo = 0;
+			di->size_hi = -1;
+			di->size_lo = -1;
+			di->part_ih = 0;
+			di->type = -1;
+			di->block_size = 512;
+			xt = find_parent_method("block-size");
+			if (xt) {
+				call_parent(xt);
+				di->block_size = POP();
+			}
 			push_str( filename );
 			PUSH_ph( ph );
 			fword("interpose");
@@ -104,7 +117,6 @@ dlabel_open( dlabel_info_t *di )
 
 	/* open partition package */
 	if( ph ) {
-		xt_t xt;
 		if( !(di->part_ih=open_package(parstr, ph)) )
 			goto out;
 		if( !(xt=find_ih_method("get-info", di->part_ih)) )
