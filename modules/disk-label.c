@@ -78,6 +78,21 @@ dlabel_open( dlabel_info_t *di )
 		}
 	}
 
+        /* try to see if there is a filesystem without partition */
+
+        if (atol(parstr) == 0 || atol(parstr) == 1) {
+		PUSH_ih( my_self() );
+		selfword("find-filesystem");
+		ph = POP_ph();
+		if( ph ) {
+			push_str( filename );
+			PUSH_ph( ph );
+			fword("interpose");
+			success = 1;
+			goto out;
+		}
+	}
+
 	/* find partition handler */
 	seek_io( fd, 0 );
 	if( read_io(fd, block0, sizeof(block0)) != sizeof(block0) )
