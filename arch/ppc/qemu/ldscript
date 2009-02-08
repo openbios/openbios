@@ -7,7 +7,7 @@ BASE_ADDR = 0xfff00000;
 
 /* As NVRAM is at 0xfff04000, the .text needs to be after that
  */
-TEXT_ADDR = 0xfff06000;
+TEXT_ADDR = 0xfff08000;
 
 /* Hard reset vector address
  */

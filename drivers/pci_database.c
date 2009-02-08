@@ -289,7 +289,7 @@ static const pci_dev_t hbrg_devices[] = {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_PCI, NULL,
         "pci", "AAPL,UniNorth", "uni-north\0",
         3, 2, 1,
-        NULL, NULL
+        host_config_cb, NULL,
     },
     {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_I_PCI, NULL,
@@ -1071,21 +1071,21 @@ static const pci_dev_t misc_pci[] = {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_343S1201,
         "mac-io", "mac-io", "AAPL,343S1201", "heathrow\0",
         1, 1, 1,
-        &macio_config_cb, NULL,
+        &macio_heathrow_config_cb, NULL,
     },
     /* Paddington Mac I/O */
     {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_343S1211,
         "mac-io", "mac-io", "AAPL,343S1211", "paddington\0heathrow\0",
         1, 1, 1,
-        &macio_config_cb, NULL,
+        &macio_heathrow_config_cb, NULL,
     },
     /* KeyLargo Mac I/O */
     {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_KEYL,
         "mac-io", "mac-io", "AAPL,Keylargo", "Keylargo\0",
         1, 1, 2,
-        &macio_config_cb, NULL,
+        &macio_keylargo_config_cb, NULL,
     },
     {
         0xFFFF, 0xFFFF,
