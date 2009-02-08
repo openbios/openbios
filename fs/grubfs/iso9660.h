@@ -157,10 +157,9 @@ typedef	union RR_ptr {
 	int		   i;
 } RR_ptr_t;
 
-#define	RRMAGIC(c1, c2)	((c1)|(c2) << 8)
-
-#define	CHECK2(ptr, c1, c2)                     \
-    (*(ptr) == (c1) && *(ptr + 1) == (c2))
+#define CHECK2(ptr, c1, c2)                                             \
+    (*(unsigned char *)(ptr) == (c1) &&                                 \
+     *((unsigned char *)(ptr) + 1) == (c2))
 #define	CHECK4(ptr, c1, c2, c3, c4)                                     \
     (*(unsigned char *)(ptr) == (c1) &&                                 \
      *((unsigned char *)(ptr) + 1) == (c2) &&                           \

@@ -192,16 +192,16 @@ iso9660_dir (char *dirname)
 			    rr_ptr.rr->signature >> 8);
 #endif
 		  }
-		  else if (rr_ptr.rr->signature == RRMAGIC('R', 'R')
+                  else if (CHECK2(&rr_ptr.rr->signature, 'R', 'R')
 			   && rr_ptr.rr->len >= 5)
                       rr_flag &= rr_ptr.rr->u.rr.flags.ENDIAN;
-		  else if (rr_ptr.rr->signature == RRMAGIC('N', 'M'))
+                  else if (CHECK2(&rr_ptr.rr->signature, 'N', 'M'))
 		  {
 		      name = (char *)rr_ptr.rr->u.nm.name;
 		      name_len = rr_ptr.rr->len - 5;
 		      rr_flag &= ~RR_FLAG_NM;
 		  }
-		  else if (rr_ptr.rr->signature == RRMAGIC('P', 'X')
+                  else if (CHECK2(&rr_ptr.rr->signature, 'P', 'X')
 			   && rr_ptr.rr->len >= 36)
 		  {
                       file_type = ((rr_ptr.rr->u.px.mode.ENDIAN & POSIX_S_IFMT)
@@ -212,7 +212,7 @@ iso9660_dir (char *dirname)
 				      ? ISO_DIRECTORY : ISO_OTHER));
 		      rr_flag &= ~RR_FLAG_PX;
 		  }
-		  else if (rr_ptr.rr->signature == RRMAGIC('C', 'E')
+                  else if (CHECK2(&rr_ptr.rr->signature, 'C', 'E')
 			   && rr_ptr.rr->len >= 28)
 		    ce_ptr = rr_ptr.rr;
 		  if (!rr_flag)
