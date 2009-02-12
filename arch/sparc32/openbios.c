@@ -20,7 +20,7 @@
 #include "boot.h"
 #include "video_subr.h"
 
-#define MEMORY_SIZE     (16*1024)       /* 16K ram for hosted system */
+#define MEMORY_SIZE     (128*1024)       /* 16K ram for hosted system */
 #define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
 
 static ucell *memory;
