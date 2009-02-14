@@ -140,7 +140,7 @@ escc_read(unsigned long *address)
     len = POP();
     addr = (char *)POP();
 
-    if (len != 1)
+    if (len < 1)
         printk("escc_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
 
     if (uart_charav(*address)) {
@@ -175,19 +175,17 @@ escc_close(void)
 static void
 escc_open(unsigned long *address)
 {
+#ifdef CONFIG_DRIVER_ESCC_SUN
     int len;
     phandle_t ph;
     unsigned long *prop;
-#ifdef CONFIG_DRIVER_ESCC_SUN
     char *args;
-#endif
 
     fword("my-self");
     fword("ihandle>phandle");
     ph = (phandle_t)POP();
     prop = (unsigned long *)get_property(ph, "address", &len);
     *address = *prop;
-#ifdef CONFIG_DRIVER_ESCC_SUN
     fword("my-args");
     args = pop_fstr_copy();
     if (args) {
@@ -196,6 +194,8 @@ escc_open(unsigned long *address)
         //printk("escc_open: address %lx, args %s\n", *address, args);
         free(args);
     }
+#else
+    *address = (unsigned long)serial_dev; // XXX
 #endif
     RET ( -1 );
 }
@@ -295,7 +295,7 @@ escc_read_keyboard(void)
     len = POP();
     addr = (unsigned char *)POP();
 
-    if (len != 1)
+    if (len < 1)
         printk("escc_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
 
     if (keyboard_dataready()) {

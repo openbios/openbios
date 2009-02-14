@@ -37,25 +37,14 @@
 :noname
   " rtc" " rtc" preopen
   " memory" " /memory" preopen
-  \ " stdout" " /packages/terminal-emulator" preopen
-  " stdout" " screen" preopen
-  " stdin" " adb-keyboard" preopen
-
 ; SYSTEM-initializer
 
 
 \ use the tty interface if available
 : activate-tty-interface
   " /packages/terminal-emulator" find-dev if drop
-    " adb-keyboard" " input-device" $setenv
-    " screen" " output-device" $setenv
   then
 ;
-
-:noname
-  " keyboard" input
-; CONSOLE-IN-initializer
-
 
 \ -------------------------------------------------------------------------
 \ pre-booting

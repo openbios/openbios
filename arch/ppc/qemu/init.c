@@ -414,6 +414,7 @@ arch_of_init( void )
 	uint64_t ram_size;
         const struct cpudef *cpu;
 	char buf[64];
+        const char *stdin_path, *stdout_path;
 
 	/* set device tree root info */
 
@@ -559,6 +560,50 @@ arch_of_init( void )
 		set_property( ph, "rtas-size", (char*)&size, sizeof(size) );
 	}
 #endif
+
+        if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
+                if (CONFIG_SERIAL_PORT) {
+                       stdin_path = "scca";
+                       stdout_path = "scca";
+                } else {
+                       stdin_path = "sccb";
+                       stdout_path = "sccb";
+                }
+        } else {
+                stdin_path = "adb-keyboard";
+                stdout_path = "screen";
+        }
+
+        push_str("/chosen");
+        fword("find-device");
+
+        push_str(stdin_path);
+        fword("open-dev");
+        fword("encode-int");
+        push_str("stdin");
+        fword("property");
+
+        push_str(stdout_path);
+        fword("open-dev");
+        fword("encode-int");
+        push_str("stdout");
+        fword("property");
+
+        push_str(stdin_path);
+        fword("pathres-resolve-aliases");
+        push_str("input-device");
+        fword("$setenv");
+
+        push_str(stdout_path);
+        fword("pathres-resolve-aliases");
+        push_str("output-device");
+        fword("$setenv");
+
+        push_str(stdin_path);
+        fword("input");
+
+        push_str(stdout_path);
+        fword("output");
 
 #if 0
 	if( getbool("tty-interface?") == 1 )
