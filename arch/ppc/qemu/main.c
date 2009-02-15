@@ -14,7 +14,6 @@
  *
  */
 
-
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "openbios/elfload.h"
@@ -135,15 +134,18 @@ get_partition( const char *path )
 }
 
 static char *
-get_filename( const char * path )
+get_filename( const char * path , char **dirname)
 {
 	static char buf[1024];
+	char *filename;
 
 	while ( *path && *path != ':' )
 		path++;
 
-	if (!*path)
+	if (!*path) {
+		*dirname = NULL;
 		return NULL;
+	}
 	path++;
 
 	while ( *path && isdigit(*path) )
@@ -155,7 +157,16 @@ get_filename( const char * path )
 	strncpy(buf, path, sizeof(buf));
 	buf[sizeof(buf) - 1] = 0;
 
-	return buf;
+	filename = strrchr(buf, '\\');
+	if (filename) {
+		*dirname = buf;
+		(*filename++) = 0;
+	} else {
+		*dirname = NULL;
+		filename = buf;
+	}
+
+	return filename;
 }
 
 static void
@@ -163,9 +174,11 @@ encode_bootpath( const char *spec, const char *args )
 {
 	char path[1024];
 	phandle_t chosen_ph = find_dev("/chosen");
+	char *filename, *directory;
 
-	snprintf(path, sizeof(path), "%s:%d,%s", get_device(spec),
-		 get_partition(spec), get_filename(spec));
+	filename = get_filename(spec, &directory);
+	snprintf(path, sizeof(path), "%s:%d,%s\\%s", get_device(spec),
+		 get_partition(spec), directory, filename);
 
         ELF_DPRINTF("bootpath %s bootargs %s\n", path, args);
 	set_property( chosen_ph, "bootpath", path, strlen(spec)+1 );
@@ -215,11 +228,12 @@ try_bootinfo(const char *path)
 {
     int fd, len, tag, taglen, script, scriptlen, entity;
     char tagbuf[256], bootscript[256], c;
-    char *device;
+    char *device, *filename, *directory;
     int partition;
 
     device = get_device(path);
     partition = get_partition(path);
+    filename = get_filename(path, &directory);
 
     /* read boot script */
 
@@ -272,6 +286,15 @@ try_bootinfo(const char *path)
             } else if (strcasecmp(tagbuf, "partition") == 0) {
 		sprintf(bootscript + scriptlen, "%d", partition);
                 scriptlen = strlen(bootscript);
+            } else if (strcasecmp(tagbuf, "directory") == 0) {
+                strcpy(bootscript + scriptlen, directory);
+                scriptlen += strlen(directory);
+            } else if (strcasecmp(tagbuf, "filename") == 0) {
+                strcpy(bootscript + scriptlen, filename);
+                scriptlen += strlen(filename);
+            } else if (strcasecmp(tagbuf, "full-path") == 0) {
+                strcpy(bootscript + scriptlen, path);
+                scriptlen += strlen(path);
             } else { /* unknown, keep it */
                 bootscript[scriptlen] = '&';
                 strcpy(bootscript + scriptlen + 1, tagbuf);
