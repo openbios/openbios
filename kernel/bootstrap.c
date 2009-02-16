@@ -178,9 +178,6 @@ static void write_dictionary(const char *filename)
                 .length         = target_ulong((uint32_t)dicthead),
                 .last           = target_ucell((ucell)((unsigned long)last
                                                        - (unsigned long)dict)),
-                .reserved[0]    = 0,
-                .reserved[1]    = 0,
-                .reserved[2]    = 0,
 	};
 
 	/*
