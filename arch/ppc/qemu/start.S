@@ -410,16 +410,6 @@ GLOBL(of_rtas_start):
 GLOBL(of_rtas_end):
 
 
-	/* used in a hack to the newworld calibration */
-GLOBL(nw_dec_calibration):
-	.long	0
-GLOBL(timer_calib_start):
-	lis	r3,HA(nw_dec_calibration)
-	addi	r3,r3,LO(nw_dec_calibration)
-	lwz	r3,0(r3)
-	blr
-GLOBL(timer_calib_end):
-
 #define CACHE_LINE_SIZE         32
 #define LG_CACHE_LINE_SIZE      5
 
