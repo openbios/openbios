@@ -182,7 +182,8 @@ encode_bootpath( const char *spec, const char *args )
 
         ELF_DPRINTF("bootpath %s bootargs %s\n", path, args);
 	set_property( chosen_ph, "bootpath", path, strlen(spec)+1 );
-	set_property( chosen_ph, "bootargs", args, strlen(args)+1 );
+	if (args)
+		set_property( chosen_ph, "bootargs", args, strlen(args)+1 );
 }
 
 /************************************************************************/
@@ -224,7 +225,7 @@ try_path(const char *path, const char *param)
   http://playground.sun.com/1275/bindings/chrp/chrp1_7a.ps
 */
 static void
-try_bootinfo(const char *path)
+try_bootinfo(const char *path, const char *param)
 {
     int fd, len, tag, taglen, script, scriptlen, entity;
     char tagbuf[256], bootscript[256], c;
@@ -310,6 +311,8 @@ try_bootinfo(const char *path)
     } while (1);
 
     ELF_DPRINTF("got bootscript %s\n", bootscript);
+
+    encode_bootpath(path, param);
 
     feval(bootscript);
  badf:
@@ -412,6 +415,12 @@ yaboot_startup( void )
         char *path = pop_fstr_copy(), *param;
         int i;
 
+	param = strchr(path, ' ');
+	if (param) {
+		*param = 0;
+		param++;
+	}
+
         if (!path) {
             ELF_DPRINTF("Entering boot, no path\n");
             push_str("boot-device");
@@ -435,7 +444,7 @@ yaboot_startup( void )
                     param = pop_fstr_copy();
                 }
                 try_path(path, param);
-                try_bootinfo(path);
+                try_bootinfo(path, param);
             } else {
                 char boot_device = nvram_read(0x34);
 
@@ -448,12 +457,12 @@ yaboot_startup( void )
                     path = strdup("cd:0");
                     break;
                 }
-                try_bootinfo(path);
+                try_bootinfo(path, NULL);
             }
         } else {
             ELF_DPRINTF("Entering boot, path %s\n", path);
-            try_path(path, "");
-            try_bootinfo(path);
+            try_path(path, param);
+            try_bootinfo(path, param);
         }
         for( i=0; i < sizeof(paths) / sizeof(paths[0]); i++ ) {
             try_path(paths[i], args[i]);
