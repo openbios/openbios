@@ -103,7 +103,7 @@ void
 entry( void )
 {
         uint32_t temp = 0;
-        char buf[5], qemu_uuid[16];
+        char buf[5];
 
         arch = &known_arch[ARCH_HEATHROW];
 
@@ -121,36 +121,10 @@ entry( void )
 
 	isa_io_base = arch->io_base;
 
-	uart_init(0x80013000ULL + (CONFIG_SERIAL_PORT ? 0 : 0x20),
-		  CONFIG_SERIAL_SPEED);
-
-	printk("\n");
-	printk("=============================================================\n");
-	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
-
-
         if (temp != 1) {
             printk("Incompatible configuration device version, freezing\n");
             for(;;);
         }
-        printk("Configuration device id %s", buf);
-
-        printk(" version %d machine id %d\n", temp, machine_id);
-
-        temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
-
-        printk("CPUs: %x\n", temp);
-
-        temp = fw_cfg_read_i32(FW_CFG_RAM_SIZE);
-        printk("Memory: %dM\n", temp / 1024 / 1024);
-
-        fw_cfg_read(FW_CFG_UUID, qemu_uuid, 16);
-
-        printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
-               qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
-               qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
-               qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
-               qemu_uuid[15]);
 
 	ofmem_init();
 	initialize_forth();
@@ -413,8 +387,42 @@ arch_of_init( void )
 #endif
 	uint64_t ram_size;
         const struct cpudef *cpu;
-	char buf[64];
+        char buf[64], qemu_uuid[16];
         const char *stdin_path, *stdout_path;
+        uint32_t temp = 0;
+
+        modules_init();
+        setup_timers();
+#ifdef CONFIG_DRIVER_PCI
+        ob_pci_init();
+#endif
+
+        printk("\n");
+        printk("=============================================================\n");
+        printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
+
+        fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
+        buf[4] = '\0';
+        printk("Configuration device id %s", buf);
+
+        temp = fw_cfg_read_i32(FW_CFG_ID);
+        printk(" version %d machine id %d\n", temp, machine_id);
+
+        temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
+
+        printk("CPUs: %x\n", temp);
+
+        ram_size = get_ram_size();
+
+        printk("Memory: %lldM\n", ram_size / 1024 / 1024);
+
+        fw_cfg_read(FW_CFG_UUID, qemu_uuid, 16);
+
+        printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
+               qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
+               qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
+               qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
+               qemu_uuid[15]);
 
 	/* set device tree root info */
 
@@ -505,8 +513,6 @@ arch_of_init( void )
 
 	/* all memory */
 
-	ram_size = get_ram_size();
-
 	PUSH(ram_size >> 32);
 	fword("encode-int");
 	PUSH(ram_size & 0xffffffff);
@@ -541,11 +547,6 @@ arch_of_init( void )
         cpu->initfn(cpu);
         printk("CPU type %s\n", cpu->name);
 
-	modules_init();
-	setup_timers();
-#ifdef CONFIG_DRIVER_PCI
-	ob_pci_init();
-#endif
 	snprintf(buf, sizeof(buf), "/cpus/%s", cpu->name);
 	ofmem_register(find_dev(buf));
 	node_methods_init(buf);
