@@ -416,7 +416,7 @@ defer fcode-c@             \ get byte
 \   Conditional branch FCode. Followed by FCode-offset.
 
 : b?branch
-  ['] do?branch , 
+  setup-tmp-comp ['] do?branch ,
   fcode-offset 0< if \ if we jump backwards, we can forsee where it goes
     resolve-dest
   else
@@ -439,6 +439,7 @@ defer fcode-c@             \ get byte
 
 : b(>resolve)
   resolve-orig
+  execute-tmp-comp
   ; immediate
 
   
