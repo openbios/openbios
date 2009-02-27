@@ -38,6 +38,27 @@ typedef struct mPTE {
 	unsigned long pp:2;	/* Page protection */
 } mPTE_t;
 
+typedef struct mPTE_64 {
+	uint32_t avpn_low;	/* Abbreviated Virtual Page Number (unused) */
+	uint32_t avpn:25;	/* Abbreviated Virtual Page Number */
+	uint32_t sw:4;		/* Software Use */
+	uint32_t  :1;		/* Reserved */
+	uint32_t h:1;		/* Hash algorithm indicator */
+	uint32_t v:1;		/* Entry is valid */
+
+	uint32_t rpn_low;	/* Real (physical) page number (unused) */
+	uint32_t rpn:20;	/* Real (physical) page number */
+	uint32_t    :2;		/* Reserved */
+	uint32_t ac:1;		/* Address Compare*/
+	uint32_t r:1;		/* Referenced */
+	uint32_t c:1;		/* Changed */
+	uint32_t w:1;		/* Write-thru cache mode */
+	uint32_t i:1;		/* Cache inhibited */
+	uint32_t m:1;		/* Memory coherence */
+	uint32_t g:1;		/* Guarded */
+	uint32_t n:1;		/* No-Execute */
+	uint32_t pp:2;		/* Page protection */
+} mPTE_64_t;
 
 typedef struct _mBATU {		/* Upper part of BAT (all except 601) */
         unsigned long bepi:15;	/* Effective page index (virtual address) */

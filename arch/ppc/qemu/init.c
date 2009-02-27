@@ -238,6 +238,19 @@ cpu_g4_init(const struct cpudef *cpu)
     fword("finish-device");
 }
 
+static void
+cpu_970_init(const struct cpudef *cpu)
+{
+    cpu_generic_init(cpu);
+
+    PUSH(0);
+    fword("encode-int");
+    push_str("reg");
+    fword("property");
+
+    fword("finish-device");
+}
+
 static const struct cpudef ppc_defs[] = {
     {
         .iu_version = 0x00040000,
@@ -358,6 +371,18 @@ static const struct cpudef ppc_defs[] = {
         .dcache_block_size = 0x20,
         .clock_frequency = 0x1dcd6500,
         .initfn = cpu_g4_init,
+    },
+    { // XXX find out real values
+        .iu_version = 0x003C0000,
+        .name = "PowerPC,970FX",
+        .icache_size = 0x8000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x80,
+        .dcache_sets = 0x80,
+        .icache_block_size = 0x80,
+        .dcache_block_size = 0x80,
+        .clock_frequency = 0x1dcd6500,
+        .initfn = cpu_970_init,
     },
 };
 

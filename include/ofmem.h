@@ -30,6 +30,8 @@ extern void  	ofmem_release( ulong virt, ulong size );
 extern ulong 	ofmem_translate( ulong virt, int *ret_mode );
 
 #ifdef CONFIG_PPC
+#define PAGE_SHIFT   12
+
 ulong get_ram_size( void );
 ulong get_ram_top( void );
 ulong get_ram_bottom( void );
@@ -39,9 +41,6 @@ void setup_mmu( ulong ramsize );
 void ofmem_register( phandle_t ph );
 #elif defined(CONFIG_SPARC32)
 #define PAGE_SHIFT   12
-#define PAGE_SIZE    (1 << PAGE_SHIFT)
-#define PAGE_MASK    (~(PAGE_SIZE - 1))
-#define PAGE_ALIGN(addr)  (((addr) + PAGE_SIZE - 1) & PAGE_MASK)
 
 /* arch/sparc32/lib.c */
 struct mem;
@@ -51,6 +50,12 @@ void mem_init(struct mem *t, char *begin, char *limit);
 void *mem_alloc(struct mem *t, int size, int align);
 int map_page(unsigned long va, uint64_t epa, int type);
 void *map_io(uint64_t pa, int size);
+#endif
+
+#ifdef PAGE_SHIFT
+#define PAGE_SIZE    (1 << PAGE_SHIFT)
+#define PAGE_MASK    (~(PAGE_SIZE - 1))
+#define PAGE_ALIGN(addr)  (((addr) + PAGE_SIZE - 1) & PAGE_MASK)
 #endif
 
 #endif   /* _H_OFMEM */

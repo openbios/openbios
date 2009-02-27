@@ -621,7 +621,73 @@ ea_to_phys( ulong ea, int *mode )
 }
 
 static void
-hash_page( ulong ea, ulong phys, int mode )
+hash_page_64( ulong ea, ulong phys, int mode )
+{
+	static int next_grab_slot=0;
+	uint64_t vsid_mask, page_mask, pgidx, hash;
+	uint64_t htab_mask, mask, avpn;
+	ulong pgaddr;
+	int i, found;
+	unsigned int vsid, vsid_sh, sdr, sdr_sh, sdr_mask;
+	mPTE_64_t *pp;
+
+	vsid = (ea >> 28) + SEGR_BASE;
+	vsid_sh = 7;
+	vsid_mask = 0x00003FFFFFFFFF80ULL;
+	asm ( "mfsdr1 %0" : "=r" (sdr) );
+	sdr_sh = 18;
+	sdr_mask = 0x3FF80;
+	page_mask = 0x0FFFFFFF; // XXX correct?
+	pgidx = (ea & page_mask) >> PAGE_SHIFT;
+	avpn = (vsid << 12) | ((pgidx >> 4) & 0x0F80);;
+
+	hash = ((vsid ^ pgidx) << vsid_sh) & vsid_mask;
+	htab_mask = 0x0FFFFFFF >> (28 - (sdr & 0x1F));
+	mask = (htab_mask << sdr_sh) | sdr_mask;
+	pgaddr = sdr | (hash & mask);
+	pp = (mPTE_64_t *)pgaddr;
+
+	/* replace old translation */
+	for( found=0, i=0; !found && i<8; i++ )
+		if( pp[i].avpn == avpn )
+			found=1;
+
+	/* otherwise use a free slot */
+	for( i=0; !found && i<8; i++ )
+		if( !pp[i].v )
+			found=1;
+
+	/* out of slots, just evict one */
+	if( !found ) {
+		i = next_grab_slot + 1;
+		next_grab_slot = (next_grab_slot + 1) % 8;
+	}
+	i--;
+	{
+	mPTE_64_t p = {
+		// .avpn_low = avpn,
+		.avpn = avpn >> 7,
+		.h = 0,
+		.v = 1,
+
+		.rpn = (phys & ~0xfff) >> 12,
+		.r = mode & (1 << 8) ? 1 : 0,
+		.c = mode & (1 << 7) ? 1 : 0,
+		.w = mode & (1 << 6) ? 1 : 0,
+		.i = mode & (1 << 5) ? 1 : 0,
+		.m = mode & (1 << 4) ? 1 : 0,
+		.g = mode & (1 << 3) ? 1 : 0,
+		.n = mode & (1 << 2) ? 1 : 0,
+		.pp = mode & 3,
+	};
+	pp[i] = p;
+	}
+
+	asm volatile( "tlbie %0"  :: "r"(ea) );
+}
+
+static void
+hash_page_32( ulong ea, ulong phys, int mode )
 {
 	static int next_grab_slot=0;
 	ulong *upte, cmp, hash1;
@@ -658,6 +724,22 @@ hash_page( ulong ea, ulong phys, int mode )
 	upte[i*2+1] = (phys & ~0xfff) | mode;
 
 	asm volatile( "tlbie %0"  :: "r"(ea) );
+}
+
+static int is_ppc64(void)
+{
+	unsigned int pvr;
+	asm volatile("mfspr %0, 0x11f" : "=r" (pvr) );
+
+	return ((pvr >= 0x330000) && (pvr < 0x70330000));
+}
+
+static void hash_page( ulong ea, ulong phys, int mode )
+{
+	if ( is_ppc64() )
+		hash_page_64(ea, phys, mode);
+	else
+		hash_page_32(ea, phys, mode);
 }
 
 void
@@ -699,6 +781,7 @@ setup_mmu( ulong ramsize )
 	ofmem_t *ofmem = OFMEM;
 	ulong sdr1, sr_base, msr;
 	ulong hash_base;
+	ulong hash_mask = 0xffff0000;
 	int i;
 
 	memset(ofmem, 0, sizeof(ofmem_t));
@@ -706,7 +789,10 @@ setup_mmu( ulong ramsize )
 
 	/* SDR1: Storage Description Register 1 */
 
-	hash_base = (ramsize - 0x00100000 - HASH_SIZE) & 0xffff0000;
+	if(is_ppc64())
+		hash_mask = 0xfff00000;
+
+	hash_base = (ramsize - 0x00100000 - HASH_SIZE) & hash_mask;
         memset((void *)hash_base, 0, HASH_SIZE);
 	sdr1 = hash_base | ((HASH_SIZE-1) >> 16);
 	asm volatile("mtsdr1 %0" :: "r" (sdr1) );
