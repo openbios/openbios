@@ -80,11 +80,31 @@ defer fcode-c@             \ get byte
   fcode-c@
   ;
 
+\ fcode-num8-signed ( -- c ) ( F: c -- )
+\   get 8bit signed from FCode stream
+
+: fcode-num8-signed
+  fcode-num8
+  dup 80 and 0> if
+     ff invert or
+  then
+  ;
+
 \ fcode-num16
 \   get 16bit from FCode stream
 
 : fcode-num16 ( -- num16 )
   fcode-num8 fcode-num8 swap bwjoin
+  ;
+
+\ fcode-num16-signed ( -- c ) ( F: c -- )
+\   get 16bit signed from FCode stream
+
+: fcode-num16-signed
+  fcode-num16
+  dup 8000 and 0> if
+     ffff invert or
+  then
   ;
 
 \ fcode-num32
@@ -111,9 +131,9 @@ defer fcode-c@             \ get byte
 
 : fcode-offset ( -- offset )
   ?fcode-offset16 if
-    fcode-num16
+    fcode-num16-signed
   else
-    fcode-num8
+    fcode-num8-signed
   then
   ;
 
