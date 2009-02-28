@@ -32,6 +32,7 @@
 #include "libc/vsprintf.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
+#include "ppc/processor.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
@@ -238,6 +239,26 @@ cpu_g4_init(const struct cpudef *cpu)
     fword("finish-device");
 }
 
+/* In order to get 64 bit aware handlers that rescue all our
+   GPRs from getting truncated to 32 bits, we need to patch the
+   existing handlers so they jump to our 64 bit aware ones. */
+static void
+ppc64_patch_handlers(void)
+{
+    uint32_t *dsi = (uint32_t *)0x300UL;
+    uint32_t *isi = (uint32_t *)0x400UL;
+
+    // Patch the first DSI handler instruction to: ba 0x2000
+    *dsi = 0x48002002;
+
+    // Patch the first ISI handler instruction to: ba 0x2200
+    *isi = 0x48002202;
+
+    // Invalidate the cache lines
+    asm ( "icbi 0, %0" : : "r"(dsi) );
+    asm ( "icbi 0, %0" : : "r"(isi) );
+}
+
 static void
 cpu_970_init(const struct cpudef *cpu)
 {
@@ -249,6 +270,15 @@ cpu_970_init(const struct cpudef *cpu)
     fword("property");
 
     fword("finish-device");
+
+    /* The 970 is a PPC64 CPU, so we need to activate
+     * 64bit aware interrupt handlers */
+
+    ppc64_patch_handlers();
+
+    /* The 970 also implements the HIOR which we need to set to 0 */
+
+    mtspr(S_HIOR, 0);
 }
 
 static const struct cpudef ppc_defs[] = {

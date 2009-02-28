@@ -24,38 +24,154 @@
 #define ILLEGAL_VECTOR( v )	.org __vectors + v ; bl trap_error ;
 #define VECTOR( v, dummystr )	.org __vectors + v ; vector__##v
 
-#define EXCEPTION_PREAMBLE \
-	mtsprg1	r1 ;		/* scratch */ \
-	mfsprg0	r1 ;		/* exception stack in sprg0 */ \
-	addi	r1,r1,-80 ;	/* push exception frame */ \
+/* We're trying to use the same code for the ppc32 and ppc64 handlers here.
+ * On ppc32 we only save/restore the registers, C considers volatile.
+ *
+ * On ppc64 on the other hand, we have to save/restore all registers, because
+ * all OF code is 32 bits, which only saves/restores the low 32 bits of the
+ * registers it clobbers.
+ */
+
+#define EXCEPTION_PREAMBLE_TEMPLATE \
+	mtsprg1	r1 ;				/* scratch */ \
+	mfsprg0	r1 ;				/* exception stack in sprg0 */ \
+.ifc ULONG_SIZE, 8 ; \
+	addi	r1,r1,-(40 * ULONG_SIZE) ;	/* push exception frame */ \
+.else ; \
+	addi	r1,r1,-(20 * ULONG_SIZE) ;	/* push exception frame */ \
+.endif ; \
  \
-	stw	r0,0(r1) ;	/* save r0 */ \
+	stl	r0,(0 * ULONG_SIZE)(r1) ;	/* save r0 */ \
 	mfsprg1	r0 ; \
-	stw	r0,4(r1) ;	/* save r1 */ \
-	stw	r2,8(r1) ;	/* save r2 */ \
-	stw	r3,12(r1) ;	/* save r3 */ \
-	stw	r4,16(r1) ; \
-	stw	r5,20(r1) ; \
-	stw	r6,24(r1) ; \
-	stw	r7,28(r1) ; \
-	stw	r8,32(r1) ; \
-	stw	r9,36(r1) ; \
-	stw	r10,40(r1) ; \
-	stw	r11,44(r1) ; \
-	stw	r12,48(r1) ; \
+	stl	r0,(1 * ULONG_SIZE)(r1) ;	/* save r1 */ \
+	stl	r2,(2 * ULONG_SIZE)(r1) ;	/* save r2 */ \
+	stl	r3,(3 * ULONG_SIZE)(r1) ;	/* save r3 */ \
+	stl	r4,(4 * ULONG_SIZE)(r1) ; \
+	stl	r5,(5 * ULONG_SIZE)(r1) ; \
+	stl	r6,(6 * ULONG_SIZE)(r1) ; \
+	stl	r7,(7 * ULONG_SIZE)(r1) ; \
+	stl	r8,(8 * ULONG_SIZE)(r1) ; \
+	stl	r9,(9 * ULONG_SIZE)(r1) ; \
+	stl	r10,(10 * ULONG_SIZE)(r1) ; \
+	stl	r11,(11 * ULONG_SIZE)(r1) ; \
+	stl	r12,(12 * ULONG_SIZE)(r1) ; \
+.ifc ULONG_SIZE, 8 ; \
+	stl	r13,(17 * ULONG_SIZE)(r1) ; \
+	stl	r14,(18 * ULONG_SIZE)(r1) ; \
+	stl	r15,(19 * ULONG_SIZE)(r1) ; \
+	stl	r16,(20 * ULONG_SIZE)(r1) ; \
+	stl	r17,(21 * ULONG_SIZE)(r1) ; \
+	stl	r18,(22 * ULONG_SIZE)(r1) ; \
+	stl	r19,(23 * ULONG_SIZE)(r1) ; \
+	stl	r20,(24 * ULONG_SIZE)(r1) ; \
+	stl	r21,(25 * ULONG_SIZE)(r1) ; \
+	stl	r22,(26 * ULONG_SIZE)(r1) ; \
+	stl	r23,(27 * ULONG_SIZE)(r1) ; \
+	stl	r24,(28 * ULONG_SIZE)(r1) ; \
+	stl	r25,(29 * ULONG_SIZE)(r1) ; \
+	stl	r26,(30 * ULONG_SIZE)(r1) ; \
+	stl	r27,(31 * ULONG_SIZE)(r1) ; \
+	stl	r28,(32 * ULONG_SIZE)(r1) ; \
+	stl	r29,(33 * ULONG_SIZE)(r1) ; \
+	stl	r30,(34 * ULONG_SIZE)(r1) ; \
+	stl	r31,(35 * ULONG_SIZE)(r1) ; \
+.endif ; \
  \
 	mflr	r0 ; \
-	stw	r0,52(r1) ; \
+	stl	r0,(13 * ULONG_SIZE)(r1) ; \
 	mfcr	r0 ; \
-	stw	r0,56(r1) ; \
+	stl	r0,(14 * ULONG_SIZE)(r1) ; \
 	mfctr	r0 ; \
-	stw	r0,60(r1) ; \
+	stl	r0,(15 * ULONG_SIZE)(r1) ; \
 	mfxer	r0 ; \
-	stw	r0,64(r1) ; \
+	stl	r0,(16 * ULONG_SIZE)(r1) ; \
  \
 	/* 76(r1) unused */ \
-	addi	r1,r1,-16 ;	/* call conventions uses 0(r1) and 4(r1)... */
+	addi	r1,r1,-16 ;	/* C ABI uses 0(r1) and 4(r1)... */
 
+#define EXCEPTION_EPILOGUE_TEMPLATE \
+	addi	r1,r1,16 ;			/* pop ABI frame */ \
+\
+	ll	r0,(13 * ULONG_SIZE)(r1) ; \
+	mtlr	r0 ; \
+	ll	r0,(14 * ULONG_SIZE)(r1) ; \
+	mtcr	r0 ; \
+	ll	r0,(15 * ULONG_SIZE)(r1) ; \
+	mtctr	r0 ; \
+	ll	r0,(16 * ULONG_SIZE)(r1) ; \
+	mtxer	r0 ; \
+\
+	ll	r0,(0 * ULONG_SIZE)(r1) ; \
+	ll	r2,(2 * ULONG_SIZE)(r1) ; \
+	ll	r3,(3 * ULONG_SIZE)(r1) ; \
+	ll	r4,(4 * ULONG_SIZE)(r1) ; \
+	ll	r5,(5 * ULONG_SIZE)(r1) ; \
+	ll	r6,(6 * ULONG_SIZE)(r1) ; \
+	ll	r7,(7 * ULONG_SIZE)(r1) ; \
+	ll	r8,(8 * ULONG_SIZE)(r1) ; \
+	ll	r9,(9 * ULONG_SIZE)(r1) ; \
+	ll	r10,(10 * ULONG_SIZE)(r1) ; \
+	ll	r11,(11 * ULONG_SIZE)(r1) ; \
+	ll	r12,(12 * ULONG_SIZE)(r1) ; \
+.ifc ULONG_SIZE, 8 ; \
+	ll	r13,(17 * ULONG_SIZE)(r1) ; \
+	ll	r14,(18 * ULONG_SIZE)(r1) ; \
+	ll	r15,(19 * ULONG_SIZE)(r1) ; \
+	ll	r16,(20 * ULONG_SIZE)(r1) ; \
+	ll	r17,(21 * ULONG_SIZE)(r1) ; \
+	ll	r18,(22 * ULONG_SIZE)(r1) ; \
+	ll	r19,(23 * ULONG_SIZE)(r1) ; \
+	ll	r20,(24 * ULONG_SIZE)(r1) ; \
+	ll	r21,(25 * ULONG_SIZE)(r1) ; \
+	ll	r22,(26 * ULONG_SIZE)(r1) ; \
+	ll	r23,(27 * ULONG_SIZE)(r1) ; \
+	ll	r24,(28 * ULONG_SIZE)(r1) ; \
+	ll	r25,(29 * ULONG_SIZE)(r1) ; \
+	ll	r26,(30 * ULONG_SIZE)(r1) ; \
+	ll	r27,(31 * ULONG_SIZE)(r1) ; \
+	ll	r28,(32 * ULONG_SIZE)(r1) ; \
+	ll	r29,(33 * ULONG_SIZE)(r1) ; \
+	ll	r30,(34 * ULONG_SIZE)(r1) ; \
+	ll	r31,(35 * ULONG_SIZE)(r1) ; \
+.endif ; \
+	ll	r1,(1 * ULONG_SIZE)(r1) ;	/* restore stack at last */ \
+	rfi
+
+// PPC32
+
+#define ULONG_SIZE		4
+#define stl			stw
+#define ll			lwz
+
+.macro EXCEPTION_PREAMBLE
+	EXCEPTION_PREAMBLE_TEMPLATE
+.endm
+
+.macro EXCEPTION_EPILOGUE
+	EXCEPTION_EPILOGUE_TEMPLATE
+.endm
+
+#undef ULONG_SIZE
+#undef stl
+#undef ll
+
+// PPC64
+
+#define ULONG_SIZE		8
+#define stl			std
+#define ll			ld
+
+.macro EXCEPTION_PREAMBLE_64
+	EXCEPTION_PREAMBLE_TEMPLATE
+.endm
+
+.macro EXCEPTION_EPILOGUE_64
+	EXCEPTION_EPILOGUE_TEMPLATE
+.endm
+
+#undef ULONG_SIZE
+#undef stl
+#undef ll
 
 /************************************************************************/
 /*	vectors								*/
@@ -68,31 +184,7 @@ GLOBL(__vectors):
 	b	1b
 
 exception_return:
-	addi	r1,r1,16	// pop ABI frame
-
-	lwz	r0,52(r1)
-	mtlr	r0
-	lwz	r0,56(r1)
-	mtcr	r0
-	lwz	r0,60(r1)
-	mtctr	r0
-	lwz	r0,64(r1)
-	mtxer	r0
-
-	lwz	r0,0(r1)	// restore r0
-	lwz	r2,8(r1)	// restore r2
-	lwz	r3,12(r1)	// restore r3
-	lwz	r4,16(r1)
-	lwz	r5,20(r1)
-	lwz	r6,24(r1)
-	lwz	r7,28(r1)
-	lwz	r8,32(r1)
-	lwz	r9,36(r1)
-	lwz	r10,40(r1)
-	lwz	r11,44(r1)
-	lwz	r12,48(r1)
-	lwz	r1,4(r1)	// restore r1
-	rfi
+	EXCEPTION_EPILOGUE
 
 	.globl	__divide_error
 __divide_error:
@@ -149,6 +241,22 @@ ILLEGAL_VECTOR( 0x1400 )
 ILLEGAL_VECTOR( 0x1500 )
 ILLEGAL_VECTOR( 0x1600 )
 ILLEGAL_VECTOR( 0x1700 )
+
+VECTOR( 0x2000, "DSI_64" ):
+	EXCEPTION_PREAMBLE_64
+	lis	r3,HA(dsi_exception)
+	addi	r3,r3,LO(dsi_exception)
+	mtctr	r3
+	bctrl
+	EXCEPTION_EPILOGUE_64
+
+VECTOR( 0x2200, "ISI_64" ):
+	EXCEPTION_PREAMBLE_64
+	lis	r3,HA(isi_exception)
+	addi	r3,r3,LO(isi_exception)
+	mtctr	r3
+	bctrl
+	EXCEPTION_EPILOGUE_64
 
 GLOBL(__vectors_end):
 

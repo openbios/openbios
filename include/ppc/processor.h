@@ -92,6 +92,7 @@
 #define S_TBWL		284	/* Time base Upper/Lower (Writing) */
 #define S_TBWU		285
 #define S_PVR		287	/* Processor Version Register */
+#define S_HIOR		311	/* Hardware Interrupt Offset Register */
 #define S_IBAT0U	528
 #define S_IBAT0L	529
 #define S_IBAT1U	530
@@ -399,5 +400,11 @@
 #define BD(n)	((ulong)((n) & 0x7fff) + (((n) & 0x8000) ? (ulong)0xffff8000 : 0))
 
 #define SPRNUM_FLIP( v )	( (((v)>>5) & 0x1f) | (((v)<<5) & 0x3e0) )
+
+/* C helpers */
+
+#define __stringify_1(x)	#x
+#define __stringify(x)		__stringify_1(x)
+#define mtspr(rn, v)		asm volatile("mtspr " __stringify(rn) ",%0" : : "r" (v))
 
 #endif   /* _H_PROCESSOR */
