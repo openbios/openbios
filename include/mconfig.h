@@ -66,7 +66,7 @@
 #define STDC_HEADERS 1
 
 /* Version */
-#define VERSION "1.0.RC1"
+#define VERSION "1.0"
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
