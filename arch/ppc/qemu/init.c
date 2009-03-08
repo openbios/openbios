@@ -566,6 +566,17 @@ arch_of_init( void )
 	push_str("system-id");
 	fword("property");
 
+	/* pci info */
+
+	if (machine_id == ARCH_MAC99) {
+		push_str("/pci");
+		fword("find-device");
+		push_str("u3-agp");
+		fword("encode-string");
+		push_str("compatible");
+		fword("property");
+	}
+
 	/* memory info */
 
 	push_str("/memory");
