@@ -22,6 +22,7 @@ int ob_pci_init(void);
 #ifdef CONFIG_PPC
 extern int is_apple(void);
 extern int is_oldworld(void);
+extern int is_newworld(void);
 #else
 static inline int is_apple(void)
 {
@@ -31,9 +32,14 @@ static inline int is_oldworld(void)
 {
 	return 0;
 }
+static inline int is_newworld(void)
+{
+	return 0;
+}
 #endif
 #define AAPL(_cmd)      do { if (is_apple()) _cmd; } while(0)
 #define OLDWORLD(_cmd)  do { if (is_oldworld()) _cmd; } while(0)
+#define NEWWORLD(_cmd)  do { if (is_newworld()) _cmd; } while(0)
 #endif
 #ifdef CONFIG_DRIVER_SBUS
 /* drivers/sbus.c */

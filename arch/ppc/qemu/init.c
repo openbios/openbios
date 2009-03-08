@@ -75,6 +75,11 @@ int is_oldworld(void)
 	return machine_id == ARCH_HEATHROW;
 }
 
+int is_newworld(void)
+{
+	return machine_id == ARCH_MAC99;
+}
+
 static const pci_arch_t known_arch[] = {
         [ARCH_PREP] = { "PREP", PCI_VENDOR_ID_MOTOROLA,
                         PCI_DEVICE_ID_MOTOROLA_RAVEN,

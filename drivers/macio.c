@@ -71,6 +71,7 @@ void macio_nvram_init(const char *path, uint32_t addr)
 	props[1] = __cpu_to_be32(nvram_size);
 	set_property(dnode, "reg", (char *)&props, sizeof(props));
 	set_property(dnode, "device_type", "nvram", 6);
+	NEWWORLD(set_property(dnode, "compatible", "nvram,flash", 12));
 
 	chosen = find_dev("/chosen");
 	push_str(buf);
