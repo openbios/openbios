@@ -34,6 +34,9 @@
 
 #define EXCEPTION_PREAMBLE_TEMPLATE \
 	mtsprg1	r1 ;				/* scratch */ \
+	mfmsr	r1 ;				/* unset MSR_SF */ \
+	clrlwi	r1,r1,0 ; \
+	mtmsr	r1 ; \
 	mfsprg0	r1 ;				/* exception stack in sprg0 */ \
 .ifc ULONG_SIZE, 8 ; \
 	addi	r1,r1,-(40 * ULONG_SIZE) ;	/* push exception frame */ \
