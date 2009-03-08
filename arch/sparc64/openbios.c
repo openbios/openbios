@@ -15,9 +15,6 @@
 #include "openbios.h"
 #include "openbios/pci.h"
 #include "asm/pci.h"
-#include "libc/byteorder.h"
-#define cpu_to_be16(x) __cpu_to_be16(x)
-#include "openbios/firmware_abi.h"
 #include "boot.h"
 #include "../../drivers/timer.h" // XXX
 #define NO_QEMU_PROTOS
@@ -42,10 +39,8 @@ static ucell *memory;
 #define NVRAM_SIZE       0x2000
 #define NVRAM_IDPROM     0x1fd8
 #define NVRAM_IDPROM_SIZE 32
-#define NVRAM_OB_START   (sizeof(ohwcfg_v3_t) + sizeof(struct sparc_arch_cfg))
+#define NVRAM_OB_START   (0)
 #define NVRAM_OB_SIZE    ((0x1fd0 - NVRAM_OB_START) & ~15)
-
-static ohwcfg_v3_t nv_info;
 
 #define OBIO_CMDLINE_MAX 256
 static char obio_cmdline[OBIO_CMDLINE_MAX];
@@ -275,7 +270,7 @@ static uint8_t qemu_uuid[16];
 
 void arch_nvram_get(char *data)
 {
-    uint32_t size;
+    uint32_t size = 0;
     const struct cpudef *cpu;
     const char *bootpath;
     char buf[256];
@@ -284,8 +279,7 @@ void arch_nvram_get(char *data)
     uint32_t clock_frequency;
     uint16_t machine_id;
     const char *stdin_path, *stdout_path;
-
-    nvram_read(0, (char *)&nv_info, sizeof(ohwcfg_v3_t));
+    const char *kernel_cmdline;
 
     fw_cfg_init();
 
@@ -304,16 +298,20 @@ void arch_nvram_get(char *data)
         for(;;);
     }
 
-    kernel_image = nv_info.kernel_image;
-    kernel_size = nv_info.kernel_size;
-    size = nv_info.cmdline_size;
-    if (size > OBIO_CMDLINE_MAX - 1)
-        size = OBIO_CMDLINE_MAX - 1;
-    memcpy(&obio_cmdline, (void *)(long)nv_info.cmdline, size);
+    kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
+    if (kernel_size)
+        kernel_image = fw_cfg_read_i64(FW_CFG_KERNEL_ADDR);
+    kernel_cmdline = (const char *) fw_cfg_read_i64(FW_CFG_KERNEL_CMDLINE);
+    if (kernel_cmdline) {
+        size = strlen(kernel_cmdline);
+        if (size > OBIO_CMDLINE_MAX - 1)
+            size = OBIO_CMDLINE_MAX - 1;
+        memcpy(&obio_cmdline, kernel_cmdline, size);
+    }
     obio_cmdline[size] = '\0';
     qemu_cmdline = (uint64_t)obio_cmdline;
     cmdline_size = size;
-    boot_device = nv_info.boot_devices[0];
+    boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
 
     if (kernel_size)
         printk("kernel addr %llx size %llx\n", kernel_image, kernel_size);
@@ -372,7 +370,7 @@ void arch_nvram_get(char *data)
     push_str("/chosen");
     fword("find-device");
 
-    if (nv_info.boot_devices[0] == 'c')
+    if (boot_device == 'c')
         bootpath = "disk:a";
     else
         bootpath = "cdrom:a";

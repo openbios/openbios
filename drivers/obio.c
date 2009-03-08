@@ -20,8 +20,6 @@
 #include "openbios/nvram.h"
 #include "ofmem.h"
 #include "obio.h"
-#define cpu_to_be16(x) __cpu_to_be16(x)
-#include "openbios/firmware_abi.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 #include "escc.h"
@@ -157,9 +155,8 @@ ob_eccmemctl_init(uint64_t base)
 }
 
 static unsigned char *nvram;
-static ohwcfg_v3_t nv_info;
 
-#define NVRAM_OB_START   (sizeof(ohwcfg_v3_t) + sizeof(struct sparc_arch_cfg))
+#define NVRAM_OB_START   (0)
 #define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_START) & ~15)
 
 void
@@ -654,14 +651,14 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     const char *stdin, *stdout;
     unsigned int i;
     char nographic;
-    uint32_t size;
+    uint32_t size = 0;
     uint16_t machine_id;
     const struct cpudef *cpu;
     const struct machdef *mach;
-    ohwcfg_v3_t *header;
     char buf[256];
     uint32_t temp;
     phandle_t chosen;
+    const char *kernel_cmdline;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -694,23 +691,21 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         for(;;);
     }
 
-    memcpy(&nv_info, nvram, sizeof(nv_info));
-    kernel_image = nv_info.kernel_image;
-    kernel_size = nv_info.kernel_size;
-    size = nv_info.cmdline_size;
-    if (size > OBIO_CMDLINE_MAX - 1)
-        size = OBIO_CMDLINE_MAX - 1;
-    memcpy(&obio_cmdline, (void *)(long)nv_info.cmdline, size);
+    kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
+    if (kernel_size)
+        kernel_image = fw_cfg_read_i32(FW_CFG_KERNEL_ADDR);
+    kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
+    if (kernel_cmdline) {
+        size = strlen(kernel_cmdline);
+        if (size > OBIO_CMDLINE_MAX - 1)
+            size = OBIO_CMDLINE_MAX - 1;
+        memcpy(&obio_cmdline, kernel_cmdline, size);
+    }
     obio_cmdline[size] = '\0';
     qemu_cmdline = (uint32_t) &obio_cmdline;
     cmdline_size = size;
-    header = (ohwcfg_v3_t *)nvram;
-    header->kernel_image = 0;
-    header->kernel_size = 0;
-    header->cmdline_size = 0;
-    header->crc = OHW_compute_crc(header, 0x00, 0xF8);
+    boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
 
-    boot_device = nv_info.boot_devices[0];
     fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
     graphic_depth = fw_cfg_read_i16(FW_CFG_SUN4M_DEPTH);
 

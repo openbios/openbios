@@ -22,6 +22,8 @@
 #include "libc/vsprintf.h"
 #include "kernel.h"
 #include "ofmem.h"
+#define NO_QEMU_PROTOS
+#include "openbios/fw_cfg.h"
 
 //#define DEBUG_ELF
 
@@ -319,24 +321,6 @@ try_bootinfo(const char *path, const char *param)
     close_io( fd );
 }
 
-static uint8_t nvram_read(uint16_t offset)
-{
-    outb(offset & 0xff, NVRAM_ADDR_LO);
-    outb(offset >> 8, NVRAM_ADDR_HI);
-    return inb(NVRAM_DATA);
-}
-
-static uint32_t nvram_read_be32(uint16_t offset)
-{
-    uint32_t ret;
-
-    ret = nvram_read(offset) << 24;
-    ret |= nvram_read(offset + 1) << 16;
-    ret |= nvram_read(offset + 2) << 8;
-    ret |= nvram_read(offset + 3);
-    return ret;
-}
-
 #define QUIK_SECOND_BASEADDR	0x3e0000
 #define QUIK_FIRST_BASEADDR	0x3f4000
 #define QUIK_SECOND_SIZE	(QUIK_FIRST_BASEADDR - QUIK_SECOND_BASEADDR)
@@ -446,8 +430,7 @@ yaboot_startup( void )
                 try_path(path, param);
                 try_bootinfo(path, param);
             } else {
-                char boot_device = nvram_read(0x34);
-
+                uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
                 switch (boot_device) {
                 case 'c':
                     path = strdup("hd:0");
@@ -474,21 +457,22 @@ static void check_preloaded_kernel(void)
 {
     unsigned long kernel_image, kernel_size;
     unsigned long initrd_image, initrd_size;
-    unsigned long cmdline, cmdline_len;
+    const char * kernel_cmdline;
 
-    kernel_size = nvram_read_be32(0x3c);
+    kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
     if (kernel_size) {
-        kernel_image = nvram_read_be32(0x38);
-        cmdline = nvram_read_be32(0x40);
-        cmdline_len = nvram_read_be32(0x44);
-        initrd_image = nvram_read_be32(0x48);
-        initrd_size = nvram_read_be32(0x4c);
+        kernel_image = fw_cfg_read_i32(FW_CFG_KERNEL_ADDR);
+        kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
+        initrd_image = fw_cfg_read_i32(FW_CFG_INITRD_ADDR);
+        initrd_size = fw_cfg_read_i32(FW_CFG_INITRD_SIZE);
         printk("[ppc] Kernel already loaded (0x%8.8lx + 0x%8.8lx) "
                "(initrd 0x%8.8lx + 0x%8.8lx)\n",
                kernel_image, kernel_size, initrd_image, initrd_size);
-        if (cmdline_len > 0) {
-               phandle_t ph = find_dev("/chosen");
-               set_property(ph, "bootargs", strdup((char *)cmdline), cmdline_len + 1);
+        if (kernel_cmdline) {
+               phandle_t ph;
+	       printk("[ppc] Kernel command line: %s\n", kernel_cmdline);
+	       ph = find_dev("/chosen");
+               set_property(ph, "bootargs", strdup(kernel_cmdline), strlen(kernel_cmdline) + 1);
         }
         call_elf(initrd_image, initrd_size, kernel_image);
     }
@@ -501,7 +485,8 @@ static void check_preloaded_kernel(void)
 void
 boot( void )
 {
-	char boot_device = nvram_read(0x34);
+        uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
+
 	fword("update-chosen");
 	if (boot_device == 'm') {
 	        check_preloaded_kernel();
