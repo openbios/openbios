@@ -21,7 +21,7 @@ build:
 	@printf "Building..."
 	@for dir in $(ODIRS); do \
 		$(MAKE) -C $$dir > $$dir/build.log 2>&1 && echo "ok." || \
-		( echo "error:"; tail -15 $$$dir/build.log; exit 1 ) \
+		( echo "error:"; tail -15 $$dir/build.log; exit 1 ) \
 	done
 
 build-verbose:
