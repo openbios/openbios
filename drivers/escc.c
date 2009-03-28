@@ -23,7 +23,6 @@ static volatile unsigned char *serial_dev;
 /* Conversion routines to/from brg time constants from/to bits
  * per second.
  */
-#define BRG_TO_BPS(brg, freq) ((freq) / 2 / ((brg) + 2))
 #define BPS_TO_BRG(bps, freq) ((((freq) + (bps)) / (2 * (bps))) - 2)
 
 #ifdef CONFIG_DRIVER_ESCC_SUN

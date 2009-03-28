@@ -40,7 +40,6 @@
 #include "shared.h"
 #include "filesys.h"
 #include "iso9660.h"
-#define DEBUG_THIS 1
 #include "debug.h"
 
 #if defined(__sparc__) || defined(__PPC__)

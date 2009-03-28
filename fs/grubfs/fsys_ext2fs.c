@@ -170,9 +170,6 @@ struct ext2_inode
     osd2;			/* OS dependent 2 */
   };
 
-/* linux/limits.h */
-#define NAME_MAX         255	/* # chars in a file name */
-
 /* linux/posix_type.h */
 typedef long linux_off_t;
 
@@ -186,18 +183,6 @@ struct ext2_dir_entry
     __u8 file_type;
     char name[EXT2_NAME_LEN];	/* File name */
   };
-
-/* linux/ext2fs.h */
-/*
- * EXT2_DIR_PAD defines the directory entries boundaries
- *
- * NOTE: It must be a multiple of 4
- */
-#define EXT2_DIR_PAD                    4
-#define EXT2_DIR_ROUND                  (EXT2_DIR_PAD - 1)
-#define EXT2_DIR_REC_LEN(name_len)      (((name_len) + 8 + EXT2_DIR_ROUND) & \
-                                         ~EXT2_DIR_ROUND)
-
 
 /* ext2/super.c */
 #define EXT2_SUPER_MAGIC      0xEF53	/* include/linux/ext2_fs.h */

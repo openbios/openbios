@@ -34,10 +34,6 @@ do { printk("ELF - %s: " fmt, __func__ , ##args); } while (0)
 #define ELF_DPRINTF(fmt, args...) do { } while (0)
 #endif
 
-#define NVRAM_ADDR_LO 0x74
-#define NVRAM_ADDR_HI 0x75
-#define NVRAM_DATA    0x77
-
 static void
 transfer_control_to_elf( ulong elf_entry )
 {

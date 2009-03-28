@@ -18,8 +18,6 @@
 #include "video_subr.h"
 
 #define FONT_ADJ_HEIGHT	 (FONT_HEIGHT + 2)
-#define NCOLS	80
-#define NROWS	48
 
 // Warning: will hang on purpose when encountering unknown codes
 //#define DEBUG_CONSOLE
