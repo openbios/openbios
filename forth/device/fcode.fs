@@ -135,6 +135,11 @@ defer fcode-c@             \ get byte
   else
     fcode-num8-signed
   then
+
+  \ Display offset in verbose mode
+  ?fcode-verbose if
+    dup ."        (offset) " . cr
+  then
   ;
 
 \ fcode-string
@@ -147,6 +152,11 @@ defer fcode-c@             \ get byte
   2dup bounds ?do
     fcode-num8 i c!
   loop
+
+  \ Display string in verbose mode
+  ?fcode-verbose if
+    2dup ."        (const) " type cr
+  then
   ;
     
 \ fcode-header
@@ -171,7 +181,13 @@ defer fcode-c@             \ get byte
 \ 
 
 : fcode! ( F:FCode# -- )
-  here fcode# fcode-ptr !
+  here fcode#
+
+  \ Display fcode# in verbose mode
+  ?fcode-verbose if
+    dup ."        (fcode#) " . cr
+  then
+  fcode-ptr !
   ;
 
   

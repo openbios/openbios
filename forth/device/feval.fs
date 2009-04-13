@@ -25,6 +25,13 @@ defer init-fcode-table
   ;
 
 : (debug-feval) ( fcode# -- fcode# )
+  \ Address
+  fcode-stream 1 - . ." : "
+
+  \ Indicate if word is compiled
+  state @ 0<> if
+    ." (compile) "
+  then
   dup fcode>xt cell - lfa2name type
   dup ."  [ 0x" . ." ]" cr
   ;
