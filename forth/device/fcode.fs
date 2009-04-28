@@ -438,22 +438,27 @@ defer fcode-c@             \ get byte
 \   Unconditional branch FCode. Followed by FCode-offset.
   
 : bbranch
-  ['] dobranch , 
   fcode-offset 0< if \ if we jump backwards, we can forsee where it goes
+    ['] dobranch ,
+    swap
     resolve-dest
+    execute-tmp-comp
   else
+    setup-tmp-comp ['] dobranch ,
     here
     0 ,
+    swap
   then
   ; immediate
 
-  
+
 \ b?branch ( continue? -- )
 \   Conditional branch FCode. Followed by FCode-offset.
 
 : b?branch
   fcode-offset 0< if \ if we jump backwards, we can forsee where it goes
-    resolve-orig
+    ['] do?branch ,
+    resolve-dest
     execute-tmp-comp
   else
     setup-tmp-comp ['] do?branch ,
@@ -468,10 +473,7 @@ defer fcode-c@             \ get byte
 
 : b(<mark)
   setup-tmp-comp
-  ['] invert ,
-  ['] do?branch ,
   here
-  0 ,
   ; immediate
 
   
