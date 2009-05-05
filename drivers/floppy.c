@@ -1076,8 +1076,7 @@ ob_floppy_initialize(const char *path)
         int props[3];
         phandle_t ph = find_dev(path);
 
-        push_str("block");
-        fword("device-type");
+        set_property(ph, "device_type", "block", sizeof("block"));
 
 	// Set dummy reg properties
         props[0] = __cpu_to_be32(0); props[1] = __cpu_to_be32(0); props[2] = __cpu_to_be32(0);
