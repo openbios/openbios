@@ -110,7 +110,7 @@ ob_pci_encode_unit(int *idx)
 	n = hi & IS_NOT_RELOCATABLE;
 	p = hi & IS_PREFETCHABLE;
 	t = hi & IS_ALIASED;
-	ss = (hi >> 24) && 0x03;
+	ss = (hi >> 24) & 0x03;
 
 	bus = (hi >> 16) & 0xFF;
 	dev = (hi >> 11) & 0x1F;
