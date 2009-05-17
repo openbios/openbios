@@ -764,7 +764,6 @@ ob_ide_read_ata_chs(struct ide_drive *drive, unsigned long long block,
 	unsigned int sect = (block % drive->sect) + 1;
 	unsigned int head = (track % drive->head);
 	unsigned int cyl = (track / drive->head);
-	struct ata_sector ata_sector;
 
 	/*
 	 * fill in chs command to read from disk at given location
@@ -772,8 +771,7 @@ ob_ide_read_ata_chs(struct ide_drive *drive, unsigned long long block,
 	cmd->buffer = buf;
 	cmd->buflen = sectors * 512;
 
-	ata_sector.all = sectors;
-	cmd->nsector = ata_sector.low;
+	cmd->nsector = sectors & 0xff;
 	cmd->sector = sect;
 	cmd->lcyl = cyl;
 	cmd->hcyl = cyl >> 8;
@@ -815,19 +813,17 @@ ob_ide_read_ata_lba48(struct ide_drive *drive, unsigned long long block,
                       unsigned char *buf, unsigned int sectors)
 {
 	struct ata_command *cmd = &drive->channel->ata_cmd;
-	struct ata_sector ata_sector;
 
 	memset(cmd, 0, sizeof(*cmd));
 
 	cmd->buffer = buf;
 	cmd->buflen = sectors * 512;
-	ata_sector.all = sectors;
 
 	/*
 	 * we are using tasklet addressing here
 	 */
-	cmd->task[2] = ata_sector.low;
-	cmd->task[3] = ata_sector.high;
+	cmd->task[2] = sectors;
+	cmd->task[3] = sectors >> 8;
 	cmd->task[4] = block;
 	cmd->task[5] = block >>  8;
 	cmd->task[6] = block >> 16;

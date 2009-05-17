@@ -208,20 +208,6 @@ enum {
 	atapi_ddir_write,
 };
 
-struct ata_sector {
-	u16 all;
-	union {
-#ifdef CONFIG_BIG_ENDIAN
-		u8 high;
-		u8 low;
-#endif
-#ifdef CONFIG_LITTLE_ENDIAN
-		u8 low;
-		u8 high;
-#endif
-	};
-};
-
 static int ob_ide_atapi_request_sense(struct ide_drive *drive);
 
 #endif
