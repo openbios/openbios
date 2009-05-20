@@ -103,5 +103,6 @@ extern int errno_int;
 extern long __guard[8];
 
 void __stack_smash_handler(const char *func, int damaged);
+void __stack_chk_fail(void);
 
 #endif   /* _H_STRING */

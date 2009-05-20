@@ -86,13 +86,24 @@ long __guard[8] = {
     0, 0, 0, 0, 0, 0, 0
 };
 
-void __stack_smash_handler(const char *func, int damaged)
+static void freeze(void)
 {
-    printk("Propolice detected a stack smashing attack %x at function %s,"
-           " freezing\n", damaged, func);
-
     // Freeze
     // XXX: Disable interrupts?
     for(;;)
         ;
+}
+
+void __stack_smash_handler(const char *func, int damaged)
+{
+    printk("Propolice detected a stack smashing attack %x at function %s,"
+           " freezing\n", damaged, func);
+    freeze();
+}
+
+void __stack_chk_fail(void)
+{
+    printk("Propolice detected a stack smashing attack, freezing\n");
+
+    freeze();
 }
