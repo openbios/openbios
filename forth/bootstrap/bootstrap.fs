@@ -622,18 +622,19 @@ variable >in 0 >in !
 \ pockets implementation for 7.3.4.1
 
 100 constant pocketsize
+4   constant numpockets
 variable pockets 0 pockets !
 variable whichpocket 0 whichpocket !
 
-\ allocate 2 pockets to begin with
+\ allocate 4 pockets to begin with
 : init-pockets     ( -- )
-  pocketsize 2* alloc-mem pockets !
+  pocketsize numpockets * alloc-mem pockets !
   ;
 
 : pocket ( ?? -- ?? )
   pocketsize whichpocket @ *
   pockets @ +
-  1 whichpocket @ -
+  whichpocket @ 1 + numpockets mod
   whichpocket !
   ;
 
