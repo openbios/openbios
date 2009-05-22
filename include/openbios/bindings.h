@@ -61,8 +61,8 @@ extern void		close_dev( ihandle_t ih );
 extern void		set_property( phandle_t ph, const char *name,
 				      const char *buf, int len );
 extern void		set_int_property( phandle_t ph, const char *name,
-					  cell val );
-extern cell		get_int_property( phandle_t ph, const char *name,
+					  u32 val );
+extern u32		get_int_property( phandle_t ph, const char *name,
 					  int *retlen );
 extern char		*get_property( phandle_t ph, const char *name,
 				       int *retlen );

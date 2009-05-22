@@ -52,7 +52,7 @@ enum {
 	MEMORY_SPACE_64 = 3,
 };
 
-static inline void pci_encode_phys_addr(cell *phys, int flags, int space_code,
+static inline void pci_encode_phys_addr(u32 *phys, int flags, int space_code,
 				 pci_addr dev, uint8_t reg, uint64_t addr)
 {
 
@@ -174,27 +174,27 @@ NODE_METHODS(ob_pci_simple_node) = {
 static void pci_set_bus_range(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
-	cell props[2];
+	u32 props[2];
 
 	props[0] = (config->dev >> 16) & 0xFF;
 	props[1] = 1;
-	set_property(dev, "bus-range", (char *)props, 2 * sizeof(cell));
+	set_property(dev, "bus-range", (char *)props, 2 * sizeof(props[0]));
 }
 
 static void pci_host_set_reg(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
-	cell props[2];
+	u32 props[2];
 
 	props[0] = arch->cfg_base;
 	props[1] = arch->cfg_len;
-	set_property(dev, "reg", (char *)props, 2 * sizeof(cell));
+	set_property(dev, "reg", (char *)props, 2 * sizeof(props[0]));
 }
 
 static void pci_host_set_ranges(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
-	cell props[32];
+	u32 props[32];
 	int ncells;
 
 	ncells = 0;
@@ -222,7 +222,7 @@ static void pci_host_set_ranges(const pci_config_t *config)
 		props[ncells++] = 0x00000000;
 		props[ncells++] = arch->mem_len;
 	}
-	set_property(dev, "ranges", (char *)props, ncells * sizeof(cell));
+	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
 }
 
 int host_config_cb(const pci_config_t *config)
@@ -234,6 +234,7 @@ int host_config_cb(const pci_config_t *config)
 		set_property(aliases, "pci",
 			     config->path, strlen(config->path) + 1);
 
+	//XXX this overrides "reg" property
 	pci_host_set_reg(config);
 	pci_host_set_ranges(config);
 	pci_set_bus_range(config);
@@ -265,7 +266,7 @@ int ide_config_cb2 (const pci_config_t *config)
 
 int eth_config_cb (const pci_config_t *config)
 {
-	phandle_t ph = get_cur_dev();;
+	phandle_t ph = get_cur_dev();
 
 	set_property(ph, "network-type", "ethernet", 9);
 	set_property(ph, "removable", "network", 8);
@@ -325,7 +326,7 @@ static void pci_set_AAPL_address(const pci_config_t *config)
 static void pci_set_assigned_addresses(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
-	cell props[32];
+	u32 props[32];
 	int ncells;
 	int i;
 	uint32_t mask;
@@ -349,13 +350,13 @@ static void pci_set_assigned_addresses(const pci_config_t *config)
 	}
 	if (ncells)
 		set_property(dev, "assigned-addresses", (char *)props,
-			     ncells * sizeof(cell));
+			     ncells * sizeof(props[0]));
 }
 
 static void pci_set_reg(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
-	cell props[38];
+	u32 props[38];
 	int ncells;
 	int i;
 	uint32_t mask;
@@ -387,14 +388,14 @@ static void pci_set_reg(const pci_config_t *config)
 		props[ncells++] = 0x00000000;
 		props[ncells++] = config->sizes[i];
 	}
-	set_property(dev, "reg", (char *)props, ncells * sizeof(cell));
+	set_property(dev, "reg", (char *)props, ncells * sizeof(props[0]));
 }
 
 
 static void pci_set_ranges(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
-	cell props[32];
+	u32 props[32];
 	int ncells;
   	int i;
 	uint32_t mask;
@@ -423,7 +424,7 @@ static void pci_set_ranges(const pci_config_t *config)
 
 		props[ncells++] = config->sizes[i];
   	}
-	set_property(dev, "ranges", (char *)props, ncells * sizeof(cell));
+	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
 }
 
 int macio_heathrow_config_cb (const pci_config_t *config)

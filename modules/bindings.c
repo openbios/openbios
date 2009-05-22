@@ -287,10 +287,10 @@ set_property( phandle_t ph, const char *name, const char *buf, int len )
 }
 
 void
-set_int_property( phandle_t ph, const char *name, cell val )
+set_int_property( phandle_t ph, const char *name, u32 val )
 {
-	cell swapped=__cpu_to_becell(val);
-	set_property( ph, name, (char*)&swapped, sizeof(cell) );
+	u32 swapped=__cpu_to_be32(val);
+	set_property( ph, name, (char*)&swapped, sizeof(swapped) );
 }
 
 char *
@@ -312,14 +312,14 @@ get_property( phandle_t ph, const char *name, int *retlen )
 	return (char*)POP();
 }
 
-cell
+u32
 get_int_property( phandle_t ph, const char *name, int *retlen )
 {
-	cell *p;
+	u32 *p;
 
-	if( !(p=(cell *)get_property(ph, name, retlen)) )
+	if( !(p=(u32 *)get_property(ph, name, retlen)) )
 		return 0;
-	return __becell_to_cpu(*p);
+	return __be32_to_cpu(*p);
 }
 
 

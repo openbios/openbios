@@ -175,9 +175,9 @@ defer find-dev
 : my-address ( -- phys.lo ... )
   ?my-self >in.device-node @
   >dn.probe-addr
-  my-#acells tuck cells + swap 1- 0
+  my-#acells tuck /l* + swap 1- 0
   ?do
-    cell - dup @ swap
+    /l - dup l@ swap
   loop
   drop
   ;
@@ -189,8 +189,8 @@ defer find-dev
   
 : my-unit ( -- phys.lo ... phys.hi )
   ?my-self >in.my-unit
-  my-#acells tuck cells + swap 0 ?do
-    cell - dup @ swap
+  my-#acells tuck /l* + swap 0 ?do
+    /l - dup l@ swap
   loop
   drop
   ;
