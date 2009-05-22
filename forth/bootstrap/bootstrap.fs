@@ -278,13 +278,13 @@ variable leaves 0 leaves !
   ['] (loop) ,
   resolve-loop
   execute-tmp-comp
-  ; compile-only
+  ; immediate 
 
 : +loop
   ['] (+loop) ,
   resolve-loop
   execute-tmp-comp
-  ; compile-only
+  ; immediate
 
 \ Using primitive versions of i and j
 \ speeds up loops by 300%
@@ -299,7 +299,7 @@ variable leaves 0 leaves !
   leaves @ 
   here leaves !  
   , 
-  ; compile-only
+  ; immediate
 
 : ?leave if leave then ;
 
