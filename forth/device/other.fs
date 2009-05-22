@@ -8,6 +8,10 @@
 \ the copyright and warranty status of this work.
 \ 
 
+\ The current diagnostic setting
+defer _diag-switch?
+
+
 \ 
 \ 5.3.7 Other FCode functions
 \ 
@@ -89,6 +93,8 @@ hex
   ;
   
 : diagnostic-mode?     ( -- diag? )
+  \ Return the NVRAM diag-switch? setting
+  _diag-switch?
   ;
   
 \ 5.3.7.6 Start and end.
