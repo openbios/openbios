@@ -723,6 +723,7 @@ static int build_dictionary(void)
 	buildconstant("/w", sizeof(u16));
 	buildconstant("/l", sizeof(u32));
 	buildconstant("/n", sizeof(ucell));
+	buildconstant("/x", sizeof(u64));
 
 	reveal();
 	printk("Dictionary initialization finished.\n");

@@ -397,6 +397,8 @@ create fcode-master-table
   ['], byte-load
   ['], set-args
   ['], left-parse-string        \ 240
+  7 n['], reserved-fcode	\ 241-247 (Part of IEEE1275 64-bit draft standard)
+  ['], /x
 
 here fcode-master-table - constant fcode-master-table-size
 
