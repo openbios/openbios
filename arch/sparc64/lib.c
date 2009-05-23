@@ -325,6 +325,7 @@ mmu_claim(void)
     align = POP();
     size = POP();
     virt = POP();
+    printk("claim virt = %lx size = %lx align = %lx\n", virt, size, align);
     PUSH(virt); // XXX
 }
 
@@ -339,6 +340,7 @@ mmu_release(void)
 
     size = POP();
     virt = POP();
+    printk("release virt = %lx size = %lx\n", virt, size);
     // XXX
 }
 
@@ -504,4 +506,9 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
 
     push_str("translations");
     fword("property");
+
+    push_str("/openprom/client-services");
+    fword("find-device");
+    bind_func("claim", mmu_claim);
+    bind_func("release", mmu_release);
 }
