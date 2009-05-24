@@ -252,3 +252,32 @@ defer find-dev
   then
   s" map-out" $call-parent
   ;
+
+
+\ Deprecated functions (required for compatibility with older loaders)
+
+variable package-stack-pos 0 package-stack-pos !
+create package-stack 8 cells allot
+
+: push-package    ( phandle -- )
+  \ Throw an error if we attempt to push a full stack
+  package-stack-pos @ 8 >= if
+    ." cannot push-package onto full stack" cr
+    -99 throw
+  then
+  active-package
+  package-stack-pos @ /n * package-stack + !
+  package-stack-pos @ 1 + package-stack-pos !
+  active-package!
+  ;
+
+: pop-package    ( -- )
+  \ Throw an error if we attempt to pop an empty stack
+  package-stack-pos @ 0 = if
+    ." cannot pop-package from empty stack" cr
+    -99 throw
+  then
+  package-stack-pos @ 1 - package-stack-pos !
+  package-stack-pos @ /n * package-stack + @
+  active-package!
+  ;

@@ -280,7 +280,8 @@ create fcode-master-table
   ['], ms
   ['], finish-device
   ['], decode-phys           \ 128
-  2 n['], reserved-fcode
+  ['], push-package
+  ['], pop-package
   ['], interpose             \ extension (recommended practice)
   4 n['], reserved-fcode
   ['], map-low
