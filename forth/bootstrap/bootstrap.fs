@@ -318,7 +318,7 @@ variable leaves 0 leaves !
     ['] then execute
   loop
   execute-tmp-comp
-; compile-only
+; immediate
 
 : of 
   1 + >r 
@@ -327,13 +327,13 @@ variable leaves 0 leaves !
   ['] if execute 
   ['] drop , 
   r> 
-  ; compile-only
+  ; immediate
 
 : endof 
   >r 
   ['] else execute 
   r> 
-  ; compile-only
+  ; immediate
 
 
 \ 
