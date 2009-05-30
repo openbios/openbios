@@ -132,6 +132,9 @@ int aout_load(struct sys_info *info, const char *filename)
         extern int of_client_interface( int *params );
 
         entry = (void *) addr_fixup(start);
+
+        __asm__ __volatile__("clr %i3\n");
+
         image_retval = entry(0, 0, 0, 0, (unsigned long)&of_client_interface);
     }
 #endif
