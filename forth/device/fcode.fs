@@ -307,7 +307,9 @@ defer fcode-c@             \ get byte
 \   Defines type of new FCode function as field.
 
 : b(field)
-  $create
+  6 ,
+  ['] noop ,
+  reveal
     over ,
     +
   does>
