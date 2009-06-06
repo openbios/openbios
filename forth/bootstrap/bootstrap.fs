@@ -1073,7 +1073,14 @@ defer key
   begin @ 
     ?dup while
     dup lfa2name
-    type space
+
+    \ Don't print spaces for headerless words
+    dup if
+      type space
+    else
+      type
+    then
+
   repeat
   cr
   ;
