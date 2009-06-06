@@ -18,6 +18,9 @@
 #include "openbios/bindings.h"
 #include "openbios/of.h"
 
+/* Uncomment to enable debug printout of client interface calls */
+//#define DEBUG_CIF
+
 /* OF client interface. r3 points to the argument array. On return,
  * r3 should contain 0==true or -1==false. r4-r12,cr0,cr1 may
  * be modified freely.
@@ -39,8 +42,12 @@ static int
 handle_calls( prom_args_t *pb )
 {
 	int i, dstacksave = dstackcnt;
+        long val;
 
-	/* printk("%s ([%d] -- [%d])\n", pb->service, pb->nargs, pb->nret ); */
+#ifdef DEBUG_CIF
+        printk("%s %s ([%ld] -- [%ld])\n", pb->service, (char *)pb->args[0],
+               pb->nargs, pb->nret);
+#endif
 
 	for( i=pb->nargs-1; i>=0; i-- )
 		PUSH( pb->args[i] );
@@ -49,21 +56,26 @@ handle_calls( prom_args_t *pb )
 	fword("client-call-iface");
 
 	for( i=0; i<pb->nret && dstackcnt > dstacksave; i++ ) {
-		int val = POP();
+                val = POP();
 		pb->args[pb->nargs + i] = val;
 
 		/* don't pop args if an exception occured */
 		if( !i && val )
 			break;
 	}
-#if 0
+#ifdef DEBUG_CIF
 	/* useful for debug but not necessarily an error */
 	if( i != pb->nret || dstacksave != dstacksave ) {
-		printk("%s '%s': possible argument error (%d--%d) got %d\n",
+                printk("%s '%s': possible argument error (%ld--%ld) got %d\n",
 		       pb->service, (char*)pb->args[0], pb->nargs-2, pb->nret, i );
 	}
-#endif
 
+        printk("handle_calls return: ");
+        for (i = 0; i < pb->nret; i++) {
+            printk("%lx ", pb->args[pb->nargs + i]);
+        }
+        printk("\n");
+#endif
 	dstackcnt = dstacksave;
 	return 0;
 }
@@ -76,7 +88,7 @@ of_client_interface( int *params )
 
 	if( pb->nargs < 0 || pb->nret < 0 )
 		return -1;
-#if 0
+#ifdef DEBUG_CIF
 	printk("of_client_interface: %s ", pb->service );
 	for( i=0; i<pb->nargs; i++ )
 		printk("%lx ", pb->args[i] );
@@ -105,10 +117,18 @@ of_client_interface( int *params )
 	for( i=0; i<pb->nret && dstackcnt > dstacksave ; i++ )
 		pb->args[pb->nargs + i] = POP();
 
+#ifdef DEBUG_CIF
 	if( i != pb->nret || dstackcnt != dstacksave ) {
 		printk("service %s: argument count error (%d %d)\n",
 		       pb->service, i, dstackcnt - dstacksave );
 		dstackcnt = dstacksave;
 	}
+
+        printk("of_client_interface return:");
+        for (i = 0; i < pb->nret; i++) {
+            printk("%lx ", pb->args[pb->nargs + i]);
+        }
+        printk("\n");
+#endif
 	return 0;
 }
