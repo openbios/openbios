@@ -322,7 +322,7 @@ init_video( unsigned long fb,  int width, int height, int depth, int rb )
 		set_property( ph, "address", (char*)&video.fb.mphys, 4 );
 	}
 	video.has_video = 1;
-	video.pal = malloc( 256 * sizeof(int) );
+	video.pal = malloc( 256 * sizeof(ulong) );
 
 	s = (video.fb.mphys & 0xfff);
 	size = ((video.fb.h * video.fb.rb + s) + 0xfff) & ~0xfff;
