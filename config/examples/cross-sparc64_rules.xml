@@ -29,7 +29,7 @@ CFLAGS := -Os -Wall -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH -USWAP_ENDIANNESS -g
 CFLAGS+= -Wa,-xarch=v9b -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany
 CFLAGS+= -fno-builtin -nostdlib -ffreestanding
 CFLAGS+= -Wredundant-decls -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-declarations
-CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes
+CFLAGS+= -Wundef -Wendif-labels -Wstrict-aliasing -Wwrite-strings -Wmissing-prototypes -Werror
 INCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel/include -I$(ODIR)/target/include
 AS_FLAGS := -Wa,-xarch=v9b -Wa,-64 -g
 
