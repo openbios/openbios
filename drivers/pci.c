@@ -323,7 +323,7 @@ static void pci_set_AAPL_address(const pci_config_t *config)
 			     ncells * sizeof(cell));
 }
 
-static void pci_set_assigned_addresses(const pci_config_t *config)
+static void pci_set_assigned_addresses(const pci_config_t *config, int num_bars)
 {
 	phandle_t dev = get_cur_dev();
 	u32 props[32];
@@ -333,7 +333,7 @@ static void pci_set_assigned_addresses(const pci_config_t *config)
 	int flags, space_code;
 
 	ncells = 0;
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < num_bars; i++) {
 		if (!config->assigned[i] || !config->sizes[i])
 			continue;
 		pci_decode_pci_addr(config->assigned[i],
@@ -353,7 +353,7 @@ static void pci_set_assigned_addresses(const pci_config_t *config)
 			     ncells * sizeof(props[0]));
 }
 
-static void pci_set_reg(const pci_config_t *config)
+static void pci_set_reg(const pci_config_t *config, int num_bars)
 {
 	phandle_t dev = get_cur_dev();
 	u32 props[38];
@@ -370,7 +370,7 @@ static void pci_set_reg(const pci_config_t *config)
 	props[ncells++] = 0x00000000;
 	props[ncells++] = 0x00000000;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < num_bars; i++) {
 		if (!config->assigned[i] || !config->sizes[i])
 			continue;
 
@@ -474,7 +474,7 @@ int ebus_config_cb(const pci_config_t *config)
 }
 
 static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
-                                  const pci_config_t *config)
+                                  const pci_config_t *config, int num_bars)
 {
 	phandle_t dev=get_cur_dev();
 	int status,id;
@@ -553,8 +553,8 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 					      pci_dev->icells);
 	}
 
-	pci_set_reg(config);
-	pci_set_assigned_addresses(config);
+	pci_set_reg(config, num_bars);
+	pci_set_assigned_addresses(config, num_bars);
 	OLDWORLD(pci_set_AAPL_address(config));
 
 #ifdef CONFIG_DEBUG_PCI
@@ -604,91 +604,112 @@ static char pci_xbox_blacklisted (int bus, int devnum, int fn)
 }
 #endif
 
+static void ob_pci_configure_bar(pci_addr addr, pci_config_t *config,
+                                 int reg, int config_addr,
+                                 uint32_t *p_omask,
+                                 unsigned long *mem_base,
+                                 unsigned long *io_base)
+{
+        uint32_t smask, amask, size, reloc, min_align;
+        unsigned long base;
+
+        config->assigned[reg] = 0x00000000;
+        config->sizes[reg] = 0x00000000;
+
+        if ((*p_omask & 0x0000000f) == 0x4) {
+                /* 64 bits memory mapping */
+                return;
+        }
+
+        config->regions[reg] = pci_config_read32(addr, config_addr);
+
+        /* get region size */
+
+        pci_config_write32(addr, config_addr, 0xffffffff);
+        smask = pci_config_read32(addr, config_addr);
+        if (smask == 0x00000000 || smask == 0xffffffff)
+                return;
+
+        if (smask & 0x00000001 && reg != 6) {
+                /* I/O space */
+                base = *io_base;
+                min_align = 1 << 7;
+                amask = 0x00000001;
+                pci_config_write16(addr, PCI_COMMAND,
+                                   pci_config_read16(addr,
+                                                     PCI_COMMAND) |
+                                   PCI_COMMAND_IO);
+        } else {
+                /* Memory Space */
+                base = *mem_base;
+                min_align = 1 << 16;
+                amask = 0x0000000F;
+                if (reg == 6) {
+                        smask |= 1; /* ROM */
+                }
+                pci_config_write16(addr, PCI_COMMAND,
+                                   pci_config_read16(addr,
+                                                     PCI_COMMAND) |
+                                   PCI_COMMAND_MEMORY);
+        }
+        *p_omask = smask & amask;
+        smask &= ~amask;
+        size = (~smask) + 1;
+        config->sizes[reg] = size;
+        reloc = base;
+        if (size < min_align)
+                size = min_align;
+        reloc = (reloc + size -1) & ~(size - 1);
+        if (*io_base == base) {
+                *io_base = reloc + size;
+                reloc -= arch->io_base;
+        } else {
+                *mem_base = reloc + size;
+        }
+        pci_config_write32(addr, config_addr, reloc | *p_omask);
+        config->assigned[reg] = reloc | *p_omask;
+}
+
+static void ob_pci_configure_irq(pci_addr addr, pci_config_t *config)
+{
+        uint8_t irq_pin, irq_line;
+
+        irq_pin =  pci_config_read8(addr, PCI_INTERRUPT_PIN);
+        if (irq_pin) {
+                config->irq_pin = irq_pin;
+                irq_pin = (((config->dev >> 11) & 0x1F) + irq_pin - 1) & 3;
+                irq_line = arch->irqs[irq_pin];
+                pci_config_write8(addr, PCI_INTERRUPT_LINE, irq_line);
+                config->irq_line = irq_line;
+        } else
+                config->irq_line = -1;
+}
+
 static void
-ob_pci_configure(pci_addr addr, pci_config_t *config, unsigned long *mem_base,
-                 unsigned long *io_base)
+ob_pci_configure(pci_addr addr, pci_config_t *config, int num_regs, int rom_bar,
+                 unsigned long *mem_base, unsigned long *io_base)
 
 {
-	uint32_t smask, omask, amask, size, reloc, min_align;
-        unsigned long base;
-	pci_addr config_addr;
-	int reg;
-	uint8_t irq_pin, irq_line;
+        uint32_t omask;
+        int reg;
+        pci_addr config_addr;
 
-	irq_pin =  pci_config_read8(addr, PCI_INTERRUPT_PIN);
-	if (irq_pin) {
-		config->irq_pin = irq_pin;
-		irq_pin = (((config->dev >> 11) & 0x1F) + irq_pin - 1) & 3;
-		irq_line = arch->irqs[irq_pin];
-		pci_config_write8(addr, PCI_INTERRUPT_LINE, irq_line);
-		config->irq_line = irq_line;
-	} else
-		config->irq_line = -1;
+        ob_pci_configure_irq(addr, config);
 
-	omask = 0x00000000;
-	for (reg = 0; reg < 7; reg++) {
+        omask = 0x00000000;
+        for (reg = 0; reg < num_regs; ++reg) {
+                config_addr = PCI_BASE_ADDR_0 + reg * 4;
 
-		config->assigned[reg] = 0x00000000;
-		config->sizes[reg] = 0x00000000;
+                ob_pci_configure_bar(addr, config, reg, config_addr,
+                                     &omask, mem_base,
+                                     io_base);
+        }
 
-		if ((omask & 0x0000000f) == 0x4) {
-			/* 64 bits memory mapping */
-			continue;
-		}
-
-		if (reg == 6)
-			config_addr = PCI_ROM_ADDRESS;
-		else
-			config_addr = PCI_BASE_ADDR_0 + reg * 4;
-
-		config->regions[reg] = pci_config_read32(addr, config_addr);
-
-		/* get region size */
-
-		pci_config_write32(addr, config_addr, 0xffffffff);
-		smask = pci_config_read32(addr, config_addr);
-		if (smask == 0x00000000 || smask == 0xffffffff)
-			continue;
-
-		if (smask & 0x00000001 && reg != 6) {
-			/* I/O space */
-			base = *io_base;
-			min_align = 1 << 7;
-			amask = 0x00000001;
-			pci_config_write16(addr, PCI_COMMAND,
-					   pci_config_read16(addr,
-					   		     PCI_COMMAND) |
-							     PCI_COMMAND_IO);
-		} else {
-			/* Memory Space */
-			base = *mem_base;
-			min_align = 1 << 16;
-			amask = 0x0000000F;
-			if (reg == 6) {
-				smask |= 1; /* ROM */
-			}
-			pci_config_write16(addr, PCI_COMMAND,
-					   pci_config_read16(addr,
-					   		    PCI_COMMAND) |
-							    PCI_COMMAND_MEMORY);
-		}
-		omask = smask & amask;
-		smask &= ~amask;
-		size = (~smask) + 1;
-		config->sizes[reg] = size;
-		reloc = base;
-		if (size < min_align)
-			size = min_align;
-		reloc = (reloc + size -1) & ~(size - 1);
-		if (*io_base == base) {
-			*io_base = reloc + size;
-			reloc -= arch->io_base;
-		} else {
-			*mem_base = reloc + size;
-		}
-		pci_config_write32(addr, config_addr, reloc | omask);
-		config->assigned[reg] = reloc | omask;
-	}
+        if (rom_bar) {
+                config_addr = rom_bar;
+                ob_pci_configure_bar(addr, config, reg, config_addr,
+                                     &omask, mem_base, io_base);
+        }
 }
 
 static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
@@ -701,6 +722,7 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
         const pci_dev_t *pci_dev;
 	uint32_t ccode;
 	uint8_t class, subclass, iface, rev;
+	int num_bars, rom_bar;
 
 	activate_device("/");
 	for (devnum = 0; devnum < 32; devnum++) {
@@ -754,8 +776,17 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 
 			activate_device(config.path);
 
-                        ob_pci_configure(addr, &config, mem_base, io_base);
-			ob_pci_add_properties(addr, pci_dev, &config);
+			if (htype & PCI_HEADER_TYPE_BRIDGE) {
+				num_bars = 2;
+				rom_bar  = PCI_ROM_ADDRESS1;
+			} else {
+				num_bars = 6;
+				rom_bar  = PCI_ROM_ADDRESS;
+			}
+
+			ob_pci_configure(addr, &config, num_bars, rom_bar,
+                                         mem_base, io_base);
+			ob_pci_add_properties(addr, pci_dev, &config, num_bars);
 
                         if (class == PCI_BASE_CLASS_BRIDGE &&
                             (subclass == PCI_SUBCLASS_BRIDGE_HOST ||

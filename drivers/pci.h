@@ -48,6 +48,7 @@
 #define PCI_ROM_ADDRESS		0x30    /* Bits 31..11 are address, 10..1 reserved */
 #define PCI_ROM_ADDRESS_ENABLE	0x01
 #define PCI_ROM_ADDRESS_MASK	(~0x7ffUL)
+#define PCI_ROM_ADDRESS1	0x38    /* ROM_ADDRESS in bridge header */
 
 #define PCI_INTERRUPT_LINE      0x3c    /* 8 bits */
 #define PCI_INTERRUPT_PIN       0x3d    /* 8 bits */
