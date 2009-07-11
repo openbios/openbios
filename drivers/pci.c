@@ -747,19 +747,24 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 
                         if (class == PCI_BASE_CLASS_BRIDGE &&
                             (subclass == PCI_SUBCLASS_BRIDGE_HOST ||
-                             subclass == PCI_SUBCLASS_BRIDGE_PCI)) {
+                             subclass == PCI_SUBCLASS_BRIDGE_PCI))
                             REGISTER_NAMED_NODE(ob_pci_bus_node, config.path);
-                            /* host or bridge */
-                            activate_device(config.path);
-                            ob_pci_add_properties(addr, pci_dev, &config);
-                            free(*path);
-                            *path = strdup(config.path);
-                        } else {
+                        else
                             REGISTER_NAMED_NODE(ob_pci_simple_node, config.path);
-                            activate_device(config.path);
-                            ob_pci_configure(addr, &config, mem_base, io_base);
-                            ob_pci_add_properties(addr, pci_dev, &config);
-                        }
+
+			activate_device(config.path);
+
+                        ob_pci_configure(addr, &config, mem_base, io_base);
+			ob_pci_add_properties(addr, pci_dev, &config);
+
+                        if (class == PCI_BASE_CLASS_BRIDGE &&
+                            (subclass == PCI_SUBCLASS_BRIDGE_HOST ||
+                             subclass == PCI_SUBCLASS_BRIDGE_PCI)) {
+				/* host or bridge */
+				free(*path);
+				*path = strdup(config.path);
+			}
+
 		}
 	}
 	device_end();
