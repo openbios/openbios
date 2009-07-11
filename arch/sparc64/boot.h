@@ -22,8 +22,9 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 int fcode_load(const char *filename);
 
 // context.c
-extern struct context *__context;
+extern struct context * volatile __context;
 uint64_t start_elf(uint64_t entry_point, uint64_t param);
+uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler);
 
 // boot.c
 extern struct sys_info sys_info;

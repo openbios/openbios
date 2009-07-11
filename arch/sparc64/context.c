@@ -10,7 +10,7 @@
 #include "boot.h"
 
 #define MAIN_STACK_SIZE 16384
-#define IMAGE_STACK_SIZE 4096
+#define IMAGE_STACK_SIZE 4096*2
 
 #define debug printk
 
@@ -23,7 +23,7 @@ void __exit_context(void); /* assembly routine */
  * to start us up.
  */
 static struct context main_ctx = {
-    .regs[REG_SP] = (uint64_t) &_estack - 2047 - 96,
+    .regs[REG_SP] = (uint64_t) &_estack - STACK_BIAS - 96,
     .pc = (uint64_t) start_main,
     .npc = (uint64_t) start_main + 4,
     .return_addr = (uint64_t) __exit_context,
@@ -31,7 +31,7 @@ static struct context main_ctx = {
 
 /* This is used by assembly routine to load/store the context which
  * it is to switch/switched.  */
-struct context *__context = &main_ctx;
+struct context * volatile __context = &main_ctx;
 
 /* Stack for loaded ELF image */
 static uint8_t image_stack[IMAGE_STACK_SIZE];
@@ -62,19 +62,25 @@ static void start_main(void)
     __context = boot_ctx;
 }
 
+static uint64_t ALIGN_SIZE(uint64_t x, uint64_t a)
+{
+    return (x + a - 1) & ~(a-1);
+}
+
 /* Setup a new context using the given stack.
  */
 struct context *
 init_context(uint8_t *stack, uint64_t stack_size, int num_params)
 {
     struct context *ctx;
+    uint8_t *stack_top = stack + stack_size;
 
     ctx = (struct context *)
-	(stack + stack_size - (sizeof(*ctx) + num_params*sizeof(uint32_t)));
+	(stack_top - ALIGN_SIZE(sizeof(*ctx) + num_params*sizeof(uint64_t), sizeof(uint64_t)));
     memset(ctx, 0, sizeof(*ctx));
 
     /* Fill in reasonable default for flat memory model */
-    ctx->regs[REG_SP] = virt_to_phys(SP_LOC(ctx));
+    ctx->regs[REG_SP] = virt_to_phys(stack_top - STACK_BIAS - 192);
     ctx->return_addr = virt_to_phys(__exit_context);
 
     return ctx;
@@ -85,10 +91,11 @@ struct context *switch_to(struct context *ctx)
 {
     struct context *save, *ret;
 
-    debug("switching to new context:\n");
+    debug("switching to new context: entry point %#llx stack 0x%016llx\n", ctx->pc, ctx->regs[REG_SP]);
     save = __context;
     __context = ctx;
     //asm ("pushl %cs; call __switch_context");
+    asm ("call __switch_context_nosave; nop");
     ret = __context;
     __context = save;
     return ret;
@@ -107,5 +114,20 @@ uint64_t start_elf(uint64_t entry_point, uint64_t param)
 
     ctx = switch_to(ctx);
     //return ctx->eax;
+    return 0;
+}
+
+/* Start client image */
+uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler)
+{
+    struct context *ctx;
+
+    ctx = init_context(image_stack, sizeof image_stack, 0);
+    ctx->pc  = entry_point;
+    ctx->npc = entry_point+4;
+    ctx->regs[REG_O0+4] = cif_handler;
+
+    ctx = switch_to(ctx);
+
     return 0;
 }

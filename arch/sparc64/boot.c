@@ -26,11 +26,11 @@ void boot(void)
         if (kernel_size) {
             void (*entry)(unsigned long p1, unsigned long p2, unsigned long p3,
                           unsigned long p4, unsigned long p5);
-            extern int of_client_interface( int *params );
+            extern int sparc64_of_client_interface( int *params );
 
             printk("[sparc64] Kernel already loaded\n");
             entry = (void *) (unsigned long)kernel_image;
-            entry(0, 0, 0, 0, (unsigned long)&of_client_interface);
+            entry(0, 0, 0, 0, (unsigned long)&sparc64_of_client_interface);
         }
 
 	if(!path) {

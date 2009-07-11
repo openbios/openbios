@@ -125,19 +125,10 @@ int aout_load(struct sys_info *info, const char *filename)
     debug("entry point is %#lx\n", start);
     printf("Jumping to entry point...\n");
 
-#if 1
     {
-        int (*entry)(unsigned long p1, unsigned long p2, unsigned long p3,
-                      unsigned long p4, unsigned long p5);
-        extern int of_client_interface( int *params );
-
-        entry = (void *) addr_fixup(start);
-
-        __asm__ __volatile__("clr %i3\n");
-
-        image_retval = entry(0, 0, 0, 0, (unsigned long)&of_client_interface);
+    	extern int sparc64_of_client_interface( int *params );
+    	image_retval = start_client_image(addr_fixup(start), (uint64_t)&sparc64_of_client_interface);
     }
-#endif
 
     printf("Image returned with return value %#x\n", image_retval);
     retval = 0;

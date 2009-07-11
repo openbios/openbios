@@ -1,6 +1,8 @@
 #ifndef SPARC64_CONTEXT_H
 #define SPARC64_CONTEXT_H
 
+#define STACK_BIAS             2047
+
 struct context {
     /* General registers */
     uint64_t regs[32];

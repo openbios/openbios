@@ -24,7 +24,12 @@
 
 /* XXX: totally bogus for sparc, need to save and restore all windows */
 __switch_context:
+
+	/* make sure caller's windows are on caller's stack */
+	flushw;
+
 	/* Save everything in current stack */
+
 	setx	__context, %g2, %g1
         stx     %g3, [%g1 + 24]
         stx     %g4, [%g1 + 32]
@@ -61,7 +66,8 @@ __switch_context:
 
 __switch_context_nosave:
 	/* Interrupts are not allowed... */
-
+	/* make sure caller's windows are on caller's stack */
+	flushw
 	/* Load all registers
 	 */
 	setx	__context, %g2, %g1

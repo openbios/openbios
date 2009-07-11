@@ -29,6 +29,10 @@
   <rule><![CDATA[ $(SRCDIR)/arch/sparc64/vectors.S
 	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
  </executable>
+ <executable name="target/arch/sparc64/call-client.o" target="target">
+  <rule><![CDATA[ $(SRCDIR)/arch/sparc64/call-client.S
+	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
+ </executable>
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
   <rule>
@@ -39,6 +43,7 @@
   <object source="plainboot.c"/>
   <external-object source="target/arch/sparc64/vectors.o"/>
   <external-object source="target/arch/sparc64/entry.o"/>
+  <external-object source="target/arch/sparc64/call-client.o"/>
   <external-object source="libsparc64.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libdrivers.a"/>
@@ -77,6 +82,7 @@
   <external-object source="target/arch/sparc64/vectors.o"/>
   <external-object source="target/arch/sparc64/entry.o"/>
   <external-object source="target/arch/sparc64/builtin.o"/>
+  <external-object source="target/arch/sparc64/call-client.o"/>
   <external-object source="libsparc64.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libdrivers.a"/>
