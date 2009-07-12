@@ -980,7 +980,8 @@ ob_ide_identify_drive(struct ide_drive *drive)
 		drive->sect = id.sectors;
 	}
 
-	strcpy(drive->model, (char *)id.model);
+	strncpy(drive->model, (char*)id.model, sizeof(id.model));
+	drive->model[40] = '\0';
 	return 0;
 }
 

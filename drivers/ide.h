@@ -146,7 +146,7 @@ struct ide_drive {
 	char		media;		/* disk, cdrom, etc */
 	char		addressing;	/* chs/lba28/lba48 */
 
-	char		model[40];	/* name */
+	char		model[41];	/* name */
 	int		nr;
 
 	unsigned long	sectors;
