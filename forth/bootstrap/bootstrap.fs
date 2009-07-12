@@ -1310,7 +1310,8 @@ false value capital-hex?
 
 : dump ( addr len -- )
   over + swap
-  do i . space
+  cr
+  do i u. space
     10 0 do
       j i + c@
       dup 10 / todigit emit
