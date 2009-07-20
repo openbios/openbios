@@ -101,7 +101,7 @@ static int obp_proplen(int node, const char *name)
 }
 
 #ifdef CONFIG_DEBUG_OBP
-static int looks_like_string(char *str, int len)
+static int looks_like_string(const char *str, int len)
 {
     int i;
     int ret = (str[len-1] == '\0');

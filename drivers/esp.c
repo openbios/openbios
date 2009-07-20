@@ -139,8 +139,8 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
 static int
 ob_sd_read_sector(esp_private_t *esp, sd_private_t *sd, int offset)
 {
-    DPRINTF("ob_sd_read_sector id %d %lx sector=%d\n",
-            sd->id, (unsigned long)dest, offset);
+    DPRINTF("ob_sd_read_sector id %d sector=%d\n",
+            sd->id, offset);
 
     // Setup command = Read(10)
     memset(esp->buffer, 0, 10);
