@@ -20,6 +20,7 @@
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 #include "video_subr.h"
+#include "ofmem.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
@@ -494,6 +495,8 @@ int openbios(void)
 	cls();
         printk("OpenBIOS for Sparc64\n");
 #endif
+
+        ofmem_init();
 
         collect_sys_info(&sys_info);
 

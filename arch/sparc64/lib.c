@@ -34,32 +34,19 @@ int printk( const char *fmt, ... )
 	return i;
 }
 
-#define MEMSIZE ((128 + 256 + 512) * 1024)
-static char memory[MEMSIZE];
-static void *memptr=memory;
-static int memsize=MEMSIZE;
-
-
 void *malloc(int size)
 {
-	void *ret=(void *)0;
+	return ofmem_malloc(size);
+}
 
-	if( !size )
-		return NULL;
-
-        size = (size + 7) & ~7;
-
-	if(memsize>=size) {
-		memsize-=size;
-		ret=memptr;
-		memptr = (void *)((unsigned long)memptr + size);
-	}
-	return ret;
+void* realloc( void *ptr, size_t size )
+{
+	return ofmem_realloc(ptr, size);
 }
 
 void free(void *ptr)
 {
-	/* Nothing yet */
+	ofmem_free(ptr);
 }
 
 #define PAGE_SIZE_4M   (4 * 1024 * 1024)
@@ -84,50 +71,44 @@ mmu_close(void)
 
 void ofmem_walk_boot_map(translation_entry_cb cb)
 {
-}
-
-static int
-spitfire_translate(unsigned long virt, unsigned long *p_phys,
-                   unsigned long *p_data, unsigned long *p_size)
-{
-    unsigned long phys, tag, data, mask, size;
+    unsigned long phys, virt, size, mode, data, mask;
     unsigned int i;
 
     for (i = 0; i < 64; i++) {
         data = spitfire_get_dtlb_data(i);
-        if (data & 0x8000000000000000ULL) { // Valid entry?
+        if (data & SPITFIRE_TTE_VALID) {
             switch ((data >> 61) & 3) {
             default:
-            case 0x0: // 8k
+            case 0x0: /* 8k */
                 mask = 0xffffffffffffe000ULL;
                 size = PAGE_SIZE_8K;
                 break;
-            case 0x1: // 64k
+            case 0x1: /* 64k */
                 mask = 0xffffffffffff0000ULL;
                 size = PAGE_SIZE_64K;
                 break;
-            case 0x2: // 512k
+            case 0x2: /* 512k */
                 mask = 0xfffffffffff80000ULL;
                 size = PAGE_SIZE_512K;
                 break;
-            case 0x3: // 4M
+            case 0x3: /* 4M */
                 mask = 0xffffffffffc00000ULL;
                 size = PAGE_SIZE_4M;
                 break;
             }
-            tag = spitfire_get_dtlb_tag(i);
-            if ((virt & mask) == (tag & mask)) {
-                phys = data & mask & 0x000001fffffff000ULL;
-                phys |= virt & ~mask;
-                *p_phys = phys;
-                *p_data = data & 0xfff;
-                *p_size = size;
-                return -1;
-            }
+
+            virt = spitfire_get_dtlb_tag(i);
+            virt &= mask;
+
+            /* extract 41bit physical address */
+            phys = data & 0x000001fffffff000ULL;
+			phys &= mask;
+
+			mode = data & 0xfff;
+
+			cb(phys, virt, size, mode);
         }
     }
-
-    return 0;
 }
 
 /*
@@ -137,18 +118,21 @@ spitfire_translate(unsigned long virt, unsigned long *p_phys,
 static void
 mmu_translate(void)
 {
-    unsigned long virt, phys, data, size;
+    ucell virt, phys, mode;
 
     virt = POP();
 
-    if (spitfire_translate(virt, &phys, &data, &size)) {
-        PUSH(phys & 0xffffffff);
-        PUSH(phys >> 32);
-        PUSH(data);
-        PUSH(-1);
-        return;
+    phys = ofmem_translate(virt, &mode);
+
+    if (phys != -1UL) {
+		PUSH(phys & 0xffffffff);
+		PUSH(phys >> 32);
+		PUSH(mode);
+		PUSH(-1);
     }
-    PUSH(0);
+    else {
+    	PUSH(0);
+    }
 }
 
 static void
@@ -218,13 +202,15 @@ itlb_load(void)
 }
 
 static void
-map_pages(unsigned long virt, unsigned long size, unsigned long phys,
-		unsigned long mode)
+map_pages(unsigned long phys, unsigned long virt,
+		  unsigned long size, unsigned long mode)
 {
-    unsigned long tte_data, currsize;
+	unsigned long tte_data, currsize;
 
-    size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
-    while (size >= PAGE_SIZE_8K) {
+	/* aligned to 8k page */
+	size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
+
+	while (size > 0) {
         currsize = size;
         if (currsize >= PAGE_SIZE_4M &&
             (virt & PAGE_MASK_4M) == 0 &&
@@ -248,8 +234,9 @@ map_pages(unsigned long virt, unsigned long size, unsigned long phys,
 
         tte_data |= phys | mode | SPITFIRE_TTE_VALID;
 
-        dtlb_load2(virt, tte_data);
         itlb_load2(virt, tte_data);
+        dtlb_load2(virt, tte_data);
+
         size -= currsize;
         phys += currsize;
         virt += currsize;
@@ -268,7 +255,7 @@ void ofmem_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
 static void
 mmu_map(void)
 {
-    unsigned long virt, size, mode, phys;
+    ucell virt, size, mode, phys;
 
     mode = POP();
     size = POP();
@@ -276,7 +263,8 @@ mmu_map(void)
     phys = POP();
     phys <<= 32;
     phys |= POP();
-    map_pages(virt, size, phys, mode);
+
+    ofmem_map(phys, virt, size, mode);
 }
 
 static void
@@ -294,22 +282,19 @@ dtlb_demap(unsigned long vaddr)
 }
 
 static void
-unmap_pages(unsigned long virt, unsigned long size)
+unmap_pages(ucell virt, ucell size)
 {
-    unsigned long phys, data;
+	ucell va;
 
-    unsigned long currsize;
+    /* align address to 8k */
+    virt &= ~PAGE_MASK_8K;
 
-    // align size
+    /* align size to 8k */
     size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
 
-    while (spitfire_translate(virt, &phys, &data, &currsize)) {
-
-        itlb_demap(virt & ~0x1fffULL);
-        dtlb_demap(virt & ~0x1fffULL);
-
-        size -= currsize;
-        virt += currsize;
+    for (va = virt; va < virt + size; va += PAGE_SIZE_8K) {
+        itlb_demap(va);
+        dtlb_demap(va);
     }
 }
 
@@ -325,11 +310,11 @@ void ofmem_unmap_pages(ucell virt, ucell size)
 static void
 mmu_unmap(void)
 {
-    unsigned long virt, size;
+    ucell virt, size;
 
     size = POP();
     virt = POP();
-    unmap_pages(virt, size);
+    ofmem_unmap(virt, size);
 }
 
 /*
@@ -339,13 +324,23 @@ mmu_unmap(void)
 static void
 mmu_claim(void)
 {
-    unsigned long virt, size, align;
+    ucell virt=-1UL, size, align;
 
     align = POP();
     size = POP();
-    virt = POP();
-    printk("claim virt = %lx size = %lx align = %lx\n", virt, size, align);
-    PUSH(virt); // XXX
+    if (!align) {
+    	virt = POP();
+    }
+
+    printk("claim virt=" FMT_ucellx " size=" FMT_ucellx " align=" FMT_ucellx
+    		"\n",
+    		virt, size, align);
+
+    virt = ofmem_claim_virt(virt, size, align);
+
+    printk("claimed virt=" FMT_ucellx "\n", virt);
+
+    PUSH(virt);
 }
 
 /*
@@ -355,13 +350,62 @@ mmu_claim(void)
 static void
 mmu_release(void)
 {
-    unsigned long virt, size;
+    ucell virt, size;
 
     size = POP();
     virt = POP();
-    printk("release virt = %lx size = %lx\n", virt, size);
-    // XXX
+    printk("release virt=" FMT_ucellx " size=" FMT_ucellx "\n", virt, size);
+
+    ofmem_release(virt, size);
 }
+
+/* ( phys size align --- base ) */
+static void
+mem_claim( void )
+{
+    ucell phys=-1UL, size, align;
+
+    align = POP();
+    size = POP();
+    if (!align) {
+        phys = POP();
+        phys <<= 32;
+        phys |= POP();
+    }
+
+    printk("mem_claim phys=" FMT_ucellx " size=" FMT_ucellx
+    		" align=" FMT_ucellx "\n",
+    		phys, size, align);
+
+    phys = ofmem_claim_phys(phys, size, align);
+
+    printk("ofmem_claim_phys result phys=" FMT_ucellx "\n", phys);
+
+    ofmem_map(phys, phys, size, -1);
+
+    PUSH(phys >> 32);
+    PUSH(phys & 0xffffffffUL);
+}
+
+/* ( phys size --- ) */
+static void
+mem_release( void )
+{
+    ucell phys, size;
+
+    size = POP();
+    phys = POP();
+    printk("release virt=" FMT_ucellx " size=" FMT_ucellx "\n", phys, size);
+
+    ofmem_release(phys, size);
+}
+
+DECLARE_NODE(memory, INSTALL_OPEN, 0, "/memory");
+
+NODE_METHODS( memory ) = {
+    { "claim",              mem_claim       },
+    { "release",            mem_release     },
+};
 
 DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);
 
@@ -381,7 +425,10 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
 {
     char nodebuff[256];
 
-    // MMU node
+    /* memory node */
+    REGISTER_NODE_METHODS(memory, "/memory");
+
+    /* MMU node */
     snprintf(nodebuff, sizeof(nodebuff), "/%s", cpuname);
     push_str(nodebuff);
     fword("find-device");
@@ -397,6 +444,8 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
 
     REGISTER_NODE_METHODS(mmu, nodebuff);
 
+    ofmem_register(find_dev("/memory"), find_dev("/virtual-memory"));
+
     push_str("/chosen");
     fword("find-device");
 
@@ -409,7 +458,7 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
     push_str("/memory");
     fword("find-device");
 
-    // All memory: 0 to RAM_size
+    /* All memory: 0 to RAM_size */
     PUSH(0);
     fword("encode-int");
     PUSH(0);
@@ -422,108 +471,6 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
     fword("encode-int");
     fword("encode+");
     push_str("reg");
-    fword("property");
-
-    // Available memory: 0 to va2pa(_start)
-    PUSH(0);
-    fword("encode-int");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH((va2pa((unsigned long)&_data) - 8192) >> 32);
-    fword("encode-int");
-    fword("encode+");
-    PUSH((va2pa((unsigned long)&_data) - 8192) & 0xffffffff);
-    fword("encode-int");
-    fword("encode+");
-    push_str("available");
-    fword("property");
-
-    // XXX
-    // Translations
-    push_str("/virtual-memory");
-    fword("find-device");
-
-    // 0 to 16M: 1:1
-    PUSH(0);
-    fword("encode-int");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(16 * 1024 * 1024);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x80000000);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x00000036);
-    fword("encode-int");
-    fword("encode+");
-
-    // _start to _data: ROM used
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH((unsigned long)&_start);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH((unsigned long)&_data - (unsigned long)&_start);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x800001ff);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0xf0000074);
-    fword("encode-int");
-    fword("encode+");
-
-    // _data to _end: end of RAM
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH((unsigned long)&_data);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH((unsigned long)&_data - (unsigned long)&_start);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(((va2pa((unsigned long)&_data) - 8192) >> 32) | 0x80000000);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(((va2pa((unsigned long)&_data) - 8192) & 0xffffffff) | 0x36);
-    fword("encode-int");
-    fword("encode+");
-
-    // VGA buffer (128k): 1:1
-    PUSH(0x1ff);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x004a0000);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(128 * 1024);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x800001ff);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x004a0076);
-    fword("encode-int");
-    fword("encode+");
-
-    push_str("translations");
     fword("property");
 
     push_str("/openprom/client-services");

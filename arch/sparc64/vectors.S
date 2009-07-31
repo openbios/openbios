@@ -101,6 +101,8 @@ trap_table:
                  ba bug; mov lvl, %g1; nop; nop; nop; nop; nop; nop;
 #define BTRAPTL1(lvl) BTRAP(lvl)
 #define BTRAPS(x) BTRAP(x) BTRAP(x+1) BTRAP(x+2) BTRAP(x+3) BTRAP(x+4) BTRAP(x+5) BTRAP(x+6) BTRAP(x+7)
+#define BTRAPS4(x) BTRAP(x) BTRAP(x+1) BTRAP(x+2) BTRAP(x+3)
+#define TRAP_HANDLER(routine) ba routine; nop; nop; nop; nop; nop; nop; nop;
 
 #define STACK_BIAS		2047
 	.globl	sparc64_ttable_tl0, sparc64_ttable_tl1
@@ -131,7 +133,16 @@ tl0_irq15:	TRAP_IRQ(handler_irq, 15)
 		BTRAPS(0x40) BTRAPS(0x48)
 #endif
 		BTRAPS(0x50) BTRAPS(0x58)
-		BTRAPS(0x60) BTRAPS(0x68)
+		BTRAPS4(0x60)
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x64 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x65 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x66 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x67 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x68 : data_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x69 : data_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x6A : data_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x6B : data_access_MMU_miss
+		BTRAPS4(0x6C)    ! data_access_protection
 		BTRAPS(0x70) BTRAPS(0x78)
 tl0_s0n:        SPILL_WINDOW
 tl0_s1n:        SPILL_WINDOW
@@ -206,7 +217,16 @@ tl1_irq15:	TRAP_IRQ(handler_irq, 15)
 		BTRAPS(0x40) BTRAPS(0x48)
 #endif
 		BTRAPS(0x50) BTRAPS(0x58)
-		BTRAPS(0x60) BTRAPS(0x68)
+		BTRAPS4(0x60)
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x64 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x65 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x66 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x67 : instruction_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x68 : data_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x69 : data_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x6A : data_access_MMU_miss
+		TRAP_HANDLER(reload_DMMU_tlb)    ! 0x6B : data_access_MMU_miss
+		BTRAPS4(0x6C)    ! data_access_protection
 		BTRAPS(0x70) BTRAPS(0x78)
 tl1_s0n:        SPILL_WINDOW
 tl1_s1n:        SPILL_WINDOW
@@ -298,6 +318,86 @@ fill_32bit:
         lduw    [%sp + 0x38], %i6
         lduw    [%sp + 0x3c], %i7
         restored
+        retry
+
+        .globl reload_DMMU_tlb, reload_IMMU_tlb
+
+reload_DMMU_tlb:
+        mov     6 << 3, %g2           ! va = fault virtual address
+        ldxa    [%g2] ASI_DMMU, %g1   ! from tag access register
+
+        srlx    %g1, 13, %g1          ! %g1 = va rounded to 8k page
+        sllx    %g1, 13, %g1          !
+
+        setx    g_ofmem_translations, %g7, %g3
+        ldx     [%g3], %g3            ! translation_t* t = *g_ofmem_translations
+dmmu_next_trans:
+        ldx     [%g3], %g3
+        brz      %g3, bug             ! NULL pointer
+         nop
+        ldx     [%g3+0x08], %g4       ! t->virt
+        sub     %g1, %g4, %g7         ! %g7 offset = va - t->virt
+        brlz    %g7, dmmu_next_trans  ! va < t->virt ?
+         nop
+        ldx     [%g3+0x10], %g4       ! t->size
+        sub     %g7, %g4, %g4         ! va >= t->virt - t->size ?
+        brgez   %g4, dmmu_next_trans
+         nop
+
+        ! install 8k tlb entry
+
+        ldx     [%g3+0x18], %g4       ! t->phys
+        add     %g4, %g7, %g4         ! %g4 page physical address = t->phys + offset
+        ldx     [%g3+0x20], %g5       ! t->mode
+
+        set     0x80000000, %g2       ! valid tte, 8k size
+        sllx    %g2, 32, %g2
+        or      %g2, %g5, %g2         ! mix in translation mode
+        or      %g2, %g4, %g3         ! mix in phys addr mode
+
+        mov     6 << 3, %g2           ! page virtual address
+        stxa    %g1, [%g2] ASI_DMMU   !
+        stxa    %g3, [%g0] ASI_DTLB_DATA_IN
+
+        retry
+
+reload_IMMU_tlb:
+        mov     6 << 3, %g2           ! va = fault virtual address
+        ldxa    [%g2] ASI_IMMU, %g1   ! from tag access register
+
+        srlx    %g1, 13, %g1          ! %g1 = va rounded to 8k page
+        sllx    %g1, 13, %g1          !
+
+        setx    g_ofmem_translations, %g7, %g3
+        ldx     [%g3], %g3            ! translation_t* t = *g_ofmem_translations
+immu_next_trans:
+        ldx     [%g3], %g3
+        brz      %g3, bug             ! NULL pointer
+         nop
+        ldx     [%g3+0x08], %g4       ! t->virt
+        sub     %g1, %g4, %g7         ! %g7 offset = va - t->virt
+        brlz    %g7, immu_next_trans  ! va < t->virt ?
+         nop
+        ldx     [%g3+0x10], %g4       ! t->size
+        sub     %g7, %g4, %g4         ! va >= t->virt - t->size ?
+        brgez   %g4, immu_next_trans
+         nop
+
+        ! install 8k tlb entry
+
+        ldx     [%g3+0x18], %g4       ! t->phys
+        add     %g4, %g7, %g4         ! %g4 page physical address = t->phys + offset
+        ldx     [%g3+0x20], %g5       ! t->mode
+
+        set     0x80000000, %g2       ! valid tte, 8k size
+        sllx    %g2, 32, %g2
+        or      %g2, %g5, %g2         ! mix in translation mode
+        or      %g2, %g4, %g3         ! mix in phys addr mode
+
+        mov     6 << 3, %g2           ! page virtual address
+        stxa    %g1, [%g2] ASI_IMMU   !
+        stxa    %g3, [%g0] ASI_ITLB_DATA_IN
+
         retry
 
 __divide_error:

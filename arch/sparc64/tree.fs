@@ -27,11 +27,12 @@
 
 new-device
   " memory" device-name
+  " memory" device-type
   external
   : open true ;
   : close ;
   \ claim ( phys size align -- base )
-  : claim 2drop ;
+\  : claim 2drop ;
   \ release ( phys size -- )
 finish-device
 
@@ -41,7 +42,7 @@ new-device
   : open true ;
   : close ;
   \ claim ( phys size align -- base )
-  : claim 2drop ;
+\  : claim 2drop ;
   \ release ( phys size -- )
 finish-device
 
