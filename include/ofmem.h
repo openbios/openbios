@@ -20,14 +20,14 @@
 extern void	ofmem_cleanup( void );
 extern void	ofmem_init( void );
 
-extern ulong 	ofmem_claim( ulong addr, ulong size, ulong align );
-extern ulong 	ofmem_claim_phys( ulong mphys, ulong size, ulong align );
-extern ulong 	ofmem_claim_virt( ulong mvirt, ulong size, ulong align );
+extern ucell 	ofmem_claim( ucell addr, ucell size, ucell align );
+extern ucell 	ofmem_claim_phys( ucell mphys, ucell size, ucell align );
+extern ucell 	ofmem_claim_virt( ucell mvirt, ucell size, ucell align );
 
-extern int 	ofmem_map( ulong phys, ulong virt, ulong size, int mode );
+extern int 	ofmem_map( ucell phys, ucell virt, ucell size, ucell mode );
 
-extern void  	ofmem_release( ulong virt, ulong size );
-extern ulong 	ofmem_translate( ulong virt, int *ret_mode );
+extern void  	ofmem_release( ucell virt, ucell size );
+extern ucell 	ofmem_translate( ucell virt, ucell *ret_mode );
 
 #ifdef CONFIG_PPC
 #define PAGE_SHIFT   12

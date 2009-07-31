@@ -241,9 +241,9 @@ mmu_unmap( void )
 static void
 mmu_translate( void )
 {
-        int mode;
-	int virt = POP();
-	int phys = ofmem_translate( virt, &mode );
+	ucell mode;
+	ucell virt = POP();
+	ucell phys = ofmem_translate( virt, &mode );
 
 	if( phys == -1 ) {
 		PUSH( 0 );
