@@ -58,4 +58,10 @@ void *map_io(uint64_t pa, int size);
 #define PAGE_ALIGN(addr)  (((addr) + PAGE_SIZE - 1) & PAGE_MASK)
 #endif
 
+#if defined(CONFIG_DEBUG_OFMEM)
+# define OFMEM_TRACE(fmt, ...) do { printk("OFMEM: " fmt, ## __VA_ARGS__); } while (0)
+#else
+# define OFMEM_TRACE(fmt, ...) do {} while(0)
+#endif
+
 #endif   /* _H_OFMEM */
