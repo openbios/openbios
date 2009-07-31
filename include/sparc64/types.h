@@ -29,8 +29,12 @@ typedef long long       int64_t;
 #include "autoconf.h"
 
 /* cell based types */
-typedef long long          cell;
-typedef unsigned long long ucell;
+typedef int64_t   cell;
+typedef uint64_t  ucell;
+
+#define FMT_cell   "%lld"
+#define FMT_ucell   "%llu"
+#define FMT_ucellx  "%016llx"
 
 #ifdef NEED_FAKE_INT128_T
 typedef struct {
