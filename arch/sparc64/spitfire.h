@@ -35,6 +35,14 @@
 
 #define SPITFIRE_HIGHEST_LOCKED_TLBENT	(64 - 1)
 
+/* translation table entry bits */
+#define SPITFIRE_TTE_WRITABLE   0x02
+#define SPITFIRE_TTE_PRIVILEGED 0x04
+#define SPITFIRE_TTE_CV         0x10
+#define SPITFIRE_TTE_CP         0x20
+#define SPITFIRE_TTE_LOCKED     0x40
+#define SPITFIRE_TTE_VALID      0x8000000000000000ULL
+
 #ifndef __ASSEMBLY__
 
 enum ultra_tlb_layout {

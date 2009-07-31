@@ -14,6 +14,8 @@
 #include "sys_info.h"
 #include "boot.h"
 
+#include "ofmem_sparc64.h"
+
 /* Format a string and print it on the screen, just like the libc
  * function printf.
  */
@@ -77,6 +79,10 @@ mmu_open(void)
 
 static void
 mmu_close(void)
+{
+}
+
+void ofmem_walk_boot_map(translation_entry_cb cb)
 {
 }
 
@@ -212,7 +218,8 @@ itlb_load(void)
 }
 
 static void
-map_pages(unsigned long virt, unsigned long size, unsigned long phys)
+map_pages(unsigned long virt, unsigned long size, unsigned long phys,
+		unsigned long mode)
 {
     unsigned long tte_data, currsize;
 
@@ -238,13 +245,20 @@ map_pages(unsigned long virt, unsigned long size, unsigned long phys)
             currsize = PAGE_SIZE_8K;
             tte_data = 0;
         }
-        tte_data |= phys | 0x8000000000000036ULL;
+
+        tte_data |= phys | mode | SPITFIRE_TTE_VALID;
+
         dtlb_load2(virt, tte_data);
         itlb_load2(virt, tte_data);
         size -= currsize;
         phys += currsize;
         virt += currsize;
     }
+}
+
+void ofmem_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
+{
+	return map_pages(phys, virt, size, mode);
 }
 
 /*
@@ -262,7 +276,7 @@ mmu_map(void)
     phys = POP();
     phys <<= 32;
     phys |= POP();
-    map_pages(virt, size, phys);
+    map_pages(virt, size, phys, mode);
 }
 
 static void
@@ -297,6 +311,11 @@ unmap_pages(unsigned long virt, unsigned long size)
         size -= currsize;
         virt += currsize;
     }
+}
+
+void ofmem_unmap_pages(ucell virt, ucell size)
+{
+	unmap_pages(virt, size);
 }
 
 /*

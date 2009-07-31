@@ -19,6 +19,7 @@
   <object source="forthload.c"/>
   <object source="fcodeload.c"/>
   <object source="loadfs.c"/>
+  <object source="ofmem_sparc64.c"/>
  </library>
 
  <executable name="target/arch/sparc64/entry.o" target="target">
