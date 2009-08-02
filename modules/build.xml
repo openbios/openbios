@@ -23,6 +23,7 @@
   <object source="sun-parts.c" condition="SUN_PARTS"/>
   <object source="font_8x8.c" condition="FONT_8X8"/>
   <object source="font_8x16.c" condition="FONT_8X16"/>
+  <object source="ofmem_common.c" condition="OFMEM"/>
  </library>
 
  <dictionary name="openbios" target="forth">
