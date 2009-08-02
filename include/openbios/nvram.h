@@ -22,7 +22,7 @@ extern void	arch_nvram_get( char *buf );
 extern void	arch_nvram_put( char *buf );
 
 extern void	nvconf_init( void );
-extern void	nvram_init( char *path );
+extern void	nvram_init( const char *path );
 extern void	update_nvram( void );
 
 #endif   /* _H_NVRAM */

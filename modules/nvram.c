@@ -297,7 +297,7 @@ NODE_METHODS( nvram ) = {
 
 
 void
-nvram_init( char *path )
+nvram_init( const char *path )
 {
 	nvconf_init();
 
