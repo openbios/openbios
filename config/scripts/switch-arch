@@ -93,6 +93,8 @@ if test "x$HOSTARCH" = "x"; then
     archname
 fi
 
+VERSION=`head VERSION`
+
 echo "Configuring OpenBIOS on $HOSTARCH for $*"
 for RULES_ARCH in $*; do
     ARCH=`echo $RULES_ARCH | sed s/cross-//g`
@@ -173,6 +175,7 @@ for RULES_ARCH in $*; do
     echo "AS_FLAGS=$AS_FLAGS" >> $ODIR/config.mak
     echo "HOSTARCH?=$HOSTARCH" >> $ODIR/config.mak
     echo "CROSSCFLAGS=$CROSSCFLAGS" >> $ODIR/config.mak
+    echo "VERSION=\"$VERSION\"" >> $ODIR/config.mak
     ln -s $SRCDIR/config/xml/rules.xml $ODIR/rules.xml
     ln -s $SRCDIR/config/examples/${RULES_ARCH}_config.xml $ODIR/config.xml
     ln -s ../Makefile.target $ODIR/Makefile

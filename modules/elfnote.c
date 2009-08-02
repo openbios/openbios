@@ -4,6 +4,7 @@
 #include "sys_info.h"
 #include "asm/io.h"
 #include "ipchecksum.h"
+#include "openbios-version.h"
 #define printf printk
 #define debug  printk
 
@@ -19,7 +20,7 @@ struct elf_image_note {
 
     Elf_Nhdr hdr1;
     char name1[sizeof(ELF_NOTE_BOOT)];
-    char version[sizeof(PROGRAM_VERSION)];
+    char version[sizeof(OPENBIOS_VERSION_STR)];
 
     Elf_Nhdr hdr2;
     char name2[sizeof(ELF_NOTE_BOOT)];
@@ -39,11 +40,11 @@ const struct elf_image_note elf_image_notes
 
     .hdr1 = {
 	.n_namesz = sizeof(ELF_NOTE_BOOT),
-	.n_descsz = sizeof(PROGRAM_VERSION),
+        .n_descsz = sizeof(OPENBIOS_VERSION_STR),
 	.n_type = EIN_PROGRAM_VERSION,
     },
     .name1 = ELF_NOTE_BOOT,
-    .version = PROGRAM_VERSION,
+    .version = OPENBIOS_VERSION_STR,
 
     .hdr2 = {
 	.n_namesz = sizeof(ELF_NOTE_BOOT),
@@ -81,7 +82,7 @@ const char *program_version = elf_image_notes.version;
 	.int EIN_PROGRAM_VERSION
 1:	.asciz "ELFBoot"
 2:	.align 4
-3:	.asciz PROGRAM_VERSION
+3:      .asciz OPENBIOS_VERSION_STR
 4:
 
 	.align 4

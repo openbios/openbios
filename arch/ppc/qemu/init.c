@@ -461,7 +461,8 @@ arch_of_init( void )
 
         printk("\n");
         printk("=============================================================\n");
-        printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
+        printk(PROGRAM_NAME " " OPENBIOS_VERSION_STR " [%s]\n",
+               OPENBIOS_BUILD_DATE);
 
         fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
         buf[4] = '\0';

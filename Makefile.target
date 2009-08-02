@@ -38,8 +38,6 @@ AS_FLAGS+= -g
 
 all: versions dictionaries host-libraries target-libraries host-executables target-executables
 
-VERSION := "1.0"
-
 versions: $(ODIR)/target/include/openbios-version.h $(ODIR)/forth/version.fs
 
 $(ODIR)/forth/version.fs:
@@ -51,8 +49,7 @@ $(ODIR)/forth/version.fs:
 $(ODIR)/target/include/openbios-version.h:
 	@DATE="$(shell echo `LC_ALL=C TZ=UTC date +'%b %e %Y %H:%M'`)" ; \
           ( echo "#define OPENBIOS_BUILD_DATE \"$$DATE\"" ; \
-           echo "#define OPENBIOS_VERSION_STR \"$(VERSION)\"" ; \
-           echo "#define OPENBIOS_RELEASE \"$(VERSION)\"" ; ) \
+           echo "#define OPENBIOS_VERSION_STR \"$(VERSION)\"" ; ) \
          > $(dir $@)/openbios-version.h
 
 info:

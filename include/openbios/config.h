@@ -22,7 +22,6 @@
 #include "asm/types.h"
 
 #define PROGRAM_NAME "OpenBIOS"
-#define PROGRAM_VERSION VERSION
 
 #ifndef BOOTSTRAP
 

@@ -41,9 +41,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
-/* Minor OpenBIOS version */
-#define MINOR_VERSION 0
-
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT ""
 
@@ -59,14 +56,8 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 
-/* Patchlevel */
-#define PATCH_LEVEL RC1
-
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
-
-/* Version */
-#define VERSION "1.0"
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */

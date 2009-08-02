@@ -32,6 +32,7 @@
 #include "openbios/stack.h"
 #include "unix/plugins.h"
 #include "openbios/bindings.h"
+#include "openbios-version.h"
 
 #include "blk.h"
 
@@ -415,11 +416,12 @@ int main(int argc, char *argv[])
 
 		switch (c) {
 		case 'V':
-			printk(BANNER "Version " VERSION "\n");
+                        printk(BANNER "Version " OPENBIOS_VERSION_STR "\n");
 			return 0;
 		case 'h':
 		case '?':
-			printk(BANNER "Version " VERSION "\n" USAGE, argv[0]);
+                        printk(BANNER "Version " OPENBIOS_VERSION_STR "\n"
+                               USAGE, argv[0]);
 			return 0;
 		case 'v':
 			verbose = 1;

@@ -57,7 +57,8 @@ entry( void )
 
 	printk("\n");
 	printk("=============================================================\n");
-	printk("OpenBIOS %s [%s]\n", OPENBIOS_RELEASE, OPENBIOS_BUILD_DATE );
+        printk(PROGRAM_NAME " " OPENBIOS_VERSION_STR " [%s]\n",
+               OPENBIOS_BUILD_DATE);
 
 	ofmem_init();
 	initialize_forth();

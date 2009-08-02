@@ -27,6 +27,7 @@
 #include "openbios/kernel.h"
 #include "dict.h"
 #include "cross.h"
+#include "openbios-version.h"
 
 
 #define MEMORY_SIZE (1024*1024)	/* 1M ram for hosted system */
@@ -992,11 +993,12 @@ int main(int argc, char *argv[])
 
 		switch (c) {
 		case 'V':
-			printk("Version " VERSION "\n");
+                        printk("Version " OPENBIOS_VERSION_STR "\n");
 			return 0;
 		case 'h':
 		case '?':
-			printk("Version " VERSION "\n" USAGE, argv[0]);
+                        printk("Version " OPENBIOS_VERSION_STR "\n" USAGE,
+                               argv[0]);
 			return 0;
 		case 'v':
 			verbose = 1;
