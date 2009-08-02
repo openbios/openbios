@@ -146,7 +146,8 @@ sunparts_open( sunparts_info_t *di )
         di->size_hi = size >> BITS;
         di->size_lo = size & (ucell) -1;
         di->type = __be32_to_cpu(p->infos[parnum].id);
-        DPRINTF("Found Sun partition table, offs %lld size %lld\n", offs, size);
+        DPRINTF("Found Sun partition table, offs %lld size %lld\n",
+                (llong)offs, (llong)size);
 
         RET( -1 );
 }
