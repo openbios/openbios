@@ -34,42 +34,13 @@ extern void setup_mmu( ulong code_base );
 #define OF_CODE_START	0xfff00000UL
 #define IO_BASE			0x80000000
 #define OFMEM			((ofmem_t*)FREE_BASE)
+
 #define OF_MALLOC_BASE		((char*)OFMEM + ((sizeof(ofmem_t) + 3) & ~3))
 
 #define HASH_SIZE		(2 << 15)
 
 #define	SEGR_USER		BIT(2)
 #define SEGR_BASE		0x0400
-
-typedef struct alloc_desc {
-	struct alloc_desc 	*next;
-	ucell			size;			/* size (including) this struct */
-} alloc_desc_t;
-
-typedef struct mem_range {
-	struct mem_range	*next;
-	ucell			start;
-	ucell			size;
-} range_t;
-
-typedef struct trans {
-	struct trans		*next;
-	ucell			virt;			/* chain is sorted by virt */
-	ucell			size;
-	ucell			phys;
-	ucell			mode;
-} translation_t;
-
-typedef struct {
-	ulong			ramsize;
-	char 			*next_malloc;
-	alloc_desc_t		*mfree;		/* list of free malloc blocks */
-
-	range_t			*phys_range;
-	range_t			*virt_range;
-
-	translation_t		*trans;	/* this is really a translation_t */
-} ofmem_t;
 
 static inline ulong
 get_hash_base( void )
@@ -91,17 +62,11 @@ get_hash_size( void )
 	return ((sdr1 << 16) | 0x0000ffff) + 1;
 }
 
-ulong
-get_ram_size( void )
-{
-	ofmem_t *ofmem = OFMEM;
-	return ofmem->ramsize;
-}
-
 static inline ulong
 get_rom_base( void )
 {
-	return get_ram_size() - 0x00100000;
+	ofmem_t *ofmem = ofmem_arch_get_private();
+	return ofmem->ramsize - 0x00100000;
 }
 
 ulong
@@ -116,34 +81,44 @@ get_ram_bottom( void )
         return (ulong)OF_MALLOC_BASE;
 }
 
-static phandle_t cpu_handle = 0;
-static void
-ofmem_update_translations( void )
+static ucell get_heap_top( void )
 {
-	ofmem_t *ofmem = OFMEM;
-	translation_t *t;
-	int ncells;
-	cell *props;
+	return get_hash_base() - (32 + 64) * 1024;
+}
 
-	if (cpu_handle == 0)
-		return;
+static inline size_t ALIGN_SIZE(size_t x, size_t a)
+{
+    return (x + a - 1) & ~(a-1);
+}
 
-	for( t = ofmem->trans, ncells = 0; t ; t=t->next, ncells++ )
-		;
+ofmem_t* ofmem_arch_get_private(void)
+{
+	return OFMEM;
+}
 
-	props = malloc(ncells * sizeof(cell) * 4);
-	if (props == NULL)
-		return;
+void* ofmem_arch_get_malloc_base(void)
+{
+	return OF_MALLOC_BASE;
+}
 
-	for( t = ofmem->trans, ncells = 0 ; t ; t=t->next ) {
-		props[ncells++] = t->virt;
-		props[ncells++] = t->size;
-		props[ncells++] = t->phys;
-		props[ncells++] = t->mode;
-	}
-	set_property(cpu_handle, "translations",
-		     (char*)props, ncells * sizeof(cell));
-	free(props);
+ucell ofmem_arch_get_heap_top(void)
+{
+	return get_heap_top();
+}
+
+ucell ofmem_arch_get_virt_top(void)
+{
+	return IO_BASE;
+}
+
+void ofmem_arch_unmap_pages(ucell virt, ucell size)
+{
+	/* kill page mappings in provided range */
+}
+
+void ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
+{
+	/* none yet */
 }
 
 /************************************************************************/
@@ -153,87 +128,19 @@ ofmem_update_translations( void )
 void *
 malloc( int size )
 {
-	ofmem_t *ofmem = OFMEM;
-	alloc_desc_t *d, **pp;
-	char *ret;
-	ulong top;
-
-	if( !size )
-		return NULL;
-
-	if( !ofmem->next_malloc )
-		ofmem->next_malloc = (char*)OF_MALLOC_BASE;
-
-	if( size & 3 )
-		size += 4 - (size & 3);
-	size += sizeof(alloc_desc_t);
-
-	/* look in the freelist */
-	for( pp=&ofmem->mfree; *pp && (**pp).size < size; pp = &(**pp).next )
-		;
-
-	/* waste at most 4K by taking an entry from the freelist */
-	if( *pp && (**pp).size < size + 0x1000 ) {
-		ret = (char*)*pp + sizeof(alloc_desc_t);
-		memset( ret, 0, (**pp).size - sizeof(alloc_desc_t) );
-		*pp = (**pp).next;
-		return ret;
-	}
-
-	top = get_hash_base() - (32 + 64) * 1024;
-	if( (ulong)ofmem->next_malloc + size > top ) {
-		printk("out of malloc memory (%x)!\n", size );
-		return NULL;
-	}
-
-	d = (alloc_desc_t*) ofmem->next_malloc;
-	ofmem->next_malloc += size;
-
-	d->next = NULL;
-	d->size = size;
-
-	ret = (char*)d + sizeof(alloc_desc_t);
-	memset( ret, 0, size - sizeof(alloc_desc_t) );
-
-	return ret;
+	return ofmem_malloc(size);
 }
 
 void
 free( void *ptr )
 {
-	ofmem_t *ofmem = OFMEM;
-	alloc_desc_t **pp, *d;
-
-	/* it is legal to free NULL pointers (size zero allocations) */
-	if( !ptr )
-		return;
-
-        d = (alloc_desc_t*)((char *)ptr - sizeof(alloc_desc_t));
-	d->next = ofmem->mfree;
-
-	/* insert in the (sorted) freelist */
-	for( pp=&ofmem->mfree; *pp && (**pp).size < d->size ; pp = &(**pp).next )
-		;
-	d->next = *pp;
-	*pp = d;
+	return ofmem_free(ptr);
 }
 
 void *
 realloc( void *ptr, size_t size )
 {
-        alloc_desc_t *d = (alloc_desc_t*)((char *)ptr - sizeof(alloc_desc_t));
-	char *p;
-
-	if( !ptr )
-		return malloc( size );
-	if( !size ) {
-		free( ptr );
-		return NULL;
-	}
-	p = malloc( size );
-	memcpy( p, ptr, MIN(d->size - sizeof(alloc_desc_t),size) );
-	free( ptr );
-	return p;
+	return ofmem_realloc(ptr, size);
 }
 
 
@@ -242,359 +149,13 @@ realloc( void *ptr, size_t size )
 /************************************************************************/
 
 extern char _start[], _end[];
-static inline ucell
-def_memmode( ucell phys )
+
+ucell ofmem_arch_default_translation_mode( ucell phys )
 {
 	/* XXX: Guard bit not set as it should! */
 	if( phys < IO_BASE )
 		return 0x02;	/*0xa*/	/* wim GxPp */
 	return 0x6a;		/* WIm GxPp, I/O */
-}
-
-
-/************************************************************************/
-/*	client interface						*/
-/************************************************************************/
-
-static int
-is_free( ucell ea, ucell size, range_t *r )
-{
-	if( size == 0 )
-		return 1;
-	for( ; r ; r=r->next ) {
-		if( r->start + r->size - 1 >= ea && r->start <= ea )
-			return 0;
-		if( r->start >= ea && r->start <= ea + size - 1 )
-			return 0;
-	}
-	return 1;
-}
-
-static void
-add_entry_( ucell ea, ucell size, range_t **r )
-{
-	range_t *nr;
-
-	for( ; *r && (**r).start < ea; r=&(**r).next )
-		;
-	nr = (range_t*)malloc( sizeof(range_t) );
-	nr->next = *r;
-	nr->start = ea;
-	nr->size = size;
-	*r = nr;
-}
-
-static int
-add_entry( ucell ea, ucell size, range_t **r )
-{
-	if( !is_free( ea, size, *r ) ) {
-		printk("add_entry: range not free!\n");
-		return -1;
-	}
-	add_entry_( ea, size, r );
-	return 0;
-}
-
-static void
-join_ranges( range_t **rr )
-{
-	range_t *n, *r = *rr;
-	while( r ) {
-		if( !(n=r->next) )
-			break;
-
-		if( r->start + r->size - 1 >= n->start -1 ) {
-			int s = n->size + (n->start - r->start - r->size);
-			if( s > 0 )
-				r->size += s;
-			r->next = n->next;
-			free( n );
-			continue;
-		}
-		r=r->next;
-	}
-}
-
-static void
-fill_range( ucell ea, ucell size, range_t **rr )
-{
-	add_entry_( ea, size, rr );
-	join_ranges( rr );
-}
-
-static ucell
-find_area( ucell align, ucell size, range_t *r, ucell min, ucell max, int reverse )
-{
-	ucell base = min;
-	range_t *r2;
-
-	if( (align & (align-1)) ) {
-		printk("bad alignment " FMT_ucell "\n", align);
-		align = 0x1000;
-	}
-	if( !align )
-		align = 0x1000;
-
-	base = reverse ? max - size : min;
-	r2 = reverse ? NULL : r;
-
-	for( ;; ) {
-		if( !reverse ) {
-			base = (base + align - 1) & ~(align-1);
-			if( base < min )
-				base = min;
-			if( base + size - 1 >= max -1 )
-				break;
-		} else {
-			if( base > max - size )
-				base = max - size;
-			base -= base & (align-1);
-		}
-		if( is_free( base, size, r ) )
-			return base;
-
-		if( !reverse ) {
-			if( !r2 )
-				break;
-			base = r2->start + r2->size;
-			r2 = r2->next;
-		} else {
-			range_t *rp;
-			for( rp=r; rp && rp->next != r2 ; rp=rp->next )
-				;
-			r2 = rp;
-			if( !r2 )
-				break;
-			base = r2->start - size;
-		}
-	}
-	return (ucell)-1;
-}
-
-static ucell
-ofmem_claim_phys_( ucell phys, ucell size, ucell align, ucell min, ucell max, int reverse )
-{
-	ofmem_t *ofmem = OFMEM;
-	if( !align ) {
-		if( !is_free( phys, size, ofmem->phys_range ) ) {
-			printk("Non-free physical memory claimed!\n");
-			return -1;
-		}
-		add_entry( phys, size, &ofmem->phys_range );
-		return phys;
-	}
-	phys = find_area( align, size, ofmem->phys_range, min, max, reverse );
-	if( phys == (ucell)-1 ) {
-		printk("ofmem_claim_phys - out of space\n");
-		return -1;
-	}
-	add_entry( phys, size, &ofmem->phys_range );
-	return phys;
-}
-
-/* if align != 0, phys is ignored. Returns -1 on error */
-ucell
-ofmem_claim_phys( ucell phys, ucell size, ucell align )
-{
-	/* printk("+ ofmem_claim phys %08lx %lx %ld\n", phys, size, align ); */
-	return ofmem_claim_phys_( phys, size, align, 0, get_ram_size(), 0 );
-}
-
-static ucell
-ofmem_claim_virt_( ucell virt, ucell size, ucell align, ucell min, ucell max, int reverse )
-{
-	ofmem_t *ofmem = OFMEM;
-	if( !align ) {
-		if( !is_free( virt, size, ofmem->virt_range ) ) {
-			printk("Non-free physical memory claimed!\n");
-			return -1;
-		}
-		add_entry( virt, size, &ofmem->virt_range );
-		return virt;
-	}
-
-	virt = find_area( align, size, ofmem->virt_range, min, max, reverse );
-	if( virt == (ucell)-1 ) {
-		printk("ofmem_claim_virt - out of space\n");
-		return -1;
-	}
-	add_entry( virt, size, &ofmem->virt_range );
-	return virt;
-}
-
-ucell
-ofmem_claim_virt( ucell virt, ucell size, ucell align )
-{
-	/* printk("+ ofmem_claim virt %08lx %lx %ld\n", virt, size, align ); */
-	return ofmem_claim_virt_( virt, size, align, get_ram_size() , IO_BASE, 0 );
-}
-
-
-/* allocate both physical and virtual space and add a translation */
-ucell
-ofmem_claim( ucell addr, ucell size, ucell align )
-{
-	ofmem_t *ofmem = OFMEM;
-	ucell virt, phys;
-	ucell offs = addr & 0xfff;
-
-	/* printk("+ ofmem_claim %08lx %lx %ld\n", addr, size, align ); */
-	virt = phys = 0;
-	if( !align ) {
-		if( is_free(addr, size, ofmem->virt_range) &&
-		    is_free(addr, size, ofmem->phys_range) ) {
-			ofmem_claim_phys_( addr, size, 0, 0, 0, 0 );
-			ofmem_claim_virt_( addr, size, 0, 0, 0, 0 );
-			virt = phys = addr;
-		} else {
-			printk("**** ofmem_claim failure ***!\n");
-			return -1;
-		}
-	} else {
-		if( align < 0x1000 )
-			align = 0x1000;
-		phys = ofmem_claim_phys_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
-		virt = ofmem_claim_virt_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
-		if( phys == (ucell)-1 || virt == (ucell)-1 ) {
-			printk("ofmem_claim failed\n");
-			return -1;
-		}
-		/* printk("...phys = %08lX, virt = %08lX, size = %08lX\n", phys, virt, size ); */
-	}
-
-	/* align */
-	if( phys & 0xfff ) {
-		size += (phys & 0xfff);
-		virt -= (phys & 0xfff);
-		phys &= ~0xfff;
-	}
-	if( size & 0xfff )
-		size = (size + 0xfff) & ~0xfff;
-
-	/* printk("...free memory found... phys: %08lX, virt: %08lX, size %lX\n", phys, virt, size ); */
-	ofmem_map( phys, virt, size, def_memmode(phys) );
-	return virt + offs;
-}
-
-
-/************************************************************************/
-/*	keep track of ea -> phys translations				*/
-/************************************************************************/
-
-static void
-split_trans( ucell virt )
-{
-	ofmem_t *ofmem = OFMEM;
-	translation_t *t, *t2;
-
-	for( t=ofmem->trans; t; t=t->next ) {
-		if( virt > t->virt && virt < t->virt + t->size-1 ) {
-			t2 = (translation_t*)malloc( sizeof(translation_t) );
-			t2->virt = virt;
-			t2->size = t->size - (virt - t->virt);
-			t->size = virt - t->virt;
-			t2->phys = t->phys + t->size;
-			t2->mode = t->mode;
-			t2->next = t->next;
-			t->next = t2;
-		}
-	}
-}
-
-static int
-map_page_range( ucell virt, ucell phys, ucell size, ucell mode )
-{
-	ofmem_t *ofmem = OFMEM;
-	translation_t *t, **tt;
-
-	split_trans( virt );
-	split_trans( virt + size );
-
-	/* detect remappings */
-	for( t=ofmem->trans; t; ) {
-		if( virt == t->virt || (virt < t->virt && virt + size > t->virt )) {
-			if( t->phys + virt - t->virt != phys ) {
-				printk("mapping altered (ea " FMT_ucellx ")\n", t->virt );
-			} else if( t->mode != mode ){
-				printk("mapping mode altered\n");
-			}
-			for( tt=&ofmem->trans; *tt != t ; tt=&(**tt).next )
-				;
-			*tt = t->next;
-			free((char*)t);
-			t=ofmem->trans;
-			continue;
-		}
-		t=t->next;
-	}
-	/* add mapping */
-	for( tt=&ofmem->trans; *tt && (**tt).virt < virt ; tt=&(**tt).next )
-		;
-	t = (translation_t*)malloc( sizeof(translation_t) );
-	t->virt = virt;
-	t->phys = phys;
-	t->size = size;
-	t->mode = mode;
-	t->next = *tt;
-	*tt = t;
-
-	ofmem_update_translations();
-
-	return 0;
-}
-
-int
-ofmem_map( ucell phys, ucell virt, ucell size, ucell mode )
-{
-	ofmem_t *ofmem = OFMEM;
-	/* printk("+ofmem_map: %08lX --> %08lX (size %08lX, mode 0x%02X)\n",
-	   virt, phys, size, mode ); */
-
-	if( (phys & 0xfff) || (virt & 0xfff) || (size & 0xfff) ) {
-		printk("ofmem_map: Bad parameters (" FMT_ucellX " " FMT_ucellX " "
-				FMT_ucellX ")\n",
-				phys, virt, size );
-		phys &= ~0xfff;
-		virt &= ~0xfff;
-		size = (size + 0xfff) & ~0xfff;
-	}
-#if 1
-	/* claim any unclaimed virtual memory in the range */
-	fill_range( virt, size, &ofmem->virt_range );
-	/* hmm... we better claim the physical range too */
-	fill_range( phys, size, &ofmem->phys_range );
-#endif
-	//printk("map_page_range %08lx -> %08lx %08lx\n", virt, phys, size );
-	map_page_range( virt, phys, size, (mode==-1)? def_memmode(phys) : mode );
-	return 0;
-}
-
-/* virtual -> physical. */
-ucell
-ofmem_translate( ucell virt, ucell *mode )
-{
-	ofmem_t *ofmem = OFMEM;
-	translation_t *t;
-
-	for( t=ofmem->trans; t && t->virt <= virt ; t=t->next ) {
-		ucell offs;
-		if( t->virt + t->size - 1 < virt )
-			continue;
-		offs = virt - t->virt;
-		*mode = t->mode;
-		return t->phys + offs;
-	}
-
-	//printk("ofmem_translate: no translation defined (%08lx)\n", virt);
-	//print_trans();
-	return -1;
-}
-
-/* release memory allocated by ofmem_claim */
-void
-ofmem_release( ucell virt, ucell size )
-{
-	/* printk("ofmem_release unimplemented (%08lx, %08lx)\n", virt, size ); */
 }
 
 
@@ -616,9 +177,9 @@ ea_to_phys( ucell ea, ucell *mode )
 	}
 
 	phys = ofmem_translate(ea, mode);
-	if( phys == (ucell)-1 ) {
+	if( phys == -1 ) {
 		phys = ea;
-		*mode = def_memmode( phys );
+		*mode = ofmem_arch_default_translation_mode( phys );
 
 		/* print_virt_range(); */
 		/* print_phys_range(); */
@@ -824,15 +385,10 @@ setup_mmu( ulong ramsize )
 void
 ofmem_init( void )
 {
+	ofmem_t *ofmem = ofmem_arch_get_private();
+
 	ofmem_claim_phys( 0, get_ram_bottom(), 0 );
 	ofmem_claim_virt( 0, get_ram_bottom(), 0 );
-	ofmem_claim_phys( get_ram_top(), get_ram_size() - get_ram_top(), 0);
-	ofmem_claim_virt( get_ram_top(), get_ram_size() - get_ram_top(), 0);
-}
-
-void
-ofmem_register( phandle_t ph )
-{
-	cpu_handle = ph;
-	ofmem_update_translations();
+	ofmem_claim_phys( get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
+	ofmem_claim_virt( get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
 }

@@ -451,6 +451,8 @@ arch_of_init( void )
         const char *stdin_path, *stdout_path;
         uint32_t temp = 0;
 
+    ofmem_t *ofmem = ofmem_arch_get_private();
+
         modules_init();
         setup_timers();
 #ifdef CONFIG_DRIVER_PCI
@@ -472,7 +474,7 @@ arch_of_init( void )
 
         printk("CPUs: %x\n", temp);
 
-        ram_size = get_ram_size();
+        ram_size = ofmem->ramsize;
 
         printk("Memory: %lldM\n", ram_size / 1024 / 1024);
 
@@ -619,7 +621,7 @@ arch_of_init( void )
         printk("CPU type %s\n", cpu->name);
 
 	snprintf(buf, sizeof(buf), "/cpus/%s", cpu->name);
-	ofmem_register(find_dev(buf));
+	ofmem_register(0, find_dev(buf));
 	node_methods_init(buf);
 
 #ifdef USE_RTAS
