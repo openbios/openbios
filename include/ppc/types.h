@@ -35,6 +35,11 @@ typedef uint32_t	ucell;
 typedef int64_t		dcell;
 typedef uint64_t	ducell;
 
+#define FMT_cell    "%d"
+#define FMT_ucell   "%u"
+#define FMT_ucellx  "%08x"
+#define FMT_ucellX  "%08X"
+
 #define bitspercell	(sizeof(cell)<<3)
 #define bitsperdcell	(sizeof(dcell)<<3)
 

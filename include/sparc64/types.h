@@ -32,9 +32,10 @@ typedef long long       int64_t;
 typedef int64_t   cell;
 typedef uint64_t  ucell;
 
-#define FMT_cell   "%lld"
+#define FMT_cell    "%lld"
 #define FMT_ucell   "%llu"
 #define FMT_ucellx  "%016llx"
+#define FMT_ucellX  "%016llX"
 
 #ifdef NEED_FAKE_INT128_T
 typedef struct {
