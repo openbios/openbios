@@ -298,9 +298,17 @@ unmap_pages(ucell virt, ucell size)
     }
 }
 
-void ofmem_unmap_pages(ucell virt, ucell size)
+void ofmem_arch_unmap_pages(ucell virt, ucell size)
 {
 	unmap_pages(virt, size);
+}
+
+void ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
+{
+	if (mode & SPITFIRE_TTE_LOCKED) {
+		// install locked tlb entries now
+		ofmem_map_pages(phys, virt, size, mode);
+	}
 }
 
 /*
@@ -332,13 +340,7 @@ mmu_claim(void)
     	virt = POP();
     }
 
-    printk("claim virt=" FMT_ucellx " size=" FMT_ucellx " align=" FMT_ucellx
-    		"\n",
-    		virt, size, align);
-
     virt = ofmem_claim_virt(virt, size, align);
-
-    printk("claimed virt=" FMT_ucellx "\n", virt);
 
     PUSH(virt);
 }
@@ -354,9 +356,8 @@ mmu_release(void)
 
     size = POP();
     virt = POP();
-    printk("release virt=" FMT_ucellx " size=" FMT_ucellx "\n", virt, size);
 
-    ofmem_release(virt, size);
+    ofmem_release_virt(virt, size);
 }
 
 /* ( phys size align --- base ) */
@@ -373,13 +374,7 @@ mem_claim( void )
         phys |= POP();
     }
 
-    printk("mem_claim phys=" FMT_ucellx " size=" FMT_ucellx
-    		" align=" FMT_ucellx "\n",
-    		phys, size, align);
-
     phys = ofmem_claim_phys(phys, size, align);
-
-    printk("ofmem_claim_phys result phys=" FMT_ucellx "\n", phys);
 
     ofmem_map(phys, phys, size, -1);
 
@@ -395,9 +390,8 @@ mem_release( void )
 
     size = POP();
     phys = POP();
-    printk("release virt=" FMT_ucellx " size=" FMT_ucellx "\n", phys, size);
 
-    ofmem_release(phys, size);
+    ofmem_release_phys(phys, size);
 }
 
 DECLARE_NODE(memory, INSTALL_OPEN, 0, "/memory");

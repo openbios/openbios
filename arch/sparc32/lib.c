@@ -68,25 +68,6 @@ struct linux_mlist_v0 *ptphys;
 struct linux_mlist_v0 *ptmap;
 struct linux_mlist_v0 *ptavail;
 
-typedef struct alloc_desc {
-	struct alloc_desc 	*next;
-	int			size;			/* size (including) this struct */
-} alloc_desc_t;
-
-typedef struct mem_range {
-	struct mem_range	*next;
-	ulong			start;
-	ulong			size;
-} range_t;
-
-typedef struct trans {
-	struct trans		*next;
-	ulong			virt;			/* chain is sorted by virt */
-	ulong			size;
-	ulong			phys;
-	int			mode;
-} translation_t;
-
 static struct {
 	char 			*next_malloc;
         int                     left;
