@@ -323,10 +323,10 @@ DECLARE_NODE( mmu_ciface, 0, 0, "/packages/client-iface" );
 static void
 mem_claim( void )
 {
-	int align = POP();
-	int size = POP();
-	int phys = POP();
-	int ret = ofmem_claim_phys( phys, size, align );
+	ucell align = POP();
+	ucell size = POP();
+	ucell phys = POP();
+	ucell ret = ofmem_claim_phys( phys, size, align );
 
 	if( ret == -1 ) {
 		printk("MEM: claim failure\n");
@@ -347,10 +347,10 @@ mem_release( void )
 static void
 mmu_claim( void )
 {
-	int align = POP();
-	int size = POP();
-	int phys = POP();
-	int ret = ofmem_claim_virt( phys, size, align );
+	ucell align = POP();
+	ucell size = POP();
+	ucell phys = POP();
+	ucell ret = ofmem_claim_virt( phys, size, align );
 
 	if( ret == -1 ) {
 		printk("MMU: CLAIM failure\n");
@@ -371,11 +371,11 @@ mmu_release( void )
 static void
 mmu_map( void )
 {
-	int mode = POP();
-	int size = POP();
-	int virt = POP();
-	int phys = POP();
-	int ret;
+	ucell mode = POP();
+	ucell size = POP();
+	ucell virt = POP();
+	ucell phys = POP();
+	ucell ret;
 
 	/* printk("mmu_map: %x %x %x %x\n", phys, virt, size, mode ); */
 	ret = ofmem_map( phys, virt, size, mode );
@@ -398,15 +398,15 @@ mmu_unmap( void )
 static void
 mmu_translate( void )
 {
-	ulong mode;
-	int virt = POP();
-	int phys = ofmem_translate( virt, &mode );
+	ucell mode;
+	ucell virt = POP();
+	ucell phys = ofmem_translate( virt, &mode );
 
 	if( phys == -1 ) {
 		PUSH( 0 );
 	} else {
 		PUSH( phys );
-		PUSH( (int)mode );
+		PUSH( mode );
 		PUSH( -1 );
 	}
 }
@@ -415,10 +415,10 @@ mmu_translate( void )
 static void
 ciface_claim( void )
 {
-	int align = POP();
-	int size = POP();
-	int virt = POP();
-	int ret = ofmem_claim( virt, size, align );
+	ucell align = POP();
+	ucell size = POP();
+	ucell virt = POP();
+	ucell ret = ofmem_claim( virt, size, align );
 
 	/* printk("ciface_claim: %08x %08x %x\n", virt, size, align ); */
 	PUSH( ret );
