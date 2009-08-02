@@ -1,5 +1,10 @@
 #!/bin/sh
 
+#
+# MOLPATH is needed if you want to build openbios-mol.elf
+#
+MOLPATH=$HOME/mol-0.9.71
+
 if [ x"$1" = x ]; then
   printf "Usage:\n  $0 [arch-config]...\n"
   printf "arch-config values supported for native builds:\n"
@@ -9,19 +14,121 @@ if [ x"$1" = x ]; then
   exit 0
 fi
 
+crosscflags()
+{
+    local host=$1
+    local target=$2
+
+    if test "$host" = "powerpc" -o "$host" = "ppc" \
+        -o "$host" = "mips" -o "$host" = "s390" \
+        -o "$host" = "sparc32" -o "$host" = "sparc64" \
+        -o "$host" = "m68k" -o "$host" = "armv4b"; then
+        hostbigendian="yes"
+    else
+        hostbigendian="no"
+    fi
+
+# host long bits test
+    if test "$host" = "sparc64" -o "$host" = "ia64" \
+        -o "$host" = "amd64" -o "$host" = "x86_64" \
+        -o "$host" = "alpha"; then
+        hostlongbits="64"
+    else
+        hostlongbits="32"
+    fi
+
+    if test "$target" = "powerpc" -o "$target" = "ppc" \
+        -o "$target" = "mips" -o "$target" = "s390" \
+        -o "$target" = "sparc32" -o "$target" = "sparc64" \
+        -o "$target" = "m68k" -o "$target" = "armv4b"; then
+        targetbigendian="yes"
+    else
+        targetbigendian="no"
+    fi
+
+# target long bits test
+    if test "$target" = "sparc64" -o "$target" = "ia64" \
+        -o "$target" = "amd64"  -o "target" = "x86_64" \
+        -o "$target" = "alpha"; then
+        targetlongbits="64"
+    else
+        targetlongbits="32"
+    fi
+
+    if test "$targetbigendian" = "$hostbigendian"; then
+        cflags="-USWAP_ENDIANNESS"
+    else
+        cflags="-DSWAP_ENDIANNESS"
+    fi
+
+    if test "$targetlongbits" = "$hostlongbits"; then
+        cflags="$cflags -DNATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH"
+    elif test "$targetlongbits" -lt "$hostlongbits"; then
+        cflags="$cflags -DNATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH"
+    else
+        cflags="$cflags -DNATIVE_BITWIDTH_LARGER_THAN_HOST_BITWIDTH"
+    fi
+
+    if test "$host" = "x86" -a "$targetlongbits" = "64"; then
+        cflags="$cflags -DNEED_FAKE_INT128_T"
+    fi
+
+    CROSSCFLAGS=$cflags
+}
+
+archname()
+{
+    HOSTARCH=`uname -m | sed -e s/i.86/x86/ -e s/i86pc/x86/ \
+	-e s/sun4u/sparc64/ -e s/sparc$/sparc32/ \
+	-e s/arm.*/arm/ -e s/sa110/arm/ -e s/x86_64/amd64/ \
+	-e "s/Power Macintosh/ppc/"`
+}
+
 # This is needed because viewvc messes with the permissions of executables:
 chmod 755 utils/dist/debian/rules
 chmod 755 config/scripts/switch-arch
-chmod 755 config/scripts/archname
 chmod 755 config/scripts/reldir
-chmod 755 config/scripts/crosscflags
+
 if test "x$HOSTARCH" = "x"; then
-    HOSTARCH=`config/scripts/archname`
+    archname
 fi
 
 echo "Configuring OpenBIOS on $HOSTARCH for $*"
 for RULES_ARCH in $*; do
-    ARCH=`cat config/examples/${RULES_ARCH}_rules.xml |grep "^ARCH" |cut -d\= -f2|tr -d \ `
+    ARCH=`echo $RULES_ARCH | sed s/cross-//g`
+    case $ARCH in
+        amd64)
+        TARGET="x86_64-linux-gnu-"
+        CFLAGS="-fno-builtin"
+        ;;
+
+        ppc)
+        TARGET="powerpc-linux-gnu-"
+        CFLAGS="-msoft-float -fno-builtin-bcopy -fno-builtin-log2"
+        ;;
+
+        sparc32)
+        TARGET="sparc-elf-"
+        CFLAGS="-Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc -fno-builtin"
+        AS_FLAGS="-Wa,-xarch=v8 -Wa,-32"
+        ;;
+
+        sparc64)
+        TARGET="sparc64-elf-"
+        CFLAGS="-Wa,-xarch=v9b -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany -fno-builtin"
+        AS_FLAGS="-Wa,-xarch=v9b -Wa,-64"
+        ;;
+
+        x86)
+        TARGET="i486-linux-gnu-"
+        CFLAGS="-fno-builtin -m32"
+        AS_FLAGS="-Wa,-32"
+        ;;
+    esac
+    if test "$ARCH" = "$RULES_ARCH"; then
+        TARGET=""
+    fi
+    crosscflags $HOSTARCH $ARCH
     OBJDIR=obj-$ARCH
     printf "Initializing build tree $OBJDIR..."
     rm -rf "$OBJDIR"
@@ -60,15 +167,35 @@ for RULES_ARCH in $*; do
     ODIR=.
 
     printf "Creating target Makefile..."
-    ln -s $SRCDIR/config/examples/${RULES_ARCH}_rules.xml $ODIR/rules.xml
+    echo "ARCH=$ARCH" > $ODIR/config.mak
+    echo "TARGET=$TARGET" >> $ODIR/config.mak
+    echo "CFLAGS=$CFLAGS" >> $ODIR/config.mak
+    echo "AS_FLAGS=$AS_FLAGS" >> $ODIR/config.mak
+    echo "HOSTARCH?=$HOSTARCH" >> $ODIR/config.mak
+    echo "CROSSCFLAGS=$CROSSCFLAGS" >> $ODIR/config.mak
+    ln -s $SRCDIR/config/xml/rules.xml $ODIR/rules.xml
     ln -s $SRCDIR/config/examples/${RULES_ARCH}_config.xml $ODIR/config.xml
+    ln -s ../Makefile.target $ODIR/Makefile
     xsltproc $SRCDIR/config/xml/xinclude.xsl $SRCDIR/build.xml > $ODIR/build-full.xml
-    xsltproc $SRCDIR/config/xml/makefile.xsl $ODIR/build-full.xml > $ODIR/Makefile
+    xsltproc $SRCDIR/config/xml/makefile.xsl $ODIR/build-full.xml > $ODIR/rules.mak
     echo "ok."
     printf "Creating config files..."
     xsltproc $SRCDIR/config/xml/config-c.xsl $SRCDIR/config/examples/${RULES_ARCH}_config.xml > $ODIR/host/include/autoconf.h
     xsltproc $SRCDIR/config/xml/config-c.xsl $SRCDIR/config/examples/${RULES_ARCH}_config.xml > $ODIR/target/include/autoconf.h
     xsltproc $SRCDIR/config/xml/config-forth.xsl $SRCDIR/config/examples/${RULES_ARCH}_config.xml > $ODIR/forth/config.fs
     echo "ok."
+
+    grep CONFIG_MOL $ODIR/forth/config.fs >/dev/null && ( \
+        echo "Using MOL path $MOLPATH..."; \
+        ln -s $MOLPATH/src/shared/osi_calls.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/shared/osi.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/shared/prom.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/include/boothelper_sh.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/include/video_sh.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/include/pseudofs_sh.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/include/kbd_sh.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/drivers/disk/include/scsi_sh.h $ODIR/target/include/; \
+        ln -s $MOLPATH/src/drivers/disk/include/ablk_sh.h $ODIR/target/include/ ) || true
+
     cd $SRCDIR
 done

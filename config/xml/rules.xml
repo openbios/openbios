@@ -1,0 +1,23 @@
+<rules>
+ <!-- host compiler build rules -->
+<rule target="host" entity="executable">
+	$(HOSTCC) $(HOSTCFLAGS) -o $@ $^
+</rule>
+<rule target="host" entity="object">
+	$(HOSTCC) $(HOSTCFLAGS) $(HOSTINCLUDES) -c -o $@ $^
+</rule>
+<rule target="host" entity="library">
+	$(AR) cru $@ $^; $(RANLIB) $@
+</rule>
+
+ <!-- target/cross compiler build rules -->
+<rule target="target" entity="executable">
+	$(CC) $(CFLAGS) -o $@ $^
+</rule>
+<rule target="target" entity="object">
+	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $^
+</rule>
+<rule target="target" entity="library">
+	$(AR) cru $@ $^; $(RANLIB) $@
+</rule>
+</rules>

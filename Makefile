@@ -1,4 +1,3 @@
-HOSTARCH=$(shell config/scripts/archname)
 ODIRS=$(wildcard obj-*)
 TARGETS=$(subst obj-,,$(ODIRS))
 
@@ -9,13 +8,13 @@ requirements:
 			echo; exit 1 )
 
 info:
-	@echo "Building OpenBIOS on $(HOSTARCH) for $(TARGETS)"
+	@echo "Building OpenBIOS for $(TARGETS)"
 
 clean:
-	@printf "Cleaning up..."
-	@rm -rf $(ODIRS) forth.dict.core
-	@find . -type f -name "*~" -exec rm \{\} \;
-	@echo " ok"
+	@echo "Cleaning up..."
+	@for dir in $(ODIRS); do \
+		$(MAKE) -C $$dir clean; \
+	done
 
 build:
 	@printf "Building..."
