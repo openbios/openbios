@@ -71,21 +71,21 @@ extern char _end[];
 
 typedef struct alloc_desc {
 	struct alloc_desc 	*next;
-	int			size;			/* size (including) this struct */
+	ucell			size;			/* size (including) this struct */
 } alloc_desc_t;
 
 typedef struct mem_range {
 	struct mem_range	*next;
-	ulong			start;
-	ulong			size;
+	ucell			start;
+	ucell			size;
 } range_t;
 
 typedef struct trans {
 	struct trans		*next;
-	ulong			virt;			/* chain is sorted by virt */
-	ulong			size;
-	ulong			phys;
-	int			mode;
+	ucell			virt;			/* chain is sorted by virt */
+	ucell			size;
+	ucell			phys;
+	ucell			mode;
 } translation_t;
 
 static struct {
@@ -227,8 +227,8 @@ print_trans( void )
 /*	misc								*/
 /************************************************************************/
 
-static inline int
-def_memmode( ulong phys )
+static inline ucell
+def_memmode( ucell phys )
 {
 	/* XXX: Guard bit not set as it should! */
 	if( phys < 0x80000000 || phys >= 0xffc00000 )
@@ -242,7 +242,7 @@ def_memmode( ulong phys )
 /************************************************************************/
 
 static int
-is_free( ulong ea, ulong size, range_t *r )
+is_free( ucell ea, ucell size, range_t *r )
 {
 	if( size == 0 )
 		return 1;
@@ -256,7 +256,7 @@ is_free( ulong ea, ulong size, range_t *r )
 }
 
 static void
-add_entry_( ulong ea, ulong size, range_t **r )
+add_entry_( ucell ea, ucell size, range_t **r )
 {
 	range_t *nr;
 
@@ -270,7 +270,7 @@ add_entry_( ulong ea, ulong size, range_t **r )
 }
 
 static int
-add_entry( ulong ea, ulong size, range_t **r )
+add_entry( ucell ea, ucell size, range_t **r )
 {
 	if( !is_free( ea, size, *r ) ) {
 		printk("add_entry: range not free!\n");
@@ -301,20 +301,20 @@ join_ranges( range_t **rr )
 }
 
 static void
-fill_range( ulong ea, int size, range_t **rr )
+fill_range( ucell ea, ucell size, range_t **rr )
 {
 	add_entry_( ea, size, rr );
 	join_ranges( rr );
 }
 
-static ulong
-find_area( ulong align, ulong size, range_t *r, ulong min, ulong max, int reverse )
+static ucell
+find_area( ucell align, ucell size, range_t *r, ucell min, ucell max, int reverse )
 {
-	ulong base = min;
+	ucell base = min;
 	range_t *r2;
 
 	if( (align & (align-1)) ) {
-		printk("bad alignment %ld\n", align);
+		printk("bad alignment " FMT_ucell "\n", align);
 		align = 0x1000;
 	}
 	if( !align )
@@ -353,11 +353,11 @@ find_area( ulong align, ulong size, range_t *r, ulong min, ulong max, int revers
 			base = r2->start - size;
 		}
 	}
-	return (ulong)-1;
+	return (ucell)-1;
 }
 
-static ulong
-ofmem_claim_phys_( ulong phys, ulong size, ulong align, int min, int max, int reverse )
+static ucell
+ofmem_claim_phys_( ucell phys, ucell size, ucell align, ucell min, ucell max, int reverse )
 {
 	if( !align ) {
 		if( !is_free( phys, size, ofmem.phys_range ) ) {
@@ -368,7 +368,7 @@ ofmem_claim_phys_( ulong phys, ulong size, ulong align, int min, int max, int re
 		return phys;
 	}
 	phys = find_area( align, size, ofmem.phys_range, min, max, reverse );
-	if( phys == (ulong)-1 ) {
+	if( phys == (ucell)-1 ) {
 		printk("ofmem_claim_phys - out of space\n");
 		return -1;
 	}
@@ -377,15 +377,15 @@ ofmem_claim_phys_( ulong phys, ulong size, ulong align, int min, int max, int re
 }
 
 /* if align != 0, phys is ignored. Returns -1 on error */
-ulong
-ofmem_claim_phys( ulong phys, ulong size, ulong align )
+ucell
+ofmem_claim_phys( ucell phys, ucell size, ucell align )
 {
 	/* printk("+ ofmem_claim phys %08lx %lx %ld\n", phys, size, align ); */
 	return ofmem_claim_phys_( phys, size, align, 0, RAMSIZE, 0 );
 }
 
-static ulong
-ofmem_claim_virt_( ulong virt, ulong size, ulong align, int min, int max, int reverse )
+static ucell
+ofmem_claim_virt_( ucell virt, ucell size, ucell align, ucell min, ucell max, int reverse )
 {
 	if( !align ) {
 		if( !is_free( virt, size, ofmem.virt_range ) ) {
@@ -397,7 +397,7 @@ ofmem_claim_virt_( ulong virt, ulong size, ulong align, int min, int max, int re
 	}
 
 	virt = find_area( align, size, ofmem.virt_range, min, max, reverse );
-	if( virt == (ulong)-1 ) {
+	if( virt == (ucell)-1 ) {
 		printk("ofmem_claim_virt - out of space\n");
 		return -1;
 	}
@@ -405,8 +405,8 @@ ofmem_claim_virt_( ulong virt, ulong size, ulong align, int min, int max, int re
 	return virt;
 }
 
-ulong
-ofmem_claim_virt( ulong virt, ulong size, ulong align )
+ucell
+ofmem_claim_virt( ucell virt, ucell size, ucell align )
 {
 	/* printk("+ ofmem_claim virt %08lx %lx %ld\n", virt, size, align ); */
 	return ofmem_claim_virt_( virt, size, align, RAMSIZE, 0x80000000, 0 );
@@ -414,11 +414,11 @@ ofmem_claim_virt( ulong virt, ulong size, ulong align )
 
 
 /* allocate both physical and virtual space and add a translation */
-ulong
-ofmem_claim( ulong addr, ulong size, ulong align )
+ucell
+ofmem_claim( ucell addr, ucell size, ucell align )
 {
-	ulong virt, phys;
-	ulong offs = addr & 0xfff;
+	ucell virt, phys;
+	ucell offs = addr & 0xfff;
 
 	/* printk("+ ofmem_claim %08lx %lx %ld\n", addr, size, align ); */
 	virt = phys = 0;
@@ -436,7 +436,7 @@ ofmem_claim( ulong addr, ulong size, ulong align )
 			align = 0x1000;
 		phys = ofmem_claim_phys_( addr, size, align, 0, RAMSIZE, 1 /* reverse */ );
 		virt = ofmem_claim_virt_( addr, size, align, 0, RAMSIZE, 1 /* reverse */ );
-		if( phys == (ulong)-1 || virt == (ulong)-1 ) {
+		if( phys == (ucell)-1 || virt == (ucell)-1 ) {
 			printk("ofmem_claim failed\n");
 			return -1;
 		}
@@ -463,7 +463,7 @@ ofmem_claim( ulong addr, ulong size, ulong align )
 /************************************************************************/
 
 static void
-split_trans( ulong virt )
+split_trans( ucell virt )
 {
 	translation_t *t, *t2;
 
@@ -482,7 +482,7 @@ split_trans( ulong virt )
 }
 
 static int
-map_page_range( ulong virt, ulong phys, ulong size, int mode )
+map_page_range( ucell virt, ucell phys, ucell size, ucell mode )
 {
 	translation_t *t, **tt;
 
@@ -493,7 +493,7 @@ map_page_range( ulong virt, ulong phys, ulong size, int mode )
 	for( t=ofmem.trans; t; ) {
 		if( virt == t->virt || (virt < t->virt && virt + size > t->virt )) {
 			if( t->phys + virt - t->virt != phys ) {
-				printk("mapping altered (ea %08lx)\n", t->virt );
+				printk("mapping altered (ea " FMT_ucellx ")\n", t->virt );
 			} else if( t->mode != mode ){
 				printk("mapping mode altered\n");
 			}
@@ -521,13 +521,15 @@ map_page_range( ulong virt, ulong phys, ulong size, int mode )
 }
 
 int
-ofmem_map( ulong phys, ulong virt, ulong size, int mode )
+ofmem_map( ucell phys, ucell virt, ucell size, ucell mode )
 {
 	/* printk("+ofmem_map: %08lX --> %08lX (size %08lX, mode 0x%02X)\n",
 	   virt, phys, size, mode ); */
 
 	if( (phys & 0xfff) || (virt & 0xfff) || (size & 0xfff) ) {
-		printk("ofmem_map: Bad parameters (%08lX %08lX %08lX)\n", phys, virt, size );
+		printk("ofmem_map: Bad parameters (" FMT_ucellX " " FMT_ucellX " "
+				FMT_ucellX ")\n",
+				phys, virt, size );
 		phys &= ~0xfff;
 		virt &= ~0xfff;
 		size = (size + 0xfff) & ~0xfff;
@@ -544,13 +546,13 @@ ofmem_map( ulong phys, ulong virt, ulong size, int mode )
 }
 
 /* virtual -> physical. */
-ulong
-ofmem_translate( ulong virt, ulong *mode )
+ucell
+ofmem_translate( ucell virt, ucell *mode )
 {
 	translation_t *t;
 
 	for( t=ofmem.trans; t && t->virt <= virt ; t=t->next ) {
-		ulong offs;
+		ucell offs;
 		if( t->virt + t->size - 1 < virt )
 			continue;
 		offs = virt - t->virt;
@@ -565,7 +567,7 @@ ofmem_translate( ulong virt, ulong *mode )
 
 /* release memory allocated by ofmem_claim */
 void
-ofmem_release( ulong virt, ulong size )
+ofmem_release( ucell virt, ucell size )
 {
 	/* printk("ofmem_release unimplemented (%08lx, %08lx)\n", virt, size ); */
 }
@@ -575,17 +577,17 @@ ofmem_release( ulong virt, ulong size )
 /*	page fault handler						*/
 /************************************************************************/
 
-static ulong
-ea_to_phys( ulong ea, int *mode )
+static ucell
+ea_to_phys( ucell ea, ucell *mode )
 {
-	ulong phys;
+	ucell phys;
 
 	/* hardcode our translation needs */
 	if( ea >= OF_CODE_START && ea < FREE_BASE_2 ) {
 		*mode = def_memmode( ea );
 		return ea;
 	}
-	if( (phys=ofmem_translate(ea, (ulong*)mode)) == (ulong)-1 ) {
+	if( (phys=ofmem_translate(ea, mode)) == (ucell)-1 ) {
 #ifdef I_WANT_MOLISMS
 		if( ea != 0x80816c00 )
 			printk("ea_to_phys: no translation for %08lx, using 1-1\n", ea );
@@ -605,7 +607,7 @@ ea_to_phys( ulong ea, int *mode )
 }
 
 static void
-hash_page( ulong ea, ulong phys, int mode )
+hash_page( ucell ea, ucell phys, ucell mode )
 {
 	static int next_grab_slot=0;
 	ulong *upte, cmp, hash1;
@@ -648,7 +650,7 @@ void
 dsi_exception( void )
 {
 	ulong dar, dsisr;
-	int mode;
+	ucell mode;
 
 	asm volatile("mfdar %0" : "=r" (dar) : );
 	asm volatile("mfdsisr %0" : "=r" (dsisr) : );
@@ -660,7 +662,7 @@ void
 isi_exception( void )
 {
 	ulong nip, srr1;
-	int mode;
+	ucell mode;
 
 	asm volatile("mfsrr0 %0" : "=r" (nip) : );
 	asm volatile("mfsrr1 %0" : "=r" (srr1) : );
