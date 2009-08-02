@@ -315,7 +315,7 @@ join_ranges( range_t **rr )
 }
 
 static void
-fill_range( ulong ea, ucell size, range_t **rr )
+fill_range( ucell ea, ucell size, range_t **rr )
 {
 	add_entry_( ea, size, rr );
 	join_ranges( rr );
@@ -328,7 +328,7 @@ find_area( ucell align, ucell size, range_t *r, ucell min, ucell max, int revers
 	range_t *r2;
 
 	if( (align & (align-1)) ) {
-		printk("bad alignment %d\n", align);
+		printk("bad alignment " FMT_ucell "\n", align);
 		align = 0x1000;
 	}
 	if( !align )
@@ -383,8 +383,8 @@ ofmem_claim_phys_( ucell phys, ucell size, ucell align, ucell min, ucell max, in
 		return phys;
 	}
 	phys = find_area( align, size, ofmem->phys_range, min, max, reverse );
-	if( phys == (ulong)-1 ) {
-		printk("ofmem->claim_phys - out of space\n");
+	if( phys == (ucell)-1 ) {
+		printk("ofmem_claim_phys - out of space\n");
 		return -1;
 	}
 	add_entry( phys, size, &ofmem->phys_range );
@@ -413,7 +413,7 @@ ofmem_claim_virt_( ucell virt, ucell size, ucell align, ucell min, ucell max, in
 	}
 
 	virt = find_area( align, size, ofmem->virt_range, min, max, reverse );
-	if( virt == (ulong)-1 ) {
+	if( virt == (ucell)-1 ) {
 		printk("ofmem_claim_virt - out of space\n");
 		return -1;
 	}
@@ -454,7 +454,7 @@ ofmem_claim( ucell addr, ucell size, ucell align )
 			align = 0x1000;
 		phys = ofmem_claim_phys_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
 		virt = ofmem_claim_virt_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
-		if( phys == (ulong)-1 || virt == (ulong)-1 ) {
+		if( phys == (ucell)-1 || virt == (ucell)-1 ) {
 			printk("ofmem_claim failed\n");
 			return -1;
 		}
@@ -481,7 +481,7 @@ ofmem_claim( ucell addr, ucell size, ucell align )
 /************************************************************************/
 
 static void
-split_trans( ulong virt )
+split_trans( ucell virt )
 {
 	ofmem_t *ofmem = OFMEM;
 	translation_t *t, *t2;
@@ -513,7 +513,7 @@ map_page_range( ucell virt, ucell phys, ucell size, ucell mode )
 	for( t=ofmem->trans; t; ) {
 		if( virt == t->virt || (virt < t->virt && virt + size > t->virt )) {
 			if( t->phys + virt - t->virt != phys ) {
-				printk("mapping altered (ea %08x)\n", t->virt );
+				printk("mapping altered (ea " FMT_ucellx ")\n", t->virt );
 			} else if( t->mode != mode ){
 				printk("mapping mode altered\n");
 			}

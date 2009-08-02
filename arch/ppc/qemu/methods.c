@@ -37,8 +37,8 @@ DECLARE_NODE( rtas, INSTALL_OPEN, 0, "+/rtas" );
 static void
 rtas_instantiate( void )
 {
-	int physbase = POP();
-	int s=0x1000, size = (int)of_rtas_end - (int)of_rtas_start;
+	ucell physbase = POP();
+	ucell s=0x1000, size = (ucell)of_rtas_end - (ucell)of_rtas_start;
 	ulong virt;
 
 	while( s < size )
@@ -166,10 +166,10 @@ DECLARE_NODE( mmu_ciface, 0, 0, "+/openprom/client-services" );
 static void
 mem_claim( void )
 {
-	int align = POP();
-	int size = POP();
-	int phys = POP();
-	int ret = ofmem_claim_phys( phys, size, align );
+	ucell align = POP();
+	ucell size = POP();
+	ucell phys = POP();
+	ucell ret = ofmem_claim_phys( phys, size, align );
 
 	if( ret == -1 ) {
 		printk("MEM: claim failure\n");
@@ -190,10 +190,10 @@ mem_release( void )
 static void
 mmu_claim( void )
 {
-	int align = POP();
-	int size = POP();
-	int phys = POP();
-	int ret = ofmem_claim_virt( phys, size, align );
+	ucell align = POP();
+	ucell size = POP();
+	ucell phys = POP();
+	ucell ret = ofmem_claim_virt( phys, size, align );
 
 	if( ret == -1 ) {
 		printk("MMU: CLAIM failure\n");
@@ -214,11 +214,11 @@ mmu_release( void )
 static void
 mmu_map( void )
 {
-	int mode = POP();
-	int size = POP();
-	int virt = POP();
-	int phys = POP();
-	int ret;
+	ucell mode = POP();
+	ucell size = POP();
+	ucell virt = POP();
+	ucell phys = POP();
+	ucell ret;
 
 	/* printk("mmu_map: %x %x %x %x\n", phys, virt, size, mode ); */
 	ret = ofmem_map( phys, virt, size, mode );
@@ -258,10 +258,10 @@ mmu_translate( void )
 static void
 ciface_claim( void )
 {
-	int align = POP();
-	int size = POP();
-	int virt = POP();
-	int ret = ofmem_claim( virt, size, align );
+	ucell align = POP();
+	ucell size = POP();
+	ucell virt = POP();
+	ucell ret = ofmem_claim( virt, size, align );
 
 	/* printk("ciface_claim: %08x %08x %x\n", virt, size, align ); */
 	PUSH( ret );
