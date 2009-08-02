@@ -25,6 +25,11 @@
 
 #define BIT(n)		(1U<<(31-(n)))
 
+/* called from assembly */
+extern void dsi_exception( void );
+extern void isi_exception( void );
+extern void setup_mmu( ulong code_base );
+
 #define FREE_BASE		0x00004000
 #define IO_BASE			0x80000000
 #define OFMEM			((ofmem_t*)FREE_BASE)

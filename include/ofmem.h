@@ -35,9 +35,6 @@ extern ucell 	ofmem_translate( ucell virt, ucell *ret_mode );
 ulong get_ram_size( void );
 ulong get_ram_top( void );
 ulong get_ram_bottom( void );
-void dsi_exception( void );
-void isi_exception( void );
-void setup_mmu( ulong ramsize );
 void ofmem_register( phandle_t ph );
 #elif defined(CONFIG_SPARC32)
 #define PAGE_SHIFT   12
