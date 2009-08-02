@@ -31,6 +31,7 @@ extern void isi_exception( void );
 extern void setup_mmu( ulong code_base );
 
 #define FREE_BASE		0x00004000
+#define OF_CODE_START	0xfff00000UL
 #define IO_BASE			0x80000000
 #define OFMEM			((ofmem_t*)FREE_BASE)
 #define OF_MALLOC_BASE		((char*)OFMEM + ((sizeof(ofmem_t) + 3) & ~3))
@@ -446,7 +447,7 @@ ofmem_claim( ucell addr, ucell size, ucell align )
 			ofmem_claim_virt_( addr, size, 0, 0, 0, 0 );
 			virt = phys = addr;
 		} else {
-			/* printk("**** ofmem_claim failure ***!\n"); */
+			printk("**** ofmem_claim failure ***!\n");
 			return -1;
 		}
 	} else {
@@ -550,8 +551,9 @@ ofmem_map( ucell phys, ucell virt, ucell size, ucell mode )
 	   virt, phys, size, mode ); */
 
 	if( (phys & 0xfff) || (virt & 0xfff) || (size & 0xfff) ) {
-		/* printk("ofmem_map: Bad parameters (%08lX %08lX %08lX)\n",
-		       phys, virt, size ); */
+		printk("ofmem_map: Bad parameters (" FMT_ucellX " " FMT_ucellX " "
+				FMT_ucellX ")\n",
+				phys, virt, size );
 		phys &= ~0xfff;
 		virt &= ~0xfff;
 		size = (size + 0xfff) & ~0xfff;
@@ -585,7 +587,7 @@ ofmem_translate( ucell virt, ucell *mode )
 
 	//printk("ofmem_translate: no translation defined (%08lx)\n", virt);
 	//print_trans();
-	return -1UL;
+	return -1;
 }
 
 /* release memory allocated by ofmem_claim */
@@ -605,16 +607,16 @@ ea_to_phys( ucell ea, ucell *mode )
 {
 	ucell phys;
 
-	if (ea >= 0xfff00000UL) {
+	if (ea >= OF_CODE_START) {
 		/* ROM into RAM */
-		ea -= 0xfff00000UL;
+		ea -= OF_CODE_START;
 		phys = get_rom_base() + ea;
 		*mode = 0x02;
 		return phys;
 	}
 
 	phys = ofmem_translate(ea, mode);
-	if( phys == -1UL ) {
+	if( phys == (ucell)-1 ) {
 		phys = ea;
 		*mode = def_memmode( phys );
 
