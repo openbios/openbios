@@ -126,16 +126,32 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 {
 	phandle_t ph, chosen, aliases, options;
 	char buf[6];
+	int width = VGA_DEFAULT_WIDTH;
+	int height = VGA_DEFAULT_HEIGHT;
+	int depth = VGA_DEFAULT_DEPTH;
+	int linebytes = VGA_DEFAULT_LINEBYTES;
 
-	vga_vbe_set_mode(VGA_DEFAULT_WIDTH, VGA_DEFAULT_HEIGHT,
-			 VGA_DEFAULT_DEPTH);
+#if defined(CONFIG_QEMU) && defined(CONFIG_PPC)
+	int w, h, d;
+	w = fw_cfg_read_i16(FW_CFG_PPC_WIDTH);
+	h = fw_cfg_read_i16(FW_CFG_PPC_HEIGHT);
+	d = fw_cfg_read_i16(FW_CFG_PPC_DEPTH);
+	if (w && h && d) {
+		width = w;
+		height = h;
+		depth = d;
+		linebytes = (width * ((depth + 7) / 8));
+	}
+#endif
+
+	vga_vbe_set_mode(width, height, depth);
 
 	ph = find_dev(path);
 
-	set_int_property(ph, "width", VGA_DEFAULT_WIDTH);
-	set_int_property(ph, "height", VGA_DEFAULT_HEIGHT);
-	set_int_property(ph, "depth", VGA_DEFAULT_DEPTH);
-	set_int_property(ph, "linebytes", VGA_DEFAULT_LINEBYTES);
+	set_int_property(ph, "width", width);
+	set_int_property(ph, "height", height);
+	set_int_property(ph, "depth", depth);
+	set_int_property(ph, "linebytes", linebytes);
 	set_int_property(ph, "address", fb & ~0x0000000F);
 
 	chosen = find_dev("/chosen");
@@ -147,9 +163,9 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 	set_property(aliases, "screen", path, strlen(path) + 1);
 
 	options = find_dev("/options");
-	snprintf(buf, sizeof(buf), "%d", VGA_DEFAULT_WIDTH / FONT_WIDTH);
+	snprintf(buf, sizeof(buf), "%d", width / FONT_WIDTH);
 	set_property(options, "screen-#columns", buf, strlen(buf) + 1);
-	snprintf(buf, sizeof(buf), "%d", VGA_DEFAULT_HEIGHT / FONT_HEIGHT);
+	snprintf(buf, sizeof(buf), "%d", height / FONT_HEIGHT);
 	set_property(options, "screen-#rows", buf, strlen(buf) + 1);
 
 	if (rom_size >= 8) {
@@ -164,6 +180,5 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 		}
 	}
 
-	init_video(fb, VGA_DEFAULT_WIDTH, VGA_DEFAULT_HEIGHT,
-		   VGA_DEFAULT_DEPTH, VGA_DEFAULT_LINEBYTES);
+	init_video(fb, width, height, depth, linebytes);
 }

@@ -3,6 +3,9 @@
 
 #include "asm/types.h"
 
+#define NO_QEMU_PROTOS
+#include "openbios/fw_cfg.h"
+
 extern unsigned long virt_offset;
 
 #define phys_to_virt(phys) ((void *) ((unsigned long) (phys) - virt_offset))
@@ -160,4 +163,11 @@ extern void outl(u32 reg, u32 val);
 extern void outsw(u32 reg, const void *addr, unsigned long count);
 #endif
 #endif
+
+#if defined(CONFIG_QEMU)
+#define FW_CFG_PPC_WIDTH        (FW_CFG_ARCH_LOCAL + 0x00)
+#define FW_CFG_PPC_HEIGHT       (FW_CFG_ARCH_LOCAL + 0x01)
+#define FW_CFG_PPC_DEPTH        (FW_CFG_ARCH_LOCAL + 0x02)
+#endif
+
 #endif /* _ASM_IO_H */
