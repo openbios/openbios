@@ -26,7 +26,7 @@ void __exit_context(void); /* assembly routine */
  * It is placed at the bottom of our stack, and loaded by assembly routine
  * to start us up.
  */
-struct context main_ctx __attribute__((section (".initctx"))) = {
+static struct context main_ctx __attribute__((section (".initctx"))) = {
     .gdt_base = (uint32_t) gdt,
     .gdt_limit = GDT_LIMIT,
     .cs = FLAT_CS,

@@ -14,7 +14,8 @@
 struct mbheader {
     unsigned int magic, flags, checksum;
 };
-const struct mbheader multiboot_header
+
+static const struct mbheader multiboot_header
 	__attribute__((section (".hdr"))) =
 {
     MULTIBOOT_HEADER_MAGIC,
