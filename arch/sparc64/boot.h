@@ -36,7 +36,7 @@ extern char boot_device;
 void boot(void);
 
 // sys_info.c
-extern unsigned int qemu_mem_size;
+extern uint64_t qemu_mem_size;
 
 // console.c
 void ob_su_init(uint64_t base, uint64_t offset, int intr);

@@ -3,6 +3,7 @@
 #include "elf_boot.h"
 #include "sys_info.h"
 #include "context.h"
+#include "boot.h"
 
 #define printf printk
 #ifdef CONFIG_DEBUG_BOOT
