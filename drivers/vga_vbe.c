@@ -101,20 +101,41 @@ void vga_vbe_set_mode(int width, int height, int depth)
         vga_build_rgb_palette();
 }
 
+#ifdef CONFIG_VGA_WIDTH
+#define VGA_DEFAULT_WIDTH	CONFIG_VGA_WIDTH
+#else
+#define VGA_DEFAULT_WIDTH	800
+#endif
+
+#ifdef CONFIG_VGA_HEIGHT
+#define VGA_DEFAULT_HEIGHT	CONFIG_VGA_HEIGHT
+#else
+#define VGA_DEFAULT_HEIGHT	600
+#endif
+
+#ifdef CONFIG_VGA_DEPTH
+#define VGA_DEFAULT_DEPTH	CONFIG_VGA_DEPTH
+#else
+#define VGA_DEFAULT_DEPTH	8
+#endif
+
+#define VGA_DEFAULT_LINEBYTES	(VGA_DEFAULT_WIDTH*((VGA_DEFAULT_DEPTH+7)/8))
+
 void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
                   unsigned long rom, uint32_t rom_size)
 {
 	phandle_t ph, chosen, aliases, options;
 	char buf[6];
 
-	vga_vbe_set_mode(800, 600, 8);
+	vga_vbe_set_mode(VGA_DEFAULT_WIDTH, VGA_DEFAULT_HEIGHT,
+			 VGA_DEFAULT_DEPTH);
 
 	ph = find_dev(path);
 
-	set_int_property(ph, "width", 800);
-	set_int_property(ph, "height", 600);
-	set_int_property(ph, "depth", 8);
-	set_int_property(ph, "linebytes", 800);
+	set_int_property(ph, "width", VGA_DEFAULT_WIDTH);
+	set_int_property(ph, "height", VGA_DEFAULT_HEIGHT);
+	set_int_property(ph, "depth", VGA_DEFAULT_DEPTH);
+	set_int_property(ph, "linebytes", VGA_DEFAULT_LINEBYTES);
 	set_int_property(ph, "address", fb & ~0x0000000F);
 
 	chosen = find_dev("/chosen");
@@ -126,9 +147,9 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 	set_property(aliases, "screen", path, strlen(path) + 1);
 
 	options = find_dev("/options");
-	snprintf(buf, sizeof(buf), "%d", 800 / FONT_WIDTH);
+	snprintf(buf, sizeof(buf), "%d", VGA_DEFAULT_WIDTH / FONT_WIDTH);
 	set_property(options, "screen-#columns", buf, strlen(buf) + 1);
-	snprintf(buf, sizeof(buf), "%d", 600 / FONT_HEIGHT);
+	snprintf(buf, sizeof(buf), "%d", VGA_DEFAULT_HEIGHT / FONT_HEIGHT);
 	set_property(options, "screen-#rows", buf, strlen(buf) + 1);
 
 	if (rom_size >= 8) {
@@ -143,5 +164,6 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 		}
 	}
 
-	init_video(fb, 800, 600, 8, 800);
+	init_video(fb, VGA_DEFAULT_WIDTH, VGA_DEFAULT_HEIGHT,
+		   VGA_DEFAULT_DEPTH, VGA_DEFAULT_LINEBYTES);
 }

@@ -37,6 +37,9 @@
   <option name="CONFIG_FONT_8X16" type="boolean" value="false"/>
   <option name="CONFIG_OFMEM" type="boolean" value="true"/>
   <option name="CONFIG_OFMEM_MALLOC_ALIGN" type="integer" value="4"/>
+  <option name="CONFIG_VGA_WIDTH" type="integer" value="800"/>
+  <option name="CONFIG_VGA_HEIGHT" type="integer" value="600"/>
+  <option name="CONFIG_VGA_DEPTH" type="integer" value="8"/>
 
   <!-- Filesystem Configuration -->
   <option name="CONFIG_DISK_LABEL" type="boolean" value="true"/>
