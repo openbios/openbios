@@ -52,13 +52,12 @@ void boot(void);
 
 /* local variables */
 
-ucell *latest, *state;
-ucell *memory;
+static ucell *memory;
 
-int diskemu;
+static int diskemu;
 
 static int segfault = 0;
-int verbose = 0;
+static int verbose = 0;
 
 #ifdef CONFIG_PPC
 uint32_t isa_io_base;
@@ -477,7 +476,7 @@ int main(int argc, char *argv[])
 		sa.sa_sigaction = segv_handler;
 		sigemptyset(&sa.sa_mask);
 		sa.sa_flags = SA_SIGINFO | SA_NODEFER;
-		sigaction(SIGSEGV, &sa, 0);
+		sigaction(SIGSEGV, &sa, NULL);
 
 		if (verbose)
 			printk("done.\n");
@@ -492,7 +491,7 @@ int main(int argc, char *argv[])
         sa.sa_sigaction = int_handler;
         sigemptyset(&sa.sa_mask);
         sa.sa_flags = SA_SIGINFO | SA_NODEFER;
-        sigaction(SIGINT, &sa, 0);
+        sigaction(SIGINT, &sa, NULL);
 
         if (verbose)
             printk("done.\n");

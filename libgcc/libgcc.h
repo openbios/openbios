@@ -27,7 +27,7 @@ DItype __ashrdi3 (DItype u, word_type b);
 // Must be implemented outside:
 void __divide_error(void);
 
-#ifdef __arch64__
+#if defined(__arch64__) || defined(__LP64__)
 typedef          int TItype     __attribute__ ((mode (TI)));
 
 __uint128_t __udivmodti4(__uint128_t num, __uint128_t den, __uint128_t *rem);
