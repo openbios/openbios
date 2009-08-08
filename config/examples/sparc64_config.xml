@@ -4,6 +4,7 @@
   <!-- generic -->
   <option name="CONFIG_SPARC" type="boolean" value="true"/>
   <option name="CONFIG_SPARC64" type="boolean" value="true"/>
+  <option name="CONFIG_QEMU" type="boolean" value="true"/>
   <option name="CONFIG_BIG_ENDIAN" type="boolean" value="true"/>
 
   <!-- kernel binaries (SPARC64) -->

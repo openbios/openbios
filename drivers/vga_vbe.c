@@ -131,11 +131,11 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 	int depth = VGA_DEFAULT_DEPTH;
 	int linebytes = VGA_DEFAULT_LINEBYTES;
 
-#if defined(CONFIG_QEMU) && defined(CONFIG_PPC)
+#if defined(CONFIG_QEMU) && (defined(CONFIG_PPC) || defined(CONFIG_SPARC64))
 	int w, h, d;
-	w = fw_cfg_read_i16(FW_CFG_PPC_WIDTH);
-	h = fw_cfg_read_i16(FW_CFG_PPC_HEIGHT);
-	d = fw_cfg_read_i16(FW_CFG_PPC_DEPTH);
+        w = fw_cfg_read_i16(FW_CFG_ARCH_WIDTH);
+        h = fw_cfg_read_i16(FW_CFG_ARCH_HEIGHT);
+        d = fw_cfg_read_i16(FW_CFG_ARCH_DEPTH);
 	if (w && h && d) {
 		width = w;
 		height = h;
