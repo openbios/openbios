@@ -19,6 +19,15 @@
 #include "libc/diskio.h"
 #include "modules.h"
 
+//#define DEBUG_DISK_LABEL
+
+#ifdef DEBUG_DISK_LABEL
+#define DPRINTF(fmt, args...) \
+do { printk("DISK-LABEL - %s: " fmt, __func__ , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...) do { } while (0)
+#endif
+
 typedef struct {
 	int		fd;
 
@@ -55,7 +64,7 @@ dlabel_open( dlabel_info_t *di )
 	xt_t xt;
 
 	parstr = my_args_copy();
-	/* printk("dlabel-open '%s'\n", parstr ); */
+	DPRINTF("dlabel-open '%s'\n", parstr );
 
 	if( (fd=open_ih(my_parent())) == -1 )
 		goto out;
@@ -79,6 +88,7 @@ dlabel_open( dlabel_info_t *di )
 				filename++;
 		}
 	}
+	DPRINTF("parstr %s filename %s\n", parstr, filename);
 
         /* try to see if there is a filesystem without partition */
 
@@ -181,13 +191,13 @@ dlabel_seek( dlabel_info_t *di )
 	if( pos != -1 )
 		pos += offs;
 	else if( size ) {
-		/* printk("Seek EOF\n"); */
+		DPRINTF("Seek EOF\n");
 		pos = offs + size;
 	} else {
 		/* let parent handle the EOF seek. */
 	}
 
-	/* printk("dlabel_seek: %x %08x\n", (int)(pos>>32), (int)pos ); */
+	DPRINTF("dlabel_seek: %x %08x\n", (int)(pos>>32), (int)pos );
 	ret = seek_io( di->fd, pos );
 	PUSH( ret );
 }
