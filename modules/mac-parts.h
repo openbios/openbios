@@ -20,6 +20,22 @@
 /* This information is based upon IM vol V. */
 
 #define DESC_MAP_SIGNATURE	0x4552
+#define DESC_PART_SIGNATURE	0x504d
+
+enum {
+	kPartitionAUXIsValid         = 0x00000001,
+	kPartitionAUXIsAllocated     = 0x00000002,
+	kPartitionAUXIsInUse         = 0x00000004,
+	kPartitionAUXIsBootValid     = 0x00000008,
+	kPartitionAUXIsReadable      = 0x00000010,
+	kPartitionAUXIsWriteable     = 0x00000020,
+	kPartitionAUXIsBootCodePositionIndependent = 0x00000040,
+	kPartitionISMountedAtStartup = 0x40000000,
+	kPartitionIsStartup          = 0x80000000,
+	kPartitionIsChainCompatible  = 0x00000100,
+	kPartitionIsRealDeviceDriver = 0x00000200,
+	kPartitionCanChainToNext     = 0x00000400,
+};
 
 typedef struct {
 	long		ddBlock;		/* first block of driver */

@@ -45,23 +45,21 @@ macparts_open( macparts_info_t *di )
 	char *str = my_args_copy();
 	xt_t seek_xt = find_parent_method("seek");
 	xt_t read_xt = find_parent_method("read");
-	int bs, parnum=-1;
+	int bs, parnum=0;
 	desc_map_t dmap;
 	part_entry_t par;
+	int ret = 0;
 
 	if( str ) {
 		parnum = atol(str);
-		if( !strlen(str) )
-			parnum = 1;
-		free( str );
+		if( *str == 0 || *str == ',' )
+			parnum = -1;
 	}
-	if( parnum < 0 )
-		parnum = 0;
 
 	DPRINTF("macparts_open %d\n", parnum);
 	SEEK( 0 );
 	if( READ(&dmap, sizeof(dmap)) != sizeof(dmap) )
-		RET(0);
+		goto out;
 
 	/* partition maps might support multiple block sizes; in this case,
 	 * pmPyPartStart is typically given in terms of 512 byte blocks.
@@ -70,33 +68,75 @@ macparts_open( macparts_info_t *di )
 	if( bs != 512 ) {
 		SEEK( 512 );
 		READ( &par, sizeof(par) );
-		if( par.pmSig == 0x504d /* 'PM' */ )
+		if( par.pmSig == DESC_PART_SIGNATURE )
 			bs = 512;
 	}
+	SEEK( bs );
+	if( READ(&par, sizeof(par)) != sizeof(par) )
+		goto out;
+        if (par.pmSig != DESC_PART_SIGNATURE)
+		goto out;
+
+        if (parnum == -1) {
+		/* search a bootable partition */
+		/* see PowerPC Microprocessor CHRP bindings */
+
+		parnum = 1;
+		while (parnum <= par.pmMapBlkCnt) {
+			SEEK( (bs * parnum) );
+			READ( &par, sizeof(par) );
+			if( par.pmSig != DESC_PART_SIGNATURE ||
+                            !par.pmPartBlkCnt )
+				goto out;
+
+			if( (par.pmPartStatus & kPartitionAUXIsBootValid) &&
+			    (par.pmPartStatus & kPartitionAUXIsValid) &&
+			    (par.pmPartStatus & kPartitionAUXIsAllocated) &&
+			    (par.pmPartStatus & kPartitionAUXIsReadable) &&
+			    (strcmp(par.pmProcessor, "PowerPC") == 0) ) {
+				di->blocksize =(uint)bs;
+				di->offs = (llong)par.pmPyPartStart * bs;
+				di->size = (llong)par.pmPartBlkCnt * bs;
+				ret = -1;
+				goto out;
+			}
+
+			parnum++;
+		}
+		/* not found */
+		ret = 0;
+		goto out;
+        }
+
 	if (parnum == 0) {
 		di->blocksize =(uint)bs;
 		di->offs = (llong)0;
 		di->size = (llong)dmap.sbBlkCount * bs;
-		PUSH( -1 );
-		return;
+		ret = -1;
+		goto out;
 	}
-	SEEK( bs );
-	if( READ(&par, sizeof(par)) != sizeof(par) )
-		RET(0);
-	if( parnum > par.pmMapBlkCnt || par.pmSig != 0x504d /* 'PM' */ )
-		RET(0);
+
+	if( parnum > par.pmMapBlkCnt)
+		goto out;
 
 	SEEK( (bs * parnum) );
 	READ( &par, sizeof(par) );
+	if( par.pmSig != DESC_PART_SIGNATURE || !par.pmPartBlkCnt )
+		goto out;
+	if( !(par.pmPartStatus & kPartitionAUXIsValid) ||
+	    !(par.pmPartStatus & kPartitionAUXIsAllocated) ||
+	    !(par.pmPartStatus & kPartitionAUXIsReadable) )
+		goto out;
 
-	if( par.pmSig != 0x504d /* 'PM' */ || !par.pmPartBlkCnt )
-		RET(0);
-
+	ret = -1;
 	di->blocksize =(uint)bs;
 	di->offs = (llong)par.pmPyPartStart * bs;
 	di->size = (llong)par.pmPartBlkCnt * bs;
 
-	PUSH( -1 );
+out:
+	if (str)
+		free(str);
+	PUSH( ret);
 }
 
 /* ( block0 -- flag? ) */
