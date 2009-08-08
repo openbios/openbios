@@ -346,7 +346,6 @@ quik_startup( void )
 			struct first_info fi;
 		} fi;
 	} u;
-	phandle_t ph;
 
 	if ((fd = open_io(path)) == -1) {
 		ELF_DPRINTF("Can't open %s\n", path);
@@ -367,10 +366,7 @@ quik_startup( void )
 	if (memcmp(u.fi.fi.quik_vers, "QUIK", 4))
 		return;
 
-	ph = find_dev("/options");
-	set_property(ph, "boot-device", path, strlen(path) + 1);
-	ph = find_dev("/chosen");
-	set_property(ph, "bootargs", "Linux", 6);
+	encode_bootpath(path, "Linux");
 
 	if( ofmem_claim( QUIK_FIRST_BASEADDR, len, 0 ) == -1 )
 		fatal_error("Claim failed!\n");
