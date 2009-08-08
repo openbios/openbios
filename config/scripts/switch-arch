@@ -102,11 +102,13 @@ for RULES_ARCH in $*; do
         amd64)
         TARGET="x86_64-linux-gnu-"
         CFLAGS="-fno-builtin"
+        AS_FLAGS=
         ;;
 
         ppc)
         TARGET="powerpc-linux-gnu-"
         CFLAGS="-msoft-float -fno-builtin-bcopy -fno-builtin-log2"
+        AS_FLAGS=
         ;;
 
         sparc32)
