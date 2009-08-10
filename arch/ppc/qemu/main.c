@@ -25,14 +25,18 @@
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 
-//#define DEBUG_ELF
+//#define DEBUG_QEMU
 
-#ifdef DEBUG_ELF
-#define ELF_DPRINTF(fmt, args...) \
-do { printk("ELF - %s: " fmt, __func__ , ##args); } while (0)
+#ifdef DEBUG_QEMU
+#define SUBSYS_DPRINTF(subsys, fmt, args...) \
+    do { printk("%s - %s: " fmt, subsys, __func__ , ##args); } while (0)
 #else
-#define ELF_DPRINTF(fmt, args...) do { } while (0)
+#define SUBSYS_DPRINTF(subsys, fmt, args...) \
+    do { } while (0)
 #endif
+#define CHRP_DPRINTF(fmt, args...) SUBSYS_DPRINTF("CHRP", fmt, ##args)
+#define ELF_DPRINTF(fmt, args...) SUBSYS_DPRINTF("ELF", fmt, ##args)
+#define YABOOT_DPRINTF(fmt, args...) SUBSYS_DPRINTF("YABOOT", fmt, ##args)
 
 static void
 transfer_control_to_elf( ulong elf_entry )
@@ -239,7 +243,7 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
     snprintf(bootscript, sizeof(bootscript), "%s:%d,%s",
              device, partition, script_path);
 
-    ELF_DPRINTF("Trying %s\n", bootscript);
+    CHRP_DPRINTF("Trying %s\n", bootscript);
     if ((fd = open_io(bootscript)) == -1) {
         ELF_DPRINTF("Can't open %s\n", bootscript);
         return;
@@ -308,7 +312,7 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
         }
     } while (1);
 
-    ELF_DPRINTF("got bootscript %s\n", bootscript);
+    CHRP_DPRINTF("got bootscript %s\n", bootscript);
 
     encode_bootpath(of_path, param);
 
@@ -399,7 +403,7 @@ yaboot_startup( void )
 	}
 
         if (!path) {
-            ELF_DPRINTF("Entering boot, no path\n");
+            YABOOT_DPRINTF("Entering boot, no path\n");
             push_str("boot-device");
             push_str("/options");
             fword("(find-dev)");
@@ -440,7 +444,7 @@ yaboot_startup( void )
 	        }
             }
         } else {
-            ELF_DPRINTF("Entering boot, path %s\n", path);
+            YABOOT_DPRINTF("Entering boot, path %s\n", path);
             try_path(path, param);
             for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
                 try_chrp_script(path, param, chrp_paths[i]);
