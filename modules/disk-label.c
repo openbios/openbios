@@ -99,8 +99,8 @@ dlabel_open( dlabel_info_t *di )
 		if( ph ) {
 			di->offs_hi = 0;
 			di->offs_lo = 0;
-			di->size_hi = -1;
-			di->size_lo = -1;
+			di->size_hi = 0;
+			di->size_lo = 0;
 			di->part_ih = 0;
 			di->type = -1;
 			di->block_size = 512;
@@ -174,6 +174,13 @@ dlabel_read( dlabel_info_t *di )
 {
 	int ret, len = POP();
 	char *buf = (char*)POP();
+	llong pos = tell( di->fd );
+	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
+	ducell size = ((ducell)di->size_hi << BITS) | di->size_lo;
+
+	if (size && len > pos - offs + size) {
+		len = size - (pos - offs);
+	}
 
 	ret = read_io( di->fd, buf, len );
 	PUSH( ret );
@@ -188,6 +195,7 @@ dlabel_seek( dlabel_info_t *di )
 	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
 	ducell size = ((ducell)di->size_hi << BITS) | di->size_lo;
 
+	DPRINTF("dlabel_seek %llx [%llx, %llx]\n", pos, offs, size);
 	if( pos != -1 )
 		pos += offs;
 	else if( size ) {
@@ -196,8 +204,12 @@ dlabel_seek( dlabel_info_t *di )
 	} else {
 		/* let parent handle the EOF seek. */
 	}
+	DPRINTF("dlabel_seek: 0x%llx\n", pos );
+	if (size && (pos - offs >= size )) {
+		PUSH(-1);
+		return;
+	}
 
-	DPRINTF("dlabel_seek: %x %08x\n", (int)(pos>>32), (int)pos );
 	ret = seek_io( di->fd, pos );
 	PUSH( ret );
 }
