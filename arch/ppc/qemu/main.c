@@ -223,21 +223,21 @@ try_path(const char *path, const char *param)
   http://playground.sun.com/1275/bindings/chrp/chrp1_7a.ps
 */
 static void
-try_bootinfo(const char *path, const char *param)
+try_chrp_script(const char *of_path, const char *param, const char *script_path)
 {
     int fd, len, tag, taglen, script, scriptlen, entity;
     char tagbuf[256], bootscript[256], c;
     char *device, *filename, *directory;
     int partition;
 
-    device = get_device(path);
-    partition = get_partition(path);
-    filename = get_filename(path, &directory);
+    device = get_device(of_path);
+    partition = get_partition(of_path);
+    filename = get_filename(of_path, &directory);
 
     /* read boot script */
 
-    snprintf(bootscript, sizeof(bootscript), "%s:%d,ppc\\bootinfo.txt",
-             device, partition);
+    snprintf(bootscript, sizeof(bootscript), "%s:%d,%s",
+             device, partition, script_path);
 
     ELF_DPRINTF("Trying %s\n", bootscript);
     if ((fd = open_io(bootscript)) == -1) {
@@ -267,10 +267,10 @@ try_bootinfo(const char *path, const char *param)
             tagbuf[taglen] = '\0';
             if (strcasecmp(tagbuf, "boot-script") == 0)
                 script = 1;
-            else if (strcasecmp(tagbuf, "/boot-script") == 0) {
+            else if (strcasecmp(tagbuf, "/boot-script") == 0)
                 bootscript[scriptlen] = '\0';
-                break;
-            }
+            else if (strcasecmp(tagbuf, "/chrp-boot") == 0)
+		break;
         } else if (tag && taglen < sizeof(tagbuf)) {
             tagbuf[taglen++] = c;
         } else if (script && c == '&') {
@@ -292,8 +292,8 @@ try_bootinfo(const char *path, const char *param)
                 strcpy(bootscript + scriptlen, filename);
                 scriptlen += strlen(filename);
             } else if (strcasecmp(tagbuf, "full-path") == 0) {
-                strcpy(bootscript + scriptlen, path);
-                scriptlen += strlen(path);
+                strcpy(bootscript + scriptlen, of_path);
+                scriptlen += strlen(of_path);
             } else { /* unknown, keep it */
                 bootscript[scriptlen] = '&';
                 strcpy(bootscript + scriptlen + 1, tagbuf);
@@ -310,7 +310,7 @@ try_bootinfo(const char *path, const char *param)
 
     ELF_DPRINTF("got bootscript %s\n", bootscript);
 
-    encode_bootpath(path, param);
+    encode_bootpath(of_path, param);
 
     feval(bootscript);
  badf:
@@ -386,7 +386,8 @@ quik_startup( void )
 static void
 yaboot_startup( void )
 {
-        static const char * const paths[] = { "hd:2,\\ofclient", "hd:2,\\yaboot" };
+        static const char * const chrp_paths[] = { "ppc\\bootinfo.txt", "System\\Library\\CoreServices\\BootX" };
+        static const char * const elf_paths[] = { "hd:2,\\ofclient", "hd:2,\\yaboot" };
         static const char * const args[] = { "", "conf=hd:2,\\yaboot.conf" };
         char *path = pop_fstr_copy(), *param;
         int i;
@@ -420,7 +421,9 @@ yaboot_startup( void )
                     param = pop_fstr_copy();
                 }
                 try_path(path, param);
-                try_bootinfo(path, param);
+	        for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
+	            try_chrp_script(path, param, chrp_paths[i]);
+	        }
             } else {
                 uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
                 switch (boot_device) {
@@ -432,15 +435,19 @@ yaboot_startup( void )
                     path = strdup("cd:0");
                     break;
                 }
-                try_bootinfo(path, NULL);
+	        for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
+	            try_chrp_script(path, param, chrp_paths[i]);
+	        }
             }
         } else {
             ELF_DPRINTF("Entering boot, path %s\n", path);
             try_path(path, param);
-            try_bootinfo(path, param);
+            for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
+                try_chrp_script(path, param, chrp_paths[i]);
+            }
         }
-        for( i=0; i < sizeof(paths) / sizeof(paths[0]); i++ ) {
-            try_path(paths[i], args[i]);
+        for( i=0; i < sizeof(elf_paths) / sizeof(elf_paths[0]); i++ ) {
+            try_path(elf_paths[i], args[i]);
         }
 	printk("*** Boot failure! No secondary bootloader specified ***\n");
 }
