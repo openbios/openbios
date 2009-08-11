@@ -39,6 +39,8 @@
   <option name="CONFIG_DEBLOCKER" type="boolean" value="true"/>
   <option name="CONFIG_FONT_8X8" type="boolean" value="true"/>
   <option name="CONFIG_FONT_8X16" type="boolean" value="false"/>
+  <option name="CONFIG_OFMEM" type="boolean" value="true"/>
+  <option name="CONFIG_OFMEM_MALLOC_ALIGN" type="integer" value="8"/>
 
   <!-- Filesystem Configuration -->
   <option name="CONFIG_DISK_LABEL" type="boolean" value="true"/>
