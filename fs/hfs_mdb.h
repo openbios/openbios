@@ -15,12 +15,21 @@
 #ifndef _H_HFS_MDB
 #define _H_HFS_MDB
 
+#include "libc/byteorder.h"
+
 typedef unsigned char hfs_char_t;
 typedef unsigned char hfs_ushort_t[2];
 typedef unsigned char hfs_uint_t[4];
 
-#define hfs_get_ushort(addr)    (*((unsigned short*)(addr)))
-#define hfs_get_uint(addr)      (*((unsigned int*)(addr)))
+static inline unsigned short hfs_get_ushort(hfs_ushort_t addr)
+{
+	return __be16_to_cpu(*((unsigned short *)(addr)));
+}
+
+static inline unsigned int hfs_get_uint(hfs_uint_t addr)
+{
+	return __be32_to_cpu(*((unsigned int *)(addr)));
+}
 
 /*
  * The HFS Master Directory Block (MDB).
