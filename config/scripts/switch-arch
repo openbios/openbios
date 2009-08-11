@@ -84,6 +84,11 @@ archname()
 	-e "s/Power Macintosh/ppc/"`
 }
 
+if ! test -f utils/dist/debian/rules; then
+	echo "switch-arch must be run from the top-level source directory" >&2
+	exit 1
+fi
+
 # This is needed because viewvc messes with the permissions of executables:
 chmod 755 utils/dist/debian/rules
 chmod 755 config/scripts/switch-arch
@@ -97,6 +102,11 @@ VERSION=`head VERSION`
 
 echo "Configuring OpenBIOS on $HOSTARCH for $*"
 for RULES_ARCH in $*; do
+    if ! test -f config/examples/${RULES_ARCH}_config.xml; then
+	echo "Cannot find config/examples/${RULES_ARCH}_config.xml" >&2
+	exit 1
+    fi
+
     ARCH=`echo $RULES_ARCH | sed s/cross-//g`
     case $ARCH in
         amd64)
