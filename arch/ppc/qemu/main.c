@@ -321,68 +321,45 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
     close_io( fd );
 }
 
-#define QUIK_SECOND_BASEADDR	0x3e0000
-#define QUIK_FIRST_BASEADDR	0x3f4000
-#define QUIK_SECOND_SIZE	(QUIK_FIRST_BASEADDR - QUIK_SECOND_BASEADDR)
-#define QUIK_FIRST_INFO_OFF	0x2c8
-
-struct first_info {
-	char		quik_vers[8];
-	int		nblocks;
-	int		blocksize;
-	unsigned	second_base;
-	int		conf_part;
-	char		conf_file[32];
-	unsigned	blknos[64];
-};
+#define OLDWORLD_BOOTCODE_BASEADDR	(0x3f4000)
 
 static void
-quik_startup( void )
+oldworld_boot( void )
 {
 	int fd;
-	int len;
-	const char *path = "hd:2";
-	union {
-		char buffer[1024];
-		int first_word;
-		struct {
-			char pad[QUIK_FIRST_INFO_OFF];
-			struct first_info fi;
-		} fi;
-	} u;
+	int len, total;
+	const char *path = "hd:,%BOOT";
+	char *bootcode;
 
 	if ((fd = open_io(path)) == -1) {
 		ELF_DPRINTF("Can't open %s\n", path);
 		return;
 	}
 
-	seek_io(fd, 0);
-	len = read_io(fd, u.buffer, sizeof(u));
+
+	total = 0;
+	bootcode = (char*)OLDWORLD_BOOTCODE_BASEADDR;
+	while(1) {
+		if (seek_io(fd, total) == -1)
+			break;
+		len = read_io(fd, bootcode, 512);
+		bootcode += len;
+		total += len;
+	}
+
 	close_io( fd );
 
-	if (len == -1) {
+	if (total == 0) {
 		ELF_DPRINTF("Can't read %s\n", path);
 		return;
 	}
 
-	/* is it quik ? */
-
-	if (memcmp(u.fi.fi.quik_vers, "QUIK", 4))
-		return;
-
 	encode_bootpath(path, "Linux");
 
-	if( ofmem_claim( QUIK_FIRST_BASEADDR, len, 0 ) == -1 )
+	if( ofmem_claim( OLDWORLD_BOOTCODE_BASEADDR, total, 0 ) == -1 )
 		fatal_error("Claim failed!\n");
 
-	memcpy((char*)QUIK_FIRST_BASEADDR, u.buffer, len);
-
-	/* quik fist level doesn't claim second level memory */
-
-	if( ofmem_claim( QUIK_SECOND_BASEADDR, QUIK_SECOND_SIZE, 0 ) == -1 )
-		fatal_error("Claim failed!\n");
-
-	call_elf(0, 0, QUIK_FIRST_BASEADDR);
+	call_elf(0, 0, OLDWORLD_BOOTCODE_BASEADDR);
 
         return;
 }
@@ -495,7 +472,7 @@ boot( void )
 	        check_preloaded_kernel();
 	}
 	if (boot_device == 'c') {
-		quik_startup();
+		oldworld_boot();
 	}
 	yaboot_startup();
 }

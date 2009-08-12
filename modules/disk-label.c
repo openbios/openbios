@@ -57,42 +57,46 @@ dlabel_close( dlabel_info_t *di )
 static void
 dlabel_open( dlabel_info_t *di )
 {
-	char *s, *filename, *parstr;
+	char *s, *filename;
+	char *path;
 	char block0[512];
 	phandle_t ph;
 	int fd, success=0;
 	xt_t xt;
 
-	parstr = my_args_copy();
-	DPRINTF("dlabel-open '%s'\n", parstr );
+	path = my_args_copy();
+	DPRINTF("dlabel-open '%s'\n", path );
+
+	/* open disk interface */
 
 	if( (fd=open_ih(my_parent())) == -1 )
 		goto out;
 	di->fd = fd;
 
 	/* argument format: parnum,filename */
-	s = parstr;
+
+	s = path;
 	filename = NULL;
-	if( s ) {
-            if( *s == '-' || isdigit(*s) ||
-                (*s >= 'a' && *s < ('a' + 8)
-                 && (*(s + 1) == ',' || *(s + 1) == '\0'))) {
-			if( (s=strpbrk(parstr,",")) ) {
-				filename = s+1;
-				*s = 0;
-			}
-		} else {
-			filename = s;
-			parstr = NULL;
-			if( *s == ',' )
-				filename++;
+	if( *s == '-' || isdigit(*s) ||
+	    (*s >= 'a' && *s < ('a' + 8)
+	     && (*(s + 1) == ',' || *(s + 1) == '\0'))) {
+		if( (s=strpbrk(path,",")) ) {
+			filename = s+1;
 		}
+	} else {
+		filename = s;
+		if( *s == ',' )
+			filename++;
 	}
-	DPRINTF("parstr %s filename %s\n", parstr, filename);
+	DPRINTF("filename %s\n", filename);
 
-        /* try to see if there is a filesystem without partition */
+	/* try to see if there is a filesystem without partition,
+	 * like ISO9660. This is needed to boot openSUSE 11.1 CD
+	 * which uses "boot &device;:1,\suseboot\yaboot.ibm"
+	 * whereas HFS+ partition is #2
+	 */
 
-        if (atol(parstr) == 1) {
+	if ( atol(path) == 1 ) {
 		PUSH_ih( my_self() );
 		selfword("find-filesystem");
 		ph = POP_ph();
@@ -127,7 +131,7 @@ dlabel_open( dlabel_info_t *di )
 
 	/* open partition package */
 	if( ph ) {
-		if( !(di->part_ih=open_package(parstr, ph)) )
+		if( !(di->part_ih=open_package(path, ph)) )
 			goto out;
 		if( !(xt=find_ih_method("get-info", di->part_ih)) )
 			goto out;
@@ -143,9 +147,26 @@ dlabel_open( dlabel_info_t *di )
 			call_package(xt, di->part_ih);
 			di->block_size = POP();
 		}
+	} else {
+		/* unknown (or missing) partition map,
+		 * try the whole disk
+		 */
+		di->offs_hi = 0;
+		di->offs_lo = 0;
+		di->size_hi = 0;
+		di->size_lo = 0;
+		di->part_ih = 0;
+		di->type = -1;
+		di->block_size = 512;
+		xt = find_parent_method("block-size");
+		if (xt) {
+			call_parent(xt);
+			di->block_size = POP();
+		}
 	}
 
 	/* probe for filesystem */
+
 	PUSH_ih( my_self() );
 	selfword("find-filesystem");
 	ph = POP_ph();
@@ -153,14 +174,14 @@ dlabel_open( dlabel_info_t *di )
 		push_str( filename );
 		PUSH_ph( ph );
 		fword("interpose");
-	} else if( filename ) {
+	} else if (filename && strcmp(filename, "%BOOT") != 0) {
 		goto out;
 	}
 	success = 1;
 
  out:
-	if( parstr )
-		free( parstr );
+	if( path )
+		free( path );
 	if( !success ) {
 		dlabel_close( di );
 		RET(0);

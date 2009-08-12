@@ -298,7 +298,9 @@ devread( unsigned long sector, unsigned long byte_offset,
 	}
 
 	if( seek_io(curfs->dev_fd, offs) ) {
+#ifdef CONFIG_DEBUG_FS
 		printk("seek failure\n");
+#endif
 		return -1;
 	}
 	return (read_io(curfs->dev_fd, buf, byte_len) == byte_len) ? 1:0;

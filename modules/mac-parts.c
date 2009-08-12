@@ -49,13 +49,25 @@ macparts_open( macparts_info_t *di )
 	desc_map_t dmap;
 	part_entry_t par;
 	int ret = 0;
+	int want_bootcode = 0;
 
+	DPRINTF("partition %s\n", str);
 	if( str ) {
+		char *tmp;
 		parnum = atol(str);
 		if( *str == 0 || *str == ',' )
 			parnum = -1;
+		tmp = str;
+		while (*tmp && *tmp != ',')
+			tmp++;
+		if (*tmp == ',')
+			tmp++;
+		if (strcmp(tmp, "%BOOT") == 0)
+			want_bootcode = 1;
+		free(str);
 	}
 
+	DPRINTF("want_bootcode %d\n", want_bootcode);
 	DPRINTF("macparts_open %d\n", parnum);
 	SEEK( 0 );
 	if( READ(&dmap, sizeof(dmap)) != sizeof(dmap) )
@@ -97,6 +109,10 @@ macparts_open( macparts_info_t *di )
 				di->blocksize =(uint)bs;
 				di->offs = (llong)par.pmPyPartStart * bs;
 				di->size = (llong)par.pmPartBlkCnt * bs;
+				if (want_bootcode) {
+					di->offs += (llong)par.pmLgBootStart*bs;
+					di->size = (llong)par.pmBootSize;
+				}
 				ret = -1;
 				goto out;
 			}
@@ -132,10 +148,13 @@ macparts_open( macparts_info_t *di )
 	di->blocksize =(uint)bs;
 	di->offs = (llong)par.pmPyPartStart * bs;
 	di->size = (llong)par.pmPartBlkCnt * bs;
+	if (want_bootcode) {
+		di->offs += (llong)par.pmLgBootStart * bs;
+		di->size = (llong)par.pmBootSize;
+	}
 
 out:
-	if (str)
-		free(str);
+	DPRINTF("offset 0x%llx size 0x%llx\n", di->offs, di->size);
 	PUSH( ret);
 }
 
