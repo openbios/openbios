@@ -79,7 +79,6 @@ ob_pci_open(int *idx)
 static void
 ob_pci_close(int *idx)
 {
-	selfword("close-deblocker");
 }
 
 static void
