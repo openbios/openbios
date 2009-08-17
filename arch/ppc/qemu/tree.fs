@@ -19,6 +19,16 @@ new-device
 	" cpus" device-name
 	1 encode-int " #address-cells" property
 	0 encode-int " #size-cells" property
+	external
+
+	: encode-unit ( unit -- str len )
+		pocket tohexstr
+	;
+
+	: decode-unit ( str len -- unit )
+		parse-hex
+	;
+
 finish-device
 
 new-device
