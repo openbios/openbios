@@ -29,8 +29,8 @@ typedef long long       int64_t;
 #include "autoconf.h"
 
 /* cell based types */
-typedef int64_t   cell;
-typedef uint64_t  ucell;
+typedef long long          cell;
+typedef unsigned long long ucell;
 
 #define FMT_cell    "%lld"
 #define FMT_ucell   "%llu"
