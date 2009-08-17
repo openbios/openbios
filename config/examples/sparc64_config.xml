@@ -8,7 +8,7 @@
   <option name="CONFIG_BIG_ENDIAN" type="boolean" value="true"/>
 
   <!-- kernel binaries (SPARC64) -->
-  <option name="CONFIG_IMAGE_ELF" type="boolean" value="true"/>
+  <option name="CONFIG_IMAGE_ELF" type="boolean" value="false"/>
   <option name="CONFIG_IMAGE_ELF_EMBEDDED" type="boolean" value="true"/>
   <option name="CONFIG_IMAGE_ELF_MULTIBOOT" type="boolean" value="true"/>
 
@@ -49,20 +49,20 @@
   <option name="CONFIG_SUN_PARTS" type="boolean" value="true"/>
   <option name="CONFIG_FS" type="boolean" value="true"/>
   <option name="CONFIG_HFS" type="boolean" value="false"/>
-  <option name="CONFIG_HFSP" type="boolean" value="true"/>
+  <option name="CONFIG_HFSP" type="boolean" value="false"/>
   <option name="CONFIG_GRUBFS" type="boolean" value="true"/>
   <option name="CONFIG_FSYS_EXT2FS" type="boolean" value="true"/>
-  <option name="CONFIG_FSYS_FAT" type="boolean" value="true"/>
-  <option name="CONFIG_FSYS_JFS" type="boolean" value="true"/>
-  <option name="CONFIG_FSYS_MINIX" type="boolean" value="true"/>
-  <option name="CONFIG_FSYS_REISERFS" type="boolean" value="true"/>
-  <option name="CONFIG_FSYS_XFS" type="boolean" value="true"/>
+  <option name="CONFIG_FSYS_FAT" type="boolean" value="false"/>
+  <option name="CONFIG_FSYS_JFS" type="boolean" value="false"/>
+  <option name="CONFIG_FSYS_MINIX" type="boolean" value="false"/>
+  <option name="CONFIG_FSYS_REISERFS" type="boolean" value="false"/>
+  <option name="CONFIG_FSYS_XFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_UFS" type="boolean" value="true"/>
   <option name="CONFIG_FSYS_ISO9660" type="boolean" value="true"/>
   <option name="CONFIG_FSYS_FFS" type="boolean" value="true"/>
-  <option name="CONFIG_FSYS_VSTAFS" type="boolean" value="true"/>
+  <option name="CONFIG_FSYS_VSTAFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_NTFS" type="boolean" value="false"/>
-  <option name="CONFIG_FSYS_AFFS" type="boolean" value="true"/>
+  <option name="CONFIG_FSYS_AFFS" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_FS" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_EXT2FS" type="boolean" value="false"/>
 

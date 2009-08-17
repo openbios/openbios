@@ -8,7 +8,7 @@
   <option name="CONFIG_BIG_ENDIAN" type="boolean" value="true"/>
 
   <!-- kernel binaries (SPARC64) -->
-  <option name="CONFIG_IMAGE_ELF" type="boolean" value="true"/>
+  <option name="CONFIG_IMAGE_ELF" type="boolean" value="false"/>
   <option name="CONFIG_IMAGE_ELF_EMBEDDED" type="boolean" value="true"/>
   <option name="CONFIG_IMAGE_ELF_MULTIBOOT" type="boolean" value="true"/>
 
