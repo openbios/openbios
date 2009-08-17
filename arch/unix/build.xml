@@ -6,7 +6,7 @@
 
  <executable name="openbios-unix" target="target">
   <rule>
-	$(CC) $(CFLAGS) -rdynamic $(LIBDL_LDFLAGS) -o $@ $^
+	$(call quiet-command,$(CC) $(CFLAGS) -rdynamic $(LIBDL_LDFLAGS) -o $@ $^,"  LINK  $(TARGET_DIR)$@")
   </rule>
   <object source="unix.c" flags="-DBOOTSTRAP"/>
   <object source="boot.c" flags="-DBOOTSTRAP"/>

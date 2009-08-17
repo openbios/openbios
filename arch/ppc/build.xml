@@ -6,13 +6,13 @@
   <object source="briq/tree.fs"/>
   <object source="briq/briq.fs"/>
  </dictionary>
- 
+
   <dictionary name="openbios-pearpc" init="openbios" target="forth" condition="PEARPC">
   <object source="ppc.fs"/>
   <object source="pearpc/tree.fs"/>
   <object source="pearpc/pearpc.fs"/>
  </dictionary>
- 
+
   <dictionary name="openbios-qemu" init="openbios" target="forth" condition="QEMU">
   <object source="ppc.fs"/>
   <object source="qemu/tree.fs"/>
@@ -24,86 +24,75 @@
   <object source="mol/tree.fs"/>
   <object source="mol/mol.fs"/>
  </dictionary>
- 
+
  <!-- HACK ALERT -->
- 
+
  <executable name="target/include/briq-dict.h" target="target" condition="BRIQ">
   <rule><![CDATA[
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@echo "static const char forth_dictionary[] = {" > $@
 	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
 					| sed 's/0x  ,//g' >> $@
-	@echo "};" >> $@
-  ]]></rule>
+	@echo "};" >> $@]]></rule>
   <external-object source="openbios-briq.dict"/>
  </executable>
- 
+
  <executable name="target/arch/ppc/briq/kernel.o" target="target" condition="BRIQ">
-  <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/briq/kernel.c
-  ]]></rule>
-  <external-object source="target/include/briq-dict.h"/>
+  <rule><![CDATA[ $(SRCDIR)/arch/ppc/briq/kernel.c $(ODIR)/target/include/static-dict.h
+	$(call quiet-command,$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/briq/kernel.c, "  CC    $(TARGET_DIR)$@")]]></rule>
  </executable>
- 
- 
+
+
  <executable name="target/include/pearpc-dict.h" target="target" condition="PEARPC">
   <rule><![CDATA[
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@echo "static const char forth_dictionary[] = {" > $@
 	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
 					| sed 's/0x  ,//g' >> $@
-	@echo "};" >> $@
-  ]]></rule>
+	@echo "};" >> $@]]></rule>
   <external-object source="openbios-pearpc.dict"/>
  </executable>
- 
+
  <executable name="target/arch/ppc/pearpc/kernel.o" target="target" condition="PEARPC">
-  <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/pearpc/kernel.c
-  ]]></rule>
-  <external-object source="target/include/pearpc-dict.h"/>
+  <rule><![CDATA[ $(SRCDIR)/arch/ppc/pearpc/kernel.c $(ODIR)/target/include/pearpc-dict.h
+	$(call quiet-command,$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/pearpc/kernel.c, "  CC    $(TARGET_DIR)$@")]]></rule>
  </executable>
 
  <executable name="target/include/qemu-dict.h" target="target" condition="QEMU">
   <rule><![CDATA[
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@echo "static const char forth_dictionary[] = {" > $@
 	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
 					| sed 's/0x  ,//g' >> $@
-	@echo "};" >> $@
-  ]]></rule>
+	@echo "};" >> $@]]></rule>
   <external-object source="openbios-qemu.dict"/>
  </executable>
 
  <executable name="target/arch/ppc/qemu/kernel.o" target="target" condition="QEMU">
-  <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/qemu/kernel.c
-  ]]></rule>
-  <external-object source="target/include/qemu-dict.h"/>
+  <rule><![CDATA[ $(SRCDIR)/arch/ppc/qemu/kernel.c $(ODIR)/target/include/qemu-dict.h
+	$(call quiet-command,$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/qemu/kernel.c, "  CC    $(TARGET_DIR)$@")]]></rule>
  </executable>
 
- 
+
  <executable name="target/include/mol-dict.h" target="target" condition="MOL">
   <rule><![CDATA[
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@echo "static const char forth_dictionary[] = {" > $@
 	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
 					| sed 's/0x  ,//g' >> $@
-	@echo "};" >> $@
-  ]]></rule>
+	@echo "};" >> $@]]></rule>
   <external-object source="openbios-mol.dict"/>
  </executable>
- 
+
  <executable name="target/arch/ppc/mol/kernel.o" target="target" condition="MOL">
   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/mol/kernel.c
-  ]]></rule>
-  <external-object source="target/include/mol-dict.h"/>
+	$(call quiet-command,$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/ppc/mol/kernel.c, "  CC    $(TARGET_DIR)$@")]]></rule>
  </executable>
- 
+
  <!-- END OF HACK ALERT -->
- 
+
  <library name="briq" target="target" type="static" condition="BRIQ">
-  <object source="misc.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
+  <object source="misc.S"/>
   <object source="ofmem.c"/>
   <object source="briq/briq.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <object source="briq/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
@@ -113,12 +102,9 @@
   <object source="briq/tree.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <object source="briq/vfd.c" flags="-I$(SRCDIR)/arch/ppc"/>
  </library>
- 
+
  <library name="pearpc" target="target" type="static" condition="PEARPC">
-  <object source="misc.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
+  <object source="misc.S"/>
   <object source="ofmem.c"/>
   <object source="pearpc/pearpc.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <object source="pearpc/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
@@ -130,12 +116,8 @@
   <!-- taken from mol: generalize -->
   <object source="pearpc/console.c" flags="-I$(SRCDIR)/arch/ppc"/>
  </library>
- 
+
  <library name="qemu" target="target" type="static" condition="QEMU">
-  <object source="misc.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
   <object source="qemu/ofmem.c"/>
   <object source="qemu/qemu.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <object source="qemu/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
@@ -146,12 +128,8 @@
   <object source="qemu/console.c" flags="-I$(SRCDIR)/arch/ppc"/>
  </library>
 
- 
  <library name="mol" target="target" type="static" condition="MOL">
-  <object source="misc.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
+  <object source="misc.S"/>
   <object source="ofmem.c"/>
   <object source="mol/init.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <object source="mol/main.c" flags="-I$(SRCDIR)/arch/ppc"/>
@@ -165,22 +143,14 @@
   <object source="mol/tree.c" flags="-I$(SRCDIR)/arch/ppc"/>
   <external-object source="target/arch/ppc/mol/kernel.o"/>
  </library>
- 
+
  <executable name="openbios-briq.elf" target="target" condition="BRIQ">
   <rule>
-	$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@
-	$(NM) $@ | sort > $(ODIR)/openbios-briq.syms
-	cp $@ $@.nostrip
-	$(STRIP) $@
-  </rule>
-  <object source="start.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
-  <object source="timebase.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
+	$(call quiet-command,$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-briq.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
+  <object source="start.S"/>
+  <object source="timebase.S"/>
   <external-object source="libbriq.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
@@ -188,23 +158,14 @@
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
  </executable>
- 
- 
+
  <executable name="openbios-pearpc.elf" target="target" condition="PEARPC">
   <rule>
-	$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@
-	$(NM) $@ | sort > $(ODIR)/openbios-pearpc.syms
-	cp $@ $@.nostrip
-	$(STRIP) $@
-  </rule>
-  <object source="start.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
-  <object source="timebase.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
+	$(call quiet-command,$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-pearpc.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
+  <object source="start.S"/>
+  <object source="timebase.S"/>
   <external-object source="libpearpc.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
@@ -215,44 +176,26 @@
 
  <executable name="openbios-qemu.elf" target="target" condition="QEMU">
   <rule>
-	$(LD) --warn-common -N -T $(SRCDIR)/arch/ppc/qemu/ldscript $^ -o $@
-	$(NM) $@ | sort > $(ODIR)/openbios-qemu.syms
-	cp $@ $@.nostrip
-	$(STRIP) $@
-  </rule>
-  <object source="qemu/start.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
-  <object source="timebase.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
+	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/ppc/qemu/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-qemu.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
+  <object source="qemu/start.S"/>
+  <object source="timebase.S"/>
   <external-object source="libqemu.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libdrivers.a"/>
-  <!-- Needs to be after drivers to avoid missing symbols -->
   <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
   <external-object source="libgcc.a"/>
  </executable>
 
- 
-
- 
  <executable name="openbios-mol.elf" target="target" condition="MOL">
   <rule>
-	$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@
-	$(NM) $@ | sort > $(ODIR)/openbios-mol.syms
-	cp $@ $@.nostrip
-	$(STRIP) $@
-
-  </rule>
-  <object source="start.S">
-   <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
-  </object>
+	$(call quiet-command,$(LD) -g -Ttext=0x01e01000 -Bstatic $^ $(shell $(CC) -print-libgcc-file-name) -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-mol.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
+  <object source="start.S"/>
   <external-object source="libmol.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
@@ -260,5 +203,5 @@
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
  </executable>
- 
+
 </build>

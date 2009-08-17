@@ -302,3 +302,14 @@ idtarg:
 _idt:
         .fill   20, 8, 0        # idt is unitiailzed
 _idt_end:
+
+        .globl  arch_nvram_size, arch_nvram_get, arch_nvram_put
+arch_nvram_size:
+        xor     %eax, %eax
+        ret
+
+arch_nvram_get:
+        ret
+
+arch_nvram_put:
+        ret

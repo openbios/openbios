@@ -63,13 +63,19 @@
       <xsl:text>&#10;</xsl:text>
      </xsl:when>
      <xsl:otherwise>
-      <xsl:if test="@flags!=''">
-       <xsl:text>&#10;&#9;EXTRACFLAGS="</xsl:text>
-       <xsl:value-of select="@flags"/>
-       <xsl:text>" ;\</xsl:text>
-      </xsl:if>
-      <!-- FIXME this requires strict spaces in rules.xml -->
-      <xsl:value-of select="document('rules.xml',.)//rule[@target=$target][@entity='object']"/>
+       <xsl:choose>
+         <xsl:when test="@flags!=''">
+           <xsl:value-of select="document('rules.xml',.)//rule[@target=$target][@entity='object'][@extracflags='1']"/>
+           <xsl:text> </xsl:text>
+           <xsl:value-of select="@flags"/>
+           <xsl:text> </xsl:text>
+           <xsl:value-of select="document('rules.xml',.)//rule[@target=$target][@entity='object'][@extracflags='2']"/>
+         </xsl:when>
+         <xsl:otherwise>
+           <!-- FIXME this requires strict spaces in rules.xml -->
+           <xsl:value-of select="document('rules.xml',.)//rule[@target=$target][@entity='object']"/>
+         </xsl:otherwise>
+       </xsl:choose>
      </xsl:otherwise>
     </xsl:choose>
  

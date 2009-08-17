@@ -20,26 +20,16 @@
   <object source="forthload.c"/>
   <object source="loadfs.c"/>
   <object source="romvec.c"/>
+  <object source="entry.S"/>
+  <object source="vectors.S"/>
  </library>
-
- <executable name="target/arch/sparc32/entry.o" target="target">
-  <rule><![CDATA[ $(SRCDIR)/arch/sparc32/entry.S
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
- </executable>
- <executable name="target/arch/sparc32/vectors.o" target="target">
-  <rule><![CDATA[ $(SRCDIR)/arch/sparc32/vectors.S $(SRCDIR)/arch/sparc32/wof.S $(SRCDIR)/arch/sparc32/wuf.S
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/sparc32/vectors.S]]></rule>
- </executable>
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
   <rule>
-	$(LD) --warn-common -N -T $(SRCDIR)/arch/sparc32/ldscript -o $@.nostrip $^
-	$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms
-	cp $@.nostrip $@
-	$(STRIP) $@</rule>
+	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/sparc32/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
   <object source="plainboot.c"/>
-  <external-object source="target/arch/sparc32/vectors.o"/>
-  <external-object source="target/arch/sparc32/entry.o"/>
   <external-object source="libsparc32.a"/>
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
@@ -53,6 +43,7 @@
 
  <executable name="target/include/static-dict.h" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule><![CDATA[
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@echo "static const char forth_dictionary[] = {" > $@
 	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
 					| sed 's/0x  ,//g' >> $@
@@ -62,19 +53,16 @@
 
  <executable name="target/arch/sparc32/builtin.o" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule><![CDATA[ $(SRCDIR)/arch/sparc32/builtin.c $(ODIR)/target/include/static-dict.h
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/sparc32/builtin.c]]></rule>
+	$(call quiet-command,$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/sparc32/builtin.c, "  CC    $(TARGET_DIR)$@")]]></rule>
  </executable>
 
  <!-- END OF HACK ALERT -->
 
  <executable name="openbios-builtin.elf" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule>
-	$(LD) --warn-common -N -T $(SRCDIR)/arch/sparc32/ldscript -o $@.nostrip $^
-	$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms
-	cp $@.nostrip $@
-	$(STRIP) $@</rule>
-  <external-object source="target/arch/sparc32/vectors.o"/>
-  <external-object source="target/arch/sparc32/entry.o"/>
+	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/sparc32/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
   <external-object source="target/arch/sparc32/builtin.o"/>
   <external-object source="libsparc32.a"/>
   <external-object source="libbootstrap.a"/>

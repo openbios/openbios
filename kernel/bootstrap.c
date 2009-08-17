@@ -220,7 +220,9 @@ static void write_dictionary(const char *filename)
 
 	header->checksum=target_long(checksum);
 
-	dump_header(header);
+        if (verbose) {
+                dump_header(header);
+        }
 
 	f = fopen(filename, "w");
 	if (!f) {
@@ -727,8 +729,9 @@ static int build_dictionary(void)
 	buildconstant("/x", sizeof(u64));
 
 	reveal();
-	printk("Dictionary initialization finished.\n");
-
+        if (verbose) {
+                printk("Dictionary initialization finished.\n");
+        }
 	return 0;
 }
 
@@ -873,7 +876,9 @@ encode_file( const char *name )
 	size = ftell( file );
 	fseek( file, 0, SEEK_SET );
 
-	printk("\nEncoding %s [%d bytes]\n", name, size );
+        if (verbose) {
+                printk("\nEncoding %s [%d bytes]\n", name, size );
+        }
 	fread( dict + dicthead, size, 1, file );
 	PUSH( pointer2cell(dict + dicthead) );
 	PUSH( size );
@@ -914,8 +919,10 @@ static void new_dictionary(const char *source)
 
 	interpret_source((char *)source);
 
-	printk("interpretion finished. %d errors occured.\n",
-	       errors);
+        if (verbose || errors > 0) {
+                printk("interpretion finished. %d errors occured.\n",
+                       errors);
+        }
 }
 
 /*
@@ -963,8 +970,6 @@ int main(int argc, char *argv[])
 	int c, cnt;
 
 	const char *optstring = "VvhsI:d:D:?";
-
-	printk(BANNER);
 
 	while (1) {
 #ifdef __GLIBC__
@@ -1014,12 +1019,10 @@ int main(int argc, char *argv[])
 			break;
 		case 'd':
 			if (!basedict) {
-				printk("Using source dictionary '%s'\n", optarg);
 				basedict = optarg;
 			}
 		case 'D':
 			if(!dictname) {
-				printk("Dumping final dictionary to '%s'\n", optarg);
 				dictname = optarg;
 			}
 			break;
@@ -1027,6 +1030,12 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
+
+        if (verbose) {
+                printk(BANNER);
+                printk("Using source dictionary '%s'\n", basedict);
+                printk("Dumping final dictionary to '%s'\n", dictname);
+        }
 
 	if (argc < optind + 1) {
 		printk(USAGE, argv[0]);
@@ -1085,7 +1094,9 @@ int main(int argc, char *argv[])
 	 */
 
 	for (cnt=0; cnt<2; cnt++) {
-		printk("Compiling dictionary %d/%d\n", cnt+1, 2);
+                if (verbose) {
+                        printk("Compiling dictionary %d/%d\n", cnt+1, 2);
+                }
 		dict=bootstrapdict[cnt];
 		if(!basedict) {
 			new_dictionary(argv[optind]);

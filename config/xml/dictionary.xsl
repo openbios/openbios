@@ -95,7 +95,7 @@
      </xsl:if>
      <xsl:text>&#10;</xsl:text>
      <!-- rule -->
-     <xsl:text>&#9;$(ODIR)/forthstrap</xsl:text>
+     <xsl:text>&#9;$(call quiet-command,$(ODIR)/forthstrap</xsl:text>
      <xsl:for-each select="//dictionary[@name = @name]">
  
       <xsl:variable name="conditions">
@@ -131,7 +131,7 @@
      </xsl:if>
      <xsl:text> $(</xsl:text>
      <xsl:value-of select="@name"/>
-     <xsl:text>-DICTIONARY)&#10;&#10;</xsl:text>
+     <xsl:text>-DICTIONARY),"  GEN   $(TARGET_DIR)$@")&#10;&#10;</xsl:text>
     </xsl:if>
     </xsl:if>
     </xsl:for-each>

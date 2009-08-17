@@ -17,29 +17,21 @@
   <object source="elfload.c"/>
   <object source="forthload.c"/>
   <object source="loadfs.c"/>
+  <object source="entry.S"/>
   <object source="xbox/console.c" condition="XBOX"/>
   <object source="xbox/methods.c" condition="XBOX"/>
  </library>
 
- <executable name="target/arch/x86/entry.o" target="target">
-  <rule><![CDATA[ $(SRCDIR)/arch/x86/entry.S
-	$(CC) $$EXTRACFLAGS $(AS_FLAGS) $(CFLAGS) $(INCLUDES) -c -o $@ $^]]></rule>
- </executable>
-
  <executable name="openbios.multiboot" target="target" condition="IMAGE_ELF_MULTIBOOT">
   <rule>
-	$(LD) --warn-common -N -T $(SRCDIR)/arch/x86/ldscript -o $@.nostrip $^
-	$(NM) $@.nostrip | sort > $(ODIR)/openbios-multiboot.syms
-	cp $@.nostrip $@
-	$(STRIP) $@
-  </rule>
-  <external-object source="target/arch/x86/entry.o"/>
+	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/x86/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-multiboot.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
   <object source="multiboot.c"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libdrivers.a"/>
-  <!-- Needs to be after drivers to avoid missing symbols -->
   <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
   <external-object source="libgcc.a"/>
@@ -47,60 +39,51 @@
 
  <executable name="openbios-plain.elf" target="target" condition="IMAGE_ELF">
   <rule>
-	$(LD) --warn-common -N -T $(SRCDIR)/arch/x86/ldscript -o $@.nostrip $^
-	$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms
-	cp $@.nostrip $@
-	$(STRIP) $@
-  </rule>
-  <external-object source="target/arch/x86/entry.o"/>
+	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/x86/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-plain.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
   <object source="plainboot.c"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libdrivers.a"/>
-  <!-- Needs to be after drivers to avoid missing symbols -->
   <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
   <external-object source="libgcc.a"/>
  </executable>
 
  <!-- HACK ALERT -->
- 
+
  <executable name="target/include/static-dict.h" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule><![CDATA[
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@echo "static const char forth_dictionary[] = {" > $@
 	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
 					| sed 's/0x  ,//g' >> $@
-	@echo "};" >> $@
-  ]]></rule>
+	@echo "};" >> $@]]></rule>
   <external-object source="openbios-x86.dict"/>
  </executable>
- 
+
  <executable name="target/arch/x86/builtin.o" target="target" condition="IMAGE_ELF_EMBEDDED">
-  <rule><![CDATA[
-	$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/x86/builtin.c
-  ]]></rule>
-  <external-object source="target/include/static-dict.h"/>
+  <rule><![CDATA[ $(SRCDIR)/arch/x86/builtin.c $(ODIR)/target/include/static-dict.h
+	$(call quiet-command,$(CC) $$EXTRACFLAGS $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/arch/x86/builtin.c, "  CC    $(TARGET_DIR)$@")]]></rule>
  </executable>
- 
+
  <!-- END OF HACK ALERT -->
 
  <executable name="openbios-builtin.elf" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule>
-	$(LD) --warn-common -N -T $(SRCDIR)/arch/x86/ldscript -o $@.nostrip $^
-	$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms
-	cp $@.nostrip $@
-	$(STRIP) $@</rule>
-  <external-object source="target/arch/x86/entry.o"/>
+	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/x86/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-builtin.syms,"  GEN   $(TARGET_DIR)$@.syms")
+	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
   <external-object source="target/arch/x86/builtin.o"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libdrivers.a"/>
-  <!-- Needs to be after drivers to avoid missing symbols -->
   <external-object source="libmodules.a"/>
+  <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
   <external-object source="libgcc.a"/>
  </executable>
- 
+
 </build>
