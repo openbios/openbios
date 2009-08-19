@@ -88,7 +88,7 @@ void boot(void)
                 if (aout_load(&sys_info, path) == LOADER_NOT_SUPPORT)
                     if (fcode_load(path) == LOADER_NOT_SUPPORT) {
 
-                        snprintf(altpath, sizeof(altpath), "%s:d", path);
+                        snprintf(altpath, sizeof(altpath), "%s:f", path);
 
                         if (elf_load(&sys_info, altpath, param)
                             == LOADER_NOT_SUPPORT)
