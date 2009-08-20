@@ -38,6 +38,8 @@ __uint128_t __udivti3(__uint128_t num, __uint128_t den);
 __uint128_t __umodti3(__uint128_t num, __uint128_t den);
 
 TItype __multi3 (TItype u, TItype v);
+TItype __negti2 (TItype u);
+
 #endif
 
 #endif /* _LIBGCC_H */
