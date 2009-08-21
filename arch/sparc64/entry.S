@@ -47,8 +47,8 @@ entry:
         wrpr    %g0, 0, %canrestore
         wrpr    %g0, 0, %otherwin
         wrpr    %g0, 0, %wstate
-        ! 100 Hz timer
-        set     10 * 1000 * 1000, %g1
+        ! disable timer now
+        setx    0x8000000000000000, %g2, %g1
         wr      %g1, 0, %tick_cmpr
 
         ! Disable I/D MMUs and caches
@@ -318,6 +318,12 @@ lowmem:
 
         /* Finally, turn on traps so that we can call c-code. */
 	wrpr    %g0, (PSTATE_PRIV|PSTATE_PEF|PSTATE_IE), %pstate
+
+        ! 100 Hz timer
+        rd      %tick, %g2
+        set     10 * 1000 * 1000, %g1
+        add     %g1, %g2, %g1
+        wr      %g1, 0, %tick_cmpr
 
         /* Switch to our main context.
          * Main context is statically defined in C.
