@@ -131,7 +131,7 @@ entry:
         ! %g1 contains end of memory
 
         setx    _end, %g7, %g3
-        set     0xffff, %g2
+        set     0x7ffff, %g2
         add     %g3, %g2, %g3
         andn    %g3, %g2, %g3
         setx    _data, %g7, %g2
@@ -142,17 +142,17 @@ entry:
 	! setup .data & .bss
         setx    _data, %g7, %g4
         sub     %g3, %g4, %g5
-        srlx    %g5, 16, %g6			! %g6 = # of 64k .bss pages
-	set	0xa0000000, %g3
+        srlx    %g5, 19, %g6			! %g6 = # of 512k .bss pages
+	set	0xc0000000, %g3
 	sllx	%g3, 32, %g3
 	or	%g3, 0x76, %g3
-	! valid, 64k, locked, cacheable(I/E/C), priv, writable
+	! valid, 512k, locked, cacheable(I/E/C), priv, writable
 	set	48, %g7
-1:	stxa	%g4, [%g7] ASI_DMMU		! vaddr = _data + N * 0x10000, ctx=0
+1:	stxa	%g4, [%g7] ASI_DMMU		! vaddr = _data + N * 0x80000, ctx=0
 	or	%g2, %g3, %g5
-	! paddr = start_mem + N * 0x10000
+	! paddr = start_mem + N * 0x80000
 	stxa	%g5, [%g0] ASI_DTLB_DATA_IN
-	set	0x10000, %g5
+	set	0x80000, %g5
 	add	%g2, %g5, %g2
 	add	%g4, %g5, %g4
 	deccc	%g6
@@ -163,16 +163,16 @@ entry:
 	setx	_data, %g7, %g5
 	setx	_start, %g7, %g4
         sub     %g5, %g4, %g5
-        srlx    %g5, 16, %g6			! %g6 = # of 64k .rodata pages
+	srlx    %g5, 19, %g6			! %g6 = # of 512k .rodata pages
 	set	48, %g7
-	set	0x10000, %g5
+	set	0x80000, %g5
         setx    PROM_ADDR, %l1, %l2
 1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = _rodata, ctx=0
-	set	0xa0000000, %g3
+	set	0xc0000000, %g3
 	sllx	%g3, 32, %g3
 	or	%g3, 0x74, %g3
 	or	%l2, %g3, %g3
-	! valid, 64k, locked, cacheable(I/E/C), priv
+	! valid, 512k, locked, cacheable(I/E/C), priv
 	! paddr = _rodata + N * 0x10000
 	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
 	add	%g4, %g5, %g4
@@ -223,17 +223,19 @@ entry:
 	setx	_start, %g7, %g4
 	setx	_rodata, %g7, %g5
         sub     %g5, %g4, %g5
-        srlx    %g5, 16, %g6			! %g6 = # of 64k .text pages
-	set	0x10000, %g5
+	set 0x7ffff, %g7
+	add %g5, %g7, %g5					! round to 512k
+        srlx    %g5, 19, %g6			! %g6 = # of 512k .text pages
+	set	0x80000, %g5
 	set	48, %g7
         setx    PROM_ADDR, %l1, %l2
 1:      stxa	%g4, [%g7] ASI_IMMU		! vaddr = _start, ctx=0
-	set	0xa0000000, %g3
+	set	0xc0000000, %g3
 	sllx	%g3, 32, %g3
 	or	%g3, 0x74, %g3
 	or	%l2, %g3, %g3
-	! valid, 64k, locked, cacheable(I/E/C), priv
-	! paddr = _start + N * 0x10000
+	! valid, 512k, locked, cacheable(I/E/C), priv
+	! paddr = _start + N * 0x80000
 	stxa	%g3, [%g0] ASI_ITLB_DATA_IN
 	add	%g4, %g5, %g4
 	deccc	%g6

@@ -25,12 +25,12 @@ SECTIONS
     _start = .;
 
     /* Normal sections */
-    .text ALIGN(65536): {
+    .text ALIGN(524288): {
         *(.text.vectors)
         *(.text)
         *(.text.*)
     }
-    .rodata ALIGN(65536): {
+    .rodata ALIGN(524288): {
         _rodata = .;
 	sound_drivers_start = .;
 	*(.rodata.sound_drivers)
@@ -39,7 +39,7 @@ SECTIONS
 	*(.rodata.*)
         *(.note.ELFBoot)
     }
-    .data ALIGN(65536): {
+    .data ALIGN(524288): {
         _data = .;
         *(.data)
         *(.data.*)
