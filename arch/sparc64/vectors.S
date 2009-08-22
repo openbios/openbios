@@ -29,11 +29,13 @@
 #define ASI_BP ASI_PHYS_BYPASS_EC_E
 #define PROM_ADDR 0x1fff0000000
 #define SER_ADDR 0x1fe020003f8
+#define TICK_INT_DIS 0x8000000000000000
+#define TICK_INTERVAL 10*1000*1000
 
         .section ".text.vectors", "ax"
         .align 16384
 /* Sparc64 trap table */
-        .globl trap_table, __divide_error
+        .globl trap_table, __divide_error, softint_irq, softint_irq_tl1
         .register %g2, #scratch
         .register %g3, #scratch
         .register %g6, #scratch
@@ -96,7 +98,7 @@ trap_table:
         nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;
 
 #define TRAP_IRQ(routine, level)                        \
-                ba routine; nop; nop; nop; nop; nop; nop; nop;
+                ba routine;  mov level, %g1; nop; nop; nop; nop; nop; nop;
 #define BTRAP(lvl)                                      \
                  ba bug; mov lvl, %g1; nop; nop; nop; nop; nop; nop;
 #define BTRAPTL1(lvl) BTRAP(lvl)
@@ -119,7 +121,6 @@ sparc64_ttable_tl0:
 		CLEAN_WINDOW ! 24-27
 		BTRAPS(0x28)
 		BTRAPS(0x30) BTRAPS(0x38)
-#if 0
 		BTRAP(0x40) BTRAP(0x41) BTRAP(0x42) BTRAP(0x43)
 tl0_irq4:	TRAP_IRQ(handler_irq, 4)
 tl0_irq5:	TRAP_IRQ(handler_irq, 5)  TRAP_IRQ(handler_irq, 6)
@@ -127,11 +128,8 @@ tl0_irq7:	TRAP_IRQ(handler_irq, 7)  TRAP_IRQ(handler_irq, 8)
 tl0_irq9:	TRAP_IRQ(handler_irq, 9)  TRAP_IRQ(handler_irq, 10)
 tl0_irq11:	TRAP_IRQ(handler_irq, 11) TRAP_IRQ(handler_irq, 12)
 tl0_irq13:	TRAP_IRQ(handler_irq, 13)
-tl0_irq14:	TRAP_IRQ(handler_irq, 14)
+tl0_irq14:	TRAP_IRQ(softint_irq, 14)
 tl0_irq15:	TRAP_IRQ(handler_irq, 15)
-#else
-		BTRAPS(0x40) BTRAPS(0x48)
-#endif
 		BTRAPS(0x50) BTRAPS(0x58)
 		BTRAPS4(0x60)
 		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x64 : instruction_access_MMU_miss
@@ -196,6 +194,9 @@ tl0_resv1f0:	BTRAPS(0x1f0) BTRAPS(0x1f8)
 #undef BTRAPS
 #define BTRAPS(x) BTRAPTL1(x) BTRAPTL1(x+1) BTRAPTL1(x+2) BTRAPTL1(x+3) BTRAPTL1(x+4) BTRAPTL1(x+5) BTRAPTL1(x+6) BTRAPTL1(x+7)
 
+#define SKIP_IRQ(routine, level) \
+                retry;  nop; nop; nop; nop; nop; nop; nop;
+
 sparc64_ttable_tl1:
 		BTRAPS(0x00) BTRAPS(0x08)
 		BTRAPS(0x10) BTRAPS(0x18)
@@ -203,7 +204,6 @@ sparc64_ttable_tl1:
 		CLEAN_WINDOW ! 24-27
 		BTRAPS(0x28)
 		BTRAPS(0x30) BTRAPS(0x38)
-#if 0
 		BTRAPTL1(0x40) BTRAPTL1(0x41) BTRAPTL1(0x42) BTRAPTL1(0x43)
 tl1_irq4:	TRAP_IRQ(handler_irq, 4)
 tl1_irq5:	TRAP_IRQ(handler_irq, 5)  TRAP_IRQ(handler_irq, 6)
@@ -211,11 +211,8 @@ tl1_irq7:	TRAP_IRQ(handler_irq, 7)  TRAP_IRQ(handler_irq, 8)
 tl1_irq9:	TRAP_IRQ(handler_irq, 9)  TRAP_IRQ(handler_irq, 10)
 tl1_irq11:	TRAP_IRQ(handler_irq, 11) TRAP_IRQ(handler_irq, 12)
 tl1_irq13:	TRAP_IRQ(handler_irq, 13)
-tl1_irq14:	TRAP_IRQ(handler_irq, 14)
+tl1_irq14:	SKIP_IRQ(softint_irq, 14)
 tl1_irq15:	TRAP_IRQ(handler_irq, 15)
-#else
-		BTRAPS(0x40) BTRAPS(0x48)
-#endif
 		BTRAPS(0x50) BTRAPS(0x58)
 		BTRAPS4(0x60)
 		TRAP_HANDLER(reload_IMMU_tlb)    ! 0x64 : instruction_access_MMU_miss
@@ -400,6 +397,28 @@ immu_next_trans:
 
         retry
 
+softint_irq_tl1:
+softint_irq:
+        mov     1, %g2
+        /* clear tick interrupt */
+        wr      %g2, 0x0, %clear_softint
+        sll     %g2, %g1, %g2
+        sra     %g2, 0, %g2
+        /* clear softint interrupt */
+        wr      %g2, 0x0, %clear_softint
+
+        setx    TICK_INT_DIS, %g2, %g1
+        rd      %tick, %g2
+        and     %g1, %g2, %g1
+        brnz,pn %g1, tick_compare_disabled
+         nop
+        set     TICK_INTERVAL, %g1
+        add     %g1, %g2, %g1
+        wr      %g1, 0, %tick_cmpr
+tick_compare_disabled:
+        retry
+
+handler_irq:
 __divide_error:
 bug:
         /* Dump the exception and its context */
