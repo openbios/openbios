@@ -57,7 +57,7 @@ dlabel_close( dlabel_info_t *di )
 static void
 dlabel_open( dlabel_info_t *di )
 {
-	char *s, *filename;
+	const char *s, *filename;
 	char *path;
 	char block0[512];
 	phandle_t ph;
@@ -65,6 +65,9 @@ dlabel_open( dlabel_info_t *di )
 	xt_t xt;
 
 	path = my_args_copy();
+	if (!path) {
+		path = strdup("");
+	}
 	DPRINTF("dlabel-open '%s'\n", path );
 
 	/* open disk interface */
