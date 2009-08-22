@@ -386,6 +386,10 @@ console_draw_str( const char *str )
         unsigned int y, x;
         unsigned char ch;
 
+	if (!str) {
+		return 0;
+	}
+
 	if( !cons.inited && console_init() )
 		return -1;
 
