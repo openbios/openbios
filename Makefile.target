@@ -32,6 +32,8 @@ CFLAGS+= -Werror
 INCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel/include -I$(ODIR)/target/include
 AS_FLAGS+= -g
 
+quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
+
 #
 # pre rules
 #
@@ -41,12 +43,14 @@ all: versions dictionaries host-libraries target-libraries host-executables targ
 versions: $(ODIR)/target/include/openbios-version.h $(ODIR)/forth/version.fs
 
 $(ODIR)/forth/version.fs:
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@DATE="$(shell echo `LC_ALL=C TZ=UTC date +'%b %e %Y %H:%M'`)" ;  \
 		( echo ": builddate \" $$DATE\" ; " ;     \
 		  echo ": version \" $(VERSION)\" ; " ; ) \
 		  > $(dir $@)/version.fs
 
 $(ODIR)/target/include/openbios-version.h:
+	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
 	@DATE="$(shell echo `LC_ALL=C TZ=UTC date +'%b %e %Y %H:%M'`)" ; \
           ( echo "#define OPENBIOS_BUILD_DATE \"$$DATE\"" ; \
            echo "#define OPENBIOS_VERSION_STR \"$(VERSION)\"" ; ) \
@@ -64,7 +68,5 @@ clean:
 build-verbose: info build
 
 build: all
-
-quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
 
 include rules.mak
