@@ -34,31 +34,31 @@ fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
 uint64_t
 fw_cfg_read_i64(uint16_t cmd)
 {
-    char buf[sizeof(uint64_t)];
+    uint64_t buf;
 
-    fw_cfg_read(cmd, buf, sizeof(uint64_t));
+    fw_cfg_read(cmd, (char *)&buf, sizeof(uint64_t));
 
-    return __le64_to_cpu(*(uint64_t *)buf);
+    return __le64_to_cpu(buf);
 }
 
 uint32_t
 fw_cfg_read_i32(uint16_t cmd)
 {
-    char buf[sizeof(uint32_t)];
+    uint32_t buf;
 
-    fw_cfg_read(cmd, buf, sizeof(uint32_t));
+    fw_cfg_read(cmd, (char *)&buf, sizeof(uint32_t));
 
-    return __le32_to_cpu(*(uint32_t *)buf);
+    return __le32_to_cpu(buf);
 }
 
 uint16_t
 fw_cfg_read_i16(uint16_t cmd)
 {
-    char buf[sizeof(uint16_t)];
+    uint16_t buf;
 
-    fw_cfg_read(cmd, buf, sizeof(uint16_t));
+    fw_cfg_read(cmd, (char *)&buf, sizeof(uint16_t));
 
-    return __le16_to_cpu(*(uint16_t *)buf);
+    return __le16_to_cpu(buf);
 }
 
 void

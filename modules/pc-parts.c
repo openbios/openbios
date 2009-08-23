@@ -58,8 +58,8 @@ pcparts_open( pcparts_info_t *di )
 		unsigned char e_head;
 		unsigned char e_sector;
 		unsigned char e_cyl;
-		unsigned char start_sect[4]; /* unaligned little endian */
-		unsigned char nr_sects[4]; /* ditto */
+		u32 start_sect; /* unaligned little endian */
+		u32 nr_sects; /* ditto */
 	} *p;
 	unsigned char buf[512];
 
@@ -96,11 +96,11 @@ pcparts_open( pcparts_info_t *di )
 			printk("partition %d does not exist\n", parnum+1 );
 			RET( 0 );
 		}
-		di->offs = (llong)(__le32_to_cpu(*((u32 *)p->start_sect))) * bs;
-		di->size = (llong)(__le32_to_cpu(*((u32 *)p->nr_sects))) * bs;
+		di->offs = (llong)(__le32_to_cpu(p->start_sect)) * bs;
+		di->size = (llong)(__le32_to_cpu(p->nr_sects)) * bs;
 
 		/* printk("Primary partition at sector %x\n",
-				__le32_to_cpu(*((u32 *)p->start_sect))); */
+				__le32_to_cpu(p->start_sect)); */
 
 		RET( -1 );
 	} else {
@@ -123,7 +123,7 @@ pcparts_open( pcparts_info_t *di )
 		printk("Extended partition at %d\n", i+1);
 
 		/* Visit each logical partition labels */
-		ext_start = __le32_to_cpu(*((u32 *)p[i].start_sect));
+		ext_start = __le32_to_cpu(p[i].start_sect);
 		cur_table = ext_start;
 		cur_part = 4;
 
@@ -147,8 +147,8 @@ pcparts_open( pcparts_info_t *di )
 					RET( 0 );
 				}
 				di->offs =
-					(llong)(cur_table+__le32_to_cpu(*((u32 *)p->start_sect))) * bs;
-				di->size = (llong)__le32_to_cpu(*((u32 *)p->nr_sects)) * bs;
+					(llong)(cur_table+__le32_to_cpu(p->start_sect)) * bs;
+				di->size = (llong)__le32_to_cpu(p->nr_sects) * bs;
 				RET ( -1 );
 			}
 
@@ -157,7 +157,7 @@ pcparts_open( pcparts_info_t *di )
 				printk("no link\n");
 				break;
 			}
-			cur_table = ext_start + __le32_to_cpu(*((u32 *)p[1].start_sect));
+			cur_table = ext_start + __le32_to_cpu(p[1].start_sect);
 
 			cur_part++;
 		}
