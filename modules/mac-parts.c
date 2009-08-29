@@ -90,6 +90,7 @@ macparts_open( macparts_info_t *di )
 		goto out;
 
         if (parnum == -1) {
+		int firstHFS = -1;
 		/* search a bootable partition */
 		/* see PowerPC Microprocessor CHRP bindings */
 
@@ -100,6 +101,10 @@ macparts_open( macparts_info_t *di )
 			if( par.pmSig != DESC_PART_SIGNATURE ||
                             !par.pmPartBlkCnt )
 				goto out;
+
+			if (firstHFS == -1 &&
+			    strcmp(par.pmPartType, "Apple_HFS") == 0)
+				firstHFS = parnum;
 
 			if( (par.pmPartStatus & kPartitionAUXIsBootValid) &&
 			    (par.pmPartStatus & kPartitionAUXIsValid) &&
@@ -120,6 +125,10 @@ macparts_open( macparts_info_t *di )
 			parnum++;
 		}
 		/* not found */
+		if (firstHFS != -1) {
+			parnum = firstHFS;
+			goto found;
+		}
 		ret = 0;
 		goto out;
         }
@@ -135,6 +144,7 @@ macparts_open( macparts_info_t *di )
 	if( parnum > par.pmMapBlkCnt)
 		goto out;
 
+found:
 	SEEK( (bs * parnum) );
 	READ( &par, sizeof(par) );
 	if( par.pmSig != DESC_PART_SIGNATURE || !par.pmPartBlkCnt )

@@ -126,11 +126,11 @@ get_partition( const char *path )
 		path++;
 
 	if (!*path)
-		return 0;
+		return -1;
 	path++;
 
 	if (!strchr(path, ','))	/* check if there is a ',' */
-		return 0;
+		return -1;
 
 	return atol(path);
 }
@@ -177,10 +177,16 @@ encode_bootpath( const char *spec, const char *args )
 	char path[1024];
 	phandle_t chosen_ph = find_dev("/chosen");
 	char *filename, *directory;
+	int partition;
 
 	filename = get_filename(spec, &directory);
-	snprintf(path, sizeof(path), "%s:%d,%s\\%s", get_device(spec),
-		 get_partition(spec), directory, filename);
+	partition = get_partition(spec);
+	if (partition == -1)
+		snprintf(path, sizeof(path), "%s:,%s\\%s", get_device(spec),
+			 directory, filename);
+	else
+		snprintf(path, sizeof(path), "%s:%d,%s\\%s", get_device(spec),
+			 partition, directory, filename);
 
         ELF_DPRINTF("bootpath %s bootargs %s\n", path, args);
 	set_property( chosen_ph, "bootpath", path, strlen(spec)+1 );
@@ -240,8 +246,12 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
 
     /* read boot script */
 
-    snprintf(bootscript, sizeof(bootscript), "%s:%d,%s",
-             device, partition, script_path);
+    if (partition == -1)
+        snprintf(bootscript, sizeof(bootscript), "%s:,%s",
+                 device, script_path);
+    else
+        snprintf(bootscript, sizeof(bootscript), "%s:%d,%s",
+                 device, partition, script_path);
 
     CHRP_DPRINTF("Trying %s\n", bootscript);
     if ((fd = open_io(bootscript)) == -1) {
@@ -287,7 +297,10 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
                 strcpy(bootscript + scriptlen, device);
                 scriptlen += strlen(device);
             } else if (strcasecmp(tagbuf, "partition") == 0) {
-		sprintf(bootscript + scriptlen, "%d", partition);
+                if (partition != -1)
+		    sprintf(bootscript + scriptlen, "%d", partition);
+                else
+                    *(bootscript + scriptlen) = 0;
                 scriptlen = strlen(bootscript);
             } else if (strcasecmp(tagbuf, "directory") == 0) {
                 strcpy(bootscript + scriptlen, directory);
@@ -409,11 +422,11 @@ yaboot_startup( void )
                 uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
                 switch (boot_device) {
                 case 'c':
-                    path = strdup("hd:0");
+                    path = strdup("hd:");
                     break;
                 default:
                 case 'd':
-                    path = strdup("cd:0");
+                    path = strdup("cd:");
                     break;
                 }
 	        for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
