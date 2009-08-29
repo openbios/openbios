@@ -533,6 +533,20 @@ variable leaves 0 leaves !
   drop
 ;
 
+\ compare two string
+
+: $= ( str1 len1 str2 len2 -- true|false )
+    rot ( str1 str2 len2 len1 )
+    over ( str1 str2 len2 len1 len2 )  
+    <> if ( str1 str2 len2 )
+        3drop
+        false
+    else ( str1 str2 len2 )
+        comp
+	0=
+    then
+;
+
 \ : +! tuck @ + swap ! ;
 : off false swap ! ;
 : on true swap ! ;
