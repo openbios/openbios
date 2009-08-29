@@ -30,10 +30,24 @@ extern void dsi_exception( void );
 extern void isi_exception( void );
 extern void setup_mmu( ulong code_base );
 
+/*
+ * From Apple's BootX source comments:
+ *
+ *  96 MB map (currently unused - 4363357 tracks re-adoption)
+ * 00000000 - 00003FFF  : Exception Vectors
+ * 00004000 - 03FFFFFF  : Kernel Image, Boot Struct and Drivers (~64 MB)
+ * 04000000 - 04FFFFFF  : File Load Area (16 MB)   [80 MB]
+ * 05000000 - 053FFFFF  : FS Cache    (4 MB)       [84 MB]
+ * 05400000 - 055FFFFF  : Malloc Zone (2 MB)       [86 MB]
+ * 05600000 - 057FFFFF  : BootX Image (2 MB)       [88 MB]
+ * 05800000 - 05FFFFFF  : Unused/OF   (8 MB)       [96 MB]
+ *
+ */
+
 #define FREE_BASE		0x00004000
 #define OF_CODE_START	0xfff00000UL
 #define IO_BASE			0x80000000
-#define OFMEM			((ofmem_t*)FREE_BASE)
+#define OFMEM			((ofmem_t*)0x05400000)
 
 #define OF_MALLOC_BASE		((char*)OFMEM + ((sizeof(ofmem_t) + 3) & ~3))
 
@@ -78,7 +92,7 @@ get_ram_top( void )
 ulong
 get_ram_bottom( void )
 {
-        return (ulong)OF_MALLOC_BASE;
+        return (ulong)FREE_BASE;
 }
 
 static ucell get_heap_top( void )

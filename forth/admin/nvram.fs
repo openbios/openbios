@@ -334,7 +334,7 @@ no-conf-def " security-mode"        secmode-config
 " false"    " real-mode?"           bool-config
 " -1"       " real-base"            int-config
 " -1"       " real-size"            int-config
-" 0x800000" " load-base"            int-config
+" 4000000"  " load-base"          int-config
 " -1"       " virt-base"            int-config
 " -1"       " virt-size"            int-config
 [THEN]
