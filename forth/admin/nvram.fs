@@ -365,3 +365,7 @@ no-conf-def " security-mode"        secmode-config
 \ defers
 ['] fcode-debug? to _fcode-debug?
 ['] diag-switch? to _diag-switch?
+
+: release-load-area
+    drop
+;

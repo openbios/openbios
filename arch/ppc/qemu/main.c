@@ -36,7 +36,7 @@
 #endif
 #define CHRP_DPRINTF(fmt, args...) SUBSYS_DPRINTF("CHRP", fmt, ##args)
 #define ELF_DPRINTF(fmt, args...) SUBSYS_DPRINTF("ELF", fmt, ##args)
-#define YABOOT_DPRINTF(fmt, args...) SUBSYS_DPRINTF("YABOOT", fmt, ##args)
+#define NEWWORLD_DPRINTF(fmt, args...) SUBSYS_DPRINTF("NEWWORLD", fmt, ##args)
 
 static void
 transfer_control_to_elf( ulong elf_entry )
@@ -236,13 +236,15 @@ static void
 try_chrp_script(const char *of_path, const char *param, const char *script_path)
 {
     int fd, len, tag, taglen, script, scriptlen, entity;
-    char tagbuf[256], bootscript[256], c;
+    char tagbuf[256], bootscript[2048], c;
     char *device, *filename, *directory;
     int partition;
 
     device = get_device(of_path);
     partition = get_partition(of_path);
     filename = get_filename(of_path, &directory);
+
+    CHRP_DPRINTF("device %s partition %d filename %s\n", device, partition, filename);
 
     /* read boot script */
 
@@ -378,13 +380,10 @@ oldworld_boot( void )
 }
 
 static void
-yaboot_startup( void )
+newworld_boot( void )
 {
-        static const char * const chrp_paths[] = { "ppc\\bootinfo.txt", "System\\Library\\CoreServices\\BootX" };
-        static const char * const elf_paths[] = { "hd:2,\\ofclient", "hd:2,\\yaboot" };
-        static const char * const args[] = { "", "conf=hd:2,\\yaboot.conf" };
+        static const char * const chrp_path = "\\\\:tbxi" ;
         char *path = pop_fstr_copy(), *param;
-        int i;
 
 	param = strchr(path, ' ');
 	if (param) {
@@ -393,7 +392,7 @@ yaboot_startup( void )
 	}
 
         if (!path) {
-            YABOOT_DPRINTF("Entering boot, no path\n");
+            NEWWORLD_DPRINTF("Entering boot, no path\n");
             push_str("boot-device");
             push_str("/options");
             fword("(find-dev)");
@@ -415,9 +414,7 @@ yaboot_startup( void )
                     param = pop_fstr_copy();
                 }
                 try_path(path, param);
-	        for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
-	            try_chrp_script(path, param, chrp_paths[i]);
-	        }
+	        try_chrp_script(path, param, chrp_path);
             } else {
                 uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
                 switch (boot_device) {
@@ -429,19 +426,12 @@ yaboot_startup( void )
                     path = strdup("cd:");
                     break;
                 }
-	        for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
-	            try_chrp_script(path, param, chrp_paths[i]);
-	        }
+	        try_chrp_script(path, param, chrp_path);
             }
         } else {
-            YABOOT_DPRINTF("Entering boot, path %s\n", path);
+            NEWWORLD_DPRINTF("Entering boot, path %s\n", path);
             try_path(path, param);
-            for( i=0; i < sizeof(chrp_paths) / sizeof(chrp_paths[0]); i++ ) {
-                try_chrp_script(path, param, chrp_paths[i]);
-            }
-        }
-        for( i=0; i < sizeof(elf_paths) / sizeof(elf_paths[0]); i++ ) {
-            try_path(elf_paths[i], args[i]);
+            try_chrp_script(path, param, chrp_path);
         }
 	printk("*** Boot failure! No secondary bootloader specified ***\n");
 }
@@ -487,5 +477,5 @@ boot( void )
 	if (boot_device == 'c') {
 		oldworld_boot();
 	}
-	yaboot_startup();
+	newworld_boot();
 }
