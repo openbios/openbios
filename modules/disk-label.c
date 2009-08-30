@@ -93,37 +93,6 @@ dlabel_open( dlabel_info_t *di )
 	}
 	DPRINTF("filename %s\n", filename);
 
-	/* try to see if there is a filesystem without partition,
-	 * like ISO9660. This is needed to boot openSUSE 11.1 CD
-	 * which uses "boot &device;:1,\suseboot\yaboot.ibm"
-	 * whereas HFS+ partition is #2
-	 */
-
-	if ( atol(path) == 1 ) {
-		PUSH_ih( my_self() );
-		selfword("find-filesystem");
-		ph = POP_ph();
-		if( ph ) {
-			di->offs_hi = 0;
-			di->offs_lo = 0;
-			di->size_hi = 0;
-			di->size_lo = 0;
-			di->part_ih = 0;
-			di->type = -1;
-			di->block_size = 512;
-			xt = find_parent_method("block-size");
-			if (xt) {
-				call_parent(xt);
-				di->block_size = POP();
-			}
-			push_str( filename );
-			PUSH_ph( ph );
-			fword("interpose");
-			success = 1;
-			goto out;
-		}
-	}
-
 	/* find partition handler */
 	seek_io( fd, 0 );
 	if( read_io(fd, block0, sizeof(block0)) != sizeof(block0) )
