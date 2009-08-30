@@ -243,6 +243,31 @@ files_get_fstype( files_info_t *mi )
 		PUSH( (ucell)"unspecified");
 }
 
+/* ( addr -- size ) */
+
+static void
+files_load( files_info_t *mi)
+{
+	char *buf = (char*)POP();
+	int ret, size;
+
+	if (!mi->file) {
+		PUSH(0);
+		return;
+	}
+
+	size = 0;
+	while(1) {
+		ret = mi->fs->read( mi->file, buf, 512 );
+		if (ret != 512)
+			break;
+		buf += ret;
+		mi->filepos += ret;
+		size += ret;
+	}
+	PUSH( size );
+}
+
 /* static method, ( ih -- flag? ) */
 static void
 files_probe( files_info_t *dummy )
@@ -279,6 +304,7 @@ NODE_METHODS( files ) = {
 	{ "write",		files_write 		},
 	{ "seek",		files_seek 		},
 	{ "tell",		files_tell		},
+	{ "load",		files_load		},
 	{ "block-size",		files_block_size	},
 
 	/* special */

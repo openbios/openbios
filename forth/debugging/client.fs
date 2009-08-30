@@ -17,10 +17,28 @@
 
 \ 7.6.2    Program download and execute
 
+variable file-size
+
+: !load-size file-size ! ;
+
+: load-size file-size @ ;
+
 : load    ( "{params}<cr>" -- )
+  linefeed parse ( str len )
+  open-dev ( ihandle )
+  dup 0= if
+    drop
+    exit
+  then
+  dup >r
+  " load-base" evaluate swap ( load-base ihandle )
+  dup ihandle>phandle " load" rot find-method ( xt 0|1 )
+  if swap call-package !load-size else cr ." Cannot find load for this package" 2drop then
+  r> close-dev
   ;
 
 : go    ( -- )
+  ." go is not yet implemented"
   ;
 
 : state-valid    ( -- a-addr )
