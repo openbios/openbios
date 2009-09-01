@@ -39,6 +39,14 @@
 #define NEWWORLD_DPRINTF(fmt, args...) SUBSYS_DPRINTF("NEWWORLD", fmt, ##args)
 
 static void
+load(const char *path)
+{
+	char buffer[1024];
+	sprintf(buffer, "load %s", path);
+	feval(buffer);
+}
+
+static void
 transfer_control_to_elf( ulong elf_entry )
 {
 	ELF_DPRINTF("Starting ELF boot loader\n");
@@ -235,10 +243,13 @@ try_path(const char *path, const char *param)
 static void
 try_chrp_script(const char *of_path, const char *param, const char *script_path)
 {
-    int fd, len, tag, taglen, script, scriptlen, entity;
-    char tagbuf[256], bootscript[2048], c;
+    int tag, taglen, script, scriptlen, entity, chrp;
+    char tagbuf[128], path[1024], c;
     char *device, *filename, *directory;
     int partition;
+    int current, size;
+    char *base;
+    char *bootscript;
 
     device = get_device(of_path);
     partition = get_partition(of_path);
@@ -249,31 +260,39 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
     /* read boot script */
 
     if (partition == -1)
-        snprintf(bootscript, sizeof(bootscript), "%s:,%s",
+        snprintf(path, sizeof(path), "%s:,%s",
                  device, script_path);
     else
-        snprintf(bootscript, sizeof(bootscript), "%s:%d,%s",
+        snprintf(path, sizeof(path), "%s:%d,%s",
                  device, partition, script_path);
 
-    CHRP_DPRINTF("Trying %s\n", bootscript);
-    if ((fd = open_io(bootscript)) == -1) {
-        ELF_DPRINTF("Can't open %s\n", bootscript);
+    CHRP_DPRINTF("Trying %s\n", path);
+    load(path);
+    feval("load-size");
+    size = POP();
+    if (size == 0) {
+        ELF_DPRINTF("Can't open %s\n", of_path);
         return;
     }
-    len = read_io(fd, tagbuf, 11);
-    tagbuf[11] = '\0';
-    if (len < 0 || strcasecmp(tagbuf, "<chrp-boot>") != 0)
-        goto badf;
+    bootscript = malloc(size);
+    if (bootscript == NULL) {
+        ELF_DPRINTF("Can't malloc %d bytes\n", size);
+        return;
+    }
+    feval("load-base");
+    base = (char*)POP();
 
+    chrp = 0;
     tag = 0;
     taglen = 0;
     script = 0;
     scriptlen = 0;
     entity = 0;
-    do {
-        len = read_io(fd, &c, 1);
-        if (len < 0)
-            goto badf;
+    current = 0;
+    while (current < size) {
+
+        c = base[current++];
+
         if (c == '<') {
             script = 0;
             tag = 1;
@@ -281,12 +300,27 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
         } else if (c == '>') {
             tag = 0;
             tagbuf[taglen] = '\0';
-            if (strcasecmp(tagbuf, "boot-script") == 0)
-                script = 1;
-            else if (strcasecmp(tagbuf, "/boot-script") == 0)
-                bootscript[scriptlen] = '\0';
-            else if (strcasecmp(tagbuf, "/chrp-boot") == 0)
-		break;
+            if (strcasecmp(tagbuf, "chrp-boot") == 0) {
+                chrp = 1;
+            } else if (chrp == 1) {
+                if (strcasecmp(tagbuf, "boot-script") == 0) {
+                    script = 1;
+                    scriptlen = 0;
+                } else if (strcasecmp(tagbuf, "/boot-script") == 0) {
+
+                    script = 0;
+                    bootscript[scriptlen] = '\0';
+
+                    CHRP_DPRINTF("got bootscript %s\n", bootscript);
+
+                    encode_bootpath(of_path, param);
+
+                    feval(bootscript);
+
+                    break;
+                } else if (strcasecmp(tagbuf, "/chrp-boot") == 0)
+		    break;
+            }
         } else if (tag && taglen < sizeof(tagbuf)) {
             tagbuf[taglen++] = c;
         } else if (script && c == '&') {
@@ -295,7 +329,11 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
         } else if (entity && c ==';') {
             entity = 0;
             tagbuf[taglen] = '\0';
-            if (strcasecmp(tagbuf, "device") == 0) {
+            if (strcasecmp(tagbuf, "lt") == 0) {
+                bootscript[scriptlen++] = '<';
+            } else if (strcasecmp(tagbuf, "gt") == 0) {
+                bootscript[scriptlen++] = '>';
+            } else if (strcasecmp(tagbuf, "device") == 0) {
                 strcpy(bootscript + scriptlen, device);
                 scriptlen += strlen(device);
             } else if (strcasecmp(tagbuf, "partition") == 0) {
@@ -322,18 +360,12 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
             }
         } else if (entity && taglen < sizeof(tagbuf)) {
             tagbuf[taglen++] = c;
-        } else if (script && scriptlen < sizeof(bootscript)) {
+        } else if (script && scriptlen < size) {
             bootscript[scriptlen++] = c;
         }
-    } while (1);
+    }
 
-    CHRP_DPRINTF("got bootscript %s\n", bootscript);
-
-    encode_bootpath(of_path, param);
-
-    feval(bootscript);
- badf:
-    close_io( fd );
+    free(bootscript);
 }
 
 #define OLDWORLD_BOOTCODE_BASEADDR	(0x3f4000)
