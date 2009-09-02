@@ -79,7 +79,7 @@ dlabel_open( dlabel_info_t *di )
 	/* argument format: parnum,filename */
 
 	s = path;
-	filename = NULL;
+	filename = "";
 	if( *s == '-' || isdigit(*s) ||
 	    (*s >= 'a' && *s < ('a' + 8)
 	     && (*(s + 1) == ',' || *(s + 1) == '\0'))) {
@@ -146,7 +146,7 @@ dlabel_open( dlabel_info_t *di )
 		push_str( filename );
 		PUSH_ph( ph );
 		fword("interpose");
-	} else if (filename && strcmp(filename, "%BOOT") != 0) {
+	} else if (*filename && strcmp(filename, "%BOOT") != 0) {
 		goto out;
 	}
 	success = 1;
