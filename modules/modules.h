@@ -24,5 +24,6 @@ extern void	macparts_init( void );
 extern void	pcparts_init( void );
 extern void	sunparts_init( void );
 extern void	cmdline_init( void );
+extern void	elf_loader_init( void );
 
 #endif   /* _H_MODULES */

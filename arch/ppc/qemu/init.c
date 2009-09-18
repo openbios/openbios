@@ -439,6 +439,18 @@ id_cpu(void)
     for (;;);
 }
 
+static void go( void );
+
+static void
+go( void )
+{
+    ucell addr;
+
+    addr = POP();
+
+    call_elf( 0, 0, addr);
+}
+
 void
 arch_of_init( void )
 {
@@ -688,4 +700,5 @@ arch_of_init( void )
 	device_end();
 
 	bind_func("platform-boot", boot );
+	bind_func("(go)", go);
 }
