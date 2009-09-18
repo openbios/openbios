@@ -42,5 +42,7 @@ modules_init( void )
 #ifdef CONFIG_SUN_PARTS
 	sunparts_init();
 #endif
+#ifdef CONFIG_PPC
 	elf_loader_init();
+#endif
 }
