@@ -180,6 +180,7 @@ constant /Elf32_Ehdr
   ;
 
 variable elf-entry
+variable xcoff-entry
 
 : init-program-elf
   elf file-type !
@@ -302,9 +303,19 @@ variable elf-entry
   elf file-type @ = if
 [IFDEF] CONFIG_PPC
     elf-entry @ " (go)" evaluate
+[ELSE]
+    ." go is not yet implemented"
 [THEN]
   else
-    ." go is not yet implemented"
+    xcoff file-type @ = if
+[IFDEF] CONFIG_PPC
+      xcoff-entry @ " (go)" evaluate
+[ELSE]
+      ." go is not yet implemented"
+[THEN]
+    else
+      ." go is not yet implemented"
+    then
   then
   ;
 

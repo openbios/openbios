@@ -44,5 +44,6 @@ modules_init( void )
 #endif
 #ifdef CONFIG_PPC
 	elf_loader_init();
+	xcoff_loader_init();
 #endif
 }
