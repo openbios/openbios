@@ -276,16 +276,19 @@ variable xcoff-entry
   then
   ;
 
-: encode-bootpath ( str len -- )
-  \ FIXME: need to extract bootargs from bootpath and set it in /chosen
+: (encode-bootpath) ( "{params}<cr>" -- bootpath-str bootpath-len)
+  bl parse 2dup
   " /chosen" (find-dev) if
     " bootpath" rot (property)
+  then
+  linefeed parse
+  " /chosen" (find-dev) if
+    " bootargs" rot (property)
   then
 ;
 
 : load    ( "{params}<cr>" -- )
-  linefeed parse ( str len )
-  2dup encode-bootpath
+  (encode-bootpath)
   open-dev ( ihandle )
   dup 0= if
     drop
