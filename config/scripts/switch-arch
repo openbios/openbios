@@ -122,7 +122,7 @@ for RULES_ARCH in $*; do
         ;;
 
         sparc32)
-        TARGET="sparc-linux-gnu-"
+        TARGET="sparc-elf-"
         CFLAGS="-Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc -fno-builtin"
         AS_FLAGS="-Wa,-xarch=v8 -Wa,-32"
         ;;
