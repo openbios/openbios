@@ -45,6 +45,10 @@
 : device-end    ( -- )
   0 active-package!
   ;
+
+: unselect-dev ( -- )
+  device-end
+;
   
 : ?active-package ( -- phandle )
   active-package dup 0= abort" no active device"
