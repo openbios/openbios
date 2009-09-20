@@ -181,6 +181,8 @@ constant /Elf32_Ehdr
 
 variable elf-entry
 variable xcoff-entry
+variable bootinfo-entry
+variable bootinfo-size
 
 : init-program-elf
   elf file-type !
@@ -317,7 +319,15 @@ variable xcoff-entry
       ." go is not yet implemented"
 [THEN]
     else
-      ." go is not yet implemented"
+        bootinfo file-type @ = if
+[IFDEF] CONFIG_PPC
+	bootinfo-entry @ bootinfo-size @ evaluate
+[ELSE]
+          ." go is not yet implemented"
+[THEN]
+        else
+          ." go is not yet implemented"
+        then
     then
   then
   ;

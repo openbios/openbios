@@ -229,27 +229,13 @@ try_path(const char *path, const char *param)
     /* won't come here */
 }
 
-/*
-  Parse SGML structure like:
-  <chrp-boot>
-  <description>Debian/GNU Linux Installation on IBM CHRP hardware</description>
-  <os-name>Debian/GNU Linux for PowerPC</os-name>
-  <boot-script>boot &device;:\install\yaboot</boot-script>
-  <icon size=64,64 color-space=3,3,2>
-
-  CHRP system bindings are described at:
-  http://playground.sun.com/1275/bindings/chrp/chrp1_7a.ps
-*/
 static void
 try_chrp_script(const char *of_path, const char *param, const char *script_path)
 {
-    int tag, taglen, script, scriptlen, entity, chrp;
-    char tagbuf[128], path[1024], c;
+    char  path[1024];
     char *device, *filename, *directory;
     int partition;
-    int current, size;
-    char *base;
-    char *bootscript;
+    int size;
 
     device = get_device(of_path);
     partition = get_partition(of_path);
@@ -274,98 +260,7 @@ try_chrp_script(const char *of_path, const char *param, const char *script_path)
         ELF_DPRINTF("Can't open %s\n", of_path);
         return;
     }
-    bootscript = malloc(size);
-    if (bootscript == NULL) {
-        ELF_DPRINTF("Can't malloc %d bytes\n", size);
-        return;
-    }
-    feval("load-base");
-    base = (char*)POP();
-
-    chrp = 0;
-    tag = 0;
-    taglen = 0;
-    script = 0;
-    scriptlen = 0;
-    entity = 0;
-    current = 0;
-    while (current < size) {
-
-        c = base[current++];
-
-        if (c == '<') {
-            script = 0;
-            tag = 1;
-            taglen = 0;
-        } else if (c == '>') {
-            tag = 0;
-            tagbuf[taglen] = '\0';
-            if (strcasecmp(tagbuf, "chrp-boot") == 0) {
-                chrp = 1;
-            } else if (chrp == 1) {
-                if (strcasecmp(tagbuf, "boot-script") == 0) {
-                    script = 1;
-                    scriptlen = 0;
-                } else if (strcasecmp(tagbuf, "/boot-script") == 0) {
-
-                    script = 0;
-                    bootscript[scriptlen] = '\0';
-
-                    CHRP_DPRINTF("got bootscript %s\n", bootscript);
-
-                    encode_bootpath(of_path, param);
-
-                    feval(bootscript);
-
-                    break;
-                } else if (strcasecmp(tagbuf, "/chrp-boot") == 0)
-		    break;
-            }
-        } else if (tag && taglen < sizeof(tagbuf)) {
-            tagbuf[taglen++] = c;
-        } else if (script && c == '&') {
-            entity = 1;
-            taglen = 0;
-        } else if (entity && c ==';') {
-            entity = 0;
-            tagbuf[taglen] = '\0';
-            if (strcasecmp(tagbuf, "lt") == 0) {
-                bootscript[scriptlen++] = '<';
-            } else if (strcasecmp(tagbuf, "gt") == 0) {
-                bootscript[scriptlen++] = '>';
-            } else if (strcasecmp(tagbuf, "device") == 0) {
-                strcpy(bootscript + scriptlen, device);
-                scriptlen += strlen(device);
-            } else if (strcasecmp(tagbuf, "partition") == 0) {
-                if (partition != -1)
-		    sprintf(bootscript + scriptlen, "%d", partition);
-                else
-                    *(bootscript + scriptlen) = 0;
-                scriptlen = strlen(bootscript);
-            } else if (strcasecmp(tagbuf, "directory") == 0) {
-                strcpy(bootscript + scriptlen, directory);
-                scriptlen += strlen(directory);
-            } else if (strcasecmp(tagbuf, "filename") == 0) {
-                strcpy(bootscript + scriptlen, filename);
-                scriptlen += strlen(filename);
-            } else if (strcasecmp(tagbuf, "full-path") == 0) {
-                strcpy(bootscript + scriptlen, of_path);
-                scriptlen += strlen(of_path);
-            } else { /* unknown, keep it */
-                bootscript[scriptlen] = '&';
-                strcpy(bootscript + scriptlen + 1, tagbuf);
-                scriptlen += taglen + 1;
-                bootscript[scriptlen] = ';';
-                scriptlen++;
-            }
-        } else if (entity && taglen < sizeof(tagbuf)) {
-            tagbuf[taglen++] = c;
-        } else if (script && scriptlen < size) {
-            bootscript[scriptlen++] = c;
-        }
-    }
-
-    free(bootscript);
+    feval("go");
 }
 
 #define OLDWORLD_BOOTCODE_BASEADDR	(0x3f4000)

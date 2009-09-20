@@ -26,5 +26,6 @@ extern void	sunparts_init( void );
 extern void	cmdline_init( void );
 extern void	elf_loader_init( void );
 extern void	xcoff_loader_init( void );
+extern void	bootinfo_loader_init( void );
 
 #endif   /* _H_MODULES */

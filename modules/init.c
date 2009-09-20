@@ -45,5 +45,6 @@ modules_init( void )
 #ifdef CONFIG_PPC
 	elf_loader_init();
 	xcoff_loader_init();
+	bootinfo_loader_init();
 #endif
 }
