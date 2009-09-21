@@ -124,6 +124,8 @@ bootinfo_loader_init_program( void *dummy )
         char *tmp;
 	char bootpath[1024];
 
+	feval("0 state-valid !");
+
 	chosen = find_dev("/chosen");
 	tmp = get_property(chosen, "bootpath", &proplen);
 	memcpy(bootpath, tmp, proplen);
@@ -179,9 +181,7 @@ bootinfo_loader_init_program( void *dummy )
 					DPRINTF("got bootscript %s\n",
 						bootscript);
 
-					/* FIXME: should initialize saved-program-state. */
-					push_str(bootscript);
-					feval("bootinfo-size ! bootinfo-entry !");
+					feval("-1 state-valid !");
 
 					break;
 				} else if (strcasecmp(tagbuf, "/chrp-boot") == 0)
@@ -230,6 +230,9 @@ bootinfo_loader_init_program( void *dummy )
 			bootscript[scriptlen++] = c;
 		}
 	}
+	/* FIXME: should initialize saved-program-state. */
+	push_str(bootscript);
+	feval("bootinfo-size ! bootinfo-entry !");
 }
 
 NODE_METHODS( bootinfo_loader ) = {

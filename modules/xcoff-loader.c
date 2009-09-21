@@ -47,6 +47,8 @@ xcoff_loader_init_program( void *dummy )
 	uint32_t offset;
 	int i;
 
+	feval("0 state-valid !");
+
 	feval("load-base");
 	base = (char*)POP();
 
@@ -128,6 +130,8 @@ xcoff_loader_init_program( void *dummy )
 	DPRINTF("XCOFF entry point: %x\n", *(uint32_t*)ahdr->entry);
 	PUSH(*(uint32_t*)ahdr->entry);
 	feval("xcoff-entry !");
+
+	feval("-1 state-valid !");
 }
 
 NODE_METHODS( xcoff_loader ) = {

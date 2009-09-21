@@ -17,6 +17,9 @@
 
 \ 7.6.2    Program download and execute
 
+variable state-valid
+0 state-valid !
+
 variable file-size
 
 : !load-size file-size ! ;
@@ -305,6 +308,7 @@ variable bootinfo-size
   ;
 
 : go    ( -- )
+  state-valid @ not if exit then
   elf file-type @ = if
 [IFDEF] CONFIG_PPC
     elf-entry @ " (go)" evaluate
@@ -330,9 +334,6 @@ variable bootinfo-size
         then
     then
   then
-  ;
-
-: state-valid    ( -- a-addr )
   ;
 
 

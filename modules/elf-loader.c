@@ -50,6 +50,8 @@ elf_loader_init_program( void *dummy )
 	size_t size;
 	char *addr;
 
+	feval("0 state-valid !");
+
 	feval("load-base");
 	base = (char*)POP();
 
@@ -78,6 +80,7 @@ elf_loader_init_program( void *dummy )
 	/* FIXME: should initialize saved-program-state. */
 	PUSH(ehdr->e_entry);
 	feval("elf-entry !");
+	feval("-1 state-valid !");
 }
 
 NODE_METHODS( elf_loader ) = {
