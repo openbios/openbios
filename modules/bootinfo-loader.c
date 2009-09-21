@@ -18,7 +18,7 @@
 #include "openbios/bindings.h"
 #include "modules.h"
 #include "ofmem.h"
-#include "stdio.h"
+#include "libc/vsprintf.h"
 
 //#define DEBUG_BOOTINFO
 
