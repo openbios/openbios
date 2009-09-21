@@ -54,14 +54,20 @@ macparts_open( macparts_info_t *di )
 	DPRINTF("partition %s\n", str);
 	if( str ) {
 		char *tmp;
+		char *comma = strchr(str, ',');
 		parnum = atol(str);
 		if( *str == 0 || *str == ',' )
 			parnum = -1;
-		tmp = str;
-		while (*tmp && *tmp != ',')
-			tmp++;
-		if (*tmp == ',')
-			tmp++;
+		if (comma) {
+			tmp = comma + 1;
+		} else {
+			if (*str >= '0' && *str <= '9') {
+				tmp = (char*)"";
+			} else {
+				tmp = str;
+				parnum = -1;
+			}
+		}
 		if (strcmp(tmp, "%BOOT") == 0)
 			want_bootcode = 1;
 		free(str);
