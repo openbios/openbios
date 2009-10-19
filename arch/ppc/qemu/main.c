@@ -205,8 +205,12 @@ oldworld_boot( void )
 static void
 newworld_boot( void )
 {
-        static const char * const chrp_path = "\\\\:tbxi" ;
+        static const char * const chrp_path[] = { "\\\\:tbxi",
+						  "ppc\\bootinfo.txt",
+						  NULL
+						  };
         char *path = pop_fstr_copy(), *param;
+	int i;
 
 	param = strchr(path, ' ');
 	if (param) {
@@ -237,7 +241,8 @@ newworld_boot( void )
                     param = pop_fstr_copy();
                 }
                 try_path(path, NULL, param);
-	        try_path(path, chrp_path, param);
+                for (i = 0; chrp_path[i]; i++)
+	            try_path(path, chrp_path[i], param);
             } else {
                 uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
                 switch (boot_device) {
@@ -249,12 +254,14 @@ newworld_boot( void )
                     path = strdup("cd:");
                     break;
                 }
-	        try_path(path, chrp_path, param);
+                for (i = 0; chrp_path[i]; i++)
+	            try_path(path, chrp_path[i], param);
             }
         } else {
             NEWWORLD_DPRINTF("Entering boot, path %s\n", path);
 	    try_path(path, NULL, param);
-            try_path(path, chrp_path, param);
+            for (i = 0; chrp_path[i]; i++)
+	        try_path(path, chrp_path[i], param);
         }
 	printk("*** Boot failure! No secondary bootloader specified ***\n");
 }
