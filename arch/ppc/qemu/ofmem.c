@@ -401,8 +401,6 @@ ofmem_init( void )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 
-	ofmem_claim_phys( 0, get_ram_bottom(), 0 );
-	ofmem_claim_virt( 0, get_ram_bottom(), 0 );
-	ofmem_claim_phys( get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
-	ofmem_claim_virt( get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
+	ofmem_map( 0, 0, get_ram_bottom(), 0 );
+	ofmem_map( get_ram_top(), get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
 }
