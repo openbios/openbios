@@ -259,11 +259,13 @@ files_load( files_info_t *mi)
 	size = 0;
 	while(1) {
 		ret = mi->fs->read( mi->file, buf, 512 );
-		if (ret != 512)
+		if (ret <= 0)
 			break;
 		buf += ret;
 		mi->filepos += ret;
 		size += ret;
+		if (ret != 512)
+			break;
 	}
 	PUSH( size );
 }
