@@ -36,6 +36,178 @@ typedef struct prom_args {
         ulong 		args[10];		/* MAX NUM ARGS! */
 } prom_args_t;
 
+#ifdef DEBUG_CIF
+static void memdump(const char *mem, unsigned long size)
+{
+	int i;
+	
+	if (size == (unsigned long) -1)
+		return;
+
+	for (i = 0; i < size; i += 16) {
+		int j;
+
+		printk("0x%08lx ", (unsigned long)mem + i);
+
+		for (j = 0; j < 16 && i + j < size; j++)
+			printk(" %02x", *(unsigned char*)(mem + i + j));
+
+		for ( ; j < 16; j++)
+			printk(" __");
+
+		printk("  ");
+
+		for (j = 0; j < 16 && i + j < size; j++) {
+			unsigned char c = *(mem + i + j);
+			if (isprint(c))
+				printk("%c", c);
+			else
+				printk(".");
+		}
+		printk("\n");
+	}
+}
+
+static void dump_service(prom_args_t *pb)
+{
+	int i;
+	printk("[ nargs %ld nret %ld ] ", pb->nargs, pb->nret);
+	if (strcmp(pb->service, "test") == 0) {
+		printk("test(\"%s\") = ", (char*)pb->args[0]);
+	} else if (strcmp(pb->service, "peer") == 0) {
+		printk("peer(0x%08lx) = ", pb->args[0]);
+	} else if (strcmp(pb->service, "child") == 0) {
+		printk("child(0x%08lx) = ", pb->args[0]);
+	} else if (strcmp(pb->service, "parent") == 0) {
+		printk("parent(0x%08lx) = ", pb->args[0]);
+	} else if (strcmp(pb->service, "instance-to-package") == 0) {
+		printk("instance-to-package(0x%08lx) = ", pb->args[0]);
+	} else if (strcmp(pb->service, "getproplen") == 0) {
+		printk("getproplen(0x%08lx, \"%s\") = ",
+			pb->args[0], (char*)pb->args[1]);
+	} else if (strcmp(pb->service, "getprop") == 0) {
+		printk("getprop(0x%08lx, \"%s\", 0x%08lx, %ld) = ",
+			pb->args[0], (char*)pb->args[1],
+			pb->args[2], pb->args[3]);
+	} else if (strcmp(pb->service, "nextprop") == 0) {
+		printk("nextprop(0x%08lx, \"%s\", 0x%08lx) = ",
+			pb->args[0], (char*)pb->args[1], pb->args[2]);
+	} else if (strcmp(pb->service, "setprop") == 0) {
+		printk("setprop(0x%08lx, \"%s\", 0x%08lx, %ld)\n",
+			pb->args[0], (char*)pb->args[1],
+			pb->args[2], pb->args[3]);
+		memdump((char*)pb->args[2], pb->args[3]);
+		printk(" = ");
+	} else if (strcmp(pb->service, "canon") == 0) {
+		printk("canon(\"%s\", 0x%08lx, %ld)\n",
+			(char*)pb->args[0], pb->args[1], pb->args[2]);
+	} else if (strcmp(pb->service, "finddevice") == 0) {
+		printk("finddevice(\"%s\") = ", (char*)pb->args[0]);
+	} else if (strcmp(pb->service, "instance-to-path") == 0) {
+		printk("instance-to-path(0x%08lx, 0x%08lx, %ld) = ",
+			pb->args[0], pb->args[1], pb->args[2]);
+	} else if (strcmp(pb->service, "package-to-path") == 0) {
+		printk("package-to-path(0x%08lx, 0x%08lx, %ld) = ",
+			pb->args[0], pb->args[1], pb->args[2]);
+	} else if (strcmp(pb->service, "open") == 0) {
+		printk("open(\"%s\") = ", (char*)pb->args[0]);
+	} else if (strcmp(pb->service, "close") == 0) {
+		printk("close(0x%08lx)\n", pb->args[0]);
+	} else if (strcmp(pb->service, "read") == 0) {
+		printk("read(0x%08lx, 0x%08lx, %ld) = ",
+			pb->args[0], pb->args[1], pb->args[2]);
+	} else if (strcmp(pb->service, "write") == 0) {
+		printk("write(0x%08lx, 0x%08lx, %ld)\n",
+			pb->args[0], pb->args[1], pb->args[2]);
+		memdump((char*)pb->args[1], pb->args[2]);
+		printk(" = ");
+	} else if (strcmp(pb->service, "seek") == 0) {
+		printk("seek(0x%08lx, 0x%08lx, 0x%08lx) = ",
+			pb->args[0], pb->args[1], pb->args[2]);
+	} else if (strcmp(pb->service, "claim") == 0) {
+		printk("claim(0x8%lx, %ld, %ld) = ",
+			pb->args[0], pb->args[1], pb->args[2]);
+	} else if (strcmp(pb->service, "release") == 0) {
+		printk("release(0x8%lx, %ld)\n",
+			pb->args[0], pb->args[1]);
+	} else if (strcmp(pb->service, "boot") == 0) {
+		printk("boot \"%s\"\n", (char*)pb->args[0]);
+	} else if (strcmp(pb->service, "enter") == 0) {
+		printk("enter()\n");
+	} else if (strcmp(pb->service, "exit") == 0) {
+		printk("exit()\n");
+	} else {
+		printk("of_client_interface: %s ", pb->service );
+		for( i = 0; i < pb->nargs; i++ )
+			printk("%lx ", pb->args[i] );
+		printk("\n");
+	}
+}
+
+static void dump_return(prom_args_t *pb)
+{
+	int i;
+	if (strcmp(pb->service, "test") == 0) {
+		printk(" %ld\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "peer") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "child") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "parent") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "instance-to-package") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "getproplen") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "getprop") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+		memdump((char*)pb->args[2], pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "nextprop") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+		memdump((char*)pb->args[2], pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "setprop") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "canon") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+		memdump((char*)pb->args[1], pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "finddevice") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "instance-to-path") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+		memdump((char*)pb->args[1], pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "package-to-path") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+		memdump((char*)pb->args[1], pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "open") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "close") == 0) {
+		/* do nothing */
+	} else if (strcmp(pb->service, "read") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+		memdump((char*)pb->args[1], pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "write") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "seek") == 0) {
+		printk("%ld\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "claim") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(pb->service, "release") == 0) {
+		/* do nothing */
+	} else if (strcmp(pb->service, "boot") == 0) {
+		/* do nothing */
+	} else if (strcmp(pb->service, "enter") == 0) {
+		/* do nothing */
+	} else if (strcmp(pb->service, "exit") == 0) {
+		/* do nothing */
+	} else {
+		printk("of_client_interface return:");
+		for (i = 0; i < pb->nret; i++) {
+			printk("%lx ", pb->args[pb->nargs + i]);
+		}
+		printk("\n");
+	}
+}
+#endif
 
 /* call-method, interpret */
 static int
@@ -89,10 +261,7 @@ of_client_interface( int *params )
 	if( pb->nargs < 0 || pb->nret < 0 )
 		return -1;
 #ifdef DEBUG_CIF
-	printk("of_client_interface: %s ", pb->service );
-	for( i=0; i<pb->nargs; i++ )
-		printk("%lx ", pb->args[i] );
-	printk("\n");
+	dump_service(pb);
 #endif
 
 	/* call-method exceptions are special */
@@ -124,11 +293,7 @@ of_client_interface( int *params )
 		dstackcnt = dstacksave;
 	}
 
-        printk("of_client_interface return:");
-        for (i = 0; i < pb->nret; i++) {
-            printk("%lx ", pb->args[pb->nargs + i]);
-        }
-        printk("\n");
+	dump_return(pb);
 #endif
 	return 0;
 }
