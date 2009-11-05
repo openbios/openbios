@@ -198,7 +198,8 @@ cmdline_prompt( cmdline_info_t *ci )
 			cur_added = prompt = histind = pos = n = 0;
 		}
 
-		switch( (ch=key()) ) {
+		ch = key();
+		switch( ch ) {
 		case 27:
 			switch( key() ) {
 			case 'f':
@@ -217,6 +218,30 @@ cmdline_prompt( cmdline_info_t *ci )
 					move_cursor( -1 );
 					pos--;
 				}
+				break;
+			case '[':
+				switch( key() ) {
+				case 'A':
+					goto go_up;
+				case 'B':
+					goto go_down;
+				case 'C':
+					goto go_right;
+				case 'D':
+					goto go_left;
+				case '3':
+					key();
+					goto delete;
+				}
+				break;
+			case 'O':
+				switch(key()) {
+				case 'F':
+					goto go_end;
+				case 'H':
+					goto go_home;
+				}
+				break;
 			}
 			break;
 		case '\n':
@@ -240,6 +265,7 @@ cmdline_prompt( cmdline_info_t *ci )
 			break;
 
 		case 4: /* ^d */
+delete:
 			if( pos == n )
 				break;
 			emit( buf[pos++] );
@@ -260,17 +286,20 @@ cmdline_prompt( cmdline_info_t *ci )
 			break;
 
 		case 1: /* ^a */
+go_home:
 			move_cursor( -pos );
 			pos = 0;
 			break;
 
 		case 5: /* ^e */
+go_end:
 			pos += emit_str( &buf[pos] );
 			break;
 
 		//case 68: /* left */
 		//	drop = 1;
 		case 2: /* ^b */
+go_left:
 			if( pos ) {
 				move_cursor( -1 );
 				pos--;
@@ -280,6 +309,7 @@ cmdline_prompt( cmdline_info_t *ci )
 		//case 67: /* right */
 		//	drop = 1;
 		case 6: /* ^f */
+go_right:
 			if( pos < n )
 				emit( buf[pos++] );
 			break;
@@ -316,6 +346,7 @@ cmdline_prompt( cmdline_info_t *ci )
 		//case 66: /* down */
 		//	drop = 1;
 		case 14: /* ^n */
+go_down:
 			if( !histind )
 				break;
 			history_get( ci, --histind );
@@ -331,6 +362,7 @@ cmdline_prompt( cmdline_info_t *ci )
 		//case 65: /* up */
 		//	drop = 1;
 		case 16: /* ^p */
+go_up:
 			if( !histind && add_to_history(ci, ci->buf) ) {
 				cur_added = 1;
 				histind++;
