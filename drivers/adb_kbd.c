@@ -49,10 +49,47 @@ NODE_METHODS( keyboard ) = {
 	{ "read",               keyboard_read		},
 };
 
-/* ADB US keyboard translation map
- * XXX: for now, only shift modifier is defined
- */
+/* VT100 escape sequences */
 
+enum {
+	KEY_UP = 0, KEY_DOWN, KEY_RIGHT, KEY_LEFT, KEY_PAGE_UP, KEY_PAGE_DOWN,
+	KEY_DELETE, KEY_HOME, KEY_END, KEY_HELP,
+	KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8,
+	KEY_F9, KEY_F10, KEY_F11, KEY_F12, KEY_F13, KEY_F14, KEY_F15, KEY_F16
+};
+
+#define ADB_MAX_SEQUENCE_LEN	16
+
+static const char *ADB_sequences[] = {
+	[KEY_UP] = "A[",
+	[KEY_DOWN] = "B[",
+	[KEY_RIGHT] = "C[",
+	[KEY_LEFT] = "D[",
+	[KEY_PAGE_UP] = "~5[",
+	[KEY_PAGE_DOWN] = "~6[",
+	[KEY_DELETE] = "~3[",
+	[KEY_HOME] = "HO",
+	[KEY_END] = "FO",
+	[KEY_HELP] = "~2[",
+	[KEY_F1] = "PO",
+	[KEY_F2] = "QO",
+	[KEY_F3] = "RO",
+	[KEY_F4] = "SO",
+	[KEY_F5] = "~15[",
+	[KEY_F6] = "~17[",
+	[KEY_F7] = "~18[",
+	[KEY_F8] = "~19[",
+	[KEY_F9] = "~20[",
+	[KEY_F10] = "~21[",
+	[KEY_F11] = "~23[",
+	[KEY_F12] = "~24[",
+	[KEY_F13] = "~25[",
+	[KEY_F14] = "~26[",
+	[KEY_F15] = "~28[",
+	[KEY_F15] = "~29[",
+};
+
+/* ADB US keyboard translation map */
 
 static const keymap_t ADB_kbd_us[] = {
     /* 0x00 */
@@ -275,13 +312,13 @@ static const keymap_t ADB_kbd_us[] = {
     /* 0x3A : option */
     { KBD_MOD_MAP_LOPT,   },
     /* 0x3B : left */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_LEFT)), },
     /* 0x3C : right */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_RIGHT)), },
     /* 0x3D : down */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_DOWN)), },
     /* 0x3E : up */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_UP)), },
     { KBD_MAP_NONE, },
     /* 0x40 */
     { KBD_MAP_NONE, },
@@ -368,55 +405,55 @@ static const keymap_t ADB_kbd_us[] = {
     { KBD_MOD_MAP(0x2F), },
     { KBD_MAP_NONE, },
     /* 0x60 : F5 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F5)), },
     /* 0x61 : F6 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F6)), },
     /* 0x62 : F7 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F7)), },
     /* 0x63 : F3 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F3)), },
     /* 0x64 : F8 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F8)), },
     /* 0x65 : F9 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F9)), },
     { KBD_MAP_NONE, },
     /* 0x67 : F11 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F11)), },
     /* 0x68 */
     { KBD_MAP_NONE, },
     /* 0x69 : F13 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F13)), },
     { KBD_MAP_NONE, },
     /* 0x6B : F14 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F14)), },
     { KBD_MAP_NONE, },
     /* 0x6D : F10 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F10)), },
     { KBD_MAP_NONE, },
     /* 0x6F : F12 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F12)), },
     /* 0x70 */
     { KBD_MAP_NONE, },
     /* 0x71 : F15 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F15)), },
     /* 0x72 : help */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_HELP)), },
     /* 0x73 : home */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_HOME)), },
     /* 0x74 : page up */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_PAGE_UP)), },
     /* 0x75 : del */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_DELETE)), },
     /* 0x76 : F4 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F4)), },
     /* 0x77 : end */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_END)), },
     /* 0x78 : F2 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F2)), },
     /* 0x79 : page down */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_PAGE_UP)), },
     /* 0x7A : F1 */
-    { KBD_MAP_NONE, },
+    { KBD_MOD_MAP(KBD_SEQUENCE(KEY_F1)), },
     /* 0x7B : right shift */
     { KBD_MOD_MAP_RSHIFT, },
     /* 0x7C : right option */
@@ -432,6 +469,8 @@ typedef struct adb_kbd_t adb_kbd_t;
 struct adb_kbd_t {
     kbd_t kbd;
     int next_key;
+    char sequence[ADB_MAX_SEQUENCE_LEN];
+    int len;
 };
 
 static adb_dev_t *my_adb_dev = NULL;
@@ -445,6 +484,13 @@ static int adb_kbd_read (void *private)
     int ret;
 
     kbd = (void *)dev->state;
+
+    if (kbd->len > 0) {
+        ret = kbd->sequence[kbd->len-- - 1];
+        ADB_DPRINTF("Buffered %d (%02x)\n", ret, ret);
+	return ret;
+    }
+
     /* Get saved state */
     ret = -1;
     for (key = -1; key == -1; ) {
@@ -457,7 +503,12 @@ static int adb_kbd_read (void *private)
             kbd->next_key = buffer[1] == 0xFF ? -1 : buffer[1];
             key = buffer[0];
         }
-        ret = kbd_translate_key(&kbd->kbd, key & 0x7F, key >> 7);
+        ret = kbd_translate_key(&kbd->kbd, key & 0x7F, key >> 7, kbd->sequence);
+	if (ret > 0) {
+		kbd->len = ret;
+        	ret = kbd->sequence[kbd->len-- - 1];
+	}
+		
         ADB_DPRINTF("Translated %d (%02x) into %d (%02x)\n",
                     key, key, ret, ret);
     }
@@ -477,8 +528,9 @@ void *adb_kbd_new (char *path, void *private)
     if (kbd != NULL) {
         memset(kbd, 0, sizeof(adb_kbd_t));
         kbd_set_keymap(&kbd->kbd, sizeof(ADB_kbd_us) / sizeof(keymap_t),
-			ADB_kbd_us);
+			ADB_kbd_us, ADB_sequences);
         kbd->next_key = -1;
+        kbd->len = 0;
 	dev->state = (int32_t)kbd;
 	my_adb_dev = dev;
     }

@@ -35,6 +35,7 @@ struct kbd_t {
      */
     int nb_keys;
     const keymap_t *keymap;
+    const char **sequences;
 };
 
 /* Modifiers */
@@ -62,11 +63,14 @@ typedef enum {
 } kbd_lck_shifts;
 
 enum {
-    KBD_TYPE_REGULAR = 0 << 24,
-    KBD_TYPE_LMOD    = 1 << 24,
-    KBD_TYPE_RMOD    = 2 << 24,
-    KBD_TYPE_LOCK    = 3 << 24,
+    KBD_TYPE_REGULAR  = 0 << 24,
+    KBD_TYPE_LMOD     = 1 << 24,
+    KBD_TYPE_RMOD     = 2 << 24,
+    KBD_TYPE_LOCK     = 3 << 24,
+    KBD_TYPE_SEQUENCE = 4 << 24,
 };
+
+#define KBD_SEQUENCE(sequence)	(KBD_TYPE_SEQUENCE | (sequence))
 
 #define KBD_MOD_MAP(mod) \
 KBD_SH_NONE, { (mod), (mod), (mod), (mod), (mod), (mod), (mod), (mod), \
@@ -97,7 +101,8 @@ struct keymap_t {
 };
 
 void *kbd_new (int len);
-int kbd_set_keymap (kbd_t *kbd, int nb_keys, const keymap_t *keymap);
-int kbd_translate_key (kbd_t *kbd, int keycode, int up_down);
+int kbd_set_keymap (kbd_t *kbd, int nb_keys, const keymap_t *keymap,
+		    const char **sequences);
+int kbd_translate_key (kbd_t *kbd, int keycode, int up_down, char *sequence);
 
 #endif /* !defined (__OHW_KBD_H__) */

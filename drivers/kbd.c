@@ -20,6 +20,7 @@
  */
 
 #include "openbios/config.h"
+#include "libc/string.h"
 #include "asm/types.h"
 #include "kbd.h"
 
@@ -31,15 +32,16 @@ do { printk("KBD - %s: " fmt, __func__ , ##args); } while (0)
 #define KBD_DPRINTF(fmt, args...) do { } while (0)
 #endif
 
-int kbd_set_keymap (kbd_t *kbd, int nb_keys, const keymap_t *keymap)
+int kbd_set_keymap (kbd_t *kbd, int nb_keys, const keymap_t *keymap, const char **sequences)
 {
     kbd->nb_keys = nb_keys;
     kbd->keymap = keymap;
+    kbd->sequences = sequences;
 
     return 0;
 }
 
-int kbd_translate_key (kbd_t *kbd, int keycode, int up_down)
+int kbd_translate_key (kbd_t *kbd, int keycode, int up_down, char *sequence)
 {
     const keymap_t *keyt;
     int mod_state, key, type;
@@ -70,7 +72,15 @@ int kbd_translate_key (kbd_t *kbd, int keycode, int up_down)
         case KBD_TYPE_REGULAR:
             if (!up_down) {
                 /* We don't care about up events on "normal" keys */
-                ret = key;
+		*sequence = key;
+                ret = 1;
+            }
+            break;
+        case KBD_TYPE_SEQUENCE:
+            if (!up_down) {
+                /* We don't care about up events on "normal" keys */
+                ret = strlen(kbd->sequences[key]);
+		memcpy(sequence, kbd->sequences[key], ret);
             }
             break;
         case KBD_TYPE_LOCK:
