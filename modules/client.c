@@ -29,11 +29,12 @@
  * (it doesn't) or if the function is unimplemented.
  */
 
+#define PROM_MAX_ARGS	10
 typedef struct prom_args {
         const char 	*service;
         long 		nargs;
         long 		nret;
-        ulong 		args[10];		/* MAX NUM ARGS! */
+        ulong 		args[PROM_MAX_ARGS];
 } prom_args_t;
 
 #ifdef DEBUG_CIF
@@ -258,7 +259,8 @@ of_client_interface( int *params )
 	prom_args_t *pb = (prom_args_t*)params;
 	int val, i, dstacksave;
 
-	if( pb->nargs < 0 || pb->nret < 0 )
+	if( pb->nargs < 0 || pb->nret < 0 ||
+            pb->nargs + pb->nret > PROM_MAX_ARGS)
 		return -1;
 #ifdef DEBUG_CIF
 	dump_service(pb);
