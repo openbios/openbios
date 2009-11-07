@@ -613,28 +613,12 @@ arch_of_init( void )
 	push_str("reg");
 	fword("property");
 
-	/* available memory */
-
-	PUSH(0);
-	fword("encode-int");
-	PUSH((unsigned long)get_ram_bottom());
-	fword("encode-int");
-	fword("encode+");
-	PUSH((unsigned long)get_ram_top());
-	fword("encode-int");
-	fword("encode+");
-	PUSH(ram_size);
-	fword("encode-int");
-	fword("encode+");
-	push_str("available");
-	fword("property");
-
         cpu = id_cpu();
         cpu->initfn(cpu);
         printk("CPU type %s\n", cpu->name);
 
 	snprintf(buf, sizeof(buf), "/cpus/%s", cpu->name);
-	ofmem_register(0, find_dev(buf));
+	ofmem_register(find_dev("/memory"), find_dev(buf));
 	node_methods_init(buf);
 
 #ifdef USE_RTAS
