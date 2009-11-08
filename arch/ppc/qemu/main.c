@@ -132,7 +132,7 @@ encode_bootpath( const char *spec, const char *args )
 			 partition, directory, filename);
 
         ELF_DPRINTF("bootpath %s bootargs %s\n", path, args);
-	set_property( chosen_ph, "bootpath", path, strlen(spec)+1 );
+	set_property( chosen_ph, "bootpath", path, strlen(path)+1 );
 	if (args)
 		set_property( chosen_ph, "bootargs", args, strlen(args)+1 );
 }
