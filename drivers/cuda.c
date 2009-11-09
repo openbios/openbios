@@ -206,10 +206,6 @@ ob_cuda_initialize (int *idx)
         bind_func("ppc32-reset-all", ppc32_reset_all);
         push_str("' ppc32-reset-all to reset-all");
         fword("eval");
-
-        PUSH(0);
-        fword("active-package!");
-        bind_func("poweroff", ppc32_poweroff);
 }
 
 static void
@@ -306,6 +302,9 @@ cuda_t *cuda_init (const char *path, uint32_t base)
 	rtc_init(buf);
 
         main_cuda = cuda;
+
+	device_end();
+	bind_func("poweroff", ppc32_poweroff);
 
 	return cuda;
 }
