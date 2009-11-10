@@ -90,17 +90,3 @@ hex
 \ : test-pci
 \   0  2 0 dump-pci-device
 \   ;
-
-\ only forth
-
-: decode-unit-pci-bus ( str len bus -- phys.lo phys.mid phys.hi )
-  -rot ascii , left-split
-  ( addr-R len-R addr-L len-L )
-  parse-hex b << f800 and
-  -rot parse-hex 8 << 700 and
-  or
-  ( bus phys.hi )
-  swap ff and 10 << or
-  0 0 rot
-;
- 

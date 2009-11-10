@@ -91,8 +91,106 @@ ob_pci_initialize(int *idx)
 static void
 ob_pci_decode_unit(int *idx)
 {
-	PUSH(0);
-	fword("decode-unit-pci-bus");
+	ucell hi, mid, lo;
+	const char *arg = pop_fstr_copy();
+	int dev, fn, reg, ss, n, p, t;
+	int bus = 0;		/* no information */
+	char *ptr;
+
+	dev = 0;
+	fn = 0;
+	reg = 0;
+	ss = 0;
+	n = 0;
+	p = 0;
+	t = 0;
+
+	ptr = (char*)arg;
+	if (*ptr == 'n') {
+		n = IS_NOT_RELOCATABLE;
+		ptr++;
+	}
+	if (*ptr == 'i') {
+		ss = IO_SPACE;
+		ptr++;
+		if (*ptr == 't') {
+			t = IS_ALIASED;
+			ptr++;
+		}
+
+		/* DD,F,RR,NNNNNNNN */
+
+		dev = strtol(ptr, &ptr, 16);
+		ptr++;
+		fn = strtol(ptr, &ptr, 16);
+		ptr++;
+		reg = strtol(ptr, &ptr, 16);
+		ptr++;
+		lo = strtol(ptr, &ptr, 16);
+		mid = 0;
+
+	} else if (*ptr == 'm') {
+		ss = MEMORY_SPACE_32;
+		ptr++;
+		if (*ptr == 't') {
+			t = IS_ALIASED;
+			ptr++;
+		}
+		if (*ptr == 'p') {
+			p = IS_PREFETCHABLE;
+			ptr++;
+		}
+
+		/* DD,F,RR,NNNNNNNN */
+
+		dev = strtol(ptr, &ptr, 16);
+		ptr++;
+		fn = strtol(ptr, &ptr, 16);
+		ptr++;
+		reg = strtol(ptr, &ptr, 16);
+		ptr++;
+		lo = strtol(ptr, &ptr, 16);
+		mid = 0;
+
+	} else if (*ptr == 'x') {
+		unsigned long long addr64;
+		ss = MEMORY_SPACE_64;
+		ptr++;
+		if (*ptr == 'p') {
+			p = IS_PREFETCHABLE;
+			ptr++;
+		}
+
+		/* DD,F,RR,NNNNNNNNNNNNNNNN */
+
+		dev = strtol(ptr, &ptr, 16);
+		ptr++;
+		fn = strtol(ptr, &ptr, 16);
+		ptr++;
+		reg = strtol(ptr, &ptr, 16);
+		ptr++;
+		addr64 = strtoll(ptr, &ptr, 16);
+		lo = (ucell)addr64;
+		mid = addr64 >> 32;
+
+	} else {
+		ss = CONFIGURATION_SPACE;
+		/* "DD" or "DD,FF" */
+		dev = strtol(ptr, &ptr, 16);
+		if (*ptr == ',') {
+			ptr++;
+			fn = strtol(ptr, NULL, 16);
+		}
+		lo = 0;
+		mid = 0;
+	}
+	free((char*)arg);
+
+	hi = n | p | t | (ss << 24) | (bus << 16) | (dev << 11) | (fn << 8) | reg;
+
+	PUSH(lo);
+	PUSH(mid);
+	PUSH(hi);
 }
 
 /*  ( phys.lo phy.mid phys.hi -- str len ) */
@@ -122,7 +220,7 @@ ob_pci_encode_unit(int *idx)
 		if (fn == 0)	/* DD */
         		snprintf(buf, sizeof(buf), "%x", dev);
 		else		/* DD,F */
-        		snprintf(buf, sizeof(buf), "%x,%d", dev, fn);
+        		snprintf(buf, sizeof(buf), "%x,%x", dev, fn);
 		break;
 
 	case IO_SPACE:

@@ -76,6 +76,41 @@ strtol( const char *nptr, char **endptr, int base )
 	return sum * sign;
 }
 
+long long int
+strtoll( const char *nptr, char **endptr, int base )
+{
+	long long int sum;
+	int n, sign=1;
+	while( isspace(*nptr) )
+		nptr++;
+
+	if( *nptr == '-' || *nptr == '+' )
+		sign = (*nptr++ == '-') ? -1 : 1;
+
+	if( base == 16 || base == 0) {
+		if( !base )
+			base = (nptr[0] == '0')? 8 : 10;
+		if( nptr[0] == '0' && nptr[1] == 'x' ) {
+			nptr += 2;
+			base = 16;
+		}
+	}
+	for( sum=0 ;; nptr++ ) {
+		char ch = *nptr;
+		if( !isalnum(ch) )
+			break;
+		n = isdigit(ch) ? ch - '0' : toupper(ch) - 'A' + 10;
+		if( n >= base || n < 0 )
+			break;
+		sum *= base;
+		sum += n;
+	}
+	if( endptr )
+		*endptr = (char*)nptr;
+
+	return sum * sign;
+}
+
 // Propolice support
 long __guard[8] = {
 #ifdef CONFIG_BIG_ENDIAN

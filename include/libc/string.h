@@ -23,6 +23,8 @@
 #define atol(nptr)	strtol(nptr, NULL, 10 )
 
 extern long	strtol( const char *nptr, char **endptr, int base );
+extern long long int strtoll( const char *nptr, char **endptr, int base );
+
 
 extern int 	strnicmp(const char *s1, const char *s2, size_t len);
 extern char 	*strcpy(char * dest,const char *src);
