@@ -58,7 +58,9 @@
 #define CUDA_PACKET     1
 
 /* CUDA commands (2nd byte) */
-#define CUDA_POWERDOWN                  0xa
+#define CUDA_GET_TIME			0x03
+#define CUDA_SET_TIME			0x09
+#define CUDA_POWERDOWN                  0x0a
 #define CUDA_RESET_SYSTEM               0x11
 
 static uint8_t cuda_readb (cuda_t *dev, int reg)
@@ -233,8 +235,115 @@ rtc_open(int *idx)
 	RET(-1);
 }
 
+/*
+ * get-time ( -- second minute hour day month year )
+ *
+ */
+
+static const int days_month[12] =
+	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+static const int days_month_leap[12] =
+	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+static inline int is_leap(int year)
+{
+	return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+}
+
+static  void
+rtc_get_time(int *idx)
+{
+        uint8_t cmdbuf[2], obuf[64];
+	ucell second, minute, hour, day, month, year;
+	uint32_t now;
+	int current;
+	const int *days;
+
+        cmdbuf[0] = CUDA_GET_TIME;
+        cuda_request(main_cuda, CUDA_PACKET, cmdbuf, sizeof(cmdbuf), obuf);
+
+	/* seconds since 01/01/1904 */
+
+	now = (obuf[3] << 24) + (obuf[4] << 16) + (obuf[5] << 8) + obuf[6];
+
+	second =  now % 60;
+	now /= 60;
+
+	minute = now % 60;
+	now /= 60;
+
+	hour = now % 24;
+	now /= 24;
+
+	year = now * 100 / 36525;
+	now -= year * 36525 / 100;
+	year += 1904;
+
+	days = is_leap(year) ?  days_month_leap : days_month;
+
+	current = 0;
+	month = 0;
+	while (month < 12) {
+		if (now <= current + days[month]) {
+			break;
+		}
+		current += days[month];
+		month++;
+	}
+	month++;
+
+	day = now - current;
+
+	PUSH(second);
+	PUSH(minute);
+	PUSH(hour);
+	PUSH(day);
+	PUSH(month);
+	PUSH(year);
+}
+
+/*
+ * set-time ( second minute hour day month year -- )
+ *
+ */
+
+static  void
+rtc_set_time(int *idx)
+{
+        uint8_t cmdbuf[5], obuf[3];
+	ucell second, minute, hour, day, month, year;
+	const int *days;
+	uint32_t now;
+	unsigned int nb_days;
+	int i;
+
+	year = POP();
+	month = POP();
+	day = POP();
+	hour = POP();
+	minute = POP();
+	second = POP();
+
+	days = is_leap(year) ?  days_month_leap : days_month;
+	nb_days = (year - 1904) * 36525 / 100 + day;
+	for (i = 0; i < month - 1; i++)
+		nb_days += days[i];
+
+	now = (((nb_days * 24) + hour) * 60 + minute) * 60 + second;
+
+        cmdbuf[0] = CUDA_SET_TIME;
+	cmdbuf[1] = now >> 24;
+	cmdbuf[2] = now >> 16;
+	cmdbuf[3] = now >> 8;
+	cmdbuf[4] = now;
+
+        cuda_request(main_cuda, CUDA_PACKET, cmdbuf, sizeof(cmdbuf), obuf);
+}
+
 NODE_METHODS(rtc) = {
 	{ "open",		rtc_open		},
+	{ "get-time",		rtc_get_time		},
+	{ "set-time",		rtc_set_time		},
 };
 
 static void
