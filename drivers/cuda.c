@@ -219,25 +219,10 @@ ob_cuda_close(int *idx)
 {
 }
 
-static void
-ob_cuda_decode_unit(void *private)
-{
-	PUSH(0);
-	fword("decode-unit-pci-bus");
-}
-
-static void
-ob_cuda_encode_unit(void *private)
-{
-	fword("encode-unit-pci");
-}
-
 NODE_METHODS(ob_cuda) = {
 	{ NULL,			ob_cuda_initialize	},
 	{ "open",		ob_cuda_open		},
 	{ "close",		ob_cuda_close		},
-	{ "decode-unit",	ob_cuda_decode_unit	},
-	{ "encode-unit",	ob_cuda_encode_unit	},
 };
 
 DECLARE_UNNAMED_NODE(rtc, INSTALL_OPEN, sizeof(int));
