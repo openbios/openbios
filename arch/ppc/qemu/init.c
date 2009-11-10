@@ -273,6 +273,12 @@ cpu_970_init(const struct cpudef *cpu)
     fword("encode-int");
     push_str("reg");
     fword("property");
+    
+    PUSH(0);
+    PUSH(0);
+    fword("encode-bytes");
+    push_str("64-bit");
+    fword("property");
 
     fword("finish-device");
 
