@@ -282,11 +282,11 @@ variable bootinfo-size
   ;
 
 : (encode-bootpath) ( "{params}<cr>" -- bootpath-str bootpath-len)
-  bl parse 2dup
+  bl parse 2dup encode-string
   " /chosen" (find-dev) if
     " bootpath" rot (property)
   then
-  linefeed parse
+  linefeed parse encode-string
   " /chosen" (find-dev) if
     " bootargs" rot (property)
   then
