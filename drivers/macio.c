@@ -170,11 +170,49 @@ openpic_init(const char *path, uint32_t addr)
         set_int_property(dnode, "clock-frequency", 4166666);
 }
 
+DECLARE_NODE(ob_macio, INSTALL_OPEN, sizeof(int), "Tmac-io");
+
+/* ( str len -- addr ) */
+
+static void
+ob_macio_decode_unit(void *private)
+{
+	ucell addr;
+
+	const char *arg = pop_fstr_copy();
+
+	addr = strtol(arg, NULL, 16);
+
+	free((char*)arg);
+
+	PUSH(addr);
+}
+
+/*  ( addr -- str len ) */
+
+static void
+ob_macio_encode_unit(void *private)
+{
+	char buf[8];
+
+	ucell addr = POP();
+
+	snprintf(buf, sizeof(buf), "%x", addr);
+
+	push_str(buf);
+}
+
+NODE_METHODS(ob_macio) = {
+        { "decode-unit",	ob_macio_decode_unit	},
+        { "encode-unit",	ob_macio_encode_unit	},
+};
+
 void
 ob_macio_heathrow_init(const char *path, uint32_t addr)
 {
         phandle_t aliases;
 
+	REGISTER_NODE(ob_macio);
 	aliases = find_dev("/aliases");
 	set_property(aliases, "mac-io", path, strlen(path) + 1);
 
