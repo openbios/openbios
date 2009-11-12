@@ -19,7 +19,7 @@
 #include "openbios/of.h"
 
 /* Uncomment to enable debug printout of client interface calls */
-#define DEBUG_CIF
+//#define DEBUG_CIF
 //#define DUMP_IO
 
 /* OF client interface. r3 points to the argument array. On return,
