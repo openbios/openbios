@@ -19,7 +19,7 @@
 #include "openbios/of.h"
 
 /* Uncomment to enable debug printout of client interface calls */
-//#define DEBUG_CIF
+#define DEBUG_CIF
 //#define DUMP_IO
 
 /* OF client interface. r3 points to the argument array. On return,
@@ -143,6 +143,9 @@ static void dump_service(prom_args_t *pb)
 		printk("enter()\n");
 	} else if (strcmp(pb->service, "exit") == 0) {
 		printk("exit()\n");
+	} else if (strcmp(pb->service, "test-method") == 0) {
+		printk("test-method(0x%08lx, \"%s\") = ",
+			pb->args[0], (char*)pb->args[1]);
 	} else {
 		printk("of_client_interface: %s ", pb->service );
 		for( i = 0; i < pb->nargs; i++ )
@@ -212,6 +215,8 @@ static void dump_return(prom_args_t *pb)
 		/* do nothing */
 	} else if (strcmp(pb->service, "exit") == 0) {
 		/* do nothing */
+	} else if (strcmp(pb->service, "test-method") == 0) {
+		printk("0x%08lx\n", pb->args[pb->nargs]);
 	} else {
 		printk("of_client_interface return:");
 		for (i = 0; i < pb->nret; i++) {
