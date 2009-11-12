@@ -20,6 +20,7 @@
 
 /* Uncomment to enable debug printout of client interface calls */
 //#define DEBUG_CIF
+//#define DUMP_IO
 
 /* OF client interface. r3 points to the argument array. On return,
  * r3 should contain 0==true or -1==false. r4-r12,cr0,cr1 may
@@ -72,7 +73,6 @@ static void memdump(const char *mem, unsigned long size)
 static void dump_service(prom_args_t *pb)
 {
 	int i;
-	printk("[ nargs %ld nret %ld ] ", pb->nargs, pb->nret);
 	if (strcmp(pb->service, "test") == 0) {
 		printk("test(\"%s\") = ", (char*)pb->args[0]);
 	} else if (strcmp(pb->service, "peer") == 0) {
@@ -115,16 +115,22 @@ static void dump_service(prom_args_t *pb)
 	} else if (strcmp(pb->service, "close") == 0) {
 		printk("close(0x%08lx)\n", pb->args[0]);
 	} else if (strcmp(pb->service, "read") == 0) {
+#ifdef DUMP_IO
 		printk("read(0x%08lx, 0x%08lx, %ld) = ",
 			pb->args[0], pb->args[1], pb->args[2]);
+#endif
 	} else if (strcmp(pb->service, "write") == 0) {
+#ifdef DUMP_IO
 		printk("write(0x%08lx, 0x%08lx, %ld)\n",
 			pb->args[0], pb->args[1], pb->args[2]);
 		memdump((char*)pb->args[1], pb->args[2]);
 		printk(" = ");
+#endif
 	} else if (strcmp(pb->service, "seek") == 0) {
+#ifdef DUMP_IO
 		printk("seek(0x%08lx, 0x%08lx, 0x%08lx) = ",
 			pb->args[0], pb->args[1], pb->args[2]);
+#endif
 	} else if (strcmp(pb->service, "claim") == 0) {
 		printk("claim(0x8%lx, %ld, %ld) = ",
 			pb->args[0], pb->args[1], pb->args[2]);
@@ -184,12 +190,18 @@ static void dump_return(prom_args_t *pb)
 	} else if (strcmp(pb->service, "close") == 0) {
 		/* do nothing */
 	} else if (strcmp(pb->service, "read") == 0) {
+#ifdef DUMP_IO
 		printk("%ld\n", pb->args[pb->nargs]);
 		memdump((char*)pb->args[1], pb->args[pb->nargs]);
+#endif
 	} else if (strcmp(pb->service, "write") == 0) {
+#ifdef DUMP_IO
 		printk("%ld\n", pb->args[pb->nargs]);
+#endif
 	} else if (strcmp(pb->service, "seek") == 0) {
+#ifdef DUMP_IO
 		printk("%ld\n", pb->args[pb->nargs]);
+#endif
 	} else if (strcmp(pb->service, "claim") == 0) {
 		printk("0x%08lx\n", pb->args[pb->nargs]);
 	} else if (strcmp(pb->service, "release") == 0) {
