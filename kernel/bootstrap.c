@@ -78,7 +78,7 @@ static const char *wordnames[] = {
 	"here", "here!", "dobranch", "do?branch", "unaligned-w@",
 	"unaligned-w!", "unaligned-l@", "unaligned-l!", "ioc@", "iow@",
 	"iol@", "ioc!", "iow!", "iol!", "i", "j", "call", "sys-debug",
-	"$include", "$encode-file"
+	"$include", "$encode-file", "(debug", "(debug-off)"
 };
 
 static void init_trampoline(void)
@@ -743,7 +743,7 @@ int availchar(void)
 {
 	int tmp;
 	if( cursrc < 1 ) {
-		runforth = 0;
+		interruptforth |= FORTH_INTSTAT_STOP;
 		/* return -1 in order to exit the loop in key() */
 		return -1;
 	}
@@ -763,7 +763,7 @@ int get_inputbyte( void )
 	int tmp;
 
 	if( cursrc < 1 ) {
-		runforth = 0;
+		interruptforth |= FORTH_INTSTAT_STOP;
 		return 0;
 	}
 
@@ -909,7 +909,7 @@ static void run_dictionary(char *basedict)
 	if (verbose)
 		printk("Jumping to dictionary...");
 
-	runforth=-1;
+	interruptforth = 1;
 	enterforth((xt_t)PC);
 }
 

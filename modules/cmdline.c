@@ -179,6 +179,7 @@ cmdline_prompt( cmdline_info_t *ci )
 {
 	int cur_added=0, histind=0, ch, i, pos=0, n=0, prompt=1;
 	char *buf = ci->buf;
+	int terminate = 0;
 
 	buf = ci->buf;
 	selfword("prepare");
@@ -187,10 +188,11 @@ cmdline_prompt( cmdline_info_t *ci )
 #ifdef NOLEAVE
 	for (;;)
 #else
-	while (rstackcnt)
+	while (rstackcnt && !terminate)
 #endif
 	{
 		int drop = 0;
+		terminate = 0;
 
 		if( prompt ) {
 			fword("print-prompt");
@@ -254,6 +256,12 @@ cmdline_prompt( cmdline_info_t *ci )
 			emit(' ');
 			PUSH( feval(buf) );
 			fword("print-status");
+
+			/* Leave the interpreter if terminate? value set */
+			fword("terminate?");
+			if (POP())
+				terminate = 1;
+
 			prompt = 1;
 			break;
 
@@ -384,7 +392,14 @@ go_up:
 			move_cursor( 1-emit_str(&buf[pos++]) );
 		}
 	}
-	/* won't come here; if we ever do we should close ourselves */
+
+	/* we only get here if terminate? is non-zero; this should
+         * only ever be done for a subordinate forth interpreter 
+         * e.g. for debugging */
+
+	/* Reset stack and terminate? */
+	rstackcnt = dbgrstackcnt;
+	feval("0 to terminate?");
 }
 
 NODE_METHODS( cmdline ) = {

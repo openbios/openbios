@@ -105,10 +105,10 @@ void FrameBufferWidget::aboutQt()
 void FrameBufferWidget::quit()
 {
 	extern volatile int gui_running;
-	extern volatile int runforth;
+	extern volatile int interruptforth;
 
 	gui_running=0;
-	runforth=0;
+	interruptforth=1;
 
 	qApp->quit();
 }

@@ -18,6 +18,8 @@ extern cell dstack[dstacksize];
 extern int  rstackcnt;
 extern cell rstack[rstacksize];
 
+extern int dbgrstackcnt;
+
 //typedef struct opaque_xt *xt_t;
 //typedef struct opaque_ihandle *ihandle_t;
 //typedef struct opaque_phandle *phandle_t;

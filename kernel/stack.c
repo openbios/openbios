@@ -19,6 +19,9 @@ cell dstack[dstacksize];
 int rstackcnt = 0;
 cell rstack[rstacksize];
 
+/* Rstack value saved before entering forth interpreter in debugger */
+int dbgrstackcnt = 0;
+
 #if defined(CONFIG_DEBUG_DSTACK) || defined(FCOMPILER)
 void printdstack(void)
 {

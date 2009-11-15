@@ -11,13 +11,15 @@
 
 #define DICTID "OpenBIOS"
 
-#define DOCOL  1
-#define DOLIT  2
-#define DOCON  3
-#define DOVAR  4
-#define DODFR  5
-#define DODOES 6
+#define DOSEMIS 0
+#define DOCOL   1
+#define DOLIT   2
+#define DOCON   3
+#define DOVAR   4
+#define DODFR   5
+#define DODOES  6
 
+#define MAXNFALEN 128
 
 /* The header is 28/32 bytes on 32/64bit platforms */
 
@@ -37,6 +39,12 @@ typedef struct dictionary_header {
 ucell lfa2nfa(ucell ilfa);
 ucell load_dictionary(const char *data, ucell len);
 void  dump_header(dictionary_header_t *header);
+ucell fstrlen(ucell fstr);
+void fstrncpy(char *dest, ucell src, unsigned int maxlen);
+ucell findsemis_wordlist(ucell xt, ucell wordlist);
+ucell findsemis(ucell xt);
+ucell findxtfromcell_wordlist(ucell incell, ucell wordlist);
+ucell findxtfromcell(ucell incell);
 
 /* program counter */
 extern ucell 		PC;

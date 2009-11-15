@@ -12,6 +12,7 @@
 \ 
 
 0 value interactive?
+0 value terminate?
 
 : exit?
   interactive? 0= if
@@ -122,7 +123,8 @@ defer outer-interpreter
     refill 
 
     ['] interpret catch print-status
-  again
+    terminate?
+  until
 ; ['] outer-interpreter (to)
 
 \ 

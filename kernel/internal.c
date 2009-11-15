@@ -13,11 +13,38 @@
  *  - address pointed by CFA is executed by CPU
  */
 
+#ifndef FCOMPILER
+#include "libc/vsprintf.h"
+#else
+#include <stdarg.h>
+#endif
+
 typedef void forth_word(void);
 
 static forth_word * const words[];
 ucell PC;
-volatile int runforth = 0;
+volatile int interruptforth = 0;
+
+#define DEBUG_MODE_NONE 0
+#define DEBUG_MODE_STEP 1
+#define DEBUG_MODE_TRACE 2
+#define DEBUG_MODE_STEPUP 3
+
+#define DEBUG_BANNER "\nStepper keys: <space>/<enter> Up Down Trace Rstack Forth\n"
+
+/* Empty linked list of debug xts */
+struct debug_xt {
+	ucell xt_docol;
+	ucell xt_semis;
+	int mode;
+	struct debug_xt *next;
+};
+
+static struct debug_xt debug_xt_eol = { (ucell)0, (ucell)0, 0, NULL};
+static struct debug_xt *debug_xt_list = &debug_xt_eol;
+
+/* Static buffer for xt name */
+char xtname[MAXNFALEN];
 
 #ifndef FCOMPILER
 /* instead of pointing to an explicit 0 variable we
@@ -70,6 +97,8 @@ static inline void next(void)
 	processxt(read_ucell(cell2pointer(read_ucell(cell2pointer(PC)))));
 }
 
+static inline void next_dbg(void);
+
 int enterforth(xt_t xt)
 {
 	ucell *_cfa = (ucell*)cell2pointer(xt);
@@ -84,13 +113,26 @@ int enterforth(xt_t xt)
 		rstackcnt = 0;
 
 	tmp = rstackcnt;
-	runforth = 1;
+	interruptforth = FORTH_INTSTAT_CLR;
 
 	PUSHR(PC);
 	PC = pointer2cell(_cfa);
-	while (rstackcnt > tmp && runforth) {
-		dbg_interp_printk("enterforth: NEXT\n");
-		next();
+
+	while (rstackcnt > tmp && !(interruptforth & FORTH_INTSTAT_STOP)) {
+		if (debug_xt_list->next == NULL) {
+			while (rstackcnt > tmp && !interruptforth) {
+				dbg_interp_printk("enterforth: NEXT\n");
+				next();
+			}
+		} else {
+			while (rstackcnt > tmp && !interruptforth) {
+				dbg_interp_printk("enterforth: NEXT_DBG\n");
+				next_dbg();
+			}
+		}
+
+		/* Always clear the debug mode change flag */
+		interruptforth = interruptforth & (~FORTH_INTSTAT_DBG);
 	}
 
 #if 0
@@ -367,3 +409,366 @@ do_encode_file( void )
 {
 	string_relay( &encode_file );
 }
+
+
+/*
+ * Debug support functions
+ */
+
+static
+int printf_console( const char *fmt, ... )
+{
+	cell tmp;
+
+	char buf[512];
+	va_list args;
+	int i;
+
+	va_start(args, fmt);
+	i = vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+
+	/* Push to the Forth interpreter for console output */
+	tmp = rstackcnt;
+
+	PUSH(pointer2cell(buf));
+	PUSH((int)strlen(buf));
+	trampoline[1] = findword("type");
+
+	PUSHR(PC);
+	PC = pointer2cell(trampoline);
+
+	while (rstackcnt > tmp) {
+		dbg_interp_printk("printf_console: NEXT\n");
+		next();
+	}
+
+	return i;
+}
+
+static void
+display_dbg_dstack ( void )
+{
+	/* Display dstack contents between parentheses */
+	int i;
+
+	if (dstackcnt == 0) {
+		printf_console(" ( Empty ) ");
+		return;
+	} else {
+		printf_console(" ( ");
+		for (i = 1; i <= dstackcnt; i++) {
+			if (i != 1)
+				printf_console(" ");
+			printf_console("%" FMT_CELL_x, dstack[i]);
+		}
+		printf_console(" ) ");
+	}
+}
+
+static void
+display_dbg_rstack ( void )
+{
+	/* Display rstack contents between parentheses */
+	int i;
+
+	if (rstackcnt == 0) {
+		printf_console(" ( Empty ) ");
+		return;
+	} else {
+		printf_console("\nR: ( ");
+		for (i = 1; i <= rstackcnt; i++) {
+			if (i != 1)
+				printf_console(" ");
+			printf_console("%" FMT_CELL_x, rstack[i]);
+		}
+		printf_console(" ) \n");
+	}
+}
+
+static int
+add_debug_xt( ucell xt )
+{
+	struct debug_xt *debug_xt_item;
+
+	/* If the xt CFA isn't DOCOL then issue a warning and do nothing */
+	if (read_ucell(cell2pointer(xt)) != DOCOL) {
+		printf_console("\nprimitive words cannot be debugged\n");
+		return 0;
+	}
+
+	/* If this xt is already in the list, do nothing but indicate success */
+	for (debug_xt_item = debug_xt_list; debug_xt_item->next != NULL; debug_xt_item = debug_xt_item->next)
+		if (debug_xt_item->xt_docol == xt)
+			return 1;
+
+	/* We already have the CFA (PC) indicating the starting cell of the word, however we also
+	   need the ending cell too (we cannot rely on the rstack as it can be arbitrarily
+	   changed by a forth word). Hence the use of findsemis() */
+
+	/* Otherwise add to the head of the linked list */
+	debug_xt_item = malloc(sizeof(struct debug_xt));
+	debug_xt_item->xt_docol = xt;
+	debug_xt_item->xt_semis = findsemis(xt);
+	debug_xt_item->mode = DEBUG_MODE_NONE;
+	debug_xt_item->next = debug_xt_list;
+	debug_xt_list = debug_xt_item;
+
+	/* Indicate debug mode change */
+	interruptforth |= FORTH_INTSTAT_DBG;
+
+	/* Success */
+	return 1;
+} 
+
+static void
+del_debug_xt( ucell xt )
+{
+	struct debug_xt *debug_xt_item, *tmp_xt_item;
+
+	/* Handle the case where the xt is at the head of the list */
+	if (debug_xt_list->xt_docol == xt) {
+		tmp_xt_item = debug_xt_list;
+		debug_xt_list = debug_xt_list->next;
+		free(tmp_xt_item);
+
+		return;
+	}	
+
+	/* Otherwise find this xt in the linked list and remove it */
+	for (debug_xt_item = debug_xt_list; debug_xt_item->next != NULL; debug_xt_item = debug_xt_item->next) {
+		if (debug_xt_item->next->xt_docol == xt) {
+			tmp_xt_item = debug_xt_item->next;
+			debug_xt_item->next = debug_xt_item->next->next;
+			free(tmp_xt_item);
+		}
+	}
+
+	/* If the list is now empty, indicate debug mode change */
+	if (debug_xt_list->next == NULL)
+		interruptforth |= FORTH_INTSTAT_DBG;
+}
+
+static void
+do_source_dbg( struct debug_xt *debug_xt_item )
+{
+	/* Forth source debugger implementation */
+	char k, done = 0;
+
+	/* Display current dstack */
+	display_dbg_dstack();
+	printf_console("\n");
+
+	fstrncpy(xtname, lfa2nfa(read_ucell(cell2pointer(PC)) - sizeof(cell)), MAXNFALEN);
+	printf_console("%p: %s ", cell2pointer(PC), xtname);
+
+	/* If in trace mode, we just carry on */
+	if (debug_xt_item->mode == DEBUG_MODE_TRACE)
+		return;
+
+	/* Otherwise in step mode, prompt for a keypress */
+	while (!availchar());
+	k = getchar();
+
+	/* Only proceed if done is true */
+	while (!done)
+	{
+		switch (k) {
+
+			case ' ':
+			case '\n':
+				/* Perform a single step */
+				done = 1;
+				break;
+
+			case 'u':
+			case 'U':
+				/* Up - unmark current word for debug, mark its caller for
+				 * debugging and finish executing current word */ 
+
+				/* Since this word could alter the rstack during its execution,
+				 * we only know the caller when (semis) is called for this xt.
+				 * Hence we mark the xt as a special DEBUG_MODE_STEPUP which
+				 * means we run as normal, but schedule the xt for deletion
+				 * at its corresponding (semis) word when we know the rstack
+				 * will be set to its final parent value */
+				debug_xt_item->mode = DEBUG_MODE_STEPUP;
+				done = 1;
+				break;
+
+			case 'd':
+			case 'D':
+				/* Down - mark current word for debug and step into it */
+				done = add_debug_xt(read_ucell(cell2pointer(PC)));
+				if (!done) {
+					while (!availchar());
+					k = getchar();
+				}
+				break;
+
+			case 't':
+			case 'T':
+				/* Trace mode */
+				debug_xt_item->mode = DEBUG_MODE_TRACE;
+				done = 1;
+				break;
+
+			case 'r':
+			case 'R':
+				/* Display rstack */
+				display_dbg_rstack();
+				done = 0;
+				while (!availchar());
+				k = getchar();
+				break;
+
+			case 'f':
+			case 'F':
+				/* Start subordinate Forth interpreter */
+				PUSHR(PC - sizeof(cell));
+				PC = pointer2cell(findword("outer-interpreter")) + sizeof(ucell);
+
+				/* Save rstack position for when we return */
+				dbgrstackcnt = rstackcnt;
+				done = 1;
+				break;
+
+			default:
+				/* Display debug banner */
+				printk(DEBUG_BANNER);
+				while (!availchar());
+				k = getchar();
+		}
+	}
+}
+
+static void docol_dbg(void)
+{				/* DOCOL */
+	struct debug_xt *debug_xt_item;
+
+	PUSHR(PC);
+	PC = read_ucell(cell2pointer(PC));
+
+	/* If current xt is in our debug xt list, display word name */
+	debug_xt_item = debug_xt_list;
+	while (debug_xt_item->next) {
+		if (debug_xt_item->xt_docol == PC) {
+			fstrncpy(xtname, lfa2nfa(PC - sizeof(cell)), MAXNFALEN);
+			printf_console("\n: %s ", xtname);
+
+			/* Step mode is the default */
+			debug_xt_item->mode = DEBUG_MODE_STEP;
+		}
+
+		debug_xt_item = debug_xt_item->next;
+	}
+
+	dbg_interp_printk("docol_dbg: %s\n", cell2pointer( lfa2nfa(PC - sizeof(cell)) ));
+}
+
+static void semis_dbg(void)
+{
+	struct debug_xt *debug_xt_item, *debug_xt_up = NULL;
+
+	/* If current semis is in our debug xt list, disable debug mode */
+	debug_xt_item = debug_xt_list;
+	while (debug_xt_item->next) {
+		if (debug_xt_item->xt_semis == PC) {
+			if (debug_xt_item->mode != DEBUG_MODE_STEPUP) {
+				/* Handle the normal case */
+				fstrncpy(xtname, lfa2nfa(debug_xt_item->xt_docol - sizeof(cell)), MAXNFALEN);
+				printf_console("\n[ Finished %s ] ", xtname);
+
+				/* Reset to step mode in case we were in trace mode */
+				debug_xt_item->mode = DEBUG_MODE_STEP;
+			} else {
+				/* This word requires execution of the debugger "Up"
+				 * semantics. However we can't do this here since we
+				 * are iterating through the debug list, and we need 
+				 * to change it. So we do it afterwards. 
+				 */ 
+				debug_xt_up = debug_xt_item;	
+			}
+		}
+
+		debug_xt_item = debug_xt_item->next;
+	}
+
+	/* Execute debugger "Up" semantics if required */
+	if (debug_xt_up) {
+		/* Only add the parent word if it is not within the trampoline */
+		if (rstack[rstackcnt] != (cell)pointer2cell(&trampoline[1])) {
+			del_debug_xt(debug_xt_up->xt_docol);
+			add_debug_xt(findxtfromcell(rstack[rstackcnt]));
+
+			fstrncpy(xtname, lfa2nfa(findxtfromcell(rstack[rstackcnt]) - sizeof(cell)), MAXNFALEN);
+			printf_console("\n[ Up to %s ] ", xtname);
+		} else {
+			fstrncpy(xtname, lfa2nfa(findxtfromcell(debug_xt_up->xt_docol) - sizeof(cell)), MAXNFALEN);
+			printf_console("\n[ Finished %s (Unable to go up, hit trampoline) ] ", xtname); 
+
+			del_debug_xt(debug_xt_up->xt_docol);
+		}
+
+		debug_xt_up = NULL;
+	}
+
+	PC = POPR();
+}
+
+static inline void next_dbg(void)
+{
+	struct debug_xt *debug_xt_item;
+	void (*tokenp) (void);
+
+	PC += sizeof(ucell);
+
+	/* If the PC lies within a debug range, run the source debugger */
+	debug_xt_item = debug_xt_list;
+	while (debug_xt_item->next) {
+		if (PC >= debug_xt_item->xt_docol && PC <= debug_xt_item->xt_semis &&
+			debug_xt_item->mode != DEBUG_MODE_STEPUP) {
+			do_source_dbg(debug_xt_item);
+		}
+
+		debug_xt_item = debug_xt_item->next;
+	}
+
+	dbg_interp_printk("next_dbg: PC is now %x\n", PC);
+
+	/* Intercept DOCOL and SEMIS and redirect to debug versions */
+	if (read_ucell(cell2pointer(read_ucell(cell2pointer(PC)))) == DOCOL) {
+		tokenp = docol_dbg;
+		tokenp();
+	} else if (read_ucell(cell2pointer(read_ucell(cell2pointer(PC)))) == DOSEMIS) {
+		tokenp = semis_dbg;
+		tokenp();
+	} else {
+		/* Otherwise process as normal */
+		processxt(read_ucell(cell2pointer(read_ucell(cell2pointer(PC)))));
+	}
+}
+
+static void
+do_debug_xt( void )
+{
+	ucell xt = POP();
+
+	/* Add to the debug list */
+	if (add_debug_xt(xt)) {
+		/* Display debug banner */
+		printf_console(DEBUG_BANNER);
+
+		/* Indicate change to debug mode */
+		interruptforth |= FORTH_INTSTAT_DBG;	
+	}
+}
+
+static void
+do_debug_off( void )
+{
+	/* Empty the debug xt linked list */
+	while (debug_xt_list->next != NULL)
+		del_debug_xt(debug_xt_list->xt_docol);
+}
+

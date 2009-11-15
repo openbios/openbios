@@ -21,7 +21,12 @@
 #include "openbios/stack.h"
 #include "asm/io.h"
 
-extern volatile int 	runforth;
+/* Interrupt status */
+#define FORTH_INTSTAT_CLR	0x0
+#define FORTH_INTSTAT_STOP 	0x1
+#define FORTH_INTSTAT_DBG  	0x2
+
+extern volatile int 	interruptforth;
 extern int		enterforth( xt_t xt );
 extern void		panic(const char *error) __attribute__ ((noreturn));
 

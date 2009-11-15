@@ -62,11 +62,16 @@
 
 
 \ 7.5.3.4    Forth source-level debugger
-
+ 
 : debug    ( "old-name< >" -- )
-  ;
-  
-: (debug    ( xt -- )
+  parse-word            \ Look up word CFA in dictionary
+  $find
+  0 = if
+    ." could not locate word for debugging"
+    2drop
+  else
+    (debug
+  then
   ;
   
 : stepping    ( -- )
@@ -76,7 +81,10 @@
   ;
   
 : debug-off    ( -- )
+  (debug-off)
   ;
   
 : resume    ( -- )
+  \ Set interpreter termination flag
+  1 to terminate?
   ;

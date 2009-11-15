@@ -143,4 +143,6 @@ static forth_word * const words[] = {
 	sysdebug,		/* sys-debug */
 	do_include,		/* $include */
 	do_encode_file,		/* $encode-file */
+	do_debug_xt,		/* (debug  */
+	do_debug_off,		/* (debug-off) */
 };

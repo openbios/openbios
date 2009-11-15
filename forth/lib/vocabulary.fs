@@ -62,9 +62,9 @@ create vocabularies #vocs cells allot \ word lists
   \ which new definitions will be placed. 
   cr
   get-order 0 ?do
-    ." wordlist " i (.) type 2e emit space . cr
+    ." wordlist " i (.) type 2e emit space u. cr
   loop
-  cr ." definitions: " current @ . cr
+  cr ." definitions: " current @ u. cr
   ;
  
   
