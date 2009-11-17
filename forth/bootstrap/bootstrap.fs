@@ -1307,14 +1307,7 @@ false value capital-hex?
     +loop
   repeat
   over -
-  state @ if
-    ['] (lit) , here 5 cells + ,
-    ['] (lit) , dup ,
-    ['] dobranch ,
-    here -rot
-    /n allot
-    ", null-align resolve-orig
-  then
+  handle-text
 ; immediate
 
 
