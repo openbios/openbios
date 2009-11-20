@@ -71,8 +71,9 @@
       endof
 
       ['] (lit) of
-        ." (lit)" 
+        ." ( lit ) h# " 
 	drop 1 cells +
+	dup @ u.
       endof
 
       ['] (") of
