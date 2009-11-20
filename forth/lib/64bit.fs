@@ -53,7 +53,7 @@ cell /x = constant 64bit?
   unaligned-x@ \ for now
 ;
 
-: x! ( oaddr o -- )
+: x! ( o oaddr -- )
   unaligned-x! \ for now
 ;
 
@@ -64,22 +64,6 @@ cell /x = constant 64bit?
 : (rx!) ( o oaddr -- )
   x!
 ;
-
-\ : rx@ ( oaddr - o )
-\   compile? if
-\     h# 22e get-token if compile, else execute then
-\   else
-\     h# 22e get-token drop execute
-\   then
-\ ; immediate
-
-\ : rx! ( o oaddr -- )
-\   compile? if
-\     h# 22f get-token if compile, else execute then
-\   else
-\     h# 22f get-token drop execute
-\   then
-\ ; immediate
 
 : x, ( o -- )
   here /x allot x!
