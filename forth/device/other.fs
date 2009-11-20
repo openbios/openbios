@@ -21,21 +21,27 @@ hex
 \ 5.3.7.1 Peek/poke 
 
 : cpeek    ( addr -- false | byte true )
+  c@ true
   ;
 
 : wpeek    ( waddr -- false | w true )
+  w@ true
   ;
 
 : lpeek    ( qaddr -- false | quad true )
+  l@ true
   ;
   
 : cpoke    ( byte addr -- okay? )
+  c! true
   ;
   
 : wpoke    ( w waddr -- okay? )
+  w! true
   ;
   
 : lpoke    ( quad qaddr -- okay? )
+  l! true
   ;
 
 
@@ -59,13 +65,33 @@ hex
 : rl!    ( quad qaddr -- )
   ;
 
-  
+: rx@ ( oaddr - o )
+  state @ if
+    h# 22e get-token if , else execute then
+  else
+    h# 22e get-token drop execute
+  then
+  ; immediate
+
+: rx! ( o oaddr -- )
+  state @ if
+    h# 22f get-token if , else execute then
+  else
+    h# 22f get-token drop execute
+  then
+  ; immediate
+ 
 \ 5.3.7.3 Time
 
+0 value dummy-msecs
+
 : get-msecs    ( -- n )
+  dummy-msecs dup 1+ to dummy-msecs
   ;
   
 : ms    ( n -- )
+  get-msecs +
+  begin dup get-msecs < until
   ;
   
 : alarm    ( xt n -- )

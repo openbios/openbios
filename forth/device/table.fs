@@ -380,7 +380,13 @@ create fcode-master-table
   ['], lbflip
   ['], lbflips
   ['], adr-mask
-  6 n['], reserved-fcode       \ 22a-22f 
+  4 n['], reserved-fcode       \ 22a-22d
+64bit? [IF]
+  ['], (rx@)
+  ['], (rx!)
+[ELSE]
+   2 n['], reserved-fcode       \ 22e-22f 
+[THEN]
   ['], rb@
   ['], rb!
   ['], rw@
@@ -398,8 +404,33 @@ create fcode-master-table
   ['], byte-load
   ['], set-args
   ['], left-parse-string        \ 240
+64bit? [IF]
+  ['], bxjoin
+  ['], <l@
+  ['], lxjoin
+  ['], wxjoin
+  ['], x,
+  ['], x@
+  ['], x!
+  ['], /x
+  ['], /x*
+\   ['], /xa+
+\   ['], /xa1+
+  ['], xbflip
+  ['], xbflips
+  ['], xbsplit
+  ['], xlflip
+  ['], xlflips
+  ['], xlsplit
+  ['], xwflip
+  ['], xwflips
+  ['], xwsplit
+[ELSE]
   7 n['], reserved-fcode	\ 241-247 (Part of IEEE1275 64-bit draft standard)
   ['], /x
+  c n['], reserved-fcode	\ 249-254 (Part of IEEE1275 64-bit draft standard)
+[THEN]
+
 
 here fcode-master-table - constant fcode-master-table-size
 

@@ -368,12 +368,21 @@ defer fcode-c@             \ get byte
 \ b(lit) ( -- n1 ) 
 \   Numeric literal FCode. Followed by FCode-num32.
 
+64bit? [IF]
+: b(lit)
+  fcode-num32 32>64
+  state @ if
+    ['] (lit) , ,
+  then
+  ; immediate
+[ELSE]
 : b(lit)
   fcode-num32 
   state @ if
     ['] (lit) , ,
   then
   ; immediate
+[THEN]
 
 
 \ b(') ( -- xt )  
