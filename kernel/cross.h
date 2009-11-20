@@ -77,11 +77,11 @@
 	    (unaligned_read_word(addr)|(unaligned_read_word((u8 *)addr+2)<<16))
 
 #define unaligned_write_word(addr, value) \
-	write_byte(addr, value & 0xff); write_byte((u8 *)addr+1, value>>8)
+	write_byte(addr, (value & 0xff)); write_byte((u8 *)(addr+1), (value>>8))
 
 #define unaligned_write_long(addr, value) \
-	unaligned_write_word(addr, value & 0xffff); \
-	unaligned_write_word(addr + 2, value >> 16)
+	unaligned_write_word(addr, (value & 0xffff)); \
+	unaligned_write_word((addr + 2), (value >> 16))
 
 #endif
 
@@ -93,11 +93,11 @@
 	    ((unaligned_read_word(addr)<<16)|unaligned_read_word((u8 *)addr+2))
 
 #define unaligned_write_word(addr, value) \
-	write_byte(addr, value >> 8); write_byte((u8 *)addr+1, value & 0xff)
+	write_byte(addr, (value >> 8)); write_byte((u8 *)(addr+1), (value & 0xff)) 
 
 #define unaligned_write_long(addr, value) \
-	unaligned_write_word(addr, value >> 16); \
-	unaligned_write_word(addr + 2, value & 0xffff)
+	unaligned_write_word(addr, (value >> 16)); \
+	unaligned_write_word((addr + 2), (value & 0xffff))
 #endif
 
 /* bit width handling */

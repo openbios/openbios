@@ -20,6 +20,10 @@ cell /x = constant 64bit?
   then
 ;
 
+: 64>32 ( 64bitsigned -- 32bitsigned )
+  h# ffffffff and
+;
+
 : lxjoin ( quad.lo quad.hi -- o )
   d# 32 lshift or
 ;
@@ -37,12 +41,12 @@ cell /x = constant 64bit?
 ;
 
 : unaligned-x@ ( addr - o )
-  dup la+ unaligned-l@ swap unaligned-l@ lxjoin
+  dup la1+ unaligned-l@ 64>32 swap unaligned-l@ 64>32 lxjoin
 ;
 
-: unaligned-x! ( oaddr o -- )
-  2dup d# 32 rshift unaligned-l!
-  swap la+ swap h# ffffffff and unaligned-l!
+: unaligned-x! ( o oaddr -- )
+  >r dup d# 32 rshift r@ unaligned-l!
+  h# ffffffff and r> la1+ unaligned-l!
 ;
   
 : x@ ( oaddr -- o )
