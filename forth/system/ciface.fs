@@ -189,14 +189,12 @@ external
 
 : call-method ( ihandle method -- xxxx catch-result )
   dup 0= if ." call of null method" -1 exit then
-  dup >r
-  dup cstrlen
   \ ." call-method " 2dup type cr
-  rot ?ihandle ['] $call-method catch dup if
+  rot ?ihandle ['] $call-method catch if
     \ not necessary an error but very useful for debugging...
     ." call-method " r@ dup cstrlen type ." : exception " dup . cr
   then
-  r> drop
+  \ r> drop
 ;
 
 
@@ -212,21 +210,16 @@ external
   close-dev
 ;
 
-: read ( ihandle addr len -- actual )
-  rot dup ihandle>phandle " read" rot find-method
-  if swap call-package else 3drop -1 then
+: read ( len addr ihandle -- actual )
+  rot swap " read" call-method
 ;
 
-: write ( ihandle addr len -- actual )
-  rot dup ihandle>phandle " write" rot find-method
-  if swap call-package else 3drop -1 then
+: write ( len addr ihandle -- actual )
+  rot swap " write" call-method
 ;
 
-: seek ( ihandle pos_hi pos_lo -- status )
-  \ package methods uses ( pos_lo pos_hi -- status )
-  swap
-  rot dup ihandle>phandle " seek" rot find-method
-  if swap call-package else 3drop -1 then
+: seek ( pos_lo pos_hi ihandle -- status )
+  " seek" call-method 
 ;
 
 
@@ -261,7 +254,7 @@ external
 
 : interpret ( xxx cmdstring -- ??? catch-reult )
   dup cstrlen
-  \ ." INTERPRETE: --- " 2dup type
+  \ ." INTERPRET: --- " 2dup type
   ['] evaluate catch dup if
     \ this is not necessary an error...
     ." interpret: exception " dup . ." caught" cr
