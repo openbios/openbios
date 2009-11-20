@@ -129,8 +129,8 @@ static forth_word * const words[] = {
 	docbranch,		/* do?branch    */
 	unalignedwordread,	/* unaligned-w@ */
 	unalignedwordwrite,	/* unaligned-w! */
-	unalignedlongread,	/* unaligned-w@ */
-	unalignedlongwrite,	/* unaligned-w! */
+	unalignedlongread,	/* unaligned-l@ */
+	unalignedlongwrite,	/* unaligned-l! */
 	iocfetch,		/* ioc@    */
 	iowfetch,		/* iow@    */
 	iolfetch,		/* iol@    */
