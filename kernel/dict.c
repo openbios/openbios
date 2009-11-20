@@ -128,7 +128,7 @@ xt_t findword(const char *s1)
  * from the NFA.
  */
 
-ucell findsemis_wordlist(ucell xt, ucell wordlist)
+static ucell findsemis_wordlist(ucell xt, ucell wordlist)
 {
 	ucell tmplfa, nextlfa, nextcfa;
 

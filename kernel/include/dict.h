@@ -41,7 +41,6 @@ ucell load_dictionary(const char *data, ucell len);
 void  dump_header(dictionary_header_t *header);
 ucell fstrlen(ucell fstr);
 void fstrncpy(char *dest, ucell src, unsigned int maxlen);
-ucell findsemis_wordlist(ucell xt, ucell wordlist);
 ucell findsemis(ucell xt);
 ucell findxtfromcell_wordlist(ucell incell, ucell wordlist);
 ucell findxtfromcell(ucell incell);
