@@ -173,7 +173,7 @@ ucell findsemis(ucell xt)
 
 	if (read_ucell(cell2pointer(usesvocab))) {
 		/* Vocabularies are in use, so search each one in turn */
-		ucell numvocabs = findword("#vocs") + sizeof(cell);
+		ucell numvocabs = findword("#order") + sizeof(cell);
 
 		for (i = 0; i < read_ucell(cell2pointer(numvocabs)); i++) {
 			ucell vocabs = findword("vocabularies") + 2 * sizeof(cell);
@@ -228,7 +228,7 @@ ucell findxtfromcell(ucell incell)
 
 	if (read_ucell(cell2pointer(usesvocab))) {
 		/* Vocabularies are in use, so search each one in turn */
-		ucell numvocabs = findword("#vocs") + sizeof(cell);
+		ucell numvocabs = findword("#order") + sizeof(cell);
 
 		for (i = 0; i < read_ucell(cell2pointer(numvocabs)); i++) {
 			ucell vocabs = findword("vocabularies") + 2 * sizeof(cell);

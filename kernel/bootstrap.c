@@ -909,7 +909,6 @@ static void run_dictionary(char *basedict)
 	if (verbose)
 		printk("Jumping to dictionary...");
 
-	interruptforth = 1;
 	enterforth((xt_t)PC);
 }
 
