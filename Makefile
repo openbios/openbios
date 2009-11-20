@@ -31,7 +31,9 @@ build-verbose:
 
 run:
 	@echo "Running..."
-	@$(ODIR)/openbios-unix $(ODIR)/openbios-unix.dict
+	@for dir in $(ODIRS); do \
+		$$dir/openbios-unix $$dir/openbios-unix.dict; \
+	done
 
 
 # The following two targets will only work on x86 so far.
