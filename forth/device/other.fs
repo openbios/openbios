@@ -92,6 +92,7 @@ hex
 : ms    ( n -- )
   get-msecs +
   begin dup get-msecs < until
+  drop
   ;
   
 : alarm    ( xt n -- )
