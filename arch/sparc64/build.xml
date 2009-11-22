@@ -35,8 +35,8 @@
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
-  <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="liblibc.a"/>
   <external-object source="libgcc.a"/>
  </executable>
 
@@ -70,8 +70,8 @@
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
-  <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="liblibc.a"/>
   <external-object source="libgcc.a"/>
  </executable>
 

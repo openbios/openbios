@@ -155,8 +155,8 @@
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
-  <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="liblibc.a"/>
  </executable>
 
  <executable name="openbios-pearpc.elf" target="target" condition="PEARPC">
@@ -170,8 +170,8 @@
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
-  <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="liblibc.a"/>
  </executable>
 
  <executable name="openbios-qemu.elf" target="target" condition="QEMU">
@@ -185,8 +185,8 @@
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
-  <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="liblibc.a"/>
   <external-object source="libgcc.a"/>
  </executable>
 
@@ -200,8 +200,8 @@
   <external-object source="libbootstrap.a"/>
   <external-object source="libmodules.a"/>
   <external-object source="libdrivers.a"/>
-  <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
+  <external-object source="liblibc.a"/>
  </executable>
 
 </build>
