@@ -307,6 +307,23 @@ variable bootinfo-size
   init-program
   ;
 
+: dir ( "{paths}<cr>" -- )
+  linefeed parse 2dup
+  open-dev dup 0= if
+    3drop
+    exit
+  then
+  dup >r
+  dup ihandle>phandle " dir" rot find-method ( xt 0|1 )
+  if
+    swap call-package
+  else
+    3drop
+    cr ." Cannot find dir for this package"
+  then
+  r> close-dev
+;
+
 : go    ( -- )
   state-valid @ not if exit then
   elf file-type @ = if

@@ -295,6 +295,21 @@ files_block_size( files_info_t *dummy )
 }
 
 static void
+files_dir( files_info_t *mi )
+{
+	fs_ops_t *fs = do_open( my_parent() );
+	char *path = pop_fstr_copy();
+
+	if (!path)
+		return;
+
+	if (fs->dir)
+		fs->dir(mi->file);
+
+	free(path);
+}
+
+static void
 files_initializer( files_info_t *dummy )
 {
 	fword("register-fs-package");
@@ -309,6 +324,7 @@ NODE_METHODS( files ) = {
 	{ "seek",		files_seek 		},
 	{ "tell",		files_tell		},
 	{ "load",		files_load		},
+	{ "dir",		files_dir		},
 	{ "block-size",		files_block_size	},
 
 	/* special */

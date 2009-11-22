@@ -42,6 +42,7 @@ struct fs_ops {
 	int		(*read)( file_desc_t *file, void *buf, size_t count );
 	int		(*lseek)( file_desc_t *file, off_t offset, int whence );
 	char		*(*get_path)( file_desc_t *file, char *buf, int len );
+	void		(*dir)( file_desc_t *file );
 
         const char     	*(*get_fstype)( fs_ops_t *fs );
 };
