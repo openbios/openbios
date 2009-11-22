@@ -48,6 +48,7 @@ do_open( ihandle_t ih )
 		err=fs_hfsp_open(fd, fs);
 		if( err ) err = fs_hfs_open(fd, fs);
 		if( err ) err = fs_iso9660_open(fd, fs);
+		if( err ) err = fs_ext2_open(fd, fs);
 		if( err ) err = fs_grubfs_open(fd, fs);
 	}
 

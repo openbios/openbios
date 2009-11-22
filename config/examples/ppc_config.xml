@@ -52,8 +52,9 @@
   <option name="CONFIG_HFS" type="boolean" value="true"/>
   <option name="CONFIG_HFSP" type="boolean" value="true"/>
   <option name="CONFIG_ISO9660" type="boolean" value="true"/>
+  <option name="CONFIG_EXT2" type="boolean" value="true"/>
   <option name="CONFIG_GRUBFS" type="boolean" value="true"/>
-  <option name="CONFIG_FSYS_EXT2FS" type="boolean" value="true"/>
+  <option name="CONFIG_FSYS_EXT2FS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_FAT" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_JFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_MINIX" type="boolean" value="false"/>

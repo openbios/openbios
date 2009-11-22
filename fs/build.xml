@@ -9,5 +9,6 @@
  <include href="hfs/build.xml"/>
  <include href="hfsplus/build.xml"/>
  <include href="iso9660/build.xml"/>
+ <include href="ext2/build.xml"/>
 
 </build>
