@@ -8,5 +8,6 @@
  <include href="grubfs/build.xml"/>
  <include href="hfs/build.xml"/>
  <include href="hfsplus/build.xml"/>
+ <include href="iso9660/build.xml"/>
 
 </build>

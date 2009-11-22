@@ -62,6 +62,12 @@ extern int		fs_hfs_open( int fd, fs_ops_t *fs );
 static inline int	fs_hfs_open( int fd, fs_ops_t *fs ) { return -1; }
 #endif
 
+#ifdef CONFIG_ISO9660
+extern int		fs_iso9660_open( int fd, fs_ops_t *fs );
+#else
+static inline int	fs_iso9660_open( int fd, fs_ops_t *fs ) { return -1; }
+#endif
+
 #ifdef CONFIG_GRUBFS
 extern int		fs_grubfs_open( int fd, fs_ops_t *fs );
 #else

@@ -166,6 +166,7 @@ for RULES_ARCH in $*; do
     mkdir -p $OBJDIR/target/fs/grubfs
     mkdir -p $OBJDIR/target/fs/hfs
     mkdir -p $OBJDIR/target/fs/hfsplus
+    mkdir -p $OBJDIR/target/fs/iso9660
     mkdir -p $OBJDIR/target/drivers
     mkdir -p $OBJDIR/target/libc
     mkdir -p $OBJDIR/host/include

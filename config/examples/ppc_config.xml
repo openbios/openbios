@@ -51,6 +51,7 @@
   <option name="CONFIG_FS" type="boolean" value="true"/>
   <option name="CONFIG_HFS" type="boolean" value="true"/>
   <option name="CONFIG_HFSP" type="boolean" value="true"/>
+  <option name="CONFIG_ISO9660" type="boolean" value="true"/>
   <option name="CONFIG_GRUBFS" type="boolean" value="true"/>
   <option name="CONFIG_FSYS_EXT2FS" type="boolean" value="true"/>
   <option name="CONFIG_FSYS_FAT" type="boolean" value="false"/>
@@ -59,7 +60,7 @@
   <option name="CONFIG_FSYS_REISERFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_XFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_UFS" type="boolean" value="false"/>
-  <option name="CONFIG_FSYS_ISO9660" type="boolean" value="true"/>
+  <option name="CONFIG_FSYS_ISO9660" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_FFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_VSTAFS" type="boolean" value="false"/>
   <option name="CONFIG_FSYS_NTFS" type="boolean" value="false"/>
