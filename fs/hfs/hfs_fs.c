@@ -16,6 +16,7 @@
 
 #include "openbios/config.h"
 #include "openbios/fs.h"
+#include "libc/vsprintf.h"
 #include "libhfs.h"
 
 #define MAC_OS_ROM_CREATOR	0x63687270	/* 'chrp' */
@@ -27,6 +28,13 @@
 #define SYSTEM_TYPE		0x7A737973	/* 'zsys' */
 #define SYSTEM_CREATOR		0x4D414353	/* 'MACS' */
 
+typedef struct {
+	enum { FILE, DIR } type;
+	union {
+		hfsdir *dir;
+		hfsfile *file;
+	};
+} hfscommon;
 
 
 /************************************************************************/
@@ -142,14 +150,21 @@ search_file( fs_ops_t *fs, const char *sname )
 static void
 file_close( file_desc_t *fd )
 {
-	hfsfile *file = (hfsfile*)fd;
-	hfs_close( file );
+	hfscommon *common = (hfscommon*)fd;
+	if (common->type == FILE)
+		hfs_close( common->file );
+	else if (common->type == DIR)
+		hfs_closedir( common->dir );
+	free(common);
 }
 
 static int
 file_lseek( file_desc_t *fd, off_t offs, int whence )
 {
-	hfsfile *file = (hfsfile*)fd;
+	hfscommon *common = (hfscommon*)fd;
+
+	if (common->type != FILE)
+		return -1;
 
 	switch( whence ) {
 	case SEEK_CUR:
@@ -164,27 +179,32 @@ file_lseek( file_desc_t *fd, off_t offs, int whence )
 		break;
 	}
 
-	return hfs_seek( file, offs, whence );
+	return hfs_seek( common->file, offs, whence );
 }
 
 static int
 file_read( file_desc_t *fd, void *buf, size_t count )
 {
-	hfsfile *file = (hfsfile*)fd;
-	return hfs_read( file, buf, count );
+	hfscommon *common = (hfscommon*)fd;
+	if (common->type != FILE)
+		return -1;
+	return hfs_read( common->file, buf, count );
 }
 
 static char *
 get_path( file_desc_t *fd, char *retbuf, int len )
 {
 	char buf[256], buf2[256];
+	hfscommon *common = (hfscommon*)fd;
 	hfsvol *vol = hfs_getvol( NULL );
-	hfsfile *file = (hfsfile*)fd;
 	hfsdirent ent;
 	int start, ns;
 	ulong id;
 
-	hfs_fstat( file, &ent );
+	if (common->type != FILE)
+		return NULL;
+
+	hfs_fstat( common->file, &ent );
 	start = sizeof(buf) - strlen(ent.name) - 1;
 	if( start <= 0 )
 		return NULL;
@@ -215,28 +235,51 @@ vol_name( fs_ops_t *fs, char *buf, int size )
 
 
 static file_desc_t *
-open_path( fs_ops_t *fs, const char *path )
+open_path( fs_ops_t *fs, const char *fullpath )
 {
 	hfsvol *vol = (hfsvol*)fs->fs_data;
 	const char *s;
 	char buf[256];
+	hfscommon *common;
+	char *path = strdup(fullpath);
 
 	if( !strncmp(path, "\\\\", 2) ) {
 		hfsvolent ent;
 
 		/* \\ is an alias for the (blessed) system folder */
-		if( hfs_vstat(vol, &ent) < 0 || hfs_setcwd(vol, ent.blessed) )
+		if( hfs_vstat(vol, &ent) < 0 || hfs_setcwd(vol, ent.blessed) ) {
+			free(path);
 			return NULL;
+		}
 		path += 2;
 	} else {
 		hfs_chdir( vol, ":" );
+	}
+
+	common = malloc(sizeof(*common));
+	if (!common) {
+		free(path);
+		return NULL;
+	}
+
+	if (strcmp(path, "\\") == 0) {
+		/* root directory is in fact ":" */
+		common->dir = hfs_opendir(vol, ":");
+		common->type = DIR;
+		free(path);
+		return (file_desc_t*)common;
+	}
+
+	if (path[strlen(path) - 1] == '\\') {
+		path[strlen(path) - 1] = 0;
 	}
 
 	for( path-- ;; ) {
 		int n;
 
 		s = ++path;
-		if( !(path=strchr(s, '\\')) )
+		path = strchr(s, '\\');
+		if( !path || !path[1])
 			break;
 		n = MIN( sizeof(buf)-1, (path-s) );
 		if( !n )
@@ -244,8 +287,11 @@ open_path( fs_ops_t *fs, const char *path )
 
 		strncpy( buf, s, n );
 		buf[n] = 0;
-		if( hfs_chdir(vol, buf) )
+		if( hfs_chdir(vol, buf) ) {
+			free(common);
+			free(path);
 			return NULL;
+		}
 	}
 
 	/* support the ':filetype' syntax */
@@ -260,23 +306,43 @@ open_path( fs_ops_t *fs, const char *path )
 		hfs_dirinfo( vol, &id, buf );
 		hfs_setcwd( vol, id );
 
-		if( !(dir=hfs_opendir(vol, buf)) )
+		if( !(dir=hfs_opendir(vol, buf)) ) {
+			free(common);
+			free(path);
 			return NULL;
+		}
 		hfs_setcwd( vol, oldid );
 
 		while( !hfs_readdir(dir, &ent) ) {
 			if( ent.flags & HFS_ISDIR )
 				continue;
 			if( !strncmp(s, ent.u.file.type, 4) ) {
-				ret = (file_desc_t*)hfs_open( vol, ent.name );
+				common->type = FILE;
+				common->file = hfs_open( vol, ent.name );
+				ret = (file_desc_t*)common;
 				break;
 			}
 		}
 		hfs_closedir( dir );
+		free(path);
 		return ret;
 	}
 
-	return (file_desc_t*)hfs_open( vol, s );
+	common->dir = hfs_opendir(vol, s);
+	if (!common->dir) {
+		common->file = hfs_open( vol, s );
+		if (common->file == NULL) {
+			free(common);
+			free(path);
+			return NULL;
+		}
+		common->type = FILE;
+		free(path);
+		return (file_desc_t*)common;
+	}
+	common->type = DIR;
+	free(path);
+	return (file_desc_t*)common;
 }
 
 static void
@@ -288,6 +354,75 @@ close_fs( fs_ops_t *fs )
 	/* callers responsibility to call free(fs) */
 }
 
+static const int days_month[12] =
+	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+static const int days_month_leap[12] =
+	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+static inline int is_leap(int year)
+{
+	return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+}
+
+static void
+print_date(time_t sec)
+{
+	unsigned int second, minute, hour, month, day, year;
+	int current;
+	const int *days;
+
+	second = sec % 60;
+	sec /= 60;
+
+	minute = sec % 60;
+	sec /= 60;
+
+	hour = sec % 24;
+	sec /= 24;
+
+	year = sec * 100 / 36525;
+	sec -= year * 36525 / 100;
+	year += 1970;
+
+	days = is_leap(year) ?  days_month_leap : days_month;
+
+	current = 0;
+	month = 0;
+	while (month < 12) {
+		if (sec <= current + days[month]) {
+			break;
+		}
+		current += days[month];
+		month++;
+	}
+	month++;
+
+	day = sec - current + 1;
+
+	forth_printf("%d-%02d-%02d %02d:%02d:%02d ",
+		     year, month, day, hour, minute, second);
+}
+
+static void
+dir_fs( file_desc_t *fd )
+{
+	hfscommon *common = (hfscommon*)fd;
+	hfsdirent ent;
+
+	if (common->type != DIR)
+		return;
+
+	forth_printf("\n");
+	while( !hfs_readdir(common->dir, &ent) ) {
+		forth_printf("% 10d ", ent.u.file.dsize);
+		print_date(ent.mddate);
+		if( ent.flags & HFS_ISDIR )
+			forth_printf("%s\\\n", ent.name);
+		else
+			forth_printf("%s\n", ent.name);
+	}
+}
+
 static const char *
 get_fstype( fs_ops_t *fs )
 {
@@ -295,6 +430,7 @@ get_fstype( fs_ops_t *fs )
 }
 
 static const fs_ops_t hfs_ops = {
+	.dir		= dir_fs,
 	.close_fs	= close_fs,
 	.open_path	= open_path,
 	.search_rom	= search_rom,
