@@ -357,7 +357,7 @@ go_right:
 go_down:
 			if( !histind )
 				break;
-			history_get( ci, --histind );
+			history_get( ci, --histind - 1);
 			clearline( pos, n );
 			emit_str( buf );
 			pos = n = strlen( buf );
