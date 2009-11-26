@@ -308,20 +308,18 @@ variable bootinfo-size
   ;
 
 : dir ( "{paths}<cr>" -- )
-  linefeed parse 2dup
+  linefeed parse
   open-dev dup 0= if
-    3drop
+    drop
     exit
   then
-  dup >r
-  dup ihandle>phandle " dir" rot find-method ( xt 0|1 )
+  dup
+  " dir" rot ['] $call-method catch
   if
-    swap call-package
-  else
     3drop
     cr ." Cannot find dir for this package"
   then
-  r> close-dev
+  close-dev
 ;
 
 : go    ( -- )

@@ -297,16 +297,8 @@ files_block_size( files_info_t *dummy )
 static void
 files_dir( files_info_t *mi )
 {
-	fs_ops_t *fs = do_open( my_parent() );
-	char *path = pop_fstr_copy();
-
-	if (!path)
-		return;
-
-	if (fs->dir)
-		fs->dir(mi->file);
-
-	free(path);
+	if (mi->fs->dir)
+		mi->fs->dir(mi->file);
 }
 
 static void
