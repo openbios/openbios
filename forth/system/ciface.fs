@@ -77,35 +77,31 @@ external
 : child child ;
 : parent parent ;
 
-: getproplen ( phandle name -- len|-1 )
-  \ ." PH " over . dup cstrlen ."  GETPROPLEN " 2dup type cr
-  dup cstrlen
-  rot ?phandle get-package-property
+: getproplen ( name phandle -- len|-1 )
+  over cstrlen swap
+  ?phandle get-package-property
   if -1 else nip then
 ;
 
-: getprop ( phandle name buf buflen -- size|-1 )
-  \ ." PH " 3 pick . ." GETPROP " 2 pick dup cstrlen type cr 
-  >r >r dup cstrlen
-  rot
+: getprop ( buflen buf name phandle -- size|-1 )
   \ detect phandle == -1 
   dup -1 = if
-    r> r> 2drop 3drop -1 exit
+    2drop 2drop -1 exit
   then
 
   \ return -1 if phandle is 0 (MacOS actually does this)
-  ?dup 0= if r> r> 2drop 2drop -1 exit then
-  
-  ?phandle get-package-property if r> r> 2drop -1 exit then
-  r> r>
-  ( prop proplen dest destlen )
-  rot dup >r min move r>
+  ?dup 0= if 2drop 2drop -1 exit then
+ 
+  over cstrlen swap
+  ?phandle get-package-property if 2drop -1 exit then
+  ( buflen buf prop proplen )
+  >r swap rot r> min
+  dup >r move r>
 ;
 
 \ 1 OK, 0 no more prop, -1 prev invalid
-: nextprop ( phandle prev buf -- 1|0|-1 )
-  rot >r
-  swap ( buf prev )
+: nextprop ( buf prev phandle -- 1|0|-1 )
+  >r
   dup 0= if 0 else dup cstrlen then
 
   ( buf prev prev_len )
@@ -131,11 +127,12 @@ external
   then
 ;
 
-: setprop ( phandle name buf len -- size )
-  dup >r encode-bytes rot dup cstrlen
-  ( phandle buf len name name_len R: size )
-  4 pick (property)
-  drop r>
+: setprop ( len buf name phandle -- size )
+  3 pick >r
+  >r >r swap encode-bytes  \ ( prop-addr prop-len  R: phandle name ) 
+  r> dup cstrlen r>
+  (property)
+  r>
 ;
 
 : finddevice ( dev_spec -- phandle|-1 )
@@ -149,39 +146,38 @@ external
   ?ihandle ihandle>phandle
 ;
 
-: package-to-path ( phandle buf buflen -- length )
-  rot
+: package-to-path ( buflen buf phandle -- length )
   \ XXX improve error checking
   dup 0= if 3drop -1 exit then
+  >r swap r>
   get-package-path
   ( buf buflen str len )
   ci-strcpy
 ;
 
-: canon ( dev_specifier buf buflen -- len )
-  rot dup cstrlen find-dev if
-    ( buf buflen phandle )
-    -rot
+: canon ( buflen buf dev_specifier -- len )
+  dup cstrlen find-dev if
+    ( buflen buf phandle )
     package-to-path
   else
     2drop -1
   then
 ;
 
-: instance-to-path ( ihandle buf buflen -- length )
-  rot
+: instance-to-path ( buflen buf ihandle -- length )
   \ XXX improve error checking
   dup 0= if 3drop -1 exit then
+  >r swap r>
   get-instance-path
   \ ." INSTANCE: " 2dup type cr dup .
   ( buf buflen str len )
   ci-strcpy
 ;
 
-: instance-to-interposed-path ( ihandle buf buflen -- length )
-  rot
+: instance-to-interposed-path ( buflen buf ihandle -- length )
   \ XXX improve error checking
   dup 0= if 3drop -1 exit then
+  >r swap r>
   get-instance-interposed-path
   ( buf buflen str len )
   ci-strcpy
@@ -212,20 +208,20 @@ external
   close-dev
 ;
 
-: read ( ihandle addr len -- actual )
-  rot dup ihandle>phandle " read" rot find-method
+: read ( len addr ihandle -- actual )
+  >r swap r>
+  dup ihandle>phandle " read" rot find-method
   if swap call-package else 3drop -1 then
 ;
 
-: write ( ihandle addr len -- actual )
-  rot dup ihandle>phandle " write" rot find-method
+: write ( len addr ihandle -- actual )
+  >r swap r>
+  dup ihandle>phandle " write" rot find-method
   if swap call-package else 3drop -1 then
 ;
 
-: seek ( ihandle pos_hi pos_lo -- status )
-  \ package methods uses ( pos_lo pos_hi -- status )
-  swap
-  rot dup ihandle>phandle " seek" rot find-method
+: seek ( pos_lo pos_hi ihandle -- status )
+  dup ihandle>phandle " seek" rot find-method
   if swap call-package else 3drop -1 then
 ;
 
@@ -234,8 +230,17 @@ external
 \ 6.3.2.4 Memory
 \ -------------------------------------------------------------
 
-\ : claim ( virt size align -- baseaddr|-1 ) ;
-\ : release ( virt size -- ) ;
+: claim ( align size virt -- baseaddr|-1 )
+  -rot swap
+  ciface-ph " cif-claim" rot find-method
+  if execute else 3drop -1 then
+;
+
+: release ( size virt -- )
+  swap
+  ciface-ph " cif-release" rot find-method
+  if execute else 2drop -1 then
+;
 
 \ -------------------------------------------------------------
 \ 6.3.2.5 Control transfer

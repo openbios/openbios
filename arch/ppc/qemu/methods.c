@@ -290,8 +290,8 @@ NODE_METHODS( mmu ) = {
 };
 
 NODE_METHODS( mmu_ciface ) = {
-	{ "claim",		ciface_claim		},
-	{ "release",		ciface_release		},
+	{ "cif-claim",		ciface_claim		},
+	{ "cif-release",	ciface_release		},
 };
 
 

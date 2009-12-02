@@ -288,7 +288,7 @@ of_client_interface( int *params )
 		return handle_calls( pb );
 
 	dstacksave = dstackcnt;
-	for( i=0; i<pb->nargs; i++ )
+	for( i=pb->nargs-1; i>=0; i-- )
 		PUSH( pb->args[i] );
 
 	push_str( pb->service );

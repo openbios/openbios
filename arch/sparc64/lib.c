@@ -469,6 +469,6 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
 
     push_str("/openprom/client-services");
     fword("find-device");
-    bind_func("claim", mmu_claim);
-    bind_func("release", mmu_release);
+    bind_func("cif-claim", mmu_claim);
+    bind_func("cif-release", mmu_release);
 }
