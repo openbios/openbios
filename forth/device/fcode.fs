@@ -451,7 +451,8 @@ defer fcode-c@             \ get byte
 : bbranch
   fcode-offset 0< if \ if we jump backwards, we can forsee where it goes
     ['] dobranch ,
-    swap
+    \ Backwards branches are resolved from the bottom of the cstack
+    depth cstack-startdepth @ 1+ - roll
     resolve-dest
     execute-tmp-comp
   else
@@ -469,6 +470,8 @@ defer fcode-c@             \ get byte
 : b?branch
   fcode-offset 0< if \ if we jump backwards, we can forsee where it goes
     ['] do?branch ,
+    \ Backwards branches are resolved from the bottom of the cstack
+    depth cstack-startdepth @ 1+ - roll
     resolve-dest
     execute-tmp-comp
   else

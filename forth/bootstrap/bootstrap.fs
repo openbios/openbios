@@ -166,6 +166,8 @@ defer environment?
 variable tmp-comp-depth -1 tmp-comp-depth !
 variable tmp-comp-buf 0 tmp-comp-buf !
 
+variable cstack-startdepth -1 cstack-startdepth ! \ start depth of the cstack
+
 : setup-tmp-comp ( -- )
   state @ 0 = (if)
     here tmp-comp-buf @ here! ,     \ save here and switch to tmp directory
@@ -173,9 +175,20 @@ variable tmp-comp-buf 0 tmp-comp-buf !
     depth tmp-comp-depth !          \ save control depth
     ]
   (then)
+
+  \ If start of new execution context, record the location of the bottom
+  \ of the new cstack (required for backwards Fcode branches)
+  cstack-startdepth @ -1 = (if)
+    depth cstack-startdepth !
+  (then)
 ;
 
 : execute-tmp-comp ( -- )
+  \ If at the end of this execution context, reset cstack location
+  depth cstack-startdepth @ = (if)
+    -1 cstack-startdepth !
+  (then)
+
   depth tmp-comp-depth @ =
   (if)
     -1 tmp-comp-depth !
