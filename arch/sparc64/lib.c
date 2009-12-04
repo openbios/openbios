@@ -261,8 +261,6 @@ mmu_map(void)
     size = POP();
     virt = POP();
     phys = POP();
-    phys <<= 32;
-    phys |= POP();
 
     ofmem_map(phys, virt, size, mode);
 }
