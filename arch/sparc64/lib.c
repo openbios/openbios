@@ -261,6 +261,8 @@ mmu_map(void)
     size = POP();
     virt = POP();
     phys = POP();
+    phys <<= 32;
+    phys |= POP();
 
     ofmem_map(phys, virt, size, mode);
 }
@@ -376,8 +378,8 @@ mem_claim( void )
 
     ofmem_map(phys, phys, size, -1);
 
-    PUSH(phys >> 32);
     PUSH(phys & 0xffffffffUL);
+    PUSH(phys >> 32);
 }
 
 /* ( phys size --- ) */
@@ -388,6 +390,8 @@ mem_release( void )
 
     size = POP();
     phys = POP();
+    phys <<= 32;
+    phys |= POP();
 
     ofmem_release_phys(phys, size);
 }
