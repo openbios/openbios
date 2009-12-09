@@ -159,14 +159,19 @@ defer environment?
 \ 7.3.8.1 Conditional branches
 \ 
 
-: resolve-orig here over /n + - swap ! ;
-: (if) ['] do?branch , here 0 , ; compile-only
+\ A control stack entry is implemented using 2 data stack items
+\ of the form ( addr type ). type can be one of the
+\ following:
+\   0 - orig
+\   1 - dest
+\   2 - do-sys
+
+: resolve-orig here nip over /n + - swap ! ;
+: (if) ['] do?branch , here 0 0 , ; compile-only
 : (then) resolve-orig ; compile-only
 
 variable tmp-comp-depth -1 tmp-comp-depth !
 variable tmp-comp-buf 0 tmp-comp-buf !
-
-variable cstack-startdepth -1 cstack-startdepth ! \ start depth of the cstack
 
 : setup-tmp-comp ( -- )
   state @ 0 = (if)
@@ -175,20 +180,9 @@ variable cstack-startdepth -1 cstack-startdepth ! \ start depth of the cstack
     depth tmp-comp-depth !          \ save control depth
     ]
   (then)
-
-  \ If start of new execution context, record the location of the bottom
-  \ of the new cstack (required for backwards Fcode branches)
-  cstack-startdepth @ -1 = (if)
-    depth cstack-startdepth !
-  (then)
 ;
 
 : execute-tmp-comp ( -- )
-  \ If at the end of this execution context, reset cstack location
-  depth cstack-startdepth @ = (if)
-    -1 cstack-startdepth !
-  (then)
-
   depth tmp-comp-depth @ =
   (if)
     -1 tmp-comp-depth !
@@ -200,9 +194,9 @@ variable cstack-startdepth -1 cstack-startdepth ! \ start depth of the cstack
   (then)
 ;
 
-: if setup-tmp-comp ['] do?branch , here 0 , ; immediate
+: if setup-tmp-comp ['] do?branch , here 0 0 , ; immediate
 : then resolve-orig execute-tmp-comp ; compile-only
-: else ['] dobranch , here 0 , swap resolve-orig ; compile-only
+: else ['] dobranch , here 0 0 , 2swap resolve-orig ; compile-only
 
 \ 
 \ 7.3.8.3 Conditional loops
@@ -215,41 +209,65 @@ variable cstack-startdepth -1 cstack-startdepth ! \ start depth of the cstack
 : (while) ;
 : (repeat) ;
 
-: resolve-dest here /n + - , ;
+\ resolve-dest requires a loop...
+: (resolve-dest) here /n + nip - , ;
+: (resolve-begin) setup-tmp-comp ['] (begin) , here 1 ; immediate
+: (resolve-until) ['] (until) , ['] do?branch , (resolve-dest) execute-tmp-comp ; compile-only
 
-: begin 
+: resolve-dest ( dest origN ... orig )
+  2 >r
+  (resolve-begin)
+    \ Find topmost control stack entry with a type of 1 (dest)
+    r> dup dup pick 1 = if
+      \ Move it to the top
+      roll
+      swap 1 - roll
+      \ Resolve it
+      (resolve-dest)
+      1		\ force exit
+    else
+      drop
+      2 + >r
+      0
+    then
+  (resolve-until)
+;
+
+: begin
   setup-tmp-comp
   ['] (begin) , 
-  here 
+  here
+  1
   ; immediate
-  
-: again 
+
+: again
   ['] (again) ,
   ['] dobranch , 
   resolve-dest
   execute-tmp-comp
   ; compile-only
-  
-: until 
+
+: until
   ['] (until) ,
   ['] do?branch , 
-  resolve-dest 
+  resolve-dest
   execute-tmp-comp
   ; compile-only
-  
+
 : while
   setup-tmp-comp
   ['] (while) ,
   ['] do?branch , 
-  here 0 , swap  
+  here 0 0 , 2swap  
   ; immediate
-  
-: repeat 
+
+: repeat
   ['] (repeat) ,
   ['] dobranch , 
   resolve-dest resolve-orig
   execute-tmp-comp
   ; compile-only
+
 
 \ 
 \ 7.3.8.4 Counted loops
@@ -267,13 +285,14 @@ variable leaves 0 leaves !
     here over -         \ -- *leaves leaves here-leaves
     swap !              \ -- *leaves
   repeat
-  here - , 
+  here nip - , 
   leaves !
   ;
 
-: do 
+: do
   setup-tmp-comp
-  leaves @ here
+  leaves @
+  here 2
   ['] (do) , 
   0 leaves !
   ; immediate
@@ -282,7 +301,7 @@ variable leaves 0 leaves !
   setup-tmp-comp
   leaves @ 
   ['] (?do) ,
-  here 
+  here 2
   here leaves !
   0 ,
   ; immediate
@@ -298,6 +317,7 @@ variable leaves 0 leaves !
   resolve-loop
   execute-tmp-comp
   ; immediate
+
 
 \ Using primitive versions of i and j
 \ speeds up loops by 300%
@@ -325,15 +345,15 @@ variable leaves 0 leaves !
   0
 ; immediate
 
-: endcase 
+: endcase
   ['] drop , 
-  0 ?do 
+  0 ?do
     ['] then execute
   loop
   execute-tmp-comp
 ; immediate
 
-: of 
+: of
   1 + >r 
   ['] over , 
   ['] = , 
@@ -342,12 +362,11 @@ variable leaves 0 leaves !
   r> 
   ; immediate
 
-: endof 
+: endof
   >r 
   ['] else execute 
   r> 
   ; immediate
-
 
 \ 
 \ 7.3.8.5    Other control flow commands
