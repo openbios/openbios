@@ -96,6 +96,7 @@ hex
   ;
   
 : alarm    ( xt n -- )
+  2drop
   ;
   
 : user-abort    ( ... -- )  ( R: ... -- )
