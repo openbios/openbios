@@ -732,10 +732,6 @@ static void ob_pci_configure_bar(pci_addr addr, pci_config_t *config,
                 base = *io_base;
                 min_align = 1 << 7;
                 amask = 0x00000001;
-                pci_config_write16(addr, PCI_COMMAND,
-                                   pci_config_read16(addr,
-                                                     PCI_COMMAND) |
-                                   PCI_COMMAND_IO);
         } else {
                 /* Memory Space */
                 base = *mem_base;
@@ -744,10 +740,6 @@ static void ob_pci_configure_bar(pci_addr addr, pci_config_t *config,
                 if (reg == 6) {
                         smask |= 1; /* ROM */
                 }
-                pci_config_write16(addr, PCI_COMMAND,
-                                   pci_config_read16(addr,
-                                                     PCI_COMMAND) |
-                                   PCI_COMMAND_MEMORY);
         }
         *p_omask = smask & amask;
         smask &= ~amask;
@@ -788,6 +780,7 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, int num_regs, int rom_bar,
 
 {
         uint32_t omask;
+        uint16_t cmd;
         int reg;
         pci_addr config_addr;
 
@@ -807,6 +800,9 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, int num_regs, int rom_bar,
                 ob_pci_configure_bar(addr, config, reg, config_addr,
                                      &omask, mem_base, io_base);
         }
+        cmd = pci_config_read16(addr, PCI_COMMAND);
+        cmd |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY;
+        pci_config_write16(addr, PCI_COMMAND, cmd);
 }
 
 static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
