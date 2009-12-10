@@ -84,6 +84,19 @@ archname()
 	-e "s/Power Macintosh/ppc/"`
 }
 
+select_prefix()
+{
+    for TARGET in ${1}-linux-gnu- ${1}-elf- ${1}-eabi-
+    do
+        if type -p ${TARGET}gcc > /dev/null
+        then
+            return
+        fi
+    done
+    echo "ERROR: no ${1} cross-compiler found !" 1>&2
+    exit 1
+}
+
 if ! test -f utils/dist/debian/rules; then
 	echo "switch-arch must be run from the top-level source directory" >&2
 	exit 1
@@ -110,31 +123,31 @@ for RULES_ARCH in $*; do
     ARCH=`echo $RULES_ARCH | sed s/cross-//g`
     case $ARCH in
         amd64)
-        TARGET="x86_64-linux-gnu-"
+        select_prefix x86_64
         CFLAGS="-fno-builtin"
         AS_FLAGS=
         ;;
 
         ppc)
-        TARGET="powerpc-linux-gnu-"
+        select_prefix powerpc
         CFLAGS="-msoft-float -fno-builtin-bcopy -fno-builtin-log2"
         AS_FLAGS=
         ;;
 
         sparc32)
-        TARGET="sparc-elf-"
+        select_prefix sparc
         CFLAGS="-Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc -fno-builtin"
         AS_FLAGS="-Wa,-xarch=v8 -Wa,-32"
         ;;
 
         sparc64)
-        TARGET="sparc64-elf-"
+        select_prefix sparc64
         CFLAGS="-Wa,-xarch=v9b -Wa,-64 -m64 -mcpu=ultrasparc -mcmodel=medany -fno-builtin"
         AS_FLAGS="-Wa,-xarch=v9b -Wa,-64"
         ;;
 
         x86)
-        TARGET="i486-linux-gnu-"
+        select_prefix i486
         CFLAGS="-fno-builtin -m32"
         AS_FLAGS="-Wa,-32"
         ;;
