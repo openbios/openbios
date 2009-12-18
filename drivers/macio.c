@@ -145,6 +145,7 @@ arch_nvram_get( char *buf )
 static void
 openpic_init(const char *path, uint32_t addr)
 {
+        phandle_t target_node;
         phandle_t dnode;
         int props[2];
         char buf[128];
@@ -154,7 +155,6 @@ openpic_init(const char *path, uint32_t addr)
         fword("new-device");
         push_str("interrupt-controller");
         fword("device-name");
-        fword("finish-device");
 
         snprintf(buf, sizeof(buf), "%s/interrupt-controller", path);
         dnode = find_dev(buf);
@@ -168,6 +168,21 @@ openpic_init(const char *path, uint32_t addr)
         set_int_property(dnode, "#address-cells", 0);
         set_property(dnode, "interrupt-controller", "", 0);
         set_int_property(dnode, "clock-frequency", 4166666);
+
+        fword("finish-device");
+
+        if (is_newworld()) {
+            /* patch in interrupt parent */
+            dnode = find_dev(buf);
+            target_node = find_dev("/pci");
+            set_int_property(target_node, "interrupt-parent", dnode);
+
+            target_node = find_dev("/pci/mac-io/escc/ch-a");
+            set_int_property(target_node, "interrupt-parent", dnode);
+
+            target_node = find_dev("/pci/mac-io/escc/ch-b");
+            set_int_property(target_node, "interrupt-parent", dnode);
+        }
 }
 
 DECLARE_NODE(ob_macio, INSTALL_OPEN, sizeof(int), "Tmac-io");
