@@ -93,6 +93,9 @@ select_prefix()
             return
         fi
     done
+    if [ "$ARCH" = "$HOSTARCH" ]; then
+        return
+    fi
     echo "ERROR: no ${1} cross-compiler found !" 1>&2
     exit 1
 }
