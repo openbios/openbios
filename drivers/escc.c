@@ -418,8 +418,8 @@ escc_add_channel(const char *path, const char *node, uint32_t addr,
     OLDWORLD(set_property(dnode, "AAPL,interrupts",
             (char *)&props, 1 * sizeof(cell)));
 
-    props[0] = 0;
     props[0] = (0x24) + offset;
+    props[1] = 0;
     NEWWORLD(set_property(dnode, "interrupts",
              (char *)&props, 2 * sizeof(cell)));
 
