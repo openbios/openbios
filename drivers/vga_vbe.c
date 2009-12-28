@@ -25,6 +25,7 @@
 #include "asm/io.h"
 #include "libc/vsprintf.h"
 #include "video_subr.h"
+#include "ofmem.h"
 
 /* VGA init. We use the Bochs VESA VBE extensions  */
 #define VBE_DISPI_INDEX_ID              0x0
@@ -142,6 +143,9 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 		depth = d;
 		linebytes = (width * ((depth + 7) / 8));
 	}
+#ifdef CONFIG_SPARC64
+        ofmem_map_page_range(fb, fb, fb_size, 0x36);
+#endif
 #endif
 
 	vga_vbe_set_mode(width, height, depth);

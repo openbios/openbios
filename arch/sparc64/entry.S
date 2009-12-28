@@ -180,24 +180,6 @@ entry:
 	bne	1b
 	 add	%l2, %g5, %l2
 
-	! setup VGA buffer
-	setx	0x1ff004a0000, %g7, %g4
-        mov     2, %g6
-	set	48, %g7
-	set	0x10000, %g5
-1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = 0x1ff004a0000, ctx=0
-	set	0xa0000000, %g3
-	sllx	%g3, 32, %g3
-	or	%g3, 0x76, %g3
-	or	%g4, %g3, %g3
-	! valid, 64k, locked, cacheable(I/E/C), priv, writable
-	! paddr = 0x1ff004a0000
-	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
-	add	%g4, %g5, %g4
-	deccc	%g6
-	bne	1b
-	 nop
-
 #if 1
 	! setup 0-16M
         mov     %g0, %g4

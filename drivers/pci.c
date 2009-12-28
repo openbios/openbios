@@ -322,6 +322,15 @@ static void pci_host_set_ranges(const pci_config_t *config)
 	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
 }
 
+static unsigned long pci_bus_addr_to_host_addr(uint32_t ba)
+{
+#ifdef CONFIG_SPARC64
+    return arch->cfg_data + (unsigned long)ba;
+#else
+    return (unsigned long)ba;
+#endif
+}
+
 int host_config_cb(const pci_config_t *config)
 {
 	phandle_t aliases;
@@ -547,10 +556,11 @@ int macio_keylargo_config_cb (const pci_config_t *config)
 int vga_config_cb (const pci_config_t *config)
 {
 	if (config->assigned[0] != 0x00000000)
-		vga_vbe_init(config->path, config->assigned[0] & ~0x0000000F,
-					   config->sizes[0],
-					   config->assigned[1] & ~0x0000000F,
-					   config->sizes[1]);
+            vga_vbe_init(config->path,
+                         pci_bus_addr_to_host_addr(config->assigned[0] & ~0x0000000F),
+                         config->sizes[0],
+                         pci_bus_addr_to_host_addr(config->assigned[1] & ~0x0000000F),
+                         config->sizes[1]);
 	return 0;
 }
 
