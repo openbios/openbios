@@ -83,6 +83,8 @@ extern uint64_t qemu_mem_size;
 
 static int remap_page_range( ucell phys, ucell virt, ucell size, ucell mode )
 {
+	ofmem_claim_phys(phys, size, 0);
+	ofmem_claim_virt(virt, size, 0);
 	ofmem_map_page_range(phys, virt, size, mode);
 	if (!(mode & SPITFIRE_TTE_LOCKED)) {
 		OFMEM_TRACE("remap_page_range clearing translation " FMT_ucellx
