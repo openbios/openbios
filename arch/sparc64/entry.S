@@ -180,26 +180,6 @@ entry:
 	bne	1b
 	 add	%l2, %g5, %l2
 
-#if 1
-	! setup 0-16M
-        mov     %g0, %g4
-        mov     4, %g6
-	set	48, %g7
-	set	0x400000, %g5
-1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = 0, ctx=0
-	set	0xe0000000, %g3
-	sllx	%g3, 32, %g3
-	or	%g3, 0x36, %g3
-	or	%g4, %g3, %g3
-	! valid, 4M, cacheable(I/E/C), priv, writable
-	! paddr = 0
-	stxa	%g3, [%g0] ASI_DTLB_DATA_IN
-	add	%g4, %g5, %g4
-	deccc	%g6
-	bne	1b
-	 nop
-#endif
-
 	membar	#Sync
 
 	setx	_start, %g7, %g4
@@ -223,25 +203,6 @@ entry:
 	deccc	%g6
 	bne	1b
 	 add	%l2, %g5, %l2
-
-#if 1
-        ! setup 0-16M
-        mov     %g0, %g4
-        mov     4, %g6
-        set	0x400000, %g5
-1:      stxa	%g4, [%g7] ASI_IMMU		! vaddr = 0, ctx=0
-	set	0xe0000000, %g3
-	sllx	%g3, 32, %g3
-	or	%g3, 0x34, %g3
-	or	%g4, %g3, %g3
-	! valid, 4M, cacheable(I/E/C), priv
-	! paddr = 0
-	stxa	%g3, [%g0] ASI_ITLB_DATA_IN
-	add	%g4, %g5, %g4
-	deccc	%g6
-	bne	1b
-	 nop
-#endif
 
 	flush	%g4
 

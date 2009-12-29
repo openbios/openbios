@@ -100,5 +100,8 @@ void ofmem_init( void )
 
 	/* inherit translations set up by entry.S */
 	ofmem_walk_boot_map(remap_page_range);
+
+        /* Map the memory */
+        ofmem_map_page_range(0, 0, qemu_mem_size, 0x36);
 }
 
