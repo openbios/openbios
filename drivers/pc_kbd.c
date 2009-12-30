@@ -204,6 +204,11 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
     push_str("keyboard");
     fword("device-type");
 
+    PUSH(-1);
+    fword("encode-int");
+    push_str("keyboard");
+    fword("property");
+
     chosen = find_dev("/chosen");
     push_str(nodebuff);
     fword("open-dev");
