@@ -171,6 +171,7 @@ void
 ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
                   uint64_t offset, int intr)
 {
+    phandle_t aliases;
     char nodebuff[128];
 
     snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
@@ -192,4 +193,7 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
     fword("encode+");
     push_str("reg");
     fword("property");
+
+    aliases = find_dev("/aliases");
+    set_property(aliases, "ttya", nodebuff, strlen(nodebuff) + 1);
 }
