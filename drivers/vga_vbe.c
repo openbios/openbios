@@ -144,7 +144,11 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 		linebytes = (width * ((depth + 7) / 8));
 	}
 #ifdef CONFIG_SPARC64
-        ofmem_map_page_range(fb, fb, fb_size, 0x36);
+#define VGA_VADDR  0xfe000000
+        ofmem_claim_phys(fb, fb_size, 0);
+        ofmem_claim_virt(VGA_VADDR, fb_size, 0);
+        ofmem_map(fb, VGA_VADDR, fb_size, 0x76);
+        fb = VGA_VADDR;
 #endif
 #endif
 
