@@ -10,7 +10,6 @@
 
 new-device
   " packages" device-name
-  external
   : open true ;
   : close ;
 finish-device

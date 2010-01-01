@@ -85,8 +85,8 @@ variable device-tree
   to my-self
   r@ active-package!
   
-  \ swtich to private wordlist
-  private
+  \ swtich to public wordlist
+  external
   r> drop
 ;
 

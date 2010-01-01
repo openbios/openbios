@@ -14,7 +14,6 @@
 
 new-device
   " disklabel" device-name
-  external
   \ now the methods...
 
 finish-device

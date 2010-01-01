@@ -14,13 +14,11 @@
   
 new-device
   " builtin" device-name
-  external
   : open true ;
   : close ;
 
 new-device
   " console" device-name
-  external
   : open true ;
   : close ;
   : write dup >r bounds ?do i c@ (emit) loop r> ;

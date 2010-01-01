@@ -17,7 +17,6 @@
 
 new-device
   " deblocker" device-name
-  external
   \ open ( -- flag )
   \ Prepares the package for subsequent use, allocating the buffers used 
   \ by the deblocking process based upon the values returned by the parent 

@@ -14,7 +14,6 @@
 
 new-device
   " terminal-emulator" device-name
-  external
   \ now the methods...
 
 finish-device

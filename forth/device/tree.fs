@@ -13,7 +13,6 @@
 new-device
   " OpenBiosTeam,OpenBIOS" device-name
   1 encode-int " #address-cells" property
-  external
   : open true ;
   : close ;
   : decode-unit parse-hex ;
@@ -23,7 +22,6 @@ new-device
 
 new-device
   " aliases" device-name
-  external
   : open true ;
   : close ;
 finish-device
@@ -36,7 +34,6 @@ new-device
   0 0 " supports-bootinfo"    property
   1 encode-int " boot-syntax" property
   
-  external
   : selftest
     ." OpenBIOS selftest... succeded" cr
     true
@@ -58,7 +55,6 @@ new-device
   \ " -as" encode-string " bootargs" property
   0 encode-int " memory" property
   0 encode-int " mmu" property
-  external
 finish-device
   
 \ END

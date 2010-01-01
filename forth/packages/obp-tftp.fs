@@ -14,7 +14,6 @@
 
 new-device
   " obp-tftp" device-name
-  external
   \ now the methods...
 
 finish-device

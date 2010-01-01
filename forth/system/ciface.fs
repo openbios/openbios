@@ -11,6 +11,8 @@ active-package to ciface-ph
 \ private stuff
 \ -------------------------------------------------------------
 
+private
+
 variable callback-function
 
 : ?phandle ( phandle -- phandle )
