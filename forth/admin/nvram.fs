@@ -356,6 +356,11 @@ s" true"     s" ttyb-ignore-cd"        bool-config
 s" false"    s" ttyb-rts-dtr-off"      bool-config
 [THEN]
 
+[IFDEF] CONFIG_SPARC64
+\ ---- SPARC64 ----
+s" 4000000"  s" load-base"          int-config
+[THEN]
+
 \ --- ??? ---
 s" "         s" boot-screen"          str-config
 s" "         s" boot-script"          str-config
