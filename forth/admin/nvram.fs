@@ -301,7 +301,7 @@ constant config-info.size
 \ NVRAM variables
 \ --------------------------------------------------------
 \ fcode-debug? input-device output-device
-s" true"     s" auto-boot?"           bool-config   \ 7.4.3.5
+s" false"     s" auto-boot?"           bool-config   \ 7.4.3.5
 s" boot"     s" boot-command"         str-config    \ 7.4.3.5
 s" "         s" boot-file"            str-config    \ 7.4.3.5
 s" false"    s" diag-switch?"         bool-config   \ 7.4.3.5
@@ -359,6 +359,7 @@ s" false"    s" ttyb-rts-dtr-off"      bool-config
 [IFDEF] CONFIG_SPARC64
 \ ---- SPARC64 ----
 s" 4000000"  s" load-base"          int-config
+s" false"    s" little-endian?"       bool-config
 [THEN]
 
 \ --- ??? ---
@@ -370,6 +371,12 @@ s" "         s" boot-args"            str-config    \ ???
 \ defers
 ['] fcode-debug? to _fcode-debug?
 ['] diag-switch? to _diag-switch?
+
+\ Hack for load-base: it seems that some Sun bootloaders try
+\ and execute "<value> to load-base" which will only work if
+\ load-base is value. Hence we redefine load-base here as a
+\ value using its normal default.
+load-base value load-base
 
 : release-load-area
     drop
