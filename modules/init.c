@@ -47,4 +47,7 @@ modules_init( void )
 	xcoff_loader_init();
 	bootinfo_loader_init();
 #endif
+#ifdef CONFIG_SPARC64
+	elf_loader_init();
+#endif
 }
