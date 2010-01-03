@@ -301,7 +301,7 @@ constant config-info.size
 \ NVRAM variables
 \ --------------------------------------------------------
 \ fcode-debug? input-device output-device
-s" false"     s" auto-boot?"           bool-config   \ 7.4.3.5
+s" true"     s" auto-boot?"           bool-config   \ 7.4.3.5
 s" boot"     s" boot-command"         str-config    \ 7.4.3.5
 s" "         s" boot-file"            str-config    \ 7.4.3.5
 s" false"    s" diag-switch?"         bool-config   \ 7.4.3.5
