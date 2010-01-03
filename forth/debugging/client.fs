@@ -262,6 +262,40 @@ variable bootinfo-size
   then
   ;
 
+: fcode?
+  " load-base" evaluate c@
+  dup h# f0 = if  \ start0
+    drop
+    true
+    exit
+  then 
+  dup h# f1 = if  \ start1
+    drop
+    true
+    exit
+  then
+  dup h# f2 = if  \ start2
+    drop
+    true
+    exit
+  then
+  dup h# f3 = if  \ start4
+    drop
+    true
+    exit
+  then
+  h# fd = if  \ version1
+    true
+    exit
+  then
+  false 
+  ;
+
+: init-program-fcode
+  " load-base" evaluate 8 +
+  1 byte-load
+  ;
+
 : init-program    ( -- )
   elf? if
     init-program-elf
@@ -277,6 +311,10 @@ variable bootinfo-size
   then
   bootinfo? if
     init-program-bootinfo
+    exit
+  then
+  fcode? if
+    init-program-fcode
     exit
   then
   ;
