@@ -376,7 +376,9 @@ s" "         s" boot-args"            str-config    \ ???
 \ and execute "<value> to load-base" which will only work if
 \ load-base is value. Hence we redefine load-base here as a
 \ value using its normal default.
+[IFDEF] CONFIG_SPARC64
 load-base value load-base
+[THEN]
 
 : release-load-area
     drop
