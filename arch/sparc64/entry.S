@@ -17,6 +17,8 @@
 
 #define PROM_ADDR 0x1fff0000000
 #define CFG_ADDR  0x1fe02000510
+#define HZ        10 * 1000 * 1000
+#define TICK_INT_DIS 0x8000000000000000
 
         .globl	entry, _entry
 
@@ -48,7 +50,7 @@ entry:
         wrpr    %g0, 0, %otherwin
         wrpr    %g0, 0, %wstate
         ! disable timer now
-        setx    0x8000000000000000, %g2, %g1
+        setx    TICK_INT_DIS, %g2, %g1
         wr      %g1, 0, %tick_cmpr
 
         ! Disable I/D MMUs and caches
@@ -263,8 +265,10 @@ lowmem:
 	wrpr    %g0, (PSTATE_PRIV|PSTATE_PEF|PSTATE_IE), %pstate
 
         ! 100 Hz timer
+        setx    TICK_INT_DIS, %g2, %g1
         rd      %tick, %g2
-        set     10 * 1000 * 1000, %g1
+        andn    %g2, %g1, %g2
+        set     HZ, %g1
         add     %g1, %g2, %g1
         wr      %g1, 0, %tick_cmpr
 
