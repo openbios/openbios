@@ -280,7 +280,6 @@ void arch_nvram_get(char *data)
     uint32_t clock_frequency;
     uint16_t machine_id;
     const char *stdin_path, *stdout_path;
-    const char *kernel_cmdline;
 
     fw_cfg_init();
 
@@ -302,12 +301,12 @@ void arch_nvram_get(char *data)
     kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
     if (kernel_size)
         kernel_image = fw_cfg_read_i64(FW_CFG_KERNEL_ADDR);
-    kernel_cmdline = (const char *) fw_cfg_read_i64(FW_CFG_KERNEL_CMDLINE);
-    if (kernel_cmdline) {
-        size = strlen(kernel_cmdline);
-        if (size > OBIO_CMDLINE_MAX - 1)
-            size = OBIO_CMDLINE_MAX - 1;
-        memcpy(&obio_cmdline, kernel_cmdline, size);
+
+    size = fw_cfg_read_i32(FW_CFG_CMDLINE_SIZE);
+    if (size > OBIO_CMDLINE_MAX - 1)
+        size = OBIO_CMDLINE_MAX - 1;
+    if (size) {
+        fw_cfg_read(FW_CFG_CMDLINE_DATA, obio_cmdline, size);
     }
     obio_cmdline[size] = '\0';
     qemu_cmdline = (uint64_t)obio_cmdline;
