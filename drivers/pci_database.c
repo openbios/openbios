@@ -313,7 +313,7 @@ static const pci_dev_t hbrg_devices[] = {
         PCI_VENDOR_ID_SUN, PCI_DEVICE_ID_SUN_SABRE, NULL,
         "pci", "SUNW,sabre", "pci108e,a000\0pciclass,0\0",
         3, 2, 1,
-        host_config_cb, NULL,
+        sabre_config_cb, NULL,
     },
     {
         0xFFFF, 0xFFFF,

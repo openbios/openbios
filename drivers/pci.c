@@ -348,6 +348,63 @@ int host_config_cb(const pci_config_t *config)
 	return 0;
 }
 
+int sabre_config_cb(const pci_config_t *config)
+{
+        phandle_t dev = get_cur_dev();
+        uint32_t props[28];
+
+        props[0] = 0x00000000;
+        props[1] = 0x00000003;
+        set_property(dev, "bus-range", (char *)props, 2 * sizeof(props[0]));
+        props[0] = 0x000001fe;
+        props[1] = 0x00000000;
+        props[2] = 0x00000000;
+        props[3] = 0x00010000;
+        props[4] = 0x000001fe;
+        props[5] = 0x01000000;
+        props[6] = 0x00000000;
+        props[7] = 0x00000100;
+        set_property(dev, "reg", (char *)props, 8 * sizeof(props[0]));
+        props[0] = 0x00000000;
+        props[1] = 0x00000000;
+        props[2] = 0x00000000;
+        props[3] = 0x000001fe;
+        props[4] = 0x01000000;
+        props[5] = 0x00000000;
+        props[6] = 0x01000000;
+        props[7] = 0x01000000;
+        props[8] = 0x00000000;
+        props[9] = 0x00000000;
+        props[10] = 0x000001fe;
+        props[11] = 0x02000000;
+        props[12] = 0x00000000;
+        props[13] = 0x01000000;
+        props[14] = 0x02000000;
+        props[15] = 0x00000000;
+        props[16] = 0x00000000;
+        props[17] = 0x000001ff;
+        props[18] = 0x00000000;
+        props[19] = 0x00000001;
+        props[20] = 0x00000000;
+        props[21] = 0x03000000;
+        props[22] = 0x00000000;
+        props[23] = 0x00000000;
+        props[24] = 0x000001ff;
+        props[25] = 0x00000000;
+        props[26] = 0x00000001;
+        props[27] = 0x00000000;
+        set_property(dev, "ranges", (char *)props, 28 * sizeof(props[0]));
+        props[0] = 0xc0000000;
+        props[1] = 0x20000000;
+        set_property(dev, "virtual-dma", (char *)props, 2 * sizeof(props[0]));
+        props[0] = 1;
+        set_property(dev, "#virtual-dma-size-cells", (char *)props,
+                     sizeof(props[0]));
+        set_property(dev, "#virtual-dma-addr-cells", (char *)props,
+                     sizeof(props[0]));
+        return 0;
+}
+
 int bridge_config_cb(const pci_config_t *config)
 {
 	phandle_t aliases;
