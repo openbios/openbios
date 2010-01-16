@@ -101,11 +101,10 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     esp->ll->regs[ESP_CMD] = ESP_CMD_SELA | ESP_CMD_DMA;
     // Wait for DMA to complete. Can this fail?
     while ((esp->espdma.regs->cond_reg & DMA_HNDL_INTR) == 0) /* no-op */;
-    // Clear interrupts to avoid guests seeing spurious interrupts
-    (void)esp->ll->regs[ESP_INTRPT];
-
     // Check status
     status = esp->ll->regs[ESP_STATUS];
+    // Clear interrupts to avoid guests seeing spurious interrupts
+    (void)esp->ll->regs[ESP_INTRPT];
 
     DPRINTF("do_command: id %d, cmd[0] 0x%x, status 0x%x\n", sd->id, esp->buffer[0], status);
 
@@ -127,12 +126,10 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     esp->ll->regs[ESP_CMD] = ESP_CMD_TI | ESP_CMD_DMA;
     // Wait for DMA to complete
     while ((esp->espdma.regs->cond_reg & DMA_HNDL_INTR) == 0) /* no-op */;
-
-    // Clear interrupts to avoid guests seeing spurious interrupts
-    (void)esp->ll->regs[ESP_INTRPT];
-
     // Check status
     status = esp->ll->regs[ESP_STATUS];
+    // Clear interrupts to avoid guests seeing spurious interrupts
+    (void)esp->ll->regs[ESP_INTRPT];
 
     DPRINTF("do_command_reply: status 0x%x\n", status);
 
