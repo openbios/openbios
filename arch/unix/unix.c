@@ -35,6 +35,7 @@
 #include "openbios-version.h"
 
 #include "blk.h"
+#include "ofmem.h"
 
 #define MEMORY_SIZE	(4*1024*1024)	/* 4M ram for hosted system */
 #define DICTIONARY_SIZE	(256*1024)	/* 256k for the dictionary   */
@@ -66,6 +67,12 @@ unsigned long isa_io_base;
 #endif
 
 int errno_int;	/* implement for fs drivers, needed to build on Mac OS X */
+
+ucell ofmem_claim(ucell addr, ucell size, ucell align)
+{
+    return 0;
+}
+
 
 #if 0
 static void write_dictionary(char *filename)
