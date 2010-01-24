@@ -387,8 +387,8 @@ void arch_nvram_get(char *data)
     if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
         stdin_path = stdout_path = "ttya";
     } else {
-        stdin_path = "/pci/pci/pci/ebus/kb_ps2";
-        stdout_path = "/pci/pci/pci/QEMU,VGA";
+        stdin_path = "keyboard";
+        stdout_path = "screen";
     }
 
     push_str(stdin_path);
