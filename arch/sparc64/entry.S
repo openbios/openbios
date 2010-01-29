@@ -59,7 +59,7 @@ entry:
         ! Check signature "QEMU"
         setx    CFG_ADDR, %g2, %g5
         mov     FW_CFG_SIGNATURE, %g2
-        stha    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+        stha    %g2, [%g5] ASI_PHYS_BYPASS_EC_E_L
         inc     %g5
         lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g2
         cmp     %g2, 'Q'
@@ -99,7 +99,7 @@ entry:
         ! NB: little endian format
         mov     FW_CFG_RAM_SIZE, %g2
         dec     %g5
-        stha    %g2, [%g5] ASI_PHYS_BYPASS_EC_E
+        stha    %g2, [%g5] ASI_PHYS_BYPASS_EC_E_L
         inc     %g5
         lduba   [%g5] ASI_PHYS_BYPASS_EC_E, %g4
 
