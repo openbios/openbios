@@ -402,6 +402,11 @@ int sabre_config_cb(const pci_config_t *config)
                      sizeof(props[0]));
         set_property(dev, "#virtual-dma-addr-cells", (char *)props,
                      sizeof(props[0]));
+        props[0] = 0x000007f0;
+        props[1] = 0x000007ee;
+        props[2] = 0x000007ef;
+        props[3] = 0x000007e5;
+        set_property(dev, "interrupts", (char *)props, 4 * sizeof(props[0]));
         return 0;
 }
 
