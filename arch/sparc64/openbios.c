@@ -92,6 +92,17 @@ set_trap_table(void)
         : : "r" (addr));
 }
 
+/* Reset control register is defined in 17.2.7.3 of US IIi User Manual */
+static void
+sparc64_reset_all(void)
+{
+    unsigned long addr = 0x1fe0000f020ULL;
+    unsigned long val = 1 << 29;
+
+    asm("stxa %0, [%1] 0x15\n\t"
+        : : "r" (val), "r" (addr) : "memory");
+}
+
 static void cpu_generic_init(const struct cpudef *cpu, uint32_t clock_frequency)
 {
     unsigned long iu_version;
@@ -146,6 +157,11 @@ static void cpu_generic_init(const struct cpudef *cpu, uint32_t clock_frequency)
     push_str("/openprom/client-services");
     fword("find-device");
     bind_func("SUNW,set-trap-table", set_trap_table);
+
+    // Reset
+    bind_func("sparc64-reset-all", sparc64_reset_all);
+    push_str("' sparc64-reset-all to reset-all");
+    fword("eval");
 }
 
 static const struct cpudef sparc_defs[] = {
