@@ -125,7 +125,7 @@ constant sinfo.size
   r@ common-match
 
   \ b) UNIT_PHYS nonempty?
-  r@ >si.unit_phys_len @ cells ?dup if
+  r@ >si.unit_phys_len @ /l* ?dup if
     \ check if unit_phys matches
     " reg" r@ >si.child @ get-package-property if -3 throw then
     ( unitbytes propaddr proplen )
@@ -191,7 +191,7 @@ constant sinfo.size
       ( ... a_lo ... a_hi olddepth n )
       r@ >si.unit_phys >r
       begin 1- dup 0>= while
-        rot r> dup na1+ >r !
+        rot r> dup la1+ >r l!-be
       repeat
       r> 2drop
       depth!
