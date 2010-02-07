@@ -201,12 +201,17 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
     push_str(dev_name);
     fword("device-name");
 
-    push_str("keyboard");
+    push_str("serial");
     fword("device-type");
 
     PUSH(-1);
     fword("encode-int");
     push_str("keyboard");
+    fword("property");
+
+    PUSH(0);
+    fword("encode-int");
+    push_str("reg");
     fword("property");
 
     chosen = find_dev("/chosen");
