@@ -362,7 +362,7 @@ static const pci_dev_t miscbrg_devices[] = {
 static const pci_subclass_t bridg_subclass[] = {
     {
         PCI_SUBCLASS_BRIDGE_HOST, "PCI host bridge",
-        NULL, hbrg_devices, NULL,
+        "pci", hbrg_devices, NULL,
         NULL, NULL,
     },
     {
@@ -382,7 +382,7 @@ static const pci_subclass_t bridg_subclass[] = {
     },
     {
         PCI_SUBCLASS_BRIDGE_PCI, "PCI-to-PCI bridge",
-        NULL, PCIbrg_devices, NULL,
+        "pci", PCIbrg_devices, NULL,
         NULL, NULL,
     },
     {
@@ -1040,7 +1040,7 @@ static const pci_class_t pci_classes[] = {
     /* 0x05 */
     { "memory controller",                 "memory-controller", mem_subclass, },
     /* 0x06 */
-    { "PCI bridge",                        "pci",            bridg_subclass, },
+    { "PCI bridge",                        NULL,             bridg_subclass, },
     /* 0x07 */
     { "communication device",              NULL,               comm_subclass,},
     /* 0x08 */
