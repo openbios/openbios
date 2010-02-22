@@ -1421,9 +1421,11 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 		dnode = find_dev(nodebuff);
 
+#ifndef CONFIG_PPC
 		props[0]=14; props[1]=0;
 		set_property(dnode, "interrupts",
 			     (char *)&props, 2*sizeof(cell));
+#endif
 
 		props[0] = __cpu_to_be32(chan->io_regs[0]);
 		props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
@@ -1578,10 +1580,31 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 		OLDWORLD(set_property(dnode, "AAPL,pio-timing",
 				      (char *)&props, 8*sizeof(cell)));
 
-		props[0] = 0x0000000d;
-		props[1] = 0x00000000;
+		/* The first interrupt entry is the ide interrupt, the second
+		   the dbdma interrupt */
+		switch (current_channel) {
+		case 1:
+			props[0] = 0x0000000d;
+			props[2] = 0x00000002;
+			break;
+		case 2:
+			props[0] = 0x0000000e;
+			props[2] = 0x00000003;
+			break;
+		case 3:
+			props[0] = 0x0000000f;
+			props[2] = 0x00000004;
+			break;
+		default:
+			props[0] = 0x00000000;
+			props[2] = 0x00000000;
+			break;
+		}
+		props[1] = 0x00000000; /* XXX level triggered on real hw */
+		props[3] = 0x00000000;
 		set_property(dnode, "interrupts",
-			     (char *)&props, 2*sizeof(cell));
+			     (char *)&props, 4*sizeof(cell));
+		set_int_property(dnode, "#interrupt-cells", 2);
 		OLDWORLD(set_property(dnode, "AAPL,interrupts",
 				      (char *)&props, 2*sizeof(cell)));
 

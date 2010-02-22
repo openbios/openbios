@@ -197,7 +197,12 @@ ob_cuda_initialize (int *idx)
 
 	set_property(ph, "reg", (char *)&props, sizeof(props));
 
-	set_int_property(ph, "interrupts", 0x12);
+	/* on newworld machines the cuda is on interrupt 0x19 */
+
+	props[0] = 0x19;
+	props[1] = 0;
+	NEWWORLD(set_property(ph, "interrupts", (char *)props, sizeof(props)));
+	NEWWORLD(set_int_property(ph, "#interrupt-cells", 2));
 
 	/* we emulate an oldworld hardware, so we must use
 	 * non-standard oldworld property (needed by linux 2.6.18)
