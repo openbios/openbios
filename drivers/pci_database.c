@@ -280,6 +280,12 @@ static const pci_subclass_t mem_subclass[] = {
 
 static const pci_dev_t hbrg_devices[] = {
     {
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_U3_AGP, NULL,
+        "pci", "AAPL,UniNorth", "u3-agp\0",
+        3, 2, 1,
+        host_config_cb, NULL,
+    },
+    {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_AGP, NULL,
         "pci", "AAPL,UniNorth", "uni-north\0",
         3, 2, 1,
@@ -1084,7 +1090,7 @@ static const pci_dev_t misc_pci[] = {
     {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_KEYL,
         "mac-io", "mac-io", "AAPL,Keylargo", "Keylargo\0",
-        1, 1, 2,
+        1, 1, 1,
         &macio_keylargo_config_cb, NULL,
     },
     {

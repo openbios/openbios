@@ -63,6 +63,7 @@ enum {
     ARCH_PREP = 0,
     ARCH_MAC99,
     ARCH_HEATHROW,
+    ARCH_MAC99_U3,
 };
 
 int is_apple(void)
@@ -77,7 +78,8 @@ int is_oldworld(void)
 
 int is_newworld(void)
 {
-	return machine_id == ARCH_MAC99;
+	return (machine_id == ARCH_MAC99) ||
+               (machine_id == ARCH_MAC99_U3);
 }
 
 static const pci_arch_t known_arch[] = {
@@ -95,6 +97,13 @@ static const pci_arch_t known_arch[] = {
 			  0xf2000000, 0x00800000, 0x00000000, 0x01000000,
 			  { 8, 9, 10, 11 }
 		       },
+        [ARCH_MAC99_U3] = { "MAC99_U3", PCI_VENDOR_ID_APPLE,
+                            PCI_DEVICE_ID_APPLE_U3_AGP,
+                            0xf0800000, 0xf0c00000,
+                            0xf0000000, 0x02000000, 0x80000000, 0x10000000,
+                            0xf2000000, 0x00800000, 0x00000000, 0x01000000,
+                            { 0x1b, 0x1c, 0x1d, 0x1e }
+                          },
         [ARCH_HEATHROW] = { "HEATHROW", PCI_VENDOR_ID_MOTOROLA,
                             PCI_DEVICE_ID_MOTOROLA_MPC106,
                             0xfec00000, 0xfee00000,
@@ -557,6 +566,7 @@ arch_of_init( void )
 		break;
 
 	case ARCH_MAC99:
+	case ARCH_MAC99_U3:
 	case ARCH_PREP:
 	default:
 
@@ -596,17 +606,6 @@ arch_of_init( void )
 	fword("encode-string");
 	push_str("system-id");
 	fword("property");
-
-	/* pci info */
-
-	if (machine_id == ARCH_MAC99) {
-		push_str("/pci");
-		fword("find-device");
-		push_str("u3-agp");
-		fword("encode-string");
-		push_str("compatible");
-		fword("property");
-	}
 
 	/* memory info */
 
