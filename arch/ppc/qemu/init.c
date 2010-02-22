@@ -194,6 +194,16 @@ cpu_generic_init(const struct cpudef *cpu)
     push_str("icache-block-size");
     fword("property");
 
+    PUSH(fw_cfg_read_i32(FW_CFG_PPC_TBFREQ));
+    fword("encode-int");
+    push_str("timebase-frequency");
+    fword("property");
+
+    PUSH(fw_cfg_read_i32(FW_CFG_PPC_CPUFREQ));
+    fword("encode-int");
+    push_str("clock-frequency");
+    fword("property");
+
     push_str("running");
     fword("encode-string");
     push_str("state");

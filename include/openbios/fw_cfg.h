@@ -36,6 +36,12 @@
 #define FW_CFG_ARCH_LOCAL       0x8000
 #define FW_CFG_ENTRY_MASK       ~(FW_CFG_WRITE_CHANNEL | FW_CFG_ARCH_LOCAL)
 
+#define FW_CFG_PPC_WIDTH        (FW_CFG_ARCH_LOCAL + 0x00)
+#define FW_CFG_PPC_HEIGHT       (FW_CFG_ARCH_LOCAL + 0x01)
+#define FW_CFG_PPC_DEPTH        (FW_CFG_ARCH_LOCAL + 0x02)
+#define FW_CFG_PPC_TBFREQ       (FW_CFG_ARCH_LOCAL + 0x03)
+#define FW_CFG_PPC_CPUFREQ      (FW_CFG_ARCH_LOCAL + 0x04)
+
 #define FW_CFG_INVALID          0xffff
 
 #ifndef NO_QEMU_PROTOS
