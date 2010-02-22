@@ -10,7 +10,7 @@
   <option name="CONFIG_BIG_ENDIAN" type="boolean" value="true"/>
 
   <!-- Build hosted UNIX Binary -->
-  <option name="CONFIG_HOST_UNIX" type="boolean" value="true"/>
+  <option name="CONFIG_HOST_UNIX" type="boolean" value="false"/>
   <option name="CONFIG_UNIX_QT" type="boolean" value="false"/>
   <option name="CONFIG_PLUGINS" type="boolean" value="false"/>
 
