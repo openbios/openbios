@@ -289,7 +289,7 @@ static const pci_dev_t hbrg_devices[] = {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_AGP, NULL,
         "pci", "AAPL,UniNorth", "uni-north\0",
         3, 2, 1,
-        NULL, NULL
+        host_config_cb, NULL,
     },
     {
         PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_PCI, NULL,

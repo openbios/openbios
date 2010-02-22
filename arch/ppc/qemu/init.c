@@ -93,9 +93,9 @@ static const pci_arch_t known_arch[] = {
         [ARCH_MAC99] = { "MAC99", PCI_VENDOR_ID_APPLE,
                          PCI_DEVICE_ID_APPLE_UNI_N_PCI,
                          0xf2800000, 0xf2c00000,
-			  0xf2000000, 0x02000000, 0x80000000, 0x10000000,
-			  0xf2000000, 0x00800000, 0x00000000, 0x01000000,
-			  { 8, 9, 10, 11 }
+                         0xf2000000, 0x02000000, 0x80000000, 0x10000000,
+                         0xf2000000, 0x00800000, 0x00000000, 0x01000000,
+                         { 0x1b, 0x1c, 0x1d, 0x1e }
 		       },
         [ARCH_MAC99_U3] = { "MAC99_U3", PCI_VENDOR_ID_APPLE,
                             PCI_DEVICE_ID_APPLE_U3_AGP,
