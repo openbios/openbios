@@ -24,6 +24,16 @@ struct pci_arch_t {
 
 extern const pci_arch_t *arch;
 
+/* Device tree offsets */
+
+#define PCI_INT_MAP_PCI0         0
+#define PCI_INT_MAP_PCI1         1
+#define PCI_INT_MAP_PCI2         2
+#define PCI_INT_MAP_PCI_INT      3
+#define PCI_INT_MAP_PIC_HANDLE   4
+#define PCI_INT_MAP_PIC_INT      5
+#define PCI_INT_MAP_PIC_POL      6
+
 /* Device classes and subclasses */
 
 #define PCI_BASE_CLASS_STORAGE           0x01

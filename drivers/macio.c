@@ -18,6 +18,7 @@
 #include "macio.h"
 #include "cuda.h"
 #include "escc.h"
+#include "openbios/pci.h"
 
 #define OW_IO_NVRAM_SIZE   0x00020000
 #define OW_IO_NVRAM_OFFSET 0x00060000
@@ -172,9 +173,13 @@ openpic_init(const char *path, uint32_t addr)
         fword("finish-device");
 
         if (is_newworld()) {
+            u32 *interrupt_map;
+            int len, i;
+
             /* patch in interrupt parent */
             dnode = find_dev(buf);
-            target_node = find_dev("/pci");
+
+            target_node = find_dev("/pci/mac-io");
             set_int_property(target_node, "interrupt-parent", dnode);
 
             target_node = find_dev("/pci/mac-io/escc/ch-a");
@@ -182,6 +187,15 @@ openpic_init(const char *path, uint32_t addr)
 
             target_node = find_dev("/pci/mac-io/escc/ch-b");
             set_int_property(target_node, "interrupt-parent", dnode);
+
+            target_node = find_dev("/pci");
+            set_int_property(target_node, "interrupt-parent", dnode);
+
+            interrupt_map = (u32 *)get_property(target_node, "interrupt-map", &len);
+            for (i = 0; i < 4; i++) {
+                interrupt_map[(i * 7) + PCI_INT_MAP_PIC_HANDLE] = (u32)dnode;
+            }
+            set_property(target_node, "interrupt-map", (char *)interrupt_map, len);
         }
 }
 

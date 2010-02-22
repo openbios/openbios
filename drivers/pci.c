@@ -278,6 +278,47 @@ static void pci_set_bus_range(const pci_config_t *config)
 	set_property(dev, "bus-range", (char *)props, 2 * sizeof(props[0]));
 }
 
+static void pci_host_set_interrupt_map(const pci_config_t *config)
+{
+/* XXX We currently have a hook in the MPIC init code to fill in its handle.
+ *     If you want to have interrupt maps for your PCI host bus, add your
+ *     architecture to the #if and make your bridge detect code fill in its
+ *     handle too.
+ *
+ *     It would be great if someone clever could come up with a more universal
+ *     mechanism here.
+ */
+#if defined(CONFIG_PPC)
+	phandle_t dev = get_cur_dev();
+	u32 props[7 * 4];
+	int i;
+
+#if defined(CONFIG_PPC)
+	/* Oldworld macs do interrupt maps differently */
+	if(!is_newworld())
+		return;
+#endif
+
+	for (i = 0; i < (7*4); i+=7) {
+		props[i+PCI_INT_MAP_PCI0] = 0;
+		props[i+PCI_INT_MAP_PCI1] = 0;
+		props[i+PCI_INT_MAP_PCI2] = 0;
+		props[i+PCI_INT_MAP_PCI_INT] = (i / 7) + 1; // starts at PINA=1
+		props[i+PCI_INT_MAP_PIC_HANDLE] = 0; // gets patched in later
+		props[i+PCI_INT_MAP_PIC_INT] = arch->irqs[i / 7];
+		props[i+PCI_INT_MAP_PIC_POL] = 3;
+	}
+	set_property(dev, "interrupt-map", (char *)props, 7 * 4 * sizeof(props[0]));
+
+	props[PCI_INT_MAP_PCI0] = 0;
+	props[PCI_INT_MAP_PCI1] = 0;
+	props[PCI_INT_MAP_PCI2] = 0;
+	props[PCI_INT_MAP_PCI_INT] = 0x7;
+
+	set_property(dev, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
+#endif
+}
+
 static void pci_host_set_reg(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
@@ -344,6 +385,7 @@ int host_config_cb(const pci_config_t *config)
 	pci_host_set_reg(config);
 	pci_host_set_ranges(config);
 	pci_set_bus_range(config);
+	pci_host_set_interrupt_map(config);
 
 	return 0;
 }
