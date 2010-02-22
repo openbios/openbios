@@ -416,7 +416,7 @@ static const struct cpudef ppc_defs[] = {
     { // XXX find out real values
         .iu_version = 0x003C0000,
         .name = "PowerPC,970FX",
-        .icache_size = 0x8000,
+        .icache_size = 0x10000,
         .dcache_size = 0x8000,
         .icache_sets = 0x80,
         .dcache_sets = 0x80,
