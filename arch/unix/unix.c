@@ -73,6 +73,13 @@ ucell ofmem_claim(ucell addr, ucell size, ucell align)
     return 0;
 }
 
+#ifdef CONFIG_PPC
+extern void flush_icache_range(char *start, char *stop);
+
+void flush_icache_range(char *start, char *stop)
+{
+}
+#endif
 
 #if 0
 static void write_dictionary(char *filename)
