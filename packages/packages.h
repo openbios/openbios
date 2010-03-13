@@ -2,9 +2,9 @@
  *   Creation Date: <2003/12/23 00:32:12 samuel>
  *   Time-stamp: <2003/12/28 14:47:02 samuel>
  *
- *	<modules.h>
+ *	<packages.h>
  *
- *	Module initialization
+ *	Package initialization
  *
  *   Copyright (C) 2003 Samuel Rydh (samuel@ibrium.se)
  *
@@ -19,7 +19,7 @@
 
 extern void	deblocker_init( void );
 extern void	disklabel_init( void );
-extern void	filesystem_init( void );
+extern void	files_init( void );
 extern void	macparts_init( void );
 extern void	pcparts_init( void );
 extern void	sunparts_init( void );

@@ -17,7 +17,7 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "libc/diskio.h"
-#include "modules.h"
+#include "packages.h"
 
 //#define DEBUG_DISK_LABEL
 

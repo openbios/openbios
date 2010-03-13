@@ -19,5 +19,5 @@ typedef struct osi_fb_info {
 	int		rb, w, h, depth;
 } osi_fb_info_t;
 
-#include "../../../modules/video.c"
-#include "../../../modules/console.c"
+#include "../../../packages/video.c"
+#include "../../../libopenbios/console_common.c"

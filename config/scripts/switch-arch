@@ -177,7 +177,8 @@ for RULES_ARCH in $*; do
     mkdir -p $OBJDIR/target/arch/x86/xbox
     mkdir -p $OBJDIR/target/libgcc
     mkdir -p $OBJDIR/target/kernel
-    mkdir -p $OBJDIR/target/modules
+    mkdir -p $OBJDIR/target/libopenbios
+    mkdir -p $OBJDIR/target/packages
     mkdir -p $OBJDIR/target/fs
     mkdir -p $OBJDIR/target/fs/grubfs
     mkdir -p $OBJDIR/target/fs/hfs

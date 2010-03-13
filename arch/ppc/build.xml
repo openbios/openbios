@@ -153,7 +153,8 @@
   <object source="timebase.S"/>
   <external-object source="libbriq.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="libfs.a"/>
   <external-object source="liblibc.a"/>
@@ -168,7 +169,8 @@
   <object source="timebase.S"/>
   <external-object source="libpearpc.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="libfs.a"/>
   <external-object source="liblibc.a"/>
@@ -183,7 +185,8 @@
   <object source="timebase.S"/>
   <external-object source="libqemu.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="libfs.a"/>
   <external-object source="liblibc.a"/>
@@ -198,7 +201,8 @@
   <object source="start.S"/>
   <external-object source="libmol.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="libfs.a"/>
   <external-object source="liblibc.a"/>

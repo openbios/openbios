@@ -39,6 +39,5 @@ int PearPC_GetFBInfo( osi_fb_info_t *fb )
 
 #define openbios_GetFBInfo(x) PearPC_GetFBInfo(x)
 
-#include "../../../modules/video.c"
-
-#include "../../../modules/console.c"
+#include "../../../packages/video.c"
+#include "../../../libopenbios/console_common.c"

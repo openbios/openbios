@@ -30,7 +30,8 @@
   <object source="multiboot.c"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
@@ -45,7 +46,8 @@
   <object source="plainboot.c"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>
@@ -79,7 +81,8 @@
   <external-object source="target/arch/x86/builtin.o"/>
   <external-object source="libx86.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="liblibc.a"/>
   <external-object source="libfs.a"/>

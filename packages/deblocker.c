@@ -17,7 +17,7 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "libc/diskio.h"
-#include "modules.h"
+#include "packages.h"
 
 typedef struct {
         ucell   mark_hi, mark_lo;

@@ -16,7 +16,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
-#include "modules.h"
+#include "packages.h"
 #include "libc/vsprintf.h"
 
 typedef struct {

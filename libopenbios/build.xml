@@ -1,0 +1,25 @@
+<build>
+
+ <library name="openbios" type="static" target="target">
+  <object source="bindings.c"/>
+  <object source="bootinfo-loader.c" condition="PPC"/>
+  <object source="client.c"/>
+  <object source="console_common.c"/>
+  <object source="elfnote.c" condition="X86"/>
+  <object source="elfnote.c" condition="AMD64"/>
+  <object source="elfnote.c" condition="SPARC32"/>
+  <object source="elfnote.c" condition="SPARC64"/>
+  <object source="elfload.c" condition="PPC"/>
+  <object source="font_8x8.c" condition="FONT_8X8"/>
+  <object source="font_8x16.c" condition="FONT_8X16"/>
+  <object source="ipchecksum.c"/>
+  <object source="linuxbios.c" condition="LINUXBIOS"/>
+  <object source="ofmem_common.c" condition="OFMEM"/>
+ </library>
+
+ <dictionary name="openbios" target="forth">
+  <object source="clib.fs"/>
+  <object source="helpers.fs"/>
+ </dictionary>
+
+</build>

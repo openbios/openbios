@@ -17,7 +17,7 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "mac-parts.h"
-#include "modules.h"
+#include "packages.h"
 
 #ifdef CONFIG_DEBUG_MAC_PARTS
 #define DPRINTF(fmt, args...) \

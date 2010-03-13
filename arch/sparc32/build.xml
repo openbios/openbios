@@ -32,7 +32,8 @@
   <object source="plainboot.c"/>
   <external-object source="libsparc32.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="libfs.a"/>
   <external-object source="liblibc.a"/>
@@ -66,7 +67,8 @@
   <external-object source="target/arch/sparc32/builtin.o"/>
   <external-object source="libsparc32.a"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libmodules.a"/>
+  <external-object source="libopenbios.a"/>
+  <external-object source="libpackages.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="libfs.a"/>
   <external-object source="liblibc.a"/>

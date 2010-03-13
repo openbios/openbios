@@ -15,7 +15,7 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "libc/byteorder.h"
-#include "modules.h"
+#include "packages.h"
 
 typedef struct {
 	ullong		offs;

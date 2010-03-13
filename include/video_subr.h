@@ -15,14 +15,14 @@ void vga_vbe_set_mode(int width, int height, int depth);
 void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
                   unsigned long rom, uint32_t rom_size);
 
-/* modules/video.c */
+/* packages/video.c */
 int video_get_res(int *w, int *h);
 void draw_pixel(int x, int y, int colind);
 void set_color(int ind, unsigned long color);
 void video_scroll(int height);
 void init_video(unsigned long fb, int width, int height, int depth, int rb);
 
-/* modules/console_common.c */
+/* libopenbios/console_common.c */
 int console_draw_str(const char *str);
 int console_init(void);
 void console_close(void);

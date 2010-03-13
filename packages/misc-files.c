@@ -19,7 +19,7 @@
 #include "openbios/bindings.h"
 #include "openbios/fs.h"
 #include "libc/diskio.h"
-#include "modules.h"
+#include "packages.h"
 
 #define PATHBUF_SIZE	256
 #define VOLNAME_SIZE	64
@@ -331,7 +331,7 @@ NODE_METHODS( files ) = {
 
 
 void
-filesystem_init( void )
+files_init( void )
 {
 	REGISTER_NODE( files );
 }

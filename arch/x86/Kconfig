@@ -43,5 +43,5 @@ endmenu
 
 source "kernel/Kconfig"
 source "forth/Kconfig"
-source "modules/Kconfig"
+source "libopenbios/Kconfig"
 source "drivers/Kconfig"

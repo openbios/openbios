@@ -15,7 +15,7 @@
 #include "openbios/config.h"
 #include "openbios/bindings.h"
 #include "libc/byteorder.h"
-#include "modules.h"
+#include "packages.h"
 
 #ifdef CONFIG_DEBUG_SUN_PARTS
 #define DPRINTF(fmt, args...)                   \

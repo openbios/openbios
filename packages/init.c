@@ -16,7 +16,7 @@
 
 #include "openbios/config.h"
 #include "openbios/kernel.h"
-#include "modules.h"
+#include "packages.h"
 
 void
 modules_init( void )
@@ -31,7 +31,7 @@ modules_init( void )
 	disklabel_init();
 #endif
 #ifdef CONFIG_FS
-	filesystem_init();
+	files_init();
 #endif
 #ifdef CONFIG_MAC_PARTS
 	macparts_init();
