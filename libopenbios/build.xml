@@ -2,7 +2,6 @@
 
  <library name="openbios" type="static" target="target">
   <object source="bindings.c"/>
-  <object source="bootinfo-loader.c" condition="PPC"/>
   <object source="client.c"/>
   <object source="console_common.c"/>
   <object source="elfnote.c" condition="X86"/>
