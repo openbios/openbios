@@ -4,7 +4,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "openbios/elf.h"
 #include "asm/elf.h"
 #include "elf_boot.h"

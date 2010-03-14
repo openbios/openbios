@@ -8,7 +8,7 @@
 
 
 #include "openbios/config.h"
-#include "openbios/stack.h"
+#include "kernel/stack.h"
 #include "cross.h"
 
 #define dstacksize 512

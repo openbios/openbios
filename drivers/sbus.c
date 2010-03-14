@@ -12,7 +12,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 #include "openbios/drivers.h"

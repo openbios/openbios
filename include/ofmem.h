@@ -17,7 +17,7 @@
 #ifndef _H_OFMEM
 #define _H_OFMEM
 
-#include "openbios/stack.h"
+#include "kernel/stack.h"
 
 typedef struct alloc_desc {
 	struct alloc_desc 	*next;

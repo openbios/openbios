@@ -11,8 +11,8 @@
 #include "openbios/drivers.h"
 #include "asm/types.h"
 #include "dict.h"
-#include "openbios/kernel.h"
-#include "openbios/stack.h"
+#include "kernel/kernel.h"
+#include "kernel/stack.h"
 #include "openbios/nvram.h"
 #include "../../drivers/timer.h" // XXX
 #include "sys_info.h"

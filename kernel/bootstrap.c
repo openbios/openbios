@@ -22,9 +22,9 @@
 #endif
 
 #include "openbios/config.h"
-#include "openbios/stack.h"
+#include "kernel/stack.h"
 #include "openbios/sysinclude.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "dict.h"
 #include "cross.h"
 #include "openbios-version.h"

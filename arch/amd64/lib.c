@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include "libc/stdlib.h"
 #include "libc/vsprintf.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 
 /* Format a string and print it on the screen, just like the libc
  * function printf.

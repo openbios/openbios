@@ -9,7 +9,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "openbios/bindings.h"
 #include "sys_info.h"
 #include "context.h"

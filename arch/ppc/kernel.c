@@ -20,8 +20,8 @@
 #include "openbios/config.h"
 #include "dict.h"
 #include "openbios/bindings.h"
-#include "openbios/stack.h"
-#include "openbios/kernel.h"
+#include "kernel/stack.h"
+#include "kernel/kernel.h"
 #include "libc/string.h"
 #include "kernel.h"
 

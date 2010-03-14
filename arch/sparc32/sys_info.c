@@ -1,5 +1,5 @@
 #include "openbios/config.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "elf_boot.h"
 #include "sys_info.h"
 #include "context.h"

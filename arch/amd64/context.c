@@ -4,7 +4,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "segment.h"
 #include "context.h"
 

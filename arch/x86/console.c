@@ -6,7 +6,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "openbios.h"
 
 #ifdef CONFIG_DEBUG_CONSOLE

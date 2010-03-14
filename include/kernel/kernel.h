@@ -18,7 +18,7 @@
 #ifndef _H_KERNEL
 #define _H_KERNEL
 
-#include "openbios/stack.h"
+#include "kernel/stack.h"
 #include "asm/io.h"
 
 /* Interrupt status */

@@ -6,7 +6,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "openbios/drivers.h"
 #include "openbios.h"
 #include "video_subr.h"

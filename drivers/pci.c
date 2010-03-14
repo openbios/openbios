@@ -17,7 +17,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "openbios/pci.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"

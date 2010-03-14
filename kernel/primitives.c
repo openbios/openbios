@@ -8,8 +8,8 @@
 
 #include "openbios/config.h"
 #include "openbios/sysinclude.h"
-#include "openbios/stack.h"
-#include "openbios/kernel.h"
+#include "kernel/stack.h"
+#include "kernel/kernel.h"
 #include "dict.h"
 
 /*

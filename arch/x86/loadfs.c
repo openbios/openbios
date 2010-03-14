@@ -1,5 +1,5 @@
 #include "openbios/config.h"
-#include "openbios/kernel.h"
+#include "kernel/kernel.h"
 #include "libc/diskio.h"
 #include "loadfs.h"
 

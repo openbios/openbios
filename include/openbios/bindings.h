@@ -17,8 +17,8 @@
 #ifndef _H_BINDINGS
 #define _H_BINDINGS
 
-#include "openbios/stack.h"
-#include "openbios/kernel.h"
+#include "kernel/stack.h"
+#include "kernel/kernel.h"
 
 #define PUSH3(a,b,c)	do { PUSH((a)); PUSH((b)); PUSH((c)); } while(0)
 #define PUSH2(a,b)	do { PUSH((a)); PUSH((b)); } while(0)
