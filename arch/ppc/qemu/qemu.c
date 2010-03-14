@@ -29,6 +29,8 @@
 
 //#define DUMP_NVRAM
 
+unsigned long virt_offset = 0;
+
 void
 exit( int status __attribute__ ((unused)))
 {
