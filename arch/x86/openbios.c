@@ -14,11 +14,12 @@
 #include "kernel/stack.h"
 #include "drivers/drivers.h"
 #include "drivers/pci.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "openbios.h"
 #include "relocate.h"
 
 void boot(void);
+void collect_sys_info(struct sys_info *info);
 
 static unsigned char intdict[256 * 1024];
 

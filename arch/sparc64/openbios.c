@@ -11,14 +11,14 @@
 #include "drivers/drivers.h"
 #include "dict.h"
 #include "openbios/nvram.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "openbios.h"
 #include "drivers/pci.h"
 #include "asm/pci.h"
 #include "boot.h"
 #include "../../drivers/timer.h" // XXX
 #define NO_QEMU_PROTOS
-#include "openbios/fw_cfg.h"
+#include "arch/common/fw_cfg.h"
 #include "video_subr.h"
 #include "libopenbios/ofmem.h"
 

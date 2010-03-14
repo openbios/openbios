@@ -3,7 +3,7 @@
 #include "libc/byteorder.h"
 #include "libopenbios/ofmem.h"
 #define NO_QEMU_PROTOS
-#include "openbios/fw_cfg.h"
+#include "arch/common/fw_cfg.h"
 
 #if !defined(CONFIG_SPARC64)
 static volatile uint16_t *fw_cfg_cmd;

@@ -13,7 +13,7 @@
 #include "asm/asi.h"
 #include "pgtsrmmu.h"
 #include "openprom.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "boot.h"
 
 #define NCTX_SWIFT  0x100

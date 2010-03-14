@@ -13,7 +13,7 @@
 #include "openbios.h"
 #include "video_subr.h"
 #include "libc/vsprintf.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "boot.h"
 
 /* ******************************************************************

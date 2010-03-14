@@ -21,7 +21,7 @@
 #include "libopenbios/ofmem.h"
 #include "obio.h"
 #define NO_QEMU_PROTOS
-#include "openbios/fw_cfg.h"
+#include "arch/common/fw_cfg.h"
 #include "escc.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"

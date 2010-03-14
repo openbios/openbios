@@ -11,7 +11,7 @@
 #include "openbios/config.h"
 #include "kernel/kernel.h"
 #include "libopenbios/bindings.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "context.h"
 #include "loadfs.h"
 #include "boot.h"

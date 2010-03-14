@@ -2,7 +2,7 @@
 
 #include "openbios/config.h"
 #include "asm/io.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "multiboot.h"
 
 #define printf printk

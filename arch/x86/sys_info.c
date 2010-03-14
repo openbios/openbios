@@ -1,6 +1,6 @@
 #include "openbios/config.h"
 #include "kernel/kernel.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "context.h"
 
 #ifdef CONFIG_DEBUG_BOOT

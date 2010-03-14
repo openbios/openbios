@@ -33,6 +33,7 @@ void boot(void);
 
 // sys_info.c
 extern unsigned int qemu_mem_size;
+extern void collect_sys_info(struct sys_info *info);
 
 // romvec.c
 extern struct linux_arguments_v0 obp_arg;

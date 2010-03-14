@@ -37,6 +37,7 @@ void boot(void);
 
 // sys_info.c
 extern uint64_t qemu_mem_size;
+extern void collect_sys_info(struct sys_info *info);
 
 // console.c
 void ob_su_init(uint64_t base, uint64_t offset, int intr);

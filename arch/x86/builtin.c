@@ -7,7 +7,7 @@
  */
 
 #include "openbios/config.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 
 /*
  * wrap an array around the hex'ed dictionary file

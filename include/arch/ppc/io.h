@@ -4,7 +4,7 @@
 #include "asm/types.h"
 
 #define NO_QEMU_PROTOS
-#include "openbios/fw_cfg.h"
+#include "arch/common/fw_cfg.h"
 
 extern unsigned long virt_offset;
 

@@ -7,7 +7,7 @@
 #include "libopenbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 
 int elf_load(struct sys_info *, const char *filename, const char *cmdline);
 int linux_load(struct sys_info *, const char *filename, const char *cmdline);

@@ -7,7 +7,7 @@
  */
 
 #include "openbios/config.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "multiboot.h"
 
 #define FIXED_DICTSTART 0xfffe0000

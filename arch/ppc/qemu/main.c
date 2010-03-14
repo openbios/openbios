@@ -23,7 +23,7 @@
 #include "kernel.h"
 #include "libopenbios/ofmem.h"
 #define NO_QEMU_PROTOS
-#include "openbios/fw_cfg.h"
+#include "arch/common/fw_cfg.h"
 
 //#define DEBUG_QEMU
 

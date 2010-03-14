@@ -11,7 +11,7 @@
 #include "libc/vsprintf.h"
 #include "libopenbios/bindings.h"
 #include "spitfire.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "boot.h"
 
 #include "ofmem_sparc64.h"

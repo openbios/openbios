@@ -12,7 +12,7 @@
 #include "libopenbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "boot.h"
 
 struct sys_info sys_info;

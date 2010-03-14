@@ -31,7 +31,7 @@
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 #define NO_QEMU_PROTOS
-#include "openbios/fw_cfg.h"
+#include "arch/common/fw_cfg.h"
 #include "arch/ppc/processor.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"

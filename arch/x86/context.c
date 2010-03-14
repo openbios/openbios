@@ -10,7 +10,7 @@
 #include "kernel/kernel.h"
 #include "segment.h"
 #include "context.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "boot.h"
 
 #define MAIN_STACK_SIZE 16384

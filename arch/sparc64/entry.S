@@ -13,7 +13,7 @@
 #include "lsu.h"
 #define NO_QEMU_PROTOS
 #define NO_OPENBIOS_PROTOS
-#include "openbios/fw_cfg.h"
+#include "arch/common/fw_cfg.h"
 
 #define PROM_ADDR 0x1fff0000000
 #define CFG_ADDR  0x1fe02000510

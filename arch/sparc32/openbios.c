@@ -15,7 +15,7 @@
 #include "kernel/stack.h"
 #include "openbios/nvram.h"
 #include "../../drivers/timer.h" // XXX
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "openbios.h"
 #include "boot.h"
 #include "video_subr.h"

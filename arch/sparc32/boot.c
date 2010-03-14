@@ -9,7 +9,7 @@
 #include "drivers/drivers.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 #include "openprom.h"
 #include "boot.h"
 

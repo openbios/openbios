@@ -6,7 +6,7 @@
 #include "asm/io.h"
 #include "linuxbios.h"
 #include "libopenbios/ipchecksum.h"
-#include "sys_info.h"
+#include "libopenbios/sys_info.h"
 
 #ifdef CONFIG_DEBUG_BOOT
 #define debug printk
