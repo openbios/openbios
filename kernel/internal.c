@@ -635,7 +635,7 @@ do_source_dbg( struct debug_xt *debug_xt_item )
 
 			default:
 				/* Display debug banner */
-				printk(DEBUG_BANNER);
+				printf_console(DEBUG_BANNER);
 				while (!availchar());
 				k = getchar();
 		}
