@@ -190,9 +190,9 @@ for RULES_ARCH in $*; do
     mkdir -p $OBJDIR/host/include
     mkdir -p $OBJDIR/host/kernel
     mkdir -p $OBJDIR/forth
-    ln -s ../../../include/$ARCH $OBJDIR/target/include/asm
+    ln -s ../../../include/arch/$ARCH $OBJDIR/target/include/asm
     #compile the host binary with target settings instead
-    #ln -s ../../../include/$HOSTARCH $OBJDIR/host/include/asm
+    #ln -s ../../../include/arch/$HOSTARCH $OBJDIR/host/include/asm
     echo "ok."
 
     cd $OBJDIR
