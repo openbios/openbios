@@ -14,11 +14,11 @@
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "macio.h"
 #include "cuda.h"
 #include "escc.h"
-#include "openbios/pci.h"
+#include "drivers/pci.h"
 
 #define OW_IO_NVRAM_SIZE   0x00020000
 #define OW_IO_NVRAM_OFFSET 0x00060000

@@ -8,12 +8,12 @@
 
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "dict.h"
 #include "openbios/nvram.h"
 #include "sys_info.h"
 #include "openbios.h"
-#include "openbios/pci.h"
+#include "drivers/pci.h"
 #include "asm/pci.h"
 #include "boot.h"
 #include "../../drivers/timer.h" // XXX

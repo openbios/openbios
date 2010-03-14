@@ -1,6 +1,6 @@
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 

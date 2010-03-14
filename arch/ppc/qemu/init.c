@@ -22,9 +22,9 @@
 
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/pci.h"
+#include "drivers/pci.h"
 #include "openbios/nvram.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "qemu/qemu.h"
 #include "libopenbios/ofmem.h"
 #include "openbios-version.h"

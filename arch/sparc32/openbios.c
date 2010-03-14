@@ -8,7 +8,7 @@
 
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "asm/types.h"
 #include "dict.h"
 #include "kernel/kernel.h"

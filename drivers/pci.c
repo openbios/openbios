@@ -18,11 +18,11 @@
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
 #include "kernel/kernel.h"
-#include "openbios/pci.h"
+#include "drivers/pci.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "video_subr.h"
 #include "timer.h"
 #include "pci.h"

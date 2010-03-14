@@ -7,7 +7,7 @@
 
 #include "openbios/config.h"
 #include "kernel/kernel.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "openbios.h"
 #include "video_subr.h"
 #include "libopenbios/ofmem.h"

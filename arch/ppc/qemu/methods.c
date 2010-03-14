@@ -20,7 +20,7 @@
 
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "libc/string.h"
 #include "qemu/qemu.h"
 #include "libopenbios/ofmem.h"

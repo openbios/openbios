@@ -13,7 +13,7 @@
 
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 
 #ifdef CONFIG_DEBUG_CONSOLE
 /* ******************************************************************

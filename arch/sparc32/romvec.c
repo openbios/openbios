@@ -10,7 +10,7 @@
 #include "openprom.h"
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "sys_info.h"
 #include "boot.h"
 

@@ -19,7 +19,7 @@
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "ide.h"
 #include "hdreg.h"
 #include "timer.h"

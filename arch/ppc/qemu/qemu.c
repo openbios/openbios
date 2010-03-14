@@ -20,7 +20,7 @@
 #include "kernel/kernel.h"
 #include "openbios/nvram.h"
 #include "libopenbios/bindings.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "libc/vsprintf.h"
 #include "libc/string.h"
 #include "libc/byteorder.h"

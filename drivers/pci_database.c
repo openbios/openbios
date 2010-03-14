@@ -1,6 +1,6 @@
 #include "openbios/config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/pci.h"
+#include "drivers/pci.h"
 #include "libc/vsprintf.h"
 
 #include "pci_database.h"

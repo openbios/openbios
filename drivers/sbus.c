@@ -15,7 +15,7 @@
 #include "kernel/kernel.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "libopenbios/ofmem.h"
 
 #define SBUS_REGS        0x28

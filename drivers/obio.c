@@ -16,7 +16,7 @@
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 
-#include "openbios/drivers.h"
+#include "drivers/drivers.h"
 #include "openbios/nvram.h"
 #include "libopenbios/ofmem.h"
 #include "obio.h"
