@@ -6,7 +6,7 @@
  * the copyright and warranty status of this work.
  */
 
-#include "openbios/sysinclude.h"
+#include "sysinclude.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,9 +21,9 @@
 #include <getopt.h>
 #endif
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/stack.h"
-#include "openbios/sysinclude.h"
+#include "sysinclude.h"
 #include "kernel/kernel.h"
 #include "dict.h"
 #include "cross.h"

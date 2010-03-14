@@ -18,7 +18,7 @@
  */
 
 #include "qemu-dict.h"
-#include "openbios/config.h"
+#include "config.h"
 #include "dict.h"
 #include "libopenbios/bindings.h"
 #include "kernel/stack.h"

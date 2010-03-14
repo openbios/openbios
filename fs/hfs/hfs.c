@@ -20,7 +20,7 @@
  * $Id: hfs.c,v 1.15 1998/11/02 22:09:00 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfs.h"
 #include "data.h"
 #include "block.h"

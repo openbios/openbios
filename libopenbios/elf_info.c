@@ -1,5 +1,5 @@
 /* Support for ELF Boot Proposal as a boot image */
-#include "openbios/config.h"
+#include "config.h"
 #include "arch/common/elf_boot.h"
 #include "libopenbios/sys_info.h"
 #include "asm/io.h"

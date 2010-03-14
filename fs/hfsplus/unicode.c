@@ -9,7 +9,7 @@
  */
 
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfsp.h"
 #include "unicode.h"
 

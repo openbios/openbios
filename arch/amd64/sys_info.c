@@ -1,4 +1,4 @@
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "libopenbios/sys_info.h"
 #include "context.h"

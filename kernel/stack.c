@@ -7,7 +7,7 @@
  */
 
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/stack.h"
 #include "cross.h"
 

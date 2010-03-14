@@ -8,7 +8,7 @@
  */
 
 #include "openprom.h"
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "libopenbios/sys_info.h"

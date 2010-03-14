@@ -4,7 +4,7 @@
  *  Copyright (C) 1991, 1992  Linus Torvalds
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libc/string.h"
 
 const unsigned char _ctype[] = {

@@ -20,7 +20,7 @@
  * $Id: node.c,v 1.9 1998/11/02 22:09:05 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfs.h"
 #include "node.h"
 #include "data.h"

@@ -1,4 +1,4 @@
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "drivers/pci.h"
 #include "libc/vsprintf.h"

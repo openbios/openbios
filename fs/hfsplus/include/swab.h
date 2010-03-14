@@ -25,7 +25,7 @@
  * $Id: swab.h,v 1.1.1.1 2002/03/05 19:50:29 klaus Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libc/byteorder.h"
 
  /* basic fuction:

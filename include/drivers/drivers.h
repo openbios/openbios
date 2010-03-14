@@ -11,7 +11,7 @@
 #ifndef OPENBIOS_DRIVERS_H
 #define OPENBIOS_DRIVERS_H
 
-#include "openbios/config.h"
+#include "config.h"
 
 #ifdef CONFIG_DRIVER_PCI
 /* drivers/pci.c */

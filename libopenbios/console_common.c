@@ -12,7 +12,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/fontdata.h"
 #include "video_subr.h"

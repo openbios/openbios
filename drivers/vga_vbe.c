@@ -16,7 +16,7 @@
  *   MA 02110-1301, USA.
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "libopenbios/bindings.h"
 #include "drivers/pci.h"

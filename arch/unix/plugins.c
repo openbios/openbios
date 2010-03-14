@@ -6,7 +6,7 @@
  * the copyright and warranty status of this work.
  */
 
-#include "openbios/sysinclude.h"
+#include "sysinclude.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

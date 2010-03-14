@@ -20,7 +20,7 @@
  * $Id: volume.c,v 1.12 1998/11/02 22:09:10 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfs.h"
 #include "volume.h"
 #include "data.h"

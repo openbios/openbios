@@ -20,7 +20,7 @@
 
 #ifdef FSYS_EXT2FS
 
-#include "openbios/config.h"
+#include "config.h"
 #include "shared.h"
 #include "filesys.h"
 #include "libc/byteorder.h"

@@ -26,7 +26,7 @@
  * $Id: record.c,v 1.24 2000/10/17 05:58:46 hasi Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfsp.h"
 #include "hfstime.h"
 #include "record.h"

@@ -14,7 +14,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "mol/mol.h"
 #include "scsi_sh.h"

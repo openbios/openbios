@@ -9,7 +9,7 @@
 #ifndef __LIBEXT2_H__
 #define __LIBEXT2_H__
 
-#include "openbios/config.h"
+#include "config.h"
 #include "ext2.h"
 
 extern ext2_VOLUME* ext2_mount(int fd);

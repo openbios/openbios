@@ -14,7 +14,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libc/string.h"
 #include "libc/vsprintf.h"
 #include "libopenbios/bindings.h"

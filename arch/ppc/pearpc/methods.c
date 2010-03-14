@@ -18,7 +18,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/string.h"
 #include "pearpc/pearpc.h"

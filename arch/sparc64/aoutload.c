@@ -3,7 +3,7 @@
  * 2003-07 by SONE Takeshi
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #define CONFIG_SPARC64_PAGE_SIZE_8KB
 #include "arch/common/a.out.h"

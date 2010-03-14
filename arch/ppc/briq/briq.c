@@ -16,7 +16,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "openbios/nvram.h"
 #include "libc/vsprintf.h"

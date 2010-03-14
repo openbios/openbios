@@ -20,7 +20,7 @@
  * $Id: low.c,v 1.8 1998/11/02 22:09:03 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfs.h"
 #include "low.h"
 #include "data.h"

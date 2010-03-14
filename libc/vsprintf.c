@@ -18,7 +18,7 @@
  * - changed to provide snprintf and vsnprintf functions
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libc/string.h"
 #include "libc/vsprintf.h"
 

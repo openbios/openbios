@@ -8,7 +8,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "openbios/nvram.h"
 #include "libopenbios/bindings.h"
 #include "libc/byteorder.h"

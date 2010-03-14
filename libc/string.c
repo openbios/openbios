@@ -15,7 +15,7 @@
  *    reentrant and should be faster). Use only strsep() in new code, please.
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libc/string.h"
 #include "libc/stdlib.h"
 

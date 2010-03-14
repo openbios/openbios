@@ -20,7 +20,7 @@
  * $Id: record.c,v 1.9 1998/11/02 22:09:07 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfs.h"
 #include "record.h"
 #include "data.h"

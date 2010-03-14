@@ -1,7 +1,7 @@
 /* Adapted from Etherboot 5.1.8 */
 
-#include "openbios/config.h"
-#include "openbios/sysinclude.h"
+#include "config.h"
+#include "sysinclude.h"
 #include "asm/types.h"
 #include "asm/io.h"
 #include "linuxbios.h"

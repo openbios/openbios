@@ -23,7 +23,7 @@
  * $Id: libhfsp.c,v 1.1.1.1 2000/07/25 10:33:40 kkaempf Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfsp.h"
 
 const char *hfsp_error = "no error";       /* static error string */

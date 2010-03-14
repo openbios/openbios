@@ -9,7 +9,7 @@
 #ifndef __LIBISO9660_H__
 #define __LIBISO9660_H__
 
-#include "openbios/config.h"
+#include "config.h"
 #include "iso9660.h"
 
 extern iso9660_VOLUME* iso9660_mount(int fd);

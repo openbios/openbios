@@ -5,7 +5,7 @@
  * the copyright and warranty status of this work.
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "drivers/drivers.h"
 #include "openbios.h"

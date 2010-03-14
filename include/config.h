@@ -60,7 +60,7 @@ typedef unsigned int	time_t;
 
 #endif /* BOOTSTRAP */
 
-#include "openbios/sysinclude.h"
+#include "sysinclude.h"
 
 #ifndef MIN
 #define MIN(x,y)	(((x) < (y)) ? (x) : (y))

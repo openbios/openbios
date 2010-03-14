@@ -6,7 +6,7 @@
  * the copyright and warranty status of this work.
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "asm/types.h"

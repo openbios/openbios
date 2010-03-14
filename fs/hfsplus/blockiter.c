@@ -25,7 +25,7 @@
  * $Id: blockiter.c,v 1.2 2000/10/17 05:58:46 hasi Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfsp.h"
 #include "blockiter.h"
 #include "volume.h"

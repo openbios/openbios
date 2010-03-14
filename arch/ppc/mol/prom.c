@@ -14,7 +14,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "osi_calls.h"
 #include "mol/prom.h"
 

@@ -20,7 +20,7 @@
  * $Id: data.c,v 1.7 1998/11/02 22:08:57 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "data.h"
 
 #define TIMEDIFF  2082844800UL

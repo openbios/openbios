@@ -18,7 +18,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "libc/string.h"

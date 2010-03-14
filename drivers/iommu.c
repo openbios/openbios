@@ -4,7 +4,7 @@
  ** Copyright 1999 Pete Zaitcev
  ** This code is licensed under GNU General Public License.
  **/
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "iommu.h"

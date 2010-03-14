@@ -1,6 +1,6 @@
 /* Support for Multiboot */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "asm/io.h"
 #include "libopenbios/sys_info.h"
 #include "multiboot.h"

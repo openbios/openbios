@@ -3,7 +3,7 @@
  * 2003-10 by SONE Takeshi
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "segment.h"
 #include "context.h"

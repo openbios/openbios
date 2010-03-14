@@ -29,7 +29,7 @@
    (at your option) any later version.
 */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/elfload.h"
 #include "libc/diskio.h"

@@ -20,7 +20,7 @@
 * $Id: block.c,v 1.11 1998/11/02 22:08:52 rob Exp $
 */
 
-#include "openbios/config.h"
+#include "config.h"
 
 #include "libhfs.h"
 #include "volume.h"

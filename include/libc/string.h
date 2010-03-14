@@ -17,7 +17,7 @@
 #ifndef _H_STRING
 #define _H_STRING
 
-#include "openbios/config.h"
+#include "config.h"
 
 #define bzero(s,n)	memset( s, 0, n )
 #define atol(nptr)	strtol(nptr, NULL, 10 )

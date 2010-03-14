@@ -7,7 +7,7 @@
  * the copyright and warranty status of this work.
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "dict.h"
 #ifdef BOOTSTRAP

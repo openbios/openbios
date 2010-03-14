@@ -3,7 +3,7 @@
  * 2003-07 by SONE Takeshi
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "arch/common/elf.h"
 #include "asm/elf.h"

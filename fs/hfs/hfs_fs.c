@@ -14,7 +14,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "fs/fs.h"
 #include "libc/vsprintf.h"
 #include "libhfs.h"

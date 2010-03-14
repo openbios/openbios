@@ -15,7 +15,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 #include "osi_calls.h"

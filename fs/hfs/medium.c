@@ -20,7 +20,7 @@
  * $Id: medium.c,v 1.4 1998/11/02 22:09:04 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfs.h"
 #include "block.h"
 #include "low.h"

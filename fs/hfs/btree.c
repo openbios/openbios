@@ -20,7 +20,7 @@
  * $Id: btree.c,v 1.10 1998/11/02 22:08:54 rob Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 
 #include "libhfs.h"
 #include "btree.h"

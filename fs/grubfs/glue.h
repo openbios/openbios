@@ -2,7 +2,7 @@
 #define __GLUE_H
 
 #include "asm/types.h"
-#include "openbios/config.h"
+#include "config.h"
 #include "libc/byteorder.h"
 
 typedef uint64_t sector_t;

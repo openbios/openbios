@@ -28,7 +28,7 @@
  * $Id: btree.c,v 1.14 2000/10/25 05:43:04 hasi Exp $
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libhfsp.h"
 #include "volume.h"
 #include "btree.h"

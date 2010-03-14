@@ -10,7 +10,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "kernel/kernel.h"
 #include "libc/byteorder.h"

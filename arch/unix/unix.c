@@ -24,9 +24,9 @@
 #include <getopt.h>
 #endif
 
-#include "openbios/sysinclude.h"
+#include "sysinclude.h"
 #include "mconfig.h"
-#include "openbios/config.h"
+#include "config.h"
 #include "kernel/kernel.h"
 #include "dict.h"
 #include "kernel/stack.h"

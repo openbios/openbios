@@ -12,7 +12,7 @@
  *
  */
 
-#include "openbios/config.h"
+#include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/string.h"
 #include "ofmem_sparc64.h"
