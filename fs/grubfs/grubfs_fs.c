@@ -16,7 +16,7 @@
 
 #include "openbios/config.h"
 #include "openbios/bindings.h"
-#include "openbios/fs.h"
+#include "fs/fs.h"
 #include "filesys.h"
 #include "glue.h"
 #include "libc/diskio.h"

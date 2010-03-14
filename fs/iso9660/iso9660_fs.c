@@ -5,7 +5,7 @@
  */
 
 #include "libiso9660.h"
-#include "openbios/fs.h"
+#include "fs/fs.h"
 #include "libc/vsprintf.h"
 
 typedef struct {

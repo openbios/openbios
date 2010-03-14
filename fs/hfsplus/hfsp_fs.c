@@ -15,7 +15,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/fs.h"
+#include "fs/fs.h"
 #include "libhfsp.h"
 #include "volume.h"
 #include "record.h"
