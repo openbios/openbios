@@ -19,7 +19,7 @@
 #include "packages.h"
 #include "libopenbios/ofmem.h"
 
-#include "openbios/xcoff.h"
+#include "arch/common/xcoff.h"
 
 //#define DEBUG_XCOFF
 

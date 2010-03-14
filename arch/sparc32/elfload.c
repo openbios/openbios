@@ -5,9 +5,9 @@
 
 #include "openbios/config.h"
 #include "kernel/kernel.h"
-#include "openbios/elf.h"
+#include "arch/common/elf.h"
 #include "asm/elf.h"
-#include "elf_boot.h"
+#include "arch/common/elf_boot.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/ipchecksum.h"
 #include "loadfs.h"

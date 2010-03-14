@@ -33,7 +33,7 @@
 #include "libopenbios/bindings.h"
 #include "libopenbios/elfload.h"
 #include "libc/diskio.h"
-#include "openbios/elf.h"
+#include "arch/common/elf.h"
 
 #define DEBUG		0
 #define MAX_HEADERS	32

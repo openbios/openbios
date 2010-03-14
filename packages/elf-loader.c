@@ -19,7 +19,7 @@
 #include "packages.h"
 #include "libopenbios/ofmem.h"
 
-#include "openbios/elf.h"
+#include "arch/common/elf.h"
 #include "asm/elf.h"
 
 /* TODO: manage ELF notes section */

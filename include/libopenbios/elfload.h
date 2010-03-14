@@ -17,7 +17,7 @@
 #ifndef _H_ELFLOAD
 #define _H_ELFLOAD
 
-#include "openbios/elf.h"
+#include "arch/common/elf.h"
 #include "asm/elf.h"
 
 extern int		is_elf( int fd, int offs );

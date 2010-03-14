@@ -6,7 +6,7 @@
 #include "openbios/config.h"
 #include "kernel/kernel.h"
 #define CONFIG_SPARC64_PAGE_SIZE_8KB
-#include "a.out.h"
+#include "arch/common/a.out.h"
 #include "libopenbios/sys_info.h"
 #include "loadfs.h"
 #include "boot.h"
