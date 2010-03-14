@@ -24,7 +24,7 @@
 #include "libc/string.h"
 #include "qemu/qemu.h"
 #include "ofmem.h"
-#include "ppc/processor.h"
+#include "arch/ppc/processor.h"
 
 /************************************************************************/
 /*	RTAS (run-time abstraction services)				*/

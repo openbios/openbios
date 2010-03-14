@@ -30,7 +30,7 @@
 #include "openbios/kernel.h"
 #include "dict.h"
 #include "openbios/stack.h"
-#include "unix/plugins.h"
+#include "arch/unix/plugins.h"
 #include "openbios/bindings.h"
 #include "openbios-version.h"
 

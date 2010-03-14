@@ -32,7 +32,7 @@
 #include "libc/vsprintf.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
-#include "ppc/processor.h"
+#include "arch/ppc/processor.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
