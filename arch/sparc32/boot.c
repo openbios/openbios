@@ -5,7 +5,7 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/elfload.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "drivers/drivers.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"

@@ -18,7 +18,7 @@
 
 #include "config.h"
 #include "kernel/kernel.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "libc/vsprintf.h"
 #include "libc/string.h"
 #include "briq/briq.h"

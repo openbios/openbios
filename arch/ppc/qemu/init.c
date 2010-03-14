@@ -23,7 +23,7 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "drivers/pci.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "drivers/drivers.h"
 #include "qemu/qemu.h"
 #include "libopenbios/ofmem.h"

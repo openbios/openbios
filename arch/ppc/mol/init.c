@@ -17,7 +17,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "mol/mol.h"
 #include "libopenbios/ofmem.h"
 #include "mol/prom.h"

@@ -16,7 +16,8 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
+#include "packages/nvram.h"
 
 #ifdef CONFIG_DEBUG_NVRAM
 #define DPRINTF(fmt, args...) \

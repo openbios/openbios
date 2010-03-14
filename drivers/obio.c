@@ -17,7 +17,7 @@
 #include "libc/vsprintf.h"
 
 #include "drivers/drivers.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "libopenbios/ofmem.h"
 #include "obio.h"
 #define NO_QEMU_PROTOS

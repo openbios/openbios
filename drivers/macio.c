@@ -9,7 +9,8 @@
  */
 
 #include "config.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
+#include "packages/nvram.h"
 #include "libopenbios/bindings.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"

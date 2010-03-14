@@ -21,7 +21,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "briq/briq.h"
 #include "libopenbios/ofmem.h"
 #include "openbios-version.h"

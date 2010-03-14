@@ -19,7 +19,7 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/elfload.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "pearpc/pearpc.h"

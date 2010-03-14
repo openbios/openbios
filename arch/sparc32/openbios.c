@@ -13,7 +13,8 @@
 #include "dict.h"
 #include "kernel/kernel.h"
 #include "kernel/stack.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
+#include "packages/nvram.h"
 #include "../../drivers/timer.h" // XXX
 #include "libopenbios/sys_info.h"
 #include "openbios.h"

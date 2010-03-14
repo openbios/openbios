@@ -22,7 +22,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "pearpc/pearpc.h"
 #include "libopenbios/ofmem.h"
 #include "openbios-version.h"

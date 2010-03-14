@@ -18,7 +18,7 @@
 
 #include "config.h"
 #include "kernel/kernel.h"
-#include "openbios/nvram.h"
+#include "arch/common/nvram.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "libc/vsprintf.h"
