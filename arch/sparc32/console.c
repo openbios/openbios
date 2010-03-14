@@ -9,8 +9,10 @@
 #include "kernel/kernel.h"
 #include "drivers/drivers.h"
 #include "openbios.h"
-#include "video_subr.h"
+#include "libopenbios/console.h"
 #include "libopenbios/ofmem.h"
+
+void cls(void);
 
 #ifdef CONFIG_DEBUG_CONSOLE
 

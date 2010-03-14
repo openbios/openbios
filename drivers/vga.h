@@ -14,7 +14,7 @@
 #ifndef VGA_H_INCL
 #define VGA_H_INCL 1
 
-#include "video_subr.h"
+#include "drivers/vga.h"
 
 //#include <cpu/p5/io.h>
 

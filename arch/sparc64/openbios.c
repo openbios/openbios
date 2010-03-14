@@ -19,7 +19,6 @@
 #include "../../drivers/timer.h" // XXX
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
-#include "video_subr.h"
 #include "libopenbios/ofmem.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"

@@ -24,7 +24,8 @@
 #include "libopenbios/fontdata.h"
 #include "asm/io.h"
 #include "libc/vsprintf.h"
-#include "video_subr.h"
+#include "drivers/vga.h"
+#include "packages/video.h"
 #include "libopenbios/ofmem.h"
 
 /* VGA init. We use the Bochs VESA VBE extensions  */

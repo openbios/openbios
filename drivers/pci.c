@@ -23,7 +23,7 @@
 #include "libc/vsprintf.h"
 
 #include "drivers/drivers.h"
-#include "video_subr.h"
+#include "drivers/vga.h"
 #include "timer.h"
 #include "pci.h"
 #include "pci_database.h"

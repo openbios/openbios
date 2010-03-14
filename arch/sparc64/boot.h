@@ -41,6 +41,7 @@ extern void collect_sys_info(struct sys_info *info);
 
 // console.c
 void ob_su_init(uint64_t base, uint64_t offset, int intr);
+void cls(void);
 
 // lib.c
 void ob_mmu_init(const char *cpuname, uint64_t ram_size);

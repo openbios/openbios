@@ -19,7 +19,9 @@
 #include "libc/diskio.h"
 #include "libopenbios/ofmem.h"
 #include "drivers/drivers.h"
-#include "video_subr.h"
+#include "packages/video.h"
+#include "libopenbios/console.h"
+#include "drivers/vga.h"
 
 typedef struct osi_fb_info {
     unsigned long mphys;
