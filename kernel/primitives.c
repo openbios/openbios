@@ -30,10 +30,10 @@
 
 #include "forth.c"
 
-/* words[] is a function array of all native code functions in used by
+/* words[] is a function array of all native code functions used by
  * the dictionary, i.e. CFAs and primitives.
  * Any change here needs a matching change in the primitive word's
- * name list that is kept for bootstrapping in arch/unix/unix.c
+ * name list that is kept for bootstrapping in kernel/bootstrap.c 
  *
  * NOTE: THIS LIST SHALL NOT CHANGE (EXCEPT MANDATORY ADDITIONS AT
  * THE END). ANY OTHER CHANGE WILL BREAK COMPATIBILITY TO OLDER
