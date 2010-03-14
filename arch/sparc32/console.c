@@ -10,7 +10,7 @@
 #include "openbios/drivers.h"
 #include "openbios.h"
 #include "video_subr.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 #ifdef CONFIG_DEBUG_CONSOLE
 

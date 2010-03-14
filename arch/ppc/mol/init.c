@@ -16,10 +16,10 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/nvram.h"
 #include "mol/mol.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "mol/prom.h"
 #include "openbios-version.h"
 #include "osi_calls.h"

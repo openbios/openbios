@@ -19,11 +19,11 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/drivers.h"
 #include "libc/string.h"
 #include "qemu/qemu.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "arch/ppc/processor.h"
 
 /************************************************************************/

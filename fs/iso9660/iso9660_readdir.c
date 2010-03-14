@@ -7,7 +7,7 @@
  */
 
 #include "libiso9660.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 
 #define offsetof(t,m)	((long)&(((t *)0)->m))

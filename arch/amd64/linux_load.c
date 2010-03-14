@@ -10,7 +10,7 @@
 
 #include "openbios/config.h"
 #include "kernel/kernel.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "sys_info.h"
 #include "context.h"
 #include "segment.h"

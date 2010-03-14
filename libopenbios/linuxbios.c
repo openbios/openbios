@@ -5,7 +5,7 @@
 #include "asm/types.h"
 #include "asm/io.h"
 #include "linuxbios.h"
-#include "ipchecksum.h"
+#include "libopenbios/ipchecksum.h"
 #include "sys_info.h"
 
 #ifdef CONFIG_DEBUG_BOOT

@@ -18,14 +18,14 @@
 
 #include "openbios/config.h"
 #include "kernel/kernel.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/pci.h"
 #include "openbios/drivers.h"
-#include "openbios/fontdata.h"
+#include "libopenbios/fontdata.h"
 #include "asm/io.h"
 #include "libc/vsprintf.h"
 #include "video_subr.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 /* VGA init. We use the Bochs VESA VBE extensions  */
 #define VBE_DISPI_INDEX_ID              0x0

@@ -15,7 +15,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "fs/fs.h"
 #include "libc/diskio.h"
 #include "os.h"

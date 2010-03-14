@@ -7,7 +7,7 @@
  *                                            *
  **********************************************/
 
-#include "openbios/fontdata.h"
+#include "libopenbios/fontdata.h"
 
 const unsigned char fontdata_8x16[FONTDATAMAX_8X16] = {
 

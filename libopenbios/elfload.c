@@ -30,8 +30,8 @@
 */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "openbios/elfload.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/elfload.h"
 #include "libc/diskio.h"
 #include "openbios/elf.h"
 

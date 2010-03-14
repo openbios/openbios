@@ -20,7 +20,7 @@
 #include "qemu-dict.h"
 #include "openbios/config.h"
 #include "dict.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "kernel/stack.h"
 #include "kernel/kernel.h"
 #include "libc/string.h"

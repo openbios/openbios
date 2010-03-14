@@ -15,8 +15,8 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "openbios/of.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/of.h"
 
 /* Uncomment to enable debug printout of client interface calls */
 //#define DEBUG_CIF

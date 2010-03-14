@@ -15,13 +15,13 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "openbios/elfload.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "kernel.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 

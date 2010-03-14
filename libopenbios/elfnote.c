@@ -3,7 +3,7 @@
 #include "elf_boot.h"
 #include "sys_info.h"
 #include "asm/io.h"
-#include "ipchecksum.h"
+#include "libopenbios/ipchecksum.h"
 #include "openbios-version.h"
 #define printf printk
 #define debug  printk

@@ -18,9 +18,9 @@
 /* TODO: Clean up MOLisms in a decent way */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/string.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "kernel.h"
 #ifdef I_WANT_MOLISMS
 #include "mol/prom.h"

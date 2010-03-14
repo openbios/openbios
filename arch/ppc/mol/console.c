@@ -16,10 +16,10 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 #include "osi_calls.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "mol/mol.h"
 #include "boothelper_sh.h"
 #include "video_sh.h"

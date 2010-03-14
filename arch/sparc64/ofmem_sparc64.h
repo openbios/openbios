@@ -14,7 +14,7 @@
 #ifndef _H_OFMEM_SPARC64
 #define _H_OFMEM_SPARC64
 
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 extern void ofmem_map_pages(ucell phys, ucell virt, ucell size, ucell mode);
 

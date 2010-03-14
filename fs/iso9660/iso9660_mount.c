@@ -9,7 +9,7 @@
  */
 
 #include "libiso9660.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 
 void iso9660_name(iso9660_VOLUME *volume, struct iso_directory_record *idr, char *buffer)

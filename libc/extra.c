@@ -17,7 +17,7 @@
 #include "openbios/config.h"
 #include "libc/string.h"
 #include "libc/vsprintf.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 
 /* strncpy without 0-pad */
 char *

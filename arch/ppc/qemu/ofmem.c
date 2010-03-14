@@ -16,9 +16,9 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/string.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "kernel.h"
 #include "mmutypes.h"
 #include "asm/processor.h"

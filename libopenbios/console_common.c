@@ -13,8 +13,8 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "openbios/fontdata.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/fontdata.h"
 #include "video_subr.h"
 
 #define FONT_ADJ_HEIGHT	 (FONT_HEIGHT + 2)

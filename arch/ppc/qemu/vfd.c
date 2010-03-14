@@ -15,7 +15,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "qemu/qemu.h"
 
 static int vfd_is_open;

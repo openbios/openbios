@@ -15,7 +15,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "mol/mol.h"
 #include "mol/prom.h"
 

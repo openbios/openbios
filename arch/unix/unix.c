@@ -31,11 +31,11 @@
 #include "dict.h"
 #include "kernel/stack.h"
 #include "arch/unix/plugins.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios-version.h"
 
 #include "blk.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 #define MEMORY_SIZE	(4*1024*1024)	/* 4M ram for hosted system */
 #define DICTIONARY_SIZE	(256*1024)	/* 256k for the dictionary   */

@@ -21,10 +21,10 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/nvram.h"
 #include "pearpc/pearpc.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "openbios-version.h"
 
 extern void unexpected_excep( int vector );

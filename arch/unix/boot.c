@@ -3,8 +3,8 @@
  */
 #undef BOOTSTRAP
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "openbios/elfload.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
 

@@ -16,13 +16,13 @@
 
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "openbios/elfload.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "mol/mol.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "osi_calls.h"
 #include "ablk_sh.h"
 #include "boothelper_sh.h"

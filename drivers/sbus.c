@@ -11,12 +11,12 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "kernel/kernel.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 #include "openbios/drivers.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 #define SBUS_REGS        0x28
 #define SBUS_SLOTS       16

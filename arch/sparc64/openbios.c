@@ -7,7 +7,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/drivers.h"
 #include "dict.h"
 #include "openbios/nvram.h"
@@ -20,7 +20,7 @@
 #define NO_QEMU_PROTOS
 #include "openbios/fw_cfg.h"
 #include "video_subr.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 

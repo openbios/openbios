@@ -7,7 +7,7 @@
  */
 
 #include "libiso9660.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 
 size_t iso9660_read(iso9660_FILE *_file, char *buf, size_t count)

@@ -19,10 +19,10 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/string.h"
 #include "pearpc/pearpc.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 /************************************************************************/
 /*	RTAS (run-time abstraction services)				*/

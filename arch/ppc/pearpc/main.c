@@ -17,13 +17,13 @@
 
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "openbios/elfload.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/elfload.h"
 #include "openbios/nvram.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "pearpc/pearpc.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 static void
 transfer_control_to_elf( ulong entry )

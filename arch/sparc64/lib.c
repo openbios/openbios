@@ -9,7 +9,7 @@
 
 #include "openbios/config.h"
 #include "libc/vsprintf.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "spitfire.h"
 #include "sys_info.h"
 #include "boot.h"

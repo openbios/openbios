@@ -15,7 +15,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "mac-parts.h"
 #include "packages.h"
 

@@ -1,6 +1,6 @@
 /* Taken from Etherboot */
 
-#include "ipchecksum.h"
+#include "libopenbios/ipchecksum.h"
 
 unsigned short ipchksum(const void *data, unsigned long length)
 {

@@ -8,8 +8,8 @@
  */
 
 #include "libc/vsprintf.h"
-#include "openbios/bindings.h"
-#include "ofmem.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/ofmem.h"
 #include "asm/asi.h"
 #include "pgtsrmmu.h"
 #include "openprom.h"

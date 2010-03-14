@@ -16,7 +16,7 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "kernel/kernel.h"
 #include "openbios/pci.h"
 #include "libc/byteorder.h"

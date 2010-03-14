@@ -15,10 +15,10 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/string.h"
 #include "mol/mol.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "mol/prom.h"
 #include "osi_calls.h"
 #include "kbd_sh.h"

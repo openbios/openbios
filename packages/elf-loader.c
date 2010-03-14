@@ -15,9 +15,9 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "packages.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 #include "openbios/elf.h"
 #include "asm/elf.h"

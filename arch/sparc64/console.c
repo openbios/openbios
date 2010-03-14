@@ -6,10 +6,10 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "kernel/kernel.h"
 #include "openbios/drivers.h"
-#include "openbios/fontdata.h"
+#include "libopenbios/fontdata.h"
 #include "openbios.h"
 #include "video_subr.h"
 #include "libc/vsprintf.h"

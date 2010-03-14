@@ -13,8 +13,8 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
-#include "ofmem.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/ofmem.h"
 
 /*
  * define OFMEM_FILL_RANGE to claim any unclaimed virtual and

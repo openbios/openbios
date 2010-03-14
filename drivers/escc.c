@@ -1,9 +1,9 @@
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 #include "openbios/drivers.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 #include "escc.h"
 

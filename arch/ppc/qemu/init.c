@@ -21,12 +21,12 @@
  */
 
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/pci.h"
 #include "openbios/nvram.h"
 #include "openbios/drivers.h"
 #include "qemu/qemu.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 #include "openbios-version.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"

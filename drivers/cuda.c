@@ -1,5 +1,5 @@
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/drivers.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"

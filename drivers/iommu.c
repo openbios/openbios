@@ -5,10 +5,10 @@
  ** This code is licensed under GNU General Public License.
  **/
 #include "openbios/config.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/drivers.h"
 #include "iommu.h"
-#include "ofmem.h"
+#include "libopenbios/ofmem.h"
 
 #ifdef CONFIG_DEBUG_IOMMU
 #define DPRINTF(fmt, args...)                   \

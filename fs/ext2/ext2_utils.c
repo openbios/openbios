@@ -8,7 +8,7 @@
 
 #include "libext2.h"
 #include "ext2_utils.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 #include "libc/byteorder.h"
 

@@ -19,7 +19,7 @@
 #include "openbios/config.h"
 #include "kernel/kernel.h"
 #include "openbios/nvram.h"
-#include "openbios/bindings.h"
+#include "libopenbios/bindings.h"
 #include "openbios/drivers.h"
 #include "libc/vsprintf.h"
 #include "libc/string.h"
