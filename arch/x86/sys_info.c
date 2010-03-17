@@ -10,6 +10,7 @@
 #endif
 
 void collect_multiboot_info(struct sys_info *);
+void collect_sys_info(struct sys_info *info);
 
 void collect_sys_info(struct sys_info *info)
 {

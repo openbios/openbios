@@ -17,7 +17,6 @@
 #include "relocate.h"
 
 void boot(void);
-void collect_sys_info(struct sys_info *info);
 
 static char intdict[256 * 1024];
 
