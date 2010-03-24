@@ -25,6 +25,10 @@ static forth_word * const words[];
 ucell PC;
 volatile int interruptforth = 0;
 
+#ifdef FCOMPILER
+void (*exception)(cell no) = NULL;
+#endif
+
 #define DEBUG_MODE_NONE 0
 #define DEBUG_MODE_STEP 1
 #define DEBUG_MODE_TRACE 2

@@ -52,6 +52,8 @@ static char *srcfilenames[MAX_SRC_FILES];
 static int srclines[MAX_SRC_FILES];
 static unsigned int cursrc = 0;
 
+static char *srcbasedict;
+
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
 unsigned long base_address;
 #endif
@@ -485,6 +487,47 @@ static FILE *fopen_include(const char *fil)
 
 
 /*
+ * Common Forth exception handler
+ */
+
+static void exception_common(cell no)
+{
+	switch (no) {
+	case -19:
+		printk(" undefined word.\n");
+		break;
+	default:
+		printk("error %" FMT_CELL_d " occured.\n", no);
+	}
+	exit(1);
+}
+
+
+/*
+ * Exception handler for run_dictionary()
+ */
+
+static void exception_run_dictionary(cell no)
+{
+	printk("Error executing base dictionary %s: ", srcbasedict);
+
+	exception_common(no);
+}
+
+
+/*
+ * Exception handler for interpret_source()
+ */
+
+static void exception_interpret_source(cell no)
+{
+	printk("%s:%d: ", srcfilenames[cursrc - 1], srclines[cursrc - 1]);
+
+	exception_common(no);
+}
+
+
+/*
  * This is the C version of the forth interpreter
  */
 
@@ -504,6 +547,9 @@ static int interpret_source(char *fil)
 		errors++;
 		exit(1);
 	}
+
+        /* Set up exception handler for this invocation (allows better error reporting) */
+        exception = exception_interpret_source;
 
 	/* FIXME: We should read this file at
 	 * once. No need to get it char by char
@@ -862,20 +908,6 @@ static void init_memory(void)
 	PUSH(pointer2cell(memory) + MEMORY_SIZE-1);
 }
 
-void exception(cell no)
-{
-	printk("%s:%d: ", srcfilenames[cursrc - 1], srclines[cursrc - 1]);
-
-	switch (no) {
-	case -19:
-		printk(" undefined word.\n");
-		break;
-	default:
-		printk("error %" FMT_CELL_d " occured.\n", no);
-	}
-	exit(1);
-}
-
 
 void
 include_file( const char *name )
@@ -927,8 +959,12 @@ static void run_dictionary(char *basedict)
 	read_dictionary(basedict);
 	PC = (ucell)findword("initialize");
 
-	if (!PC)
+	if (!PC) {
+		if (verbose) {
+			printk("Unable to find initialize word in dictionary %s; ignoring\n", basedict);
+		}
 		return;
+	}
 
 	if(!srcfiles[0]) {
 		cursrc = 1;
@@ -940,7 +976,11 @@ static void run_dictionary(char *basedict)
 
 	init_memory();
 	if (verbose)
-		printk("Jumping to dictionary...");
+		printk("Jumping to dictionary %s...\n", basedict);
+
+	/* Set up exception handler for this invocation (allows better error reporting) */
+	exception = exception_run_dictionary;
+	srcbasedict = basedict;	
 
 	enterforth((xt_t)PC);
 }

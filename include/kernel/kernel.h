@@ -34,7 +34,7 @@ extern xt_t		findword(const char *s1);
 extern void		modules_init( void );
 
 /* arch kernel hooks */
-extern void 		exception(cell no);
+extern void 		(*exception)(cell no);
 
 #ifdef FCOMPILER
 extern void		include_file( const char *str );
