@@ -29,6 +29,7 @@
 #include "cross.h"
 #include "openbios-version.h"
 
+#define MAX_PATH_LEN 256
 
 #define MEMORY_SIZE (1024*1024)	/* 1M ram for hosted system */
 #define DICTIONARY_SIZE (256*1024) /* 256k for the dictionary   */
@@ -44,7 +45,11 @@ static int errors = 0;
 static int segfault = 0;
 static int verbose = 0;
 
-static FILE *srcfiles[128];
+#define MAX_SRC_FILES 128
+
+static FILE *srcfiles[MAX_SRC_FILES];
+static char *srcfilenames[MAX_SRC_FILES];
+static int srclines[MAX_SRC_FILES];
 static unsigned int cursrc = 0;
 
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
@@ -292,8 +297,13 @@ static void skipws(FILE * f)
 	while (!feof(f)) {
 		c = getc(f);
 
-		if (c == ' ' || c == '\t' || c == '\n')
+		if (c == ' ' || c == '\t')
 			continue;
+
+		if (c == '\n') {
+			srclines[cursrc - 1]++;
+			continue;
+		}
 
 		ungetc(c, f);
 		break;
@@ -309,7 +319,7 @@ static void skipws(FILE * f)
 
 static int parse(FILE * f, char *line, char delim)
 {
-	int cnt = 0, c;
+	int cnt = 0, c = 0;
 
 	while (!feof(f)) {
 		c = getc(f);
@@ -317,10 +327,15 @@ static int parse(FILE * f, char *line, char delim)
 		if (delim && c == delim)
 			break;
 
-		if ((!delim) && (c == ' ' || c == '\n' || c == '\t'))
+		if ((!delim) && (c == ' ' || c == '\t' || c == '\n'))
 			break;
 
 		line[cnt++] = c;
+	}
+
+	/* Update current line number */
+	if (c == '\n') {
+		srclines[cursrc - 1]++;
 	}
 
 	line[cnt] = 0;
@@ -442,20 +457,32 @@ static void add_includepath(char *path)
 
 static FILE *fopen_include(const char *fil)
 {
-#define MAX_PATH_LEN 256
 	char fullpath[MAX_PATH_LEN];
 	FILE *ret;
 	include *incl = &includes;
 
 	while (incl) {
                 snprintf(fullpath, sizeof(fullpath), "%s/%s", incl->path, fil);
+
 		ret = fopen(fullpath, "r");
-		if (ret != NULL)
+		if (ret != NULL) {
+
+#ifdef CONFIG_DEBUG_INTERPRETER
+			printk("Including '%s'\n", name );
+#endif
+			srcfilenames [ cursrc ] = malloc(strlen(fil) + 1);
+			strcpy(srcfilenames[ cursrc ], fil);
+			srclines [ cursrc ] = 1;
+			srcfiles [ cursrc++ ] = ret;
+
 			return ret;
+		}
+
 		incl = incl->next;
 	}
 	return NULL;
 }
+
 
 /*
  * This is the C version of the forth interpreter
@@ -658,7 +685,7 @@ static int interpret_source(char *fil)
 
 		if (*test != 0) {
 			/* what is it?? */
-			printk("%s is not defined.\n\n", tib);
+			printk("%s:%d - %s is not defined.\n\n", srcfilenames[cursrc - 1], srclines[cursrc - 1], tib);
 			errors++;
 #ifdef CONFIG_DEBUG_INTERPRETER
 			continue;
@@ -680,7 +707,9 @@ static int interpret_source(char *fil)
 			writecell(num);
 		}
 	}
+
 	fclose(f);
+	cursrc--;
 
 	return 0;
 }
@@ -753,7 +782,8 @@ int availchar(void)
 		ungetc(tmp, srcfiles[cursrc-1]);
 		return -1;
 	}
-	fclose( srcfiles[--cursrc] );
+
+	fclose(srcfiles[--cursrc]);
 
 	return availchar();
 }
@@ -770,7 +800,8 @@ int get_inputbyte( void )
 	tmp = getc( srcfiles[cursrc-1] );
 	if (tmp != EOF)
 		return tmp;
-	fclose( srcfiles[--cursrc] );
+
+	fclose(srcfiles[--cursrc]);
 
 	return get_inputbyte();
 }
@@ -833,12 +864,14 @@ static void init_memory(void)
 
 void exception(cell no)
 {
+	printk("%s:%d: ", srcfilenames[cursrc - 1], srclines[cursrc - 1]);
+
 	switch (no) {
 	case -19:
 		printk(" undefined word.\n");
 		break;
 	default:
-		printk("\nError %" FMT_CELL_d " occured.\n", no);
+		printk("error %" FMT_CELL_d " occured.\n", no);
 	}
 	exit(1);
 }
@@ -847,20 +880,20 @@ void exception(cell no)
 void
 include_file( const char *name )
 {
-	FILE *file = fopen_include( name );
-	if( !file ) {
-		printk("\npanic: Failed opening '%s'\n", name );
-		exit(1);
-	}
+	FILE *file;
+
 	if( cursrc >= sizeof(srcfiles)/sizeof(srcfiles[0]) ) {
 		printk("\npanic: Maximum include depth reached!\n");
 		exit(1);
 	}
-#ifdef CONFIG_DEBUG_INTERPRETER
-	printk("Including '%s'\n", name );
-#endif
-	srcfiles[ cursrc++ ] = file;
+
+	file = fopen_include( name );
+	if( !file ) {
+		printk("\npanic: Failed opening file '%s'\n", name );
+		exit(1);
+	}
 }
+
 
 void
 encode_file( const char *name )
