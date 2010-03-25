@@ -54,6 +54,9 @@ static unsigned int cursrc = 0;
 
 static char *srcbasedict;
 
+/* console variables */
+static FILE *console;
+
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
 unsigned long base_address;
 #endif
@@ -487,43 +490,47 @@ static FILE *fopen_include(const char *fil)
 
 
 /*
- * Common Forth exception handler
+ * Forth exception handler
  */
 
-static void exception_common(cell no)
+void exception(cell no)
 {
+	printk("%s:%d: ", srcfilenames[cursrc - 1], srclines[cursrc - 1]);
+
+	/* See also forth/bootstrap/interpreter.fs */
 	switch (no) {
+	case -1:
+	case -2:
+		printk("Aborted.\n");
+		break;
+	case -3:
+		printk("Stack Overflow.\n");
+		break;
+	case -4:
+		printk("Stack Underflow.\n");
+		break;
+	case -5:
+		printk("Return Stack Overflow.\n");
+		break;
+	case -6:
+		printk("Return Stack Underflow.\n");
+		break;
 	case -19:
-		printk(" undefined word.\n");
+		printk("undefined word.\n");
+		break;
+	case -21:
+		printk("out of memory.\n");
+		break;
+	case -33:
+		printk("undefined method.\n");
+		break;
+	case -34:
+		printk("no such device.\n");
 		break;
 	default:
 		printk("error %" FMT_CELL_d " occured.\n", no);
 	}
 	exit(1);
-}
-
-
-/*
- * Exception handler for run_dictionary()
- */
-
-static void exception_run_dictionary(cell no)
-{
-	printk("Error executing base dictionary %s: ", srcbasedict);
-
-	exception_common(no);
-}
-
-
-/*
- * Exception handler for interpret_source()
- */
-
-static void exception_interpret_source(cell no)
-{
-	printk("%s:%d: ", srcfilenames[cursrc - 1], srclines[cursrc - 1]);
-
-	exception_common(no);
 }
 
 
@@ -547,9 +554,6 @@ static int interpret_source(char *fil)
 		errors++;
 		exit(1);
 	}
-
-        /* Set up exception handler for this invocation (allows better error reporting) */
-        exception = exception_interpret_source;
 
 	/* FIXME: We should read this file at
 	 * once. No need to get it char by char
@@ -731,7 +735,7 @@ static int interpret_source(char *fil)
 
 		if (*test != 0) {
 			/* what is it?? */
-			printk("%s:%d - %s is not defined.\n\n", srcfilenames[cursrc - 1], srclines[cursrc - 1], tib);
+			printk("%s:%d: %s is not defined.\n\n", srcfilenames[cursrc - 1], srclines[cursrc - 1], tib);
 			errors++;
 #ifdef CONFIG_DEBUG_INTERPRETER
 			continue;
@@ -844,12 +848,25 @@ int get_inputbyte( void )
 	}
 
 	tmp = getc( srcfiles[cursrc-1] );
-	if (tmp != EOF)
+
+	/* Update current line number */
+	if (tmp == '\n') {
+		srclines[cursrc - 1]++;
+	}
+
+	if (tmp != EOF) {
 		return tmp;
+	}
 
 	fclose(srcfiles[--cursrc]);
 
 	return get_inputbyte();
+}
+
+void put_outputbyte( int c )
+{
+	if (console)
+		fputc(c, console);
 }
 
 /*
@@ -951,7 +968,7 @@ encode_file( const char *name )
 }
 
 
-static void run_dictionary(char *basedict)
+static void run_dictionary(char *basedict, char *confile)
 {
 	if(!basedict)
 		return;
@@ -978,11 +995,17 @@ static void run_dictionary(char *basedict)
 	if (verbose)
 		printk("Jumping to dictionary %s...\n", basedict);
 
-	/* Set up exception handler for this invocation (allows better error reporting) */
-	exception = exception_run_dictionary;
+	/* If a console file has been specified, open it */
+	if (confile)
+		console = fopen(confile, "w");
+
 	srcbasedict = basedict;	
 
 	enterforth((xt_t)PC);
+
+	/* Close the console file */
+	if (console)
+		fclose(console);
 }
 
 static void new_dictionary(const char *source)
@@ -1015,6 +1038,8 @@ static void new_dictionary(const char *source)
 		"			use this dictionary as base\n"	\
 		"   -D|--target-dictionary output.dict\n"		\
 		"			write to output.dict\n"		\
+		"   -c|--console output.log\n"		\
+		"			write kernel console output to log file\n"	\
 		"   -s|--segfault	install segfault handler\n\n"
 #else
 #define USAGE   "Usage: %s [options] [dictionary file|source file]\n\n" \
@@ -1026,6 +1051,8 @@ static void new_dictionary(const char *source)
 		"		use this dictionary as base\n"	\
 		"   -D output.dict\n"				\
 		"		write to output.dict\n"		\
+		"   -c output.log\n"		\
+		"		write kernel console output to log file\n"	\
 		"   -s		install segfault handler\n\n"
 
 #endif
@@ -1037,11 +1064,12 @@ int main(int argc, char *argv[])
 	unsigned char *ressources=NULL; /* All memory used by us */
 	char *dictname = NULL;
 	char *basedict = NULL;
+	char *consolefile = NULL;
 
 	unsigned char *bootstrapdict[2];
 	int c, cnt;
 
-	const char *optstring = "VvhsI:d:D:?";
+	const char *optstring = "VvhsI:d:D:c:?";
 
 	while (1) {
 #ifdef __GLIBC__
@@ -1054,6 +1082,7 @@ int main(int argc, char *argv[])
 			{"include", 1, NULL, 'I'},
 			{"source-dictionary", 1, NULL, 'd'},
 			{"target-dictionary", 1, NULL, 'D'},
+			{"console", 1, NULL, 'c'},
 		};
 
 		/*
@@ -1093,9 +1122,15 @@ int main(int argc, char *argv[])
 			if (!basedict) {
 				basedict = optarg;
 			}
+			break;
 		case 'D':
 			if(!dictname) {
 				dictname = optarg;
+			}
+			break;
+		case 'c':
+			if (!consolefile) {
+				consolefile = optarg;
 			}
 			break;
 		default:
@@ -1176,7 +1211,7 @@ int main(int argc, char *argv[])
 			for (c=argc-1; c>=optind; c--)
 				include_file(argv[c]);
 
-			run_dictionary(basedict);
+			run_dictionary(basedict, consolefile);
 		}
 		if(errors)
 			break;

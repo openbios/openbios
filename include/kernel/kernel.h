@@ -34,12 +34,13 @@ extern xt_t		findword(const char *s1);
 extern void		modules_init( void );
 
 /* arch kernel hooks */
-extern void 		(*exception)(cell no);
+extern void 		exception(cell no);
 
 #ifdef FCOMPILER
 extern void		include_file( const char *str );
 extern void		encode_file( const char *str );
 extern int		get_inputbyte( void );
+extern void		put_outputbyte( int c );
 #endif
 
 #ifndef BOOTSTRAP

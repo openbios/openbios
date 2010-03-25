@@ -860,11 +860,11 @@ static void herewrite(void)
 
 static void emit(void)
 {
-#ifndef FCOMPILER
 	cell tmp = POP();
+#ifndef FCOMPILER
 	putchar(tmp);
 #else
-        (void) POP();
+       	put_outputbyte(tmp);
 #endif
 }
 

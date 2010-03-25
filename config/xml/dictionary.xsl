@@ -129,6 +129,7 @@
      <xsl:if test="$init!=''">
       <xsl:text> -d $(ODIR)/</xsl:text><xsl:value-of select="$init"/><xsl:text>.dict</xsl:text>
      </xsl:if>
+     <xsl:text> -c $@-console.log</xsl:text>
      <xsl:text> $(</xsl:text>
      <xsl:value-of select="@name"/>
      <xsl:text>-DICTIONARY),"  GEN   $(TARGET_DIR)$@")&#10;&#10;</xsl:text>
