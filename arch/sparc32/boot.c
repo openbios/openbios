@@ -4,7 +4,6 @@
 #undef BOOTSTRAP
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "libopenbios/elfload.h"
 #include "arch/common/nvram.h"
 #include "drivers/drivers.h"
 #include "libc/diskio.h"
@@ -19,18 +18,70 @@ uint32_t kernel_size;
 uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;
+int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
 
-static void try_path(const char *path, char *param, const void *romvec)
+static int try_path(const char *path, char *param, const void *romvec)
 {
+	ucell valid, address, type, size;
+	int image_retval = 0;
+
         push_str(path);
         fword("pathres-resolve-aliases");
         bootpath = pop_fstr_copy();
         printk("Trying %s (%s)\n", path, bootpath);
 
-        elf_load(&sys_info, path, param, romvec);
-        linux_load(&sys_info, path, param);
-        aout_load(&sys_info, path, romvec);
+	/* ELF Boot loader */
+	elf_load(&sys_info, path, param, romvec);
+	feval("state-valid @");
+	valid = POP();
+	if (valid)
+		goto start_image;
+
+	/* Linux loader (not using Forth) */
+	linux_load(&sys_info, path, param);
+
+	/* a.out loader */
+	aout_load(&sys_info, path, romvec);
+	feval("state-valid @");
+	valid = POP();
+	if (valid)
+		goto start_image;
+
+	return 0;
+
+
+start_image:
+	/* Get the entry point and the type (see forth/debugging/client.fs) */
+	feval("saved-program-state >sps.entry @");
+	address = POP();
+	feval("saved-program-state >sps.file-type @");
+	type = POP();
+	feval("saved-program-state >sps.file-size @");
+	size = POP();
+
+	printk("Jumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
+
+	switch (type) {
+		case 0x0:
+			/* Start ELF boot image */
+			entry = (void *) address;
+			image_retval = entry(romvec, 0, 0, 0, 0);
+
+			break;
+
+		case 0x5:
+			/* Start a.out image */
+			entry = (void *) address;
+			image_retval = entry(romvec, 0, 0, 0, 0);
+
+			break;
+	}
+
+	printk("Image returned with return value %#x\n", image_retval);
+
+	return -1;
 }
+
 
 void boot(void)
 {
@@ -38,6 +89,7 @@ void boot(void)
         const char *oldpath = path;
         int unit = 0;
         const void *romvec;
+	int result;
 
 	if(!path) {
             push_str("boot-device");
@@ -102,8 +154,6 @@ void boot(void)
         romvec = init_openprom();
 
         if (kernel_size) {
-            int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
-
             printk("[sparc] Kernel already loaded\n");
             entry = (void *) kernel_image;
             entry(romvec, 0, 0, 0, 0);
@@ -115,17 +165,19 @@ void boot(void)
 	else
 		printk("without parameters.\n");
 
-        try_path(path, param, romvec);
+        result = try_path(path, param, romvec);
+	if (!result) {
+		push_str(path);
+		PUSH(':');
+		fword("left-split");
+		snprintf(altpath, sizeof(altpath), "%s:d", pop_fstr_copy());
+		POP();
+		POP();
+	
+		try_path(altpath, param, romvec);
+	}
 
-        push_str(path);
-        PUSH(':');
-        fword("left-split");
-        snprintf(altpath, sizeof(altpath), "%s:d", pop_fstr_copy());
-        POP();
-        POP();
-
-        try_path(altpath, param, romvec);
-        printk("Unsupported image format\n");
+	printk("Unsupported image format\n");
 
 	free(path);
 }

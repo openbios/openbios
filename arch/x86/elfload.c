@@ -313,7 +313,6 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     unsigned short checksum = 0;
     Elf_Bhdr *boot_notes = NULL;
     int retval = -1;
-    int image_retval;
 
     image_name = image_version = NULL;
 
@@ -379,7 +378,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     debug("entry point is %#x\n", ehdr.e_entry);
 
     // Initialise saved-program-state
-    PUSH(ehdr.e_entry);
+    PUSH(ehdr.e_entry & ADDRMASK);
     feval("saved-program-state >sps.entry !");
     PUSH(file_size);
     feval("saved-program-state >sps.file-size !");
@@ -387,11 +386,6 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     feval("-1 state-valid !");
 
-    printk("Jumping to entry point...\n");
-    image_retval = start_elf(ehdr.e_entry & ADDRMASK, virt_to_phys(boot_notes));
-
-    // console_init(); FIXME
-    printk("Image returned with return value %#x\n", image_retval);
     retval = 0;
 
 out:

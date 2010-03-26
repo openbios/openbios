@@ -312,7 +312,6 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
     unsigned short checksum = 0;
     Elf_Bhdr *boot_notes = NULL;
     int retval = -1;
-    int image_retval;
     unsigned int offset;
 
     image_name = image_version = NULL;
@@ -394,21 +393,6 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
 
     feval("-1 state-valid !");
 
-    printf("Jumping to entry point...\n");
-
-#if 1
-    {
-        int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
-
-        entry = (void *) addr_fixup(ehdr.e_entry);
-        image_retval = entry(romvec, 0, 0, 0, 0);
-    }
-#else
-    image_retval = start_elf(addr_fixup(ehdr.e_entry), virt_to_phys(boot_notes));
-#endif
-
-    // console_init(); FIXME
-    printf("Image returned with return value %#x\n", image_retval);
     retval = 0;
 
 out:

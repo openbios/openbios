@@ -68,9 +68,6 @@ int forth_load(const char *filename)
 
     feval("-1 state-valid !");
 
-    PUSH ( (ucell)forthtext );
-    PUSH ( (ucell)forthsize );
-    fword("eval2");
     retval=0;
 
 out:

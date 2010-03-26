@@ -4,7 +4,6 @@
 #undef BOOTSTRAP
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "libopenbios/elfload.h"
 #include "arch/common/nvram.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
@@ -17,16 +16,88 @@ uint64_t kernel_size;
 uint64_t qemu_cmdline;
 uint64_t cmdline_size;
 char boot_device;
+extern int sparc64_of_client_interface( int *params );
+
+
+static int try_path(const char *path, char *param)
+{
+	void *boot_notes = NULL;
+	ucell valid, address, type, size;
+	int image_retval = 0;
+
+	/* ELF Boot loader */
+	elf_load(&sys_info, path, param);
+	feval("state-valid @");
+	valid = POP();
+	if (valid)
+		goto start_image;
+
+	/* Linux loader (not using Forth) */
+	linux_load(&sys_info, path, param);
+
+	/* a.out loader */
+	aout_load(&sys_info, path);
+	feval("state-valid @");
+	valid = POP();
+	if (valid)
+		goto start_image;
+
+	/* Fcode loader */
+	fcode_load(path);
+	feval("state-valid @");
+	valid = POP();
+	if (valid)
+		goto start_image;
+
+	return 0;
+
+
+start_image:
+	/* Get the entry point and the type (see forth/debugging/client.fs) */
+	feval("saved-program-state >sps.entry @");
+	address = POP();
+	feval("saved-program-state >sps.file-type @");
+	type = POP();
+	feval("saved-program-state >sps.file-size @");
+	size = POP();
+
+	printk("Jumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
+
+	switch (type) {
+		case 0x0:
+			/* Start ELF boot image */
+			image_retval = start_elf(address, (uint64_t)boot_notes);
+			break;
+
+		case 0x5:
+			/* Start a.out image */
+			image_retval = start_client_image(address, (uint64_t)&sparc64_of_client_interface);
+			break;
+
+		case 0x10:
+			/* Start Fcode image */
+			printk("Evaluating FCode...\n");
+			PUSH(address);
+			PUSH(1);
+			fword("byte-load");
+			image_retval = 0;
+			break;
+	}
+
+	printk("Image returned with return value %#x\n", image_retval);
+
+	return -1;
+}
 
 void boot(void)
 {
 	char *path=pop_fstr_copy(), *param;
         char altpath[256];
+	int result;
 
         if (kernel_size) {
             void (*entry)(unsigned long p1, unsigned long p2, unsigned long p3,
-                          unsigned long p4, unsigned long p5);
-            extern int sparc64_of_client_interface( int *params );
+                          unsigned long p4, unsigned long p5);;
 
             printk("[sparc64] Kernel already loaded\n");
             entry = (void *) (unsigned long)kernel_image;
@@ -82,24 +153,13 @@ void boot(void)
 	else
 		printk("without parameters.\n");
 
+	result = try_path(path, param);
+	if (!result) {
+		snprintf(altpath, sizeof(altpath), "%s:f", path);
+		try_path(altpath, param);
+	}
 
-	if (elf_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-            if (linux_load(&sys_info, path, param) == LOADER_NOT_SUPPORT)
-                if (aout_load(&sys_info, path) == LOADER_NOT_SUPPORT)
-                    if (fcode_load(path) == LOADER_NOT_SUPPORT) {
-
-                        snprintf(altpath, sizeof(altpath), "%s:f", path);
-
-                        if (elf_load(&sys_info, altpath, param)
-                            == LOADER_NOT_SUPPORT)
-                            if (linux_load(&sys_info, altpath, param)
-                                == LOADER_NOT_SUPPORT)
-                                if (aout_load(&sys_info, altpath)
-                                    == LOADER_NOT_SUPPORT)
-                                    if (fcode_load(altpath)
-                                        == LOADER_NOT_SUPPORT)
-                                        printk("Unsupported image format\n");
-                    }
+	printk("Unsupported image format\n");
 
 	free(path);
 }

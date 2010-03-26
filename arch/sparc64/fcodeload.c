@@ -74,11 +74,7 @@ int fcode_load(const char *filename)
     feval("saved-program-state >sps.file-size !");
     feval("fcode saved-program-state >sps.file-type !");
 
-    printf("Evaluating FCode...\n");
-
-    PUSH(start);
-    PUSH(1);
-    fword("byte-load");
+    feval("-1 state-valid !");
 
     retval = 0;
 

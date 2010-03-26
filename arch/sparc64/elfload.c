@@ -311,7 +311,6 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     unsigned short checksum = 0;
     Elf_Bhdr *boot_notes = NULL;
     int retval = -1;
-    int image_retval;
     unsigned int offset;
 
     image_name = image_version = NULL;
@@ -393,27 +392,6 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     feval("-1 state-valid !");
 
-    printf("Jumping to entry point...\n");
-
-#if 0
-    {
-        extern unsigned int qemu_mem_size;
-        extern char boot_device;
-        void *init_openprom(unsigned long memsize, const char *cmdline, char boot_device);
-
-        int (*entry)(const void *romvec, int p2, int p3, int p4, int p5);
-        const void *romvec;
-
-        romvec = init_openprom(qemu_mem_size, cmdline, boot_device);
-        entry = (void *) addr_fixup(ehdr.e_entry);
-        image_retval = entry(romvec, 0, 0, 0, 0);
-    }
-#else
-    image_retval = start_elf(addr_fixup(ehdr.e_entry), virt_to_phys(boot_notes));
-#endif
-
-    // console_init(); FIXME
-    printf("Image returned with return value %#x\n", image_retval);
     retval = 0;
 
 out:

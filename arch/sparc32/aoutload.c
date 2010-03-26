@@ -56,7 +56,6 @@ static int check_mem_ranges(struct sys_info *info,
 int aout_load(struct sys_info *info, const char *filename, const void *romvec)
 {
     int retval = -1;
-    int image_retval;
     struct exec ehdr;
     unsigned long start, size;
     unsigned int offset = 512;
@@ -134,18 +133,6 @@ int aout_load(struct sys_info *info, const char *filename, const void *romvec)
 
     feval("-1 state-valid !");
 
-    printf("Jumping to entry point...\n");
-
-#if 1
-    {
-        int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
-
-        entry = (void *) addr_fixup(start);
-        image_retval = entry(romvec, 0, 0, 0, 0);
-    }
-#endif
-
-    printf("Image returned with return value %#x\n", image_retval);
     retval = 0;
 
 out:

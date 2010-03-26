@@ -68,11 +68,6 @@ int forth_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     feval("-1 state-valid !");
 
-    PUSH ( (ucell)forthtext );
-    PUSH ( (ucell)forthsize );
-    fword("eval2");
-    retval=0;
-
 out:
     //if (forthtext)
     //	free(forthtext);

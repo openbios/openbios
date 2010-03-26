@@ -57,7 +57,6 @@ static int check_mem_ranges(struct sys_info *info,
 int aout_load(struct sys_info *info, const char *filename)
 {
     int retval = -1;
-    int image_retval;
     struct exec ehdr;
     unsigned long start, size;
     unsigned int offset;
@@ -138,14 +137,6 @@ int aout_load(struct sys_info *info, const char *filename)
 
     feval("-1 state-valid !");
 
-    printf("Jumping to entry point...\n");
-
-    {
-    	extern int sparc64_of_client_interface( int *params );
-    	image_retval = start_client_image(addr_fixup(start), (uint64_t)&sparc64_of_client_interface);
-    }
-
-    printf("Image returned with return value %#x\n", image_retval);
     retval = 0;
 
 out:
