@@ -18,7 +18,6 @@
   <object source="aoutload.c"/>
   <object source="forthload.c"/>
   <object source="fcodeload.c"/>
-  <object source="loadfs.c"/>
   <object source="ofmem_sparc64.c"/>
   <object source="entry.S"/>
   <object source="vectors.S"/>

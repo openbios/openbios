@@ -16,7 +16,6 @@
   <object source="sys_info.c"/>
   <object source="elfload.c"/>
   <object source="forthload.c"/>
-  <object source="loadfs.c"/>
   <object source="entry.S"/>
   <object source="xbox/console.c" condition="XBOX"/>
   <object source="xbox/methods.c" condition="XBOX"/>

@@ -10,7 +10,7 @@
 #include "arch/common/elf_boot.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/ipchecksum.h"
-#include "loadfs.h"
+#include "libc/diskio.h"
 #include "boot.h"
 
 #define debug printk
@@ -22,6 +22,7 @@
 extern char _start, _end;
 
 static char *image_name, *image_version;
+static int fd;
 
 static void *calloc(size_t nmemb, size_t size)
 {
@@ -94,8 +95,8 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	if (phdr[i].p_type != PT_NOTE)
 	    continue;
 	buf = malloc(phdr[i].p_filesz);
-	file_seek(phdr[i].p_offset);
-	if (lfile_read(buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
+	seek_io(fd, phdr[i].p_offset);
+	if (read_io(fd, buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
 	    printk("Can't read note segment\n");
 	    goto out;
 	}
@@ -149,9 +150,9 @@ static int load_segments(Elf_phdr *phdr, int phnum,
 	    continue;
 	debug("segment %d addr:%#x file:%#x mem:%#x ",
 		i, phdr[i].p_paddr, phdr[i].p_filesz, phdr[i].p_memsz);
-	file_seek(phdr[i].p_offset);
+	seek_io(fd, phdr[i].p_offset);
 	debug("loading... ");
-	if (lfile_read(phys_to_virt(phdr[i].p_paddr & ADDRMASK), phdr[i].p_filesz)
+	if (read_io(fd, phys_to_virt(phdr[i].p_paddr & ADDRMASK), phdr[i].p_filesz)
 		!= phdr[i].p_filesz) {
 	    printk("Can't read program segment %d\n", i);
 	    return 0;
@@ -316,10 +317,11 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     image_name = image_version = NULL;
 
-    if (!file_open(filename))
+    fd = open_io(filename);
+    if (!fd)
 	goto out;
 
-    if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
+    if (read_io(fd, &ehdr, sizeof ehdr) != sizeof ehdr) {
 	debug("Can't read ELF header\n");
 	retval = LOADER_NOT_SUPPORT;
 	goto out;
@@ -343,8 +345,8 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     phdr_size = ehdr.e_phnum * sizeof *phdr;
     phdr = malloc(phdr_size);
-    file_seek(ehdr.e_phoff);
-    if (lfile_read(phdr, phdr_size) != phdr_size) {
+    seek_io(fd, ehdr.e_phoff);
+    if (read_io(fd, phdr, phdr_size) != phdr_size) {
 	printk("Can't read program header\n");
 	goto out;
     }

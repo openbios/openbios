@@ -6,10 +6,12 @@
 #include "kernel/kernel.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/sys_info.h"
-#include "loadfs.h"
+#include "libc/diskio.h"
 #include "boot.h"
 #define printf printk
 #define debug printk
+
+static int fd;
 
 int fcode_load(const char *filename)
 {
@@ -18,12 +20,13 @@ int fcode_load(const char *filename)
     unsigned long start, size;
     unsigned int offset;
 
-    if (!file_open(filename))
+    fd = open_io(filename);
+    if (!fd)
         goto out;
 
     for (offset = 0; offset < 16 * 512; offset += 512) {
-        file_seek(offset);
-        if (lfile_read(&fcode_header, sizeof(fcode_header))
+        seek_io(fd, offset);
+        if (read_io(fd, &fcode_header, sizeof(fcode_header))
             != sizeof(fcode_header)) {
             debug("Can't read FCode header from file %s\n", filename);
             retval = LOADER_NOT_SUPPORT;
@@ -51,9 +54,9 @@ int fcode_load(const char *filename)
 
     printf("Loading FCode image...\n");
 
-    file_seek(offset + sizeof(fcode_header));
+    seek_io(fd, offset + sizeof(fcode_header));
 
-    if ((unsigned long)lfile_read((void *)start, size) != size) {
+    if ((unsigned long)read_io(fd, (void *)start, size) != size) {
         printf("Can't read file (size 0x%lx)\n", size);
         goto out;
     }
@@ -70,6 +73,6 @@ int fcode_load(const char *filename)
     retval = 0;
 
 out:
-    file_close();
+    close_io(fd);
     return retval;
 }

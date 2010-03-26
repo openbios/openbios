@@ -10,12 +10,13 @@
 #include "kernel/kernel.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/sys_info.h"
-#include "loadfs.h"
+#include "libc/diskio.h"
 #include "boot.h"
 #define printk printk
 #define debug printk
 
 static char *forthtext=NULL;
+static int fd;
 
 int forth_load(const char *filename)
 {
@@ -23,10 +24,11 @@ int forth_load(const char *filename)
     unsigned long forthsize;
     int retval = -1;
 
-    if (!file_open(filename))
+    fd = open_io(filename);
+    if (!fd)
 	goto out;
 
-    if (lfile_read(magic, 2) != 2) {
+    if (read_io(fd, magic, 2) != 2) {
 	debug("Can't read magic header\n");
 	retval = LOADER_NOT_SUPPORT;
 	goto out;
@@ -38,13 +40,14 @@ int forth_load(const char *filename)
 	goto out;
     }
 
-    forthsize = file_size();
-
+    /* Calculate the file size by seeking to the end of the file */
+    seek_io(fd, -1);
+    forthsize = tell(fd);
     forthtext = malloc(forthsize+1);
-    file_seek(0);
+    seek_io(fd, 0);
 
     printk("Loading forth source ...");
-    if ((unsigned long)lfile_read(forthtext, forthsize) != forthsize) {
+    if ((unsigned long)read_io(fd, forthtext, forthsize) != forthsize) {
 	printk("Can't read forth text\n");
 	goto out;
     }

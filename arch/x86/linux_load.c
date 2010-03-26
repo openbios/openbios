@@ -14,7 +14,7 @@
 #include "libopenbios/sys_info.h"
 #include "context.h"
 #include "segment.h"
-#include "loadfs.h"
+#include "libc/diskio.h"
 #include "boot.h"
 
 #define printf printk
@@ -158,6 +158,25 @@ struct linux_params {
 };
 
 static uint64_t forced_memsize;
+static int fd;
+
+static unsigned long file_size(void)
+{
+	llong fpos, fsize;
+
+	/* Save current position */
+	fpos = tell(fd);
+
+	/* Go to end of file and get position */
+	seek_io(fd, -1);
+	fsize = tell(fd);
+
+	/* Go back to old position */
+	seek_io(fd, 0);
+	seek_io(fd, fpos);
+
+	return fsize;
+}
 
 /* Load the first part the file and check if it's Linux */
 static uint32_t load_linux_header(struct linux_header *hdr)
@@ -165,7 +184,7 @@ static uint32_t load_linux_header(struct linux_header *hdr)
     int load_high;
     uint32_t kern_addr;
 
-    if (lfile_read(hdr, sizeof *hdr) != sizeof *hdr) {
+    if (read_io(fd, hdr, sizeof *hdr) != sizeof *hdr) {
 	debug("Can't read Linux header\n");
 	return 0;
     }
@@ -192,8 +211,8 @@ static uint32_t load_linux_header(struct linux_header *hdr)
 	printf("Found Linux");
     if (hdr->protocol_version >= 0x200 && hdr->kver_addr) {
 	char kver[256];
-	file_seek(hdr->kver_addr + 0x200);
-	if (lfile_read(kver, sizeof kver) != 0) {
+	seek_io(fd, hdr->kver_addr + 0x200);
+	if (read_io(fd, kver, sizeof kver) != 0) {
 	    kver[255] = 0;
 	    printf(" version %s", kver);
 	}
@@ -413,7 +432,7 @@ static int load_linux_kernel(struct linux_header *hdr, uint32_t kern_addr)
     if (hdr->setup_sects == 0)
 	hdr->setup_sects = 4;
     kern_offset = (hdr->setup_sects + 1) * 512;
-    file_seek(kern_offset);
+    seek_io(fd, kern_offset);
     kern_size = file_size() - kern_offset;
     debug("offset=%#x addr=%#x size=%#x\n", kern_offset, kern_addr, kern_size);
 
@@ -426,7 +445,7 @@ static int load_linux_kernel(struct linux_header *hdr, uint32_t kern_addr)
 #endif
 
     printf("Loading kernel... ");
-    if (lfile_read(phys_to_virt(kern_addr), kern_size) != kern_size) {
+    if (read_io(fd, phys_to_virt(kern_addr), kern_size) != kern_size) {
 	printf("Can't read kernel\n");
 	return 0;
     }
@@ -443,7 +462,8 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
     uint64_t forced;
     extern char _start[], _end[];
 
-    if (!file_open(initrd_file)) {
+    fd = open_io(initrd_file);
+    if (!fd) {
 	printf("Can't open initrd: %s\n", initrd_file);
 	return -1;
     }
@@ -500,7 +520,7 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
     }
 
     printf("Loading initrd... ");
-    if (lfile_read(phys_to_virt(start), size) != size) {
+    if (read_io(fd, phys_to_virt(start), size) != size) {
 	printf("Can't read initrd\n");
 	return -1;
     }
@@ -508,6 +528,8 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
 
     params->initrd_start = start;
     params->initrd_size = size;
+
+    close_io(fd);
 
     return 0;
 }
@@ -612,7 +634,8 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline)
     uint32_t kern_addr, kern_size;
     char *initrd_file = NULL;
 
-    if (!file_open(file))
+    fd = open_io(file);
+    if (!fd)
 	return -1;
 
     kern_addr = load_linux_header(&hdr);

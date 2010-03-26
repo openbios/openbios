@@ -18,7 +18,6 @@
   <object source="elfload.c"/>
   <object source="aoutload.c"/>
   <object source="forthload.c"/>
-  <object source="loadfs.c"/>
   <object source="romvec.c"/>
   <object source="entry.S"/>
   <object source="vectors.S"/>

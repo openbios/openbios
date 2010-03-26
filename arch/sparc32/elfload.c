@@ -10,7 +10,7 @@
 #include "arch/common/elf_boot.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/ipchecksum.h"
-#include "loadfs.h"
+#include "libc/diskio.h"
 #include "boot.h"
 #define printf printk
 #define debug printk
@@ -18,6 +18,7 @@
 #define addr_fixup(addr) ((addr) & 0x00ffffff)
 
 static char *image_name, *image_version;
+static int fd;
 
 static void *calloc(size_t nmemb, size_t size)
 {
@@ -90,8 +91,8 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	if (phdr[i].p_type != PT_NOTE)
 	    continue;
 	buf = malloc(phdr[i].p_filesz);
-	file_seek(offset + phdr[i].p_offset);
-	if ((uint32_t)lfile_read(buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
+	seek_io(fd, offset + phdr[i].p_offset);
+	if ((uint32_t)read_io(fd, buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
 	    printf("Can't read note segment\n");
 	    goto out;
 	}
@@ -126,7 +127,7 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	}
     }
 out:
-    file_close();
+    close_io(fd);
     if (buf)
 	free(buf);
     return retval;
@@ -147,9 +148,9 @@ static int load_segments(Elf_phdr *phdr, int phnum,
 	    continue;
 	debug("segment %d addr:%#x file:%#x mem:%#x ",
               i, addr_fixup(phdr[i].p_paddr), phdr[i].p_filesz, phdr[i].p_memsz);
-	file_seek(offset + phdr[i].p_offset);
+	seek_io(fd, offset + phdr[i].p_offset);
 	debug("loading... ");
-	if ((uint32_t)lfile_read(phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_filesz)
+	if ((uint32_t)read_io(fd, phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_filesz)
 		!= phdr[i].p_filesz) {
 	    printf("Can't read program segment %d\n", i);
 	    return 0;
@@ -316,11 +317,12 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
 
     image_name = image_version = NULL;
 
-    if (!file_open(filename))
+    fd = open_io(filename);
+    if (!fd)
 	goto out;
 
     for (offset = 0; offset < 16 * 512; offset += 512) {
-        if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
+        if (read_io(fd, &ehdr, sizeof ehdr) != sizeof ehdr) {
             debug("Can't read ELF header\n");
             retval = LOADER_NOT_SUPPORT;
             goto out;
@@ -329,7 +331,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
         if (ehdr.e_ident[EI_MAG0] == ELFMAG0)
             break;
 
-        file_seek(offset);
+        seek_io(fd, offset);
     }
 
     if (ehdr.e_ident[EI_MAG0] != ELFMAG0
@@ -350,8 +352,8 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
 
     phdr_size = ehdr.e_phnum * sizeof *phdr;
     phdr = malloc(phdr_size);
-    file_seek(offset + ehdr.e_phoff);
-    if ((uint32_t)lfile_read(phdr, phdr_size) != phdr_size) {
+    seek_io(fd, offset + ehdr.e_phoff);
+    if ((uint32_t)read_io(fd, phdr, phdr_size) != phdr_size) {
 	printf("Can't read program header\n");
 	goto out;
     }
@@ -397,7 +399,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline,
     retval = 0;
 
 out:
-    file_close();
+    close_io(fd);
     if (phdr)
 	free(phdr);
     if (boot_notes)

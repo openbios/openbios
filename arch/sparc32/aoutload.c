@@ -7,7 +7,7 @@
 #include "kernel/kernel.h"
 #include "arch/common/a.out.h"
 #include "libopenbios/sys_info.h"
-#include "loadfs.h"
+#include "libc/diskio.h"
 #include "boot.h"
 #define printf printk
 #define debug printk
@@ -15,6 +15,7 @@
 #define addr_fixup(addr) ((addr) & 0x00ffffff)
 
 static char *image_name, *image_version;
+static int fd;
 
 static int check_mem_ranges(struct sys_info *info,
                             unsigned long start,
@@ -61,12 +62,13 @@ int aout_load(struct sys_info *info, const char *filename, const void *romvec)
 
     image_name = image_version = NULL;
 
-    if (!file_open(filename))
+    fd = open_io(filename);
+    if (!fd)
 	goto out;
 
-    file_seek(offset);
+    seek_io(fd, offset);
 
-    if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
+    if (read_io(fd, &ehdr, sizeof ehdr) != sizeof ehdr) {
         debug("Can't read a.out header\n");
         retval = LOADER_NOT_SUPPORT;
         goto out;
@@ -98,19 +100,19 @@ int aout_load(struct sys_info *info, const char *filename, const void *romvec)
 
     printf("Loading a.out %s...\n", image_name ? image_name : "image");
 
-    file_seek(offset + N_TXTOFF(ehdr));
+    seek_io(fd, offset + N_TXTOFF(ehdr));
 
     if (N_MAGIC(ehdr) == NMAGIC) {
-        if ((unsigned long)lfile_read((void *)start, ehdr.a_text) != ehdr.a_text) {
+        if ((unsigned long)read_io(fd, (void *)start, ehdr.a_text) != ehdr.a_text) {
             printf("Can't read program text segment (size 0x%lx)\n", ehdr.a_text);
             goto out;
         }
-        if ((unsigned long)lfile_read((void *)(start + N_DATADDR(ehdr)), ehdr.a_data) != ehdr.a_data) {
+        if ((unsigned long)read_io(fd, (void *)(start + N_DATADDR(ehdr)), ehdr.a_data) != ehdr.a_data) {
             printf("Can't read program data segment (size 0x%lx)\n", ehdr.a_data);
             goto out;
         }
     } else {
-        if ((unsigned long)lfile_read((void *)start, size) != size) {
+        if ((unsigned long)read_io(fd, (void *)start, size) != size) {
             printf("Can't read program (size 0x%lx)\n", size);
             goto out;
         }
@@ -134,6 +136,6 @@ int aout_load(struct sys_info *info, const char *filename, const void *romvec)
     retval = 0;
 
 out:
-    file_close();
+    close_io(fd);
     return retval;
 }
