@@ -8,6 +8,7 @@
 #define CONFIG_SPARC64_PAGE_SIZE_8KB
 #include "arch/common/a.out.h"
 #include "libopenbios/sys_info.h"
+#include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 #include "boot.h"
 #define printf printk
@@ -62,6 +63,9 @@ int aout_load(struct sys_info *info, const char *filename)
     unsigned int offset;
 
     image_name = image_version = NULL;
+
+    /* Mark the saved-program-state as invalid */
+    feval("0 state-valid !");
 
     fd = open_io(filename);
     if (!fd)
@@ -123,8 +127,17 @@ int aout_load(struct sys_info *info, const char *filename)
     }
 
     debug("Loaded %lu bytes\n", size);
-
     debug("entry point is %#lx\n", start);
+
+    // Initialise saved-program-state
+    PUSH(addr_fixup(start));
+    feval("saved-program-state >sps.entry !");
+    PUSH(size);
+    feval("saved-program-state >sps.file-size !");
+    feval("aout saved-program-state >sps.file-type !");
+
+    feval("-1 state-valid !");
+
     printf("Jumping to entry point...\n");
 
     {

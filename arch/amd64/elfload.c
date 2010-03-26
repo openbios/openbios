@@ -311,6 +311,9 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     image_name = image_version = 0;
 
+    /* Mark the saved-program-state as invalid */
+    feval("0 state-valid !");
+
     if (!file_open(filename))
 	goto out;
 
@@ -368,6 +371,16 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 
     debug("entry point is %#x\n", ehdr.e_entry);
     printf("Jumping to entry point...\n");
+
+    // Initialise saved-program-state
+    PUSH(ehdr.e_entry);
+    feval("saved-program-state >sps.entry !");
+    PUSH(file_size);
+    feval("saved-program-state >sps.file-size !");
+    feval("elf-boot saved-program-state >sps.file-type !");
+
+    feval("-1 state-valid !");
+
     image_retval = start_elf(ehdr.e_entry, virt_to_phys(boot_notes));
 
     // console_init(); FIXME

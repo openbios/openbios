@@ -16,6 +16,12 @@
 
 
 \ 7.6.2    Program download and execute
+struct ( saved-program-state )
+  /n field >sps.entry
+  /n field >sps.file-size
+  /n field >sps.file-type
+constant saved-program-state.size
+create saved-program-state saved-program-state.size allot
 
 variable state-valid
 0 state-valid !
@@ -28,10 +34,14 @@ variable file-size
 
 variable file-type
 
-0 constant elf
-1 constant bootinfo
-2 constant xcoff
-3 constant pe
+0  constant elf-boot
+1  constant elf
+2  constant bootinfo
+3  constant xcoff
+4  constant pe
+5  constant aout
+10 constant fcode
+11 constant forth
 
 \ Array indexes and values for e_type
 

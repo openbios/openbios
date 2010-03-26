@@ -24,6 +24,9 @@ int forth_load(struct sys_info *info, const char *filename, const char *cmdline)
     unsigned long forthsize;
     int retval = -1;
 
+    /* Mark the saved-program-state as invalid */
+    feval("0 state-valid !");
+
     fd = open_io(filename);
     if (!fd)
 	goto out;
@@ -53,6 +56,17 @@ int forth_load(struct sys_info *info, const char *filename, const char *cmdline)
     }
     forthtext[forthsize]=0;
     printk("ok\n");
+
+    close_io(fd);
+
+    // Initialise saved-program-state
+    PUSH((ucell)forthtext);
+    feval("saved-program-state >sps.entry !");
+    PUSH((ucell)forthsize);
+    feval("saved-program-state >sps.file-size !");
+    feval("forth saved-program-state >sps.file-type !");
+
+    feval("-1 state-valid !");
 
     PUSH ( (ucell)forthtext );
     PUSH ( (ucell)forthsize );

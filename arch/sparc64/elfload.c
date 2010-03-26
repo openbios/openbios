@@ -10,6 +10,7 @@
 #include "arch/common/elf_boot.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/ipchecksum.h"
+#include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 #include "boot.h"
 #define printf printk
@@ -135,13 +136,12 @@ out:
 
 static int load_segments(Elf_phdr *phdr, int phnum,
                          unsigned long checksum_offset,
-                         unsigned int offset)
+                         unsigned int offset, unsigned long *bytes)
 {
-    unsigned long bytes;
     //unsigned int start_time, time;
     int i;
 
-    bytes = 0;
+    *bytes = 0;
     // start_time = currticks();
     for (i = 0; i < phnum; i++) {
 	if (phdr[i].p_type != PT_LOAD)
@@ -155,7 +155,7 @@ static int load_segments(Elf_phdr *phdr, int phnum,
 	    printf("Can't read program segment %d\n", i);
 	    return 0;
 	}
-	bytes += phdr[i].p_filesz;
+	*bytes += phdr[i].p_filesz;
 	debug("clearing... ");
 	memset(phys_to_virt(addr_fixup(phdr[i].p_paddr) + phdr[i].p_filesz), 0,
 		phdr[i].p_memsz - phdr[i].p_filesz);
@@ -171,7 +171,7 @@ static int load_segments(Elf_phdr *phdr, int phnum,
     // time = currticks() - start_time;
     //debug("Loaded %lu bytes in %ums (%luKB/s)\n", bytes, time,
     //	    time? bytes/time : 0);
-    debug("Loaded %lu bytes \n", bytes);
+    debug("Loaded %lu bytes \n", *bytes);
 
     return 1;
 }
@@ -307,7 +307,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     Elf_ehdr ehdr;
     Elf_phdr *phdr = NULL;
     unsigned long phdr_size;
-    unsigned long checksum_offset;
+    unsigned long checksum_offset, file_size;
     unsigned short checksum = 0;
     Elf_Bhdr *boot_notes = NULL;
     int retval = -1;
@@ -315,6 +315,9 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     unsigned int offset;
 
     image_name = image_version = NULL;
+
+    /* Mark the saved-program-state as invalid */
+    feval("0 state-valid !");
 
     fd = open_io(filename);
     if (!fd)
@@ -367,7 +370,7 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 	printf(" version %s", image_version);
     printf("...\n");
 
-    if (!load_segments(phdr, ehdr.e_phnum, checksum_offset, offset))
+    if (!load_segments(phdr, ehdr.e_phnum, checksum_offset, offset, &file_size))
 	goto out;
 
     if (checksum_offset) {
@@ -380,6 +383,16 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
     //debug("current time: %lu\n", currticks());
 
     debug("entry point is %#llx\n", addr_fixup(ehdr.e_entry));
+
+    // Initialise saved-program-state
+    PUSH(addr_fixup(ehdr.e_entry));
+    feval("saved-program-state >sps.entry !");
+    PUSH(file_size);
+    feval("saved-program-state >sps.file-size !");
+    feval("elf-boot saved-program-state >sps.file-type !");
+
+    feval("-1 state-valid !");
+
     printf("Jumping to entry point...\n");
 
 #if 0

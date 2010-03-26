@@ -20,6 +20,9 @@ int fcode_load(const char *filename)
     unsigned long start, size;
     unsigned int offset;
 
+    /* Mark the saved-program-state as invalid */
+    feval("0 state-valid !");
+
     fd = open_io(filename);
     if (!fd)
         goto out;
@@ -62,8 +65,15 @@ int fcode_load(const char *filename)
     }
 
     debug("Loaded %lu bytes\n", size);
-
     debug("entry point is %#lx\n", start);
+
+    // Initialise saved-program-state
+    PUSH(start);
+    feval("saved-program-state >sps.entry !");
+    PUSH(size);
+    feval("saved-program-state >sps.file-size !");
+    feval("fcode saved-program-state >sps.file-type !");
+
     printf("Evaluating FCode...\n");
 
     PUSH(start);
