@@ -9,13 +9,6 @@
 // forthload.c
 int forth_load(const char *filename);
 
-// elfload.c
-int elf_load(struct sys_info *, const char *filename, const char *cmdline,
-             const void *romvec);
-
-// aout_load.c
-int aout_load(struct sys_info *info, const char *filename, const void *romvec);
-
 // linux_load.c
 int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 

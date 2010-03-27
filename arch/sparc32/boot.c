@@ -9,6 +9,8 @@
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "libopenbios/sys_info.h"
+#include "libopenbios/elf_load.h"
+#include "libopenbios/aout_load.h"
 #include "openprom.h"
 #include "boot.h"
 
@@ -22,6 +24,7 @@ int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
 
 static int try_path(const char *path, char *param, const void *romvec)
 {
+	void *boot_notes = NULL;
 	ucell valid, address, type, size;
 	int image_retval = 0;
 
@@ -31,7 +34,7 @@ static int try_path(const char *path, char *param, const void *romvec)
         printk("Trying %s (%s)\n", path, bootpath);
 
 	/* ELF Boot loader */
-	elf_load(&sys_info, path, param, romvec);
+	elf_load(&sys_info, path, param, &boot_notes);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)
@@ -41,7 +44,7 @@ static int try_path(const char *path, char *param, const void *romvec)
 	linux_load(&sys_info, path, param);
 
 	/* a.out loader */
-	aout_load(&sys_info, path, romvec);
+	aout_load(&sys_info, path);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)

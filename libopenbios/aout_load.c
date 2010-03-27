@@ -5,12 +5,16 @@
 
 #include "config.h"
 #include "kernel/kernel.h"
+
+#ifdef CONFIG_SPARC64
 #define CONFIG_SPARC64_PAGE_SIZE_8KB
+#endif
+
 #include "arch/common/a.out.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/aout_load.h"
 #include "libc/diskio.h"
-#include "boot.h"
 #define printf printk
 #define debug printk
 
@@ -110,17 +114,17 @@ int aout_load(struct sys_info *info, const char *filename)
     seek_io(fd, offset + N_TXTOFF(ehdr));
 
     if (N_MAGIC(ehdr) == NMAGIC) {
-        if ((unsigned long)read_io(fd, (void *)start, ehdr.a_text) != ehdr.a_text) {
-            printf("Can't read program text segment (size 0x%x)\n", ehdr.a_text);
+        if ((size_t)read_io(fd, (void *)start, ehdr.a_text) != ehdr.a_text) {
+            printf("Can't read program text segment (size 0x" FMT_aout_ehdr ")\n", ehdr.a_text);
             goto out;
         }
-        if ((unsigned long)read_io(fd, (void *)(start + N_DATADDR(ehdr)), ehdr.a_data) != ehdr.a_data) {
-            printf("Can't read program data segment (size 0x%x)\n", ehdr.a_data);
+        if ((size_t)read_io(fd, (void *)(start + N_DATADDR(ehdr)), ehdr.a_data) != ehdr.a_data) {
+            printf("Can't read program data segment (size 0x" FMT_aout_ehdr ")\n", ehdr.a_data);
             goto out;
         }
     } else {
-        if ((unsigned long)read_io(fd, (void *)start, size) != size) {
-            printf("Can't read program (size 0x%lx)\n", size);
+        if ((size_t)read_io(fd, (void *)start, size) != size) {
+            printf("Can't read program (size 0x" FMT_sizet ")\n", size);
             goto out;
         }
     }
@@ -136,8 +140,6 @@ int aout_load(struct sys_info *info, const char *filename)
     feval("aout saved-program-state >sps.file-type !");
 
     feval("-1 state-valid !");
-
-    retval = 0;
 
 out:
     close_io(fd);

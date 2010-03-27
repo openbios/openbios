@@ -41,6 +41,8 @@ typedef unsigned long long ducell;
 #define FMT_ucellX  "%08X"
 
 #define FMT_elf     "%#x"
+#define FMT_sizet   "%lx"
+#define FMT_aout_ehdr  "%lx"
 
 #define bitspercell	(sizeof(cell)<<3)
 #define bitsperdcell	(sizeof(dcell)<<3)

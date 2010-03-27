@@ -37,8 +37,8 @@ typedef unsigned long long ucell;
 #define FMT_ucellx  "%016llx"
 #define FMT_ucellX  "%016llX"
 
-#define FMT_sizet   "%lx"
 #define FMT_elf	    "%#llx"
+#define FMT_sizet   "%lx"
 #define FMT_aout_ehdr  "%x"
 
 #ifdef NEED_FAKE_INT128_T
