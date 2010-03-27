@@ -20,7 +20,7 @@ uint32_t kernel_size;
 uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;
-int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
+static int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
 
 static int try_path(const char *path, char *param, const void *romvec)
 {
