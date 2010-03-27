@@ -9,9 +9,6 @@
 // linux_load.c
 int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 
-// fcodeload.c
-int fcode_load(const char *filename);
-
 // context.c
 extern struct context * volatile __context;
 uint64_t start_elf(uint64_t entry_point, uint64_t param);

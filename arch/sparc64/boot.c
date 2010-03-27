@@ -10,6 +10,7 @@
 #include "libopenbios/sys_info.h"
 #include "libopenbios/elf_load.h"
 #include "libopenbios/aout_load.h"
+#include "libopenbios/fcode_load.h"
 #include "boot.h"
 
 struct sys_info sys_info;

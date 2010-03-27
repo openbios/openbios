@@ -17,6 +17,7 @@
   <object source="elf_load.c" condition="AMD64"/>
   <object source="font_8x8.c" condition="FONT_8X8"/>
   <object source="font_8x16.c" condition="FONT_8X16"/>
+  <object source="fcode_load.c" condition="SPARC64"/>  
   <object source="forth_load.c" condition="X86"/>
   <object source="ipchecksum.c"/>
   <object source="linuxbios_info.c" condition="LINUXBIOS"/>

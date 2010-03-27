@@ -5,9 +5,9 @@
 #include "config.h"
 #include "kernel/kernel.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/fcode_load.h"
 #include "libopenbios/sys_info.h"
 #include "libc/diskio.h"
-#include "boot.h"
 #define printf printk
 #define debug printk
 
@@ -59,14 +59,14 @@ int fcode_load(const char *filename)
 
     seek_io(fd, offset + sizeof(fcode_header));
 
-    if ((unsigned long)read_io(fd, (void *)start, size) != size) {
+    if ((size_t)read_io(fd, (void *)start, size) != size) {
         printf("Can't read file (size 0x%lx)\n", size);
         goto out;
     }
 
     debug("Loaded %lu bytes\n", size);
     debug("entry point is %#lx\n", start);
-
+    
     // Initialise saved-program-state
     PUSH(start);
     feval("saved-program-state >sps.entry !");
@@ -75,8 +75,6 @@ int fcode_load(const char *filename)
     feval("fcode saved-program-state >sps.file-type !");
 
     feval("-1 state-valid !");
-
-    retval = 0;
 
 out:
     close_io(fd);
