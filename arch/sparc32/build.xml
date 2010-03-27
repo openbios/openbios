@@ -15,7 +15,6 @@
   <object source="udiv.S"/>
   <object source="linux_load.c"/>
   <object source="sys_info.c"/>
-  <object source="elfload.c"/>
   <object source="aoutload.c"/>
   <object source="forthload.c"/>
   <object source="romvec.c"/>

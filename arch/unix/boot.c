@@ -4,7 +4,7 @@
 #undef BOOTSTRAP
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "libopenbios/elfload.h"
+#include "libopenbios/elf_load.h"
 #include "arch/common/nvram.h"
 #include "libc/diskio.h"
 

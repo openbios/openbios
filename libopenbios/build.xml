@@ -9,6 +9,10 @@
   <object source="elf_info.c" condition="SPARC32"/>
   <object source="elf_info.c" condition="SPARC64"/>
   <object source="elf_info.c" condition="PPC"/>
+  <object source="elf_load.c" condition="X86"/>
+  <object source="elf_load.c" condition="SPARC32"/>
+  <object source="elf_load.c" condition="SPARC64"/>
+  <object source="elf_load.c" condition="AMD64"/>
   <object source="font_8x8.c" condition="FONT_8X8"/>
   <object source="font_8x16.c" condition="FONT_8X16"/>
   <object source="ipchecksum.c"/>

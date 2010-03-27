@@ -460,7 +460,6 @@ static int load_initrd(struct linux_header *hdr, struct sys_info *info,
     uint32_t max;
     uint32_t start, end, size;
     uint64_t forced;
-    extern char _start[], _end[];
 
     fd = open_io(initrd_file);
     if (!fd) {

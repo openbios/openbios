@@ -40,7 +40,6 @@ struct segment_desc gdt[NUM_SEG] = {
     {0xffff, 0, 0, 0x93, 0xcf, 0},
 };
 
-extern char _start[], _end[];
 
 void relocate(struct sys_info *info)
 {

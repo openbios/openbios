@@ -8,6 +8,7 @@
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "libopenbios/sys_info.h"
+#include "libopenbios/elf_load.h"
 #include "boot.h"
 
 struct sys_info sys_info;
@@ -26,7 +27,7 @@ static int try_path(const char *path, char *param)
 	int image_retval = 0;
 
 	/* ELF Boot loader */
-	elf_load(&sys_info, path, param);
+	elf_load(&sys_info, path, param, &boot_notes);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)

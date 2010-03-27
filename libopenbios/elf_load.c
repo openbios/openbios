@@ -5,28 +5,35 @@
 
 #include "config.h"
 #include "kernel/kernel.h"
-#include "arch/common/elf.h"
-#include "asm/elf.h"
+#include "libc/diskio.h"
 #include "arch/common/elf_boot.h"
+#include "libopenbios/elf_load.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/ipchecksum.h"
-#include "loadfs.h"
+#include "libopenbios/bindings.h"
 #define printf printk
 #define debug printk
 
-extern unsigned int start_elf(unsigned long entry_point, unsigned long param);
-extern char _start, _end;
+#define DEBUG		0
+
+#define MAX_HEADERS	0x20
+#define BS		0x100	/* smallest step used when looking for the ELF header */
+
+/* FreeBSD and possibly others mask the high 8 bits */
+#define addr_fixup(addr) ((addr) & 0x00ffffff)
 
 static char *image_name, *image_version;
+static int fd;
 
-static void *calloc(size_t nmemb, size_t size)
+/* Note: avoid name collision with platforms which have their own version of calloc() */
+static void *ob_calloc(size_t nmemb, size_t size)
 {
     size_t alloc_size = nmemb * size;
     void *mem;
 
     if (alloc_size < nmemb || alloc_size < size) {
         printf("calloc overflow: %u, %u\n", nmemb, size);
-        return 0;
+        return NULL;
     }
 
     mem = malloc(alloc_size);
@@ -34,7 +41,6 @@ static void *calloc(size_t nmemb, size_t size)
 
     return mem;
 }
-
 
 static int check_mem_ranges(struct sys_info *info,
 	Elf_phdr *phdr, int phnum)
@@ -50,7 +56,7 @@ static int check_mem_ranges(struct sys_info *info,
     for (i = 0; i < phnum; i++) {
 	if (phdr[i].p_type != PT_LOAD)
 	    continue;
-	start = phdr[i].p_paddr;
+	start = addr_fixup(phdr[i].p_paddr);
 	end = start + phdr[i].p_memsz;
 	if (start < prog_start && end > prog_start)
 	    goto conflict;
@@ -75,7 +81,8 @@ badseg:
 }
 
 static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
-	unsigned short *sum_ptr)
+                                         unsigned short *sum_ptr,
+                                         unsigned int offset)
 {
     int i;
     char *buf = NULL;
@@ -89,8 +96,8 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	if (phdr[i].p_type != PT_NOTE)
 	    continue;
 	buf = malloc(phdr[i].p_filesz);
-	file_seek(phdr[i].p_offset);
-	if (lfile_read(buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
+	seek_io(fd, offset + phdr[i].p_offset);
+	if ((size_t)read_io(fd, buf, phdr[i].p_filesz) != phdr[i].p_filesz) {
 	    printf("Can't read note segment\n");
 	    goto out;
 	}
@@ -107,11 +114,11 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	    if (nhdr->n_namesz==sizeof(ELF_NOTE_BOOT)
 		    && memcmp(name, ELF_NOTE_BOOT, sizeof(ELF_NOTE_BOOT))==0) {
 		if (nhdr->n_type == EIN_PROGRAM_NAME) {
-		    image_name = calloc(1, nhdr->n_descsz + 1);
+		    image_name = ob_calloc(1, nhdr->n_descsz + 1);
 		    memcpy(image_name, desc, nhdr->n_descsz);
 		}
 		if (nhdr->n_type == EIN_PROGRAM_VERSION) {
-		    image_version = calloc(1, nhdr->n_descsz + 1);
+		    image_version = ob_calloc(1, nhdr->n_descsz + 1);
 		    memcpy(image_version, desc, nhdr->n_descsz);
 		}
 		if (nhdr->n_type == EIN_PROGRAM_CHECKSUM) {
@@ -125,40 +132,41 @@ static unsigned long process_image_notes(Elf_phdr *phdr, int phnum,
 	}
     }
 out:
+    close_io(fd);
     if (buf)
 	free(buf);
     return retval;
 }
 
 static int load_segments(Elf_phdr *phdr, int phnum,
-	unsigned long checksum_offset)
+                         unsigned long checksum_offset,
+                         unsigned int offset, unsigned long *bytes)
 {
-    unsigned long bytes;
     //unsigned int start_time, time;
     int i;
 
-    bytes = 0;
+    *bytes = 0;
     // start_time = currticks();
     for (i = 0; i < phnum; i++) {
 	if (phdr[i].p_type != PT_LOAD)
 	    continue;
-	debug("segment %d addr:%#x file:%#x mem:%#x ",
-		i, phdr[i].p_paddr, phdr[i].p_filesz, phdr[i].p_memsz);
-	file_seek(phdr[i].p_offset);
+	debug("segment %d addr:" FMT_elf " file:" FMT_elf " mem:" FMT_elf " ",
+              i, addr_fixup(phdr[i].p_paddr), phdr[i].p_filesz, phdr[i].p_memsz);
+	seek_io(fd, offset + phdr[i].p_offset);
 	debug("loading... ");
-	if (lfile_read(phys_to_virt(phdr[i].p_paddr), phdr[i].p_filesz)
+	if ((size_t)read_io(fd, phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_filesz)
 		!= phdr[i].p_filesz) {
 	    printf("Can't read program segment %d\n", i);
 	    return 0;
 	}
 	bytes += phdr[i].p_filesz;
 	debug("clearing... ");
-	memset(phys_to_virt(phdr[i].p_paddr + phdr[i].p_filesz), 0,
+	memset(phys_to_virt(addr_fixup(phdr[i].p_paddr) + phdr[i].p_filesz), 0,
 		phdr[i].p_memsz - phdr[i].p_filesz);
 	if (phdr[i].p_offset <= checksum_offset
 		&& phdr[i].p_offset + phdr[i].p_filesz >= checksum_offset+2) {
 	    debug("clearing checksum... ");
-	    memset(phys_to_virt(phdr[i].p_paddr + checksum_offset
+	    memset(phys_to_virt(addr_fixup(phdr[i].p_paddr) + checksum_offset
 			- phdr[i].p_offset), 0, 2);
 	}
 	debug("ok\n");
@@ -167,7 +175,7 @@ static int load_segments(Elf_phdr *phdr, int phnum,
     // time = currticks() - start_time;
     //debug("Loaded %lu bytes in %ums (%luKB/s)\n", bytes, time,
     //	    time? bytes/time : 0);
-    debug("Loaded %lu bytes \n", bytes);
+    debug("Loaded %lu bytes \n", *bytes);
 
     return 1;
 }
@@ -193,7 +201,7 @@ static int verify_image(Elf_ehdr *ehdr, Elf_phdr *phdr, int phnum,
     for (i = 0; i < phnum; i++) {
 	if (phdr[i].p_type != PT_LOAD)
 	    continue;
-	part_sum = ipchksum(phys_to_virt(phdr[i].p_paddr), phdr[i].p_memsz);
+	part_sum = ipchksum(phys_to_virt(addr_fixup(phdr[i].p_paddr)), phdr[i].p_memsz);
 	sum = add_ipchksums(offset, sum, part_sum);
 	offset += phdr[i].p_memsz;
     }
@@ -206,7 +214,7 @@ static int verify_image(Elf_ehdr *ehdr, Elf_phdr *phdr, int phnum,
     return 1;
 }
 
-static inline unsigned const padded(unsigned s)
+static inline unsigned padded(unsigned s)
 {
     return (s + 3) & ~3;
 }
@@ -298,66 +306,121 @@ static Elf_Bhdr *build_boot_notes(struct sys_info *info, const char *cmdline)
     return bhdr;
 }
 
-int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
+int
+is_elf(Elf_ehdr *ehdr)
+{
+    return (ehdr->e_ident[EI_MAG0] == ELFMAG0
+        && ehdr->e_ident[EI_MAG1] == ELFMAG1
+        && ehdr->e_ident[EI_MAG2] == ELFMAG2
+        && ehdr->e_ident[EI_MAG3] == ELFMAG3
+        && ehdr->e_ident[EI_CLASS] == ARCH_ELF_CLASS
+        && ehdr->e_ident[EI_DATA] == ARCH_ELF_DATA
+        && ehdr->e_ident[EI_VERSION] == EV_CURRENT
+        && ehdr->e_type == ET_EXEC
+        && ARCH_ELF_MACHINE_OK(ehdr->e_machine)
+        && ehdr->e_version == EV_CURRENT
+        && ehdr->e_phentsize == sizeof(Elf_phdr));
+}
+
+int
+find_elf(Elf_ehdr *ehdr)
+{
+   int offset;
+
+   for (offset = 0; offset < MAX_HEADERS * BS; offset += BS) {
+        if ((size_t)read_io(fd, ehdr, sizeof ehdr) != sizeof ehdr) {
+            debug("Can't read ELF header\n");
+            return 0;
+        }
+
+        if (is_elf(ehdr)) {
+            debug("Found ELF header at offset %d\n", offset);
+	    return offset;
+        }
+
+        seek_io(fd, offset);
+    }
+
+    debug("Not a bootable ELF image\n");
+    return 0;
+}
+
+Elf_phdr *
+elf_readhdrs(int offset, Elf_ehdr *ehdr)
+{
+    unsigned long phdr_size;
+    Elf_phdr *phdr;
+
+    phdr_size = ehdr->e_phnum * sizeof(Elf_phdr);
+    phdr = malloc(phdr_size);
+    seek_io(fd, offset + ehdr->e_phoff);
+    if ((size_t)read_io(fd, phdr, phdr_size) != phdr_size) {
+	printf("Can't read program header\n");
+	return NULL;
+    }
+
+    return phdr;
+}
+
+int elf_load(struct sys_info *info, const char *filename, const char *cmdline, void **boot_notes)
 {
     Elf_ehdr ehdr;
     Elf_phdr *phdr = NULL;
-    unsigned long phdr_size;
-    unsigned long checksum_offset;
-    unsigned short checksum;
-    Elf_Bhdr *boot_notes = NULL;
+    unsigned long checksum_offset, file_size;
+    unsigned short checksum = 0;
     int retval = -1;
-    int image_retval;
+    unsigned int offset;
 
-    image_name = image_version = 0;
+    image_name = image_version = NULL;
 
     /* Mark the saved-program-state as invalid */
     feval("0 state-valid !");
 
-    if (!file_open(filename))
+    fd = open_io(filename);
+    if (!fd)
 	goto out;
 
-    if (lfile_read(&ehdr, sizeof ehdr) != sizeof ehdr) {
-	debug("Can't read ELF header\n");
+    offset = find_elf(&ehdr);
+    if (!offset) {
 	retval = LOADER_NOT_SUPPORT;
+        goto out;
+    }
+
+#if DEBUG
+	printk("ELF header:\n");
+	printk(" ehdr.e_type    = %d\n", (int)ehdr.e_type);
+	printk(" ehdr.e_machine = %d\n", (int)ehdr.e_machine);
+	printk(" ehdr.e_version = %d\n", (int)ehdr.e_version);
+	printk(" ehdr.e_entry   = 0x%08x\n", (int)ehdr.e_entry);
+	printk(" ehdr.e_phoff   = 0x%08x\n", (int)ehdr.e_phoff);
+	printk(" ehdr.e_shoff   = 0x%08x\n", (int)ehdr.e_shoff);
+	printk(" ehdr.e_flags   = %d\n", (int)ehdr.e_flags);
+	printk(" ehdr.e_ehsize  = 0x%08x\n", (int)ehdr.e_ehsize);
+	printk(" ehdr.e_phentsize = 0x%08x\n", (int)ehdr.e_phentsize);
+	printk(" ehdr.e_phnum   = %d\n", (int)ehdr.e_phnum);
+#endif
+
+    if (ehdr.e_phnum > MAX_HEADERS) {
+        printk ("elfload: too many program headers (MAX_HEADERS)\n");
+        retval = 0;
 	goto out;
     }
 
-    if (ehdr.e_ident[EI_MAG0] != ELFMAG0
-	    || ehdr.e_ident[EI_MAG1] != ELFMAG1
-	    || ehdr.e_ident[EI_MAG2] != ELFMAG2
-	    || ehdr.e_ident[EI_MAG3] != ELFMAG3
-	    || ehdr.e_ident[EI_CLASS] != ARCH_ELF_CLASS
-	    || ehdr.e_ident[EI_DATA] != ARCH_ELF_DATA
-	    || ehdr.e_ident[EI_VERSION] != EV_CURRENT
-	    || ehdr.e_type != ET_EXEC
-	    || !ARCH_ELF_MACHINE_OK(ehdr.e_machine)
-	    || ehdr.e_version != EV_CURRENT
-	    || ehdr.e_phentsize != sizeof(Elf_phdr)) {
-	debug("Not a bootable ELF image\n");
-	retval = LOADER_NOT_SUPPORT;
-	goto out;
-    }
-
-    phdr_size = ehdr.e_phnum * sizeof *phdr;
-    phdr = malloc(phdr_size);
-    file_seek(ehdr.e_phoff);
-    if (lfile_read(phdr, phdr_size) != phdr_size) {
-	printf("Can't read program header\n");
-	goto out;
-    }
+    phdr = elf_readhdrs(offset, &ehdr);
+    if (!phdr)
+        goto out;
 
     if (!check_mem_ranges(info, phdr, ehdr.e_phnum))
 	goto out;
 
-    checksum_offset = process_image_notes(phdr, ehdr.e_phnum, &checksum);
+    checksum_offset = process_image_notes(phdr, ehdr.e_phnum, &checksum, offset);
 
     printf("Loading %s", image_name ? image_name : "image");
     if (image_version)
 	printf(" version %s", image_version);
     printf("...\n");
 
-    if (!load_segments(phdr, ehdr.e_phnum, checksum_offset))
+    if (!load_segments(phdr, ehdr.e_phnum, checksum_offset, offset, &file_size))
 	goto out;
 
     if (checksum_offset) {
@@ -365,33 +428,32 @@ int elf_load(struct sys_info *info, const char *filename, const char *cmdline)
 	    goto out;
     }
 
-    boot_notes = build_boot_notes(info, cmdline);
+    /* If we are attempting an ELF boot image, we pass a non-NULL pointer
+       into boot_notes and mark the image as elf-boot rather than standard
+       ELF */
+    if (boot_notes) {
+        *boot_notes = (void *)virt_to_phys(build_boot_notes(info, cmdline));
+        feval("elf-boot saved-program-state >sps.file-type !");
+    } else {
+        feval("elf saved-program-state >sps.file-type !");
+    }
 
     //debug("current time: %lu\n", currticks());
 
-    debug("entry point is %#x\n", ehdr.e_entry);
-    printf("Jumping to entry point...\n");
+    debug("entry point is " FMT_elf "\n", addr_fixup(ehdr.e_entry));
 
     // Initialise saved-program-state
-    PUSH(ehdr.e_entry);
+    PUSH(addr_fixup(ehdr.e_entry));
     feval("saved-program-state >sps.entry !");
     PUSH(file_size);
     feval("saved-program-state >sps.file-size !");
-    feval("elf-boot saved-program-state >sps.file-type !");
 
     feval("-1 state-valid !");
 
-    image_retval = start_elf(ehdr.e_entry, virt_to_phys(boot_notes));
-
-    // console_init(); FIXME
-    printf("Image returned with return value %#x\n", image_retval);
-    retval = 0;
-
 out:
+    close_io(fd);
     if (phdr)
 	free(phdr);
-    if (boot_notes)
-	free(boot_notes);
     if (image_name)
 	free(image_name);
     if (image_version)

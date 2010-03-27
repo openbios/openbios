@@ -3,6 +3,7 @@
 
 #include "asm/types.h"
 
+extern char _start, _end;
 extern unsigned long virt_offset;
 
 #define phys_to_virt(phys) ((void *) ((unsigned long) (phys) - virt_offset))

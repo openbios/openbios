@@ -1,6 +1,7 @@
 #ifndef _ASM_IO_H
 #define _ASM_IO_H
 
+extern char _start, _end;
 extern unsigned long virt_offset;
 
 #define phys_to_virt(phys) ((void *) ((unsigned long) (phys) - virt_offset))

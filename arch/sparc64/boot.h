@@ -9,9 +9,6 @@
 // forthload.c
 int forth_load(const char *filename);
 
-// elfload.c
-int elf_load(struct sys_info *info, const char *filename, const char *cmdline);
-
 // aout_load.c
 int aout_load(struct sys_info *info, const char *filename);
 

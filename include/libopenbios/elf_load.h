@@ -19,11 +19,12 @@
 
 #include "arch/common/elf.h"
 #include "asm/elf.h"
+#include "libopenbios/sys_info.h"
 
-extern int		is_elf( int fd, int offs );
-extern int		find_elf( int fd );
+extern int 		elf_load(struct sys_info *info, const char *filename, const char *cmdline, void **boot_notes);
+extern int		is_elf(Elf_ehdr *ehdr);
+extern int		find_elf(Elf_ehdr *ehdr);
 
-extern Elf32_Phdr *	elf_readhdrs( int fd, int offs, Elf32_Ehdr *e );
-
+extern Elf_phdr *	elf_readhdrs(int offset, Elf_ehdr *ehdr);
 
 #endif   /* _H_ELFLOAD */
