@@ -12,17 +12,20 @@
 #include "arch/common/nvram.h"
 #include "libc/diskio.h"
 #include "libopenbios/sys_info.h"
+#include "libopenbios/elf_load.h"
+#include "libopenbios/forth_load.h"
 #include "boot.h"
 
 struct sys_info sys_info;
 
 static int try_path(const char *path, char *param)
 {
+	void *boot_notes = NULL;
 	ucell valid, address, type, size;
 	int image_retval = 0;;
 
 	/* ELF Boot loader */
-	elf_load(&sys_info, path, param);
+	elf_load(&sys_info, path, param, &boot_notes);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)
@@ -32,7 +35,7 @@ static int try_path(const char *path, char *param)
 	linux_load(&sys_info, path, param);
 
 	/* Forth loader */
-	forth_load(&sys_info, path, param);
+	forth_load(path);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)

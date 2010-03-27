@@ -11,13 +11,13 @@
 #include "libopenbios/bindings.h"
 #include "libopenbios/sys_info.h"
 #include "libc/diskio.h"
-#include "boot.h"
+#include "libopenbios/forth_load.h"
 #define printk printk
 #define debug printk
 
-static char *forthtext=NULL;
 static int fd;
 
+static char *forthtext=NULL;
 int forth_load(const char *filename)
 {
     char magic[2];
@@ -50,14 +50,12 @@ int forth_load(const char *filename)
     seek_io(fd, 0);
 
     printk("Loading forth source ...");
-    if ((unsigned long)read_io(fd, forthtext, forthsize) != forthsize) {
+    if ((size_t)read_io(fd, forthtext, forthsize) != forthsize) {
 	printk("Can't read forth text\n");
 	goto out;
     }
     forthtext[forthsize]=0;
     printk("ok\n");
-
-    close_io(fd);
 
     // Initialise saved-program-state
     PUSH((ucell)forthtext);

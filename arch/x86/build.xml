@@ -14,7 +14,6 @@
   <object source="linux_load.c"/>
   <object source="segment.c"/>
   <object source="sys_info.c"/>
-  <object source="forthload.c"/>
   <object source="entry.S"/>
   <object source="xbox/console.c" condition="XBOX"/>
   <object source="xbox/methods.c" condition="XBOX"/>

@@ -6,12 +6,6 @@
  * the copyright and warranty status of this work.
  */
 
-/* forthload.c */
-int forth_load(struct sys_info *info, const char *filename, const char *cmdline);
-
-/* elfload.c */
-int elf_load(struct sys_info *info, const char *filename, const char *cmdline);
-
 /* linux_load.c */
 int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 
