@@ -19,5 +19,6 @@
 
 extern int is_forth(char *forth);
 extern int forth_load(const char *filename);
+extern void forth_init_program(void);
 
 #endif   /* _H_FORTHLOAD */

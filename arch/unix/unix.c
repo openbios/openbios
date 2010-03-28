@@ -51,6 +51,8 @@
 static void exit_terminal(void);
 void boot(void);
 
+unsigned long virt_offset = 0;
+
 /* local variables */
 
 static ucell *memory;

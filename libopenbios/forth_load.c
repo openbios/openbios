@@ -78,3 +78,10 @@ out:
     //	free(forthtext);
     return retval;
 }
+
+void 
+forth_init_program(void)
+{
+	// Currently not implemented
+	feval("0 state-valid !");
+}

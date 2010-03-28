@@ -2,9 +2,9 @@
  *   Creation Date: <2010/03/22 18:00:00 mcayland>
  *   Time-stamp: <2010/03/22 18:00:00 mcayland>
  *
- *	<aout_load.h>
+ *	<xcoff_load.h>
  *
- *	a.out loader
+ *	XCOFF loader
  *
  *   Copyright (C) 2010 Mark Cave-Ayland (mark.cave-ayland@siriusit.co.uk)
  *
@@ -14,14 +14,14 @@
  *
  */
 
-#ifndef _H_AOUTLOAD
-#define _H_AOUTLOAD
+#ifndef _H_XCOFFLOAD
+#define _H_XCOFFLOAD
 
-#include "arch/common/a.out.h"
+#include "arch/common/xcoff.h"
 #include "libopenbios/sys_info.h"
 
-extern int is_aout(struct exec *ehdr);
-extern int aout_load(struct sys_info *info, const char *filename);
-extern void aout_init_program(void);
+extern int is_xcoff(COFF_filehdr_t *fhdr);
+extern int xcoff_load(struct sys_info *info, const char *filename);
+extern void xcoff_init_program(void);
 
-#endif   /* _H_AOUTLOAD */
+#endif   /* _H_XCOFFLOAD */

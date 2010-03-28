@@ -13,8 +13,8 @@
   <object source="blk.c"  flags="-DBOOTSTRAP"/>
   <object source="plugins.c" flags="-DBOOTSTRAP" condition="PLUGINS"/>
   <external-object source="libbootstrap.a"/>
-  <external-object source="libopenbios.a"/>
   <external-object source="libpackages.a"/>
+  <external-object source="libopenbios.a"/>
   <external-object source="libdrivers.a"/>
   <external-object source="libfs.a"/>
   <external-object source="liblibc.a"/>

@@ -13,16 +13,18 @@
 
 static int fd;
 
-int is_fcode(unsigned char *fcode)
+int 
+is_fcode(unsigned char *fcode)
 {
-	return (fcode[0] == 0xf0		// start0
+	return (fcode[0] == 0xf0	// start0
 		|| fcode[0] == 0xf1	// start1 
 		|| fcode[0] == 0xf2	// start2
 		|| fcode[0] == 0xf3	// start4
 		|| fcode[0] == 0xfd);	// version1
 }
 
-int fcode_load(const char *filename)
+int 
+fcode_load(const char *filename)
 {
     int retval = -1;
     uint8_t fcode_header[8];
@@ -83,4 +85,17 @@ int fcode_load(const char *filename)
 out:
     close_io(fd);
     return retval;
+}
+
+void 
+fcode_init_program(void)
+{
+	/* If the payload is Fcode then we execute it immediately */
+	ucell address;
+
+	fword("load-base");
+	address = POP();
+	PUSH(address);
+	PUSH(1);
+	fword("byte-load");
 }
