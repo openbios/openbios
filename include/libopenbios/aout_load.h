@@ -17,8 +17,10 @@
 #ifndef _H_AOUTLOAD
 #define _H_AOUTLOAD
 
+#include "arch/common/a.out.h"
 #include "libopenbios/sys_info.h"
 
+extern int is_aout(struct exec *ehdr);
 extern int aout_load(struct sys_info *info, const char *filename);
 
 #endif   /* _H_AOUTLOAD */

@@ -17,6 +17,7 @@
 #ifndef _H_FORTHLOAD
 #define _H_FORTHLOAD
 
+extern int is_forth(char *forth);
 extern int forth_load(const char *filename);
 
 #endif   /* _H_FORTHLOAD */

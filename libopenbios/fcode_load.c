@@ -13,6 +13,15 @@
 
 static int fd;
 
+int is_fcode(unsigned char *fcode)
+{
+	return (fcode[0] == 0xf0		// start0
+		|| fcode[0] == 0xf1	// start1 
+		|| fcode[0] == 0xf2	// start2
+		|| fcode[0] == 0xf3	// start4
+		|| fcode[0] == 0xfd);	// version1
+}
+
 int fcode_load(const char *filename)
 {
     int retval = -1;
@@ -35,14 +44,9 @@ int fcode_load(const char *filename)
             retval = LOADER_NOT_SUPPORT;
             goto out;
         }
-        switch (fcode_header[0]) {
-        case 0xf0: // start0
-        case 0xf1: // start1
-        case 0xf2: // start2
-        case 0xf3: // start4
-        case 0xfd: // version1
+
+	if (is_fcode(fcode_header))
             goto found;
-        }
     }
 
     debug("Not a bootable FCode image\n");

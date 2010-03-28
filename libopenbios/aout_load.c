@@ -58,6 +58,15 @@ static int check_mem_ranges(struct sys_info *info,
     return 0;
 }
 
+int is_aout(struct exec *ehdr)
+{
+	return ((ehdr->a_info & 0xffff) == OMAGIC
+		|| (ehdr->a_info & 0xffff) == NMAGIC
+		|| (ehdr->a_info & 0xffff) == ZMAGIC
+		|| (ehdr->a_info & 0xffff) == QMAGIC);
+
+}
+
 int aout_load(struct sys_info *info, const char *filename)
 {
     int retval = -1;
@@ -81,11 +90,11 @@ int aout_load(struct sys_info *info, const char *filename)
             retval = LOADER_NOT_SUPPORT;
             goto out;
         }
-        if (!N_BADMAG(ehdr))
+        if (is_aout(&ehdr))
             break;
     }
 
-    if (N_BADMAG(ehdr)) {
+    if (!is_aout(&ehdr)) {
 	debug("Not a bootable a.out image\n");
 	retval = LOADER_NOT_SUPPORT;
 	goto out;

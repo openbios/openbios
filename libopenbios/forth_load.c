@@ -16,8 +16,13 @@
 #define debug printk
 
 static int fd;
-
 static char *forthtext=NULL;
+
+int is_forth(char *forth)
+{
+	return (forth[0] == '\\' && forth[1] == ' ');
+}
+
 int forth_load(const char *filename)
 {
     char magic[2];
@@ -37,7 +42,7 @@ int forth_load(const char *filename)
 	goto out;
     }
 
-    if (magic[0] != '\\' || magic[1] != ' ') {
+    if (!is_forth(magic)) {
 	debug("No forth source image\n");
 	retval = LOADER_NOT_SUPPORT;
 	goto out;
