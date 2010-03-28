@@ -42,12 +42,14 @@ modules_init( void )
 #ifdef CONFIG_SUN_PARTS
 	sunparts_init();
 #endif
-#ifdef CONFIG_PPC
-	elf_loader_init();
+#ifdef CONFIG_LOADER_XCOFF
 	xcoff_loader_init();
+#endif
+#ifdef CONFIG_LOADER_ELF
+	elf_loader_init();
+#endif
+#ifdef CONFIG_PPC
 	bootinfo_loader_init();
 #endif
-#ifdef CONFIG_SPARC64
-	elf_loader_init();
-#endif
+
 }

@@ -49,6 +49,7 @@ elf_loader_init_program( void *dummy )
 	Elf_phdr *phdr;
 	size_t size;
 	char *addr;
+	cell tmp;
 
 	feval("0 state-valid !");
 
@@ -67,11 +68,16 @@ elf_loader_init_program( void *dummy )
 		size = MIN(phdr[i].p_filesz, phdr[i].p_memsz);
 		if (!size)
 			continue;
+#if 0
 		if( ofmem_claim( phdr[i].p_vaddr, phdr[i].p_memsz, 0 ) == -1 ) {
                         printk("Claim failed!\n");
 			return;
 		}
-		addr = (char*)phdr[i].p_vaddr;
+#endif
+		/* Workaround for archs where sizeof(int) != pointer size */
+		tmp = phdr[i].p_vaddr;
+		addr = (char *)tmp;
+
 		memcpy(addr, base + phdr[i].p_offset, size);
 #ifdef CONFIG_PPC
 		flush_icache_range( addr, addr + size );

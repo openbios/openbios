@@ -11,6 +11,8 @@
 #include "libopenbios/sys_info.h"
 #include "libopenbios/elf_load.h"
 #include "libopenbios/aout_load.h"
+#include "libopenbios/fcode_load.h"
+#include "libopenbios/forth_load.h"
 #include "openprom.h"
 #include "boot.h"
 
@@ -33,22 +35,44 @@ static int try_path(const char *path, char *param, const void *romvec)
         bootpath = pop_fstr_copy();
         printk("Trying %s (%s)\n", path, bootpath);
 
+#ifdef CONFIG_LOADER_ELF
 	/* ELF Boot loader */
 	elf_load(&sys_info, path, param, &boot_notes);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)
 		goto start_image;
+#endif
 
 	/* Linux loader (not using Forth) */
 	linux_load(&sys_info, path, param);
 
+#ifdef CONFIG_LOADER_AOUT
 	/* a.out loader */
 	aout_load(&sys_info, path);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)
 		goto start_image;
+#endif
+
+#ifdef CONFIG_LOADER_FCODE
+	/* Fcode loader */
+	fcode_load(path);
+	feval("state-valid @");
+	valid = POP();
+	if (valid)
+		goto start_image;
+#endif
+
+#ifdef CONFIG_LOADER_FORTH
+	/* Forth loader */
+	forth_load(path);
+	feval("state-valid @");
+	valid = POP();
+	if (valid)
+		goto start_image;
+#endif
 
 	return 0;
 
@@ -77,6 +101,23 @@ start_image:
 			entry = (void *) address;
 			image_retval = entry(romvec, 0, 0, 0, 0);
 
+			break;
+
+		case 0x10:
+			/* Start Fcode image */
+			printk("Evaluating FCode...\n");
+			PUSH(address);
+			PUSH(1);
+			fword("byte-load");
+			image_retval = 0;
+			break;
+
+		case 0x11:
+			/* Start Forth image */
+			PUSH(address);
+			PUSH(size);
+			fword("eval2");
+			image_retval = 0;
 			break;
 	}
 
