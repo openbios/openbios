@@ -1582,16 +1582,16 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 
 		/* The first interrupt entry is the ide interrupt, the second
 		   the dbdma interrupt */
-		switch (current_channel) {
-		case 1:
+		switch (i) {
+		case 0:
 			props[0] = 0x0000000d;
 			props[2] = 0x00000002;
 			break;
-		case 2:
+		case 1:
 			props[0] = 0x0000000e;
 			props[2] = 0x00000003;
 			break;
-		case 3:
+		case 2:
 			props[0] = 0x0000000f;
 			props[2] = 0x00000004;
 			break;
