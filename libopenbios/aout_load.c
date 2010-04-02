@@ -10,7 +10,6 @@
 #define CONFIG_SPARC64_PAGE_SIZE_8KB
 #endif
 
-#include "arch/common/a.out.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/aout_load.h"

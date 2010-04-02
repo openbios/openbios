@@ -16,9 +16,12 @@
 
 #include "config.h"
 #include "libopenbios/openbios.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/initprogram.h"
 
 void
 openbios_init( void )
 {
-	// TODO 
+	// Bind the C implementation of (init-program) into Forth
+	bind_func("(init-program)", init_program);
 }
