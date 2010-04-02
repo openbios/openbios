@@ -125,6 +125,7 @@ uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler)
     ctx = init_context(image_stack, sizeof image_stack, 0);
     ctx->pc  = entry_point;
     ctx->npc = entry_point+4;
+    ctx->regs[REG_O0] = 0;
     ctx->regs[REG_O0+4] = cif_handler;
 
     ctx = switch_to(ctx);

@@ -480,6 +480,7 @@ arch_init( void )
         device_end();
 
 	bind_func("platform-boot", boot );
+	bind_func("(go)", go);
 }
 
 unsigned long isa_io_base;
