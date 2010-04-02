@@ -12,6 +12,7 @@
   <object source="font_8x16.c" condition="FONT_8X16"/>
   <object source="fcode_load.c" condition="LOADER_FCODE"/>  
   <object source="forth_load.c" condition="LOADER_FORTH"/>
+  <object source="init.c"/>
   <object source="ipchecksum.c"/>
   <object source="linuxbios_info.c" condition="LINUXBIOS"/>
   <object source="ofmem_common.c" condition="OFMEM"/>

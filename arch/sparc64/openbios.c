@@ -7,6 +7,7 @@
  */
 
 #include "config.h"
+#include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "dict.h"
@@ -470,6 +471,7 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
+	openbios_init();
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI
         ob_pci_init();

@@ -7,6 +7,7 @@
  */
 
 #include "config.h"
+#include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
 #include "asm/types.h"
 #include "dict.h"
@@ -38,6 +39,7 @@ arch_init( void )
 {
 	void setup_timers(void);
 
+	openbios_init();
 	modules_init();
 #ifdef CONFIG_DRIVER_IDE
 	setup_timers();

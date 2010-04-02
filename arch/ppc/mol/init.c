@@ -16,6 +16,7 @@
  */
 
 #include "config.h"
+#include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
 #include "arch/common/nvram.h"
 #include "mol/mol.h"
@@ -86,6 +87,7 @@ arch_of_init( void )
 	devtree_init();
 	node_methods_init();
 	nvram_init("/pci/mac-io/nvram");
+	openbios_init();
 	modules_init();
 	pseudodisk_init();
 	osiblk_init();

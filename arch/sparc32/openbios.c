@@ -7,6 +7,7 @@
  */
 
 #include "config.h"
+#include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "asm/types.h"
@@ -130,6 +131,7 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
+	openbios_init();
 	modules_init();
         ob_init_mmu();
         ob_init_iommu(hwdef->iommu_base);

@@ -32,6 +32,7 @@
 #include "kernel/stack.h"
 #include "arch/unix/plugins.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/openbios.h"
 #include "openbios-version.h"
 
 #include "blk.h"
@@ -358,6 +359,7 @@ void exception(__attribute__((unused)) cell no)
 static void
 arch_init( void )
 {
+	openbios_init();
 	modules_init();
 	if(diskemu!=-1)
 		blk_init();

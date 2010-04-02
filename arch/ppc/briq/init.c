@@ -20,6 +20,7 @@
  */
 
 #include "config.h"
+#include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
 #include "arch/common/nvram.h"
 #include "briq/briq.h"

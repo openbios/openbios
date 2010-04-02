@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+#include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
 #include "drivers/pci.h"
 #include "arch/common/nvram.h"
@@ -490,6 +491,7 @@ arch_of_init( void )
 
     ofmem_t *ofmem = ofmem_arch_get_private();
 
+	openbios_init();
         modules_init();
         setup_timers();
 #ifdef CONFIG_DRIVER_PCI
