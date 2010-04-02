@@ -167,13 +167,13 @@ bootinfo_loader_init_program( void *dummy )
 		} else if (c == '>') {
 			tag = 0;
 			tagbuf[taglen] = '\0';
-			if (strcasecmp(tagbuf, "chrp-boot") == 0) {
+			if (strncasecmp(tagbuf, "chrp-boot", 9) == 0) {
 				chrp = 1;
 			} else if (chrp == 1) {
-				if (strcasecmp(tagbuf, "boot-script") == 0) {
+				if (strncasecmp(tagbuf, "boot-script", 11) == 0) {
 					script = 1;
 					scriptlen = 0;
-				} else if (strcasecmp(tagbuf, "/boot-script") == 0) {
+				} else if (strncasecmp(tagbuf, "/boot-script", 12) == 0) {
 
 					script = 0;
 					bootscript[scriptlen] = '\0';
@@ -184,7 +184,7 @@ bootinfo_loader_init_program( void *dummy )
 					feval("-1 state-valid !");
 
 					break;
-				} else if (strcasecmp(tagbuf, "/chrp-boot") == 0)
+				} else if (strncasecmp(tagbuf, "/chrp-boot", 10) == 0)
 					break;
 			}
 		} else if (tag && taglen < sizeof(tagbuf)) {
@@ -195,26 +195,26 @@ bootinfo_loader_init_program( void *dummy )
 		} else if (entity && c ==';') {
 			entity = 0;
 			tagbuf[taglen] = '\0';
-			if (strcasecmp(tagbuf, "lt") == 0) {
+			if (strncasecmp(tagbuf, "lt", 2) == 0) {
 				bootscript[scriptlen++] = '<';
-			} else if (strcasecmp(tagbuf, "gt") == 0) {
+			} else if (strncasecmp(tagbuf, "gt", 2) == 0) {
 				bootscript[scriptlen++] = '>';
-			} else if (strcasecmp(tagbuf, "device") == 0) {
+			} else if (strncasecmp(tagbuf, "device", 6) == 0) {
 				strcpy(bootscript + scriptlen, device);
 				scriptlen += strlen(device);
-			} else if (strcasecmp(tagbuf, "partition") == 0) {
+			} else if (strncasecmp(tagbuf, "partition", 9) == 0) {
 				if (partition != -1)
 			sprintf(bootscript + scriptlen, "%d", partition);
 				else
 					*(bootscript + scriptlen) = 0;
 				scriptlen = strlen(bootscript);
-			} else if (strcasecmp(tagbuf, "directory") == 0) {
+			} else if (strncasecmp(tagbuf, "directory", 9) == 0) {
 				strcpy(bootscript + scriptlen, directory);
 				scriptlen += strlen(directory);
-			} else if (strcasecmp(tagbuf, "filename") == 0) {
+			} else if (strncasecmp(tagbuf, "filename", 8) == 0) {
 				strcpy(bootscript + scriptlen, filename);
 				scriptlen += strlen(filename);
-			} else if (strcasecmp(tagbuf, "full-path") == 0) {
+			} else if (strncasecmp(tagbuf, "full-path", 9) == 0) {
 				strcpy(bootscript + scriptlen, bootpath);
 				scriptlen += strlen(bootpath);
 			} else { /* unknown, keep it */

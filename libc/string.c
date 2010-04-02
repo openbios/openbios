@@ -511,3 +511,18 @@ strcasecmp( const char *cs, const char *ct )
 	}
 	return __res;
 }
+
+int
+strncasecmp( const char *cs, const char *ct, size_t count )
+{
+	register signed char __res;
+
+	while (count--) {
+		char ch1 = toupper(*cs), ch2 = toupper(*ct);
+		ct++;
+		if ((__res = ch1 - ch2) != 0 || !*cs++)
+			break;
+	}
+	return __res;
+}
+

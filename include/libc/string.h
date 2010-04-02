@@ -52,6 +52,7 @@ extern void	*memchr(const void *s, int c, size_t n);
 
 extern char	*strdup( const char *str );
 extern int	strcasecmp( const char *cs, const char *ct );
+extern int	strncasecmp( const char *cs, const char *ct, size_t count );
 
 extern  char 	*strncpy_nopad( char *dest, const char *src, size_t n );
 
