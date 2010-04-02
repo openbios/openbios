@@ -19,7 +19,8 @@ void *init_openprom(void);
 // boot.c
 extern struct sys_info sys_info;
 extern const char *bootpath;
-void boot(void);
+extern void boot(void);
+extern void go(void);
 
 // sys_info.c
 extern unsigned int qemu_mem_size;

@@ -23,8 +23,7 @@ struct sys_info sys_info;
 static int try_path(const char *path, char *param)
 {
 	void *boot_notes = NULL;
-	ucell valid, address, type, size;
-	int image_retval = 0;;
+	ucell valid;
 
 #ifdef CONFIG_LOADER_ELF
 	/* ELF Boot loader */
@@ -69,6 +68,16 @@ static int try_path(const char *path, char *param)
 
 
 start_image:
+	go();
+	return -1;
+}
+
+
+void go(void)
+{
+	ucell address, type, size;
+	int image_retval = 0;
+
 	/* Get the entry point and the type (see forth/debugging/client.fs) */
 	feval("saved-program-state >sps.entry @");
 	address = POP();
@@ -109,9 +118,8 @@ start_image:
 	}
 
 	printk("Image returned with return value %#x\n", image_retval);
-
-	return -1;
 }
+
 
 void boot(void)
 {

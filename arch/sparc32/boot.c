@@ -22,13 +22,14 @@ uint32_t kernel_size;
 uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;
+static const void *romvec;
 static int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
 
-static int try_path(const char *path, char *param, const void *romvec)
+
+static int try_path(const char *path, char *param)
 {
 	void *boot_notes = NULL;
-	ucell valid, address, type, size;
-	int image_retval = 0;
+	ucell valid;
 
         push_str(path);
         fword("pathres-resolve-aliases");
@@ -78,6 +79,16 @@ static int try_path(const char *path, char *param, const void *romvec)
 
 
 start_image:
+	go();
+	return -1;
+}
+
+
+void go(void)
+{
+	ucell address, type, size;
+	int image_retval = 0;
+
 	/* Get the entry point and the type (see forth/debugging/client.fs) */
 	feval("saved-program-state >sps.entry @");
 	address = POP();
@@ -122,8 +133,6 @@ start_image:
 	}
 
 	printk("Image returned with return value %#x\n", image_retval);
-
-	return -1;
 }
 
 
@@ -132,7 +141,6 @@ void boot(void)
         char *path = pop_fstr_copy(), *param, altpath[256];
         const char *oldpath = path;
         int unit = 0;
-        const void *romvec;
 	int result;
 
 	if(!path) {
@@ -209,7 +217,7 @@ void boot(void)
 	else
 		printk("without parameters.\n");
 
-        result = try_path(path, param, romvec);
+        result = try_path(path, param);
 	if (!result) {
 		push_str(path);
 		PUSH(':');
@@ -218,7 +226,7 @@ void boot(void)
 		POP();
 		POP();
 	
-		try_path(altpath, param, romvec);
+		try_path(altpath, param);
 	}
 
 	printk("Unsupported image format\n");

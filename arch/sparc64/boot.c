@@ -26,8 +26,7 @@ extern int sparc64_of_client_interface( int *params );
 static int try_path(const char *path, char *param)
 {
 	void *boot_notes = NULL;
-	ucell valid, address, type, size;
-	int image_retval = 0;
+	ucell valid;
 
 #ifdef CONFIG_LOADER_ELF
 	/* ELF Boot loader */
@@ -72,6 +71,16 @@ static int try_path(const char *path, char *param)
 
 
 start_image:
+	go();
+	return -1;
+}
+
+
+void go(void)
+{
+	ucell address, type, size;
+	int image_retval = 0;
+
 	/* Get the entry point and the type (see forth/debugging/client.fs) */
 	feval("saved-program-state >sps.entry @");
 	address = POP();
@@ -85,7 +94,7 @@ start_image:
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
-			image_retval = start_elf(address, (uint64_t)boot_notes);
+			image_retval = start_elf(address, (uint64_t)NULL);
 			break;
 
 		case 0x5:
@@ -112,9 +121,8 @@ start_image:
 	}
 
 	printk("Image returned with return value %#x\n", image_retval);
-
-	return -1;
 }
+
 
 void boot(void)
 {

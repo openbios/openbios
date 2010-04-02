@@ -15,4 +15,5 @@ unsigned int start_elf(unsigned long entry_point, unsigned long param);
 
 /* boot.c */
 extern struct sys_info sys_info;
-void boot(void);
+extern void boot(void);
+extern void go(void);
