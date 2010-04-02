@@ -37,6 +37,7 @@
   <option name="CONFIG_FONT_8X8" type="boolean" value="true"/>
   <option name="CONFIG_FONT_8X16" type="boolean" value="false"/>
   <option name="CONFIG_LOADER_AOUT" type="boolean" value="false"/>
+  <option name="CONFIG_LOADER_BOOTINFO" type="boolean" value="false"/>
   <option name="CONFIG_LOADER_ELF" type="boolean" value="true"/>
   <option name="CONFIG_LOADER_FCODE" type="boolean" value="false"/>
   <option name="CONFIG_LOADER_FORTH" type="boolean" value="true"/>

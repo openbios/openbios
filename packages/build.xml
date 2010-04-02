@@ -1,7 +1,7 @@
 <build>
 
  <library name="packages" type="static" target="target">
-  <object source="bootinfo-loader.c" condition="PPC"/>
+  <object source="bootinfo-loader.c" condition="LOADER_BOOTINFO"/>
   <object source="cmdline.c" condition="CMDLINE"/>
   <object source="deblocker.c" condition="DEBLOCKER"/>
   <object source="disk-label.c" condition="DISK_LABEL"/>
