@@ -515,7 +515,7 @@ strcasecmp( const char *cs, const char *ct )
 int
 strncasecmp( const char *cs, const char *ct, size_t count )
 {
-	register signed char __res;
+	register signed char __res = 0;
 
 	while (count--) {
 		char ch1 = toupper(*cs), ch2 = toupper(*ct);
