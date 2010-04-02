@@ -58,6 +58,7 @@ xcoff_init_program(void)
 	COFF_aouthdr_t *ahdr;
 	COFF_scnhdr_t *shdr;
 	uint32_t offset;
+	size_t total_size = 0;
 	int i;
 
 	feval("0 state-valid !");
@@ -112,6 +113,7 @@ xcoff_init_program(void)
 
 			memcpy((char*)shdr->s_vaddr, base + shdr->s_scnptr,
 			       shdr->s_size);
+			total_size += shdr->s_size;
 #ifdef CONFIG_PPC
 			flush_icache_range((char*)shdr->s_vaddr,
 					 (char*)(shdr->s_vaddr + shdr->s_size));
@@ -120,22 +122,26 @@ xcoff_init_program(void)
 
 			memcpy((char*)shdr->s_vaddr, base + shdr->s_scnptr,
 			       shdr->s_size);
+			total_size += shdr->s_size;
 
 		} else if (strcmp(shdr->s_name, ".bss") == 0) {
 
 			memset((void *)shdr->s_vaddr, 0, shdr->s_size);
-
+			total_size += shdr->s_size;
 		} else {
 			DPRINTF("    Skip '%s' section\n", shdr->s_name);
 		}
 		offset += sizeof(COFF_scnhdr_t);
 	}
 
-	/* FIXME: should initialize saved-program-state. */
-
 	DPRINTF("XCOFF entry point: %x\n", *(uint32_t*)ahdr->entry);
+
+	// Initialise saved-program-state
 	PUSH(*(uint32_t*)ahdr->entry);
-	feval("xcoff-entry !");
+	feval("saved-program-state >sps.entry !");
+	PUSH(total_size);
+	feval("saved-program-state >sps.file-size !");
+	feval("xcoff saved-program-state >sps.file-type !");
 
 	feval("-1 state-valid !");
 }

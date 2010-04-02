@@ -126,7 +126,7 @@ bootinfo_init_program(void)
 	char *base;
 	int proplen;
 	phandle_t chosen;
-	int tag, taglen, script, scriptlen, entity, chrp;
+	int tag, taglen, script, scriptlen, scriptvalid, entity, chrp;
 	char tagbuf[128], c;
 	char *device, *filename, *directory;
 	int partition;
@@ -135,7 +135,7 @@ bootinfo_init_program(void)
         char *tmp;
 	char bootpath[1024];
 
-	feval("0 state-valid !");
+	/* Parse the boot script */
 
 	chosen = find_dev("/chosen");
 	tmp = get_property(chosen, "bootpath", &proplen);
@@ -169,6 +169,7 @@ bootinfo_init_program(void)
 	tag = 0;
 	taglen = 0;
 	script = 0;
+	scriptvalid = 0;
 	scriptlen = 0;
 	entity = 0;
 	current = 0;
@@ -197,7 +198,7 @@ bootinfo_init_program(void)
 					DPRINTF("got bootscript %s\n",
 						bootscript);
 
-					feval("-1 state-valid !");
+					scriptvalid = -1;
 
 					break;
 				} else if (strncasecmp(tagbuf, "/chrp-boot", 10) == 0)
@@ -246,7 +247,10 @@ bootinfo_init_program(void)
 			bootscript[scriptlen++] = c;
 		}
 	}
-	/* FIXME: should initialize saved-program-state. */
-	push_str(bootscript);
-	feval("bootinfo-size ! bootinfo-entry !");
+
+	/* If the payload is bootinfo then we execute it immediately */
+	if (scriptvalid)
+		feval(bootscript);
+	else
+		DPRINTF("Unable to parse bootinfo bootscript\n");
 }

@@ -95,6 +95,12 @@ fcode_init_program(void)
 
 	fword("load-base");
 	address = POP();
+
+	if (!is_fcode((unsigned char *)address)) {
+		debug("Not a valid Fcode memory image\n");
+		return;
+	}
+
 	PUSH(address);
 	PUSH(1);
 	fword("byte-load");

@@ -473,7 +473,7 @@ elf_init_program(void)
 	int i;
 	Elf_ehdr *ehdr;
 	Elf_phdr *phdr;
-	size_t size;
+	size_t size, total_size = 0;
 	char *addr;
 	cell tmp;
 
@@ -483,6 +483,12 @@ elf_init_program(void)
 	base = (char*)POP();
 
 	ehdr = (Elf_ehdr *)base;
+
+	if (!is_elf(ehdr)) {
+		debug("Not a valid ELF memory image\n");
+		return;
+	}
+
 	phdr = (Elf_phdr *)(base + ehdr->e_phoff);
 
 	for (i = 0; i < ehdr->e_phnum; i++) {
@@ -508,12 +514,20 @@ elf_init_program(void)
 		addr = (char *)tmp;
 
 		memcpy(addr, base + phdr[i].p_offset, size);
+
+		total_size += size;
+
 #ifdef CONFIG_PPC
 		flush_icache_range( addr, addr + size );
 #endif
 	}
-	/* FIXME: should initialize saved-program-state. */
+
+	// Initialise saved-program-state
 	PUSH(ehdr->e_entry);
-	feval("elf-entry !");
+	feval("saved-program-state >sps.entry !");
+	PUSH(total_size);
+	feval("saved-program-state >sps.file-size !");
+	feval("elf saved-program-state >sps.file-type !");
+
 	feval("-1 state-valid !");
 }
