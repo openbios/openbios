@@ -107,6 +107,13 @@ void go(void)
 
 			break;
 
+		case 0x1:
+			/* Start ELF image */
+			entry = (void *) address;
+			image_retval = entry(romvec, 0, 0, 0, 0);
+
+			break;
+
 		case 0x5:
 			/* Start a.out image */
 			entry = (void *) address;

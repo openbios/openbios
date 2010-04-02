@@ -97,23 +97,17 @@ variable file-size
 ;
 
 : go    ( -- )
-  state-valid @ not if exit then
-  elf saved-program-state >sps.file-type @ = if
-[IFDEF] CONFIG_PPC
-    saved-program-state >sps.entry @ " (go)" evaluate
-[ELSE]
-    ." go is not yet implemented"
-[THEN]
+  state-valid @ not if
+    s" No valid state has been set by load or init-program" type cr
+    exit 
+  then
+
+  \ Call the architecture-specific code to launch the client image
+  s" (go)" $find if
+    execute
   else
-    xcoff saved-program-state >sps.file-type @ = if
-[IFDEF] CONFIG_PPC
-      saved-program-state >sps.entry @ " (go)" evaluate
-[ELSE]
-      ." go is not yet implemented"
-[THEN]
-    else
-      ." go is not yet implemented"
-    then
+    ." go is not yet implemented"
+    2drop
   then
   ;
 

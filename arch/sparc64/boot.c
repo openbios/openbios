@@ -20,12 +20,12 @@ uint64_t kernel_size;
 uint64_t qemu_cmdline;
 uint64_t cmdline_size;
 char boot_device;
+void *boot_notes = NULL;
 extern int sparc64_of_client_interface( int *params );
 
 
 static int try_path(const char *path, char *param)
 {
-	void *boot_notes = NULL;
 	ucell valid;
 
 #ifdef CONFIG_LOADER_ELF
@@ -94,7 +94,12 @@ void go(void)
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
-			image_retval = start_elf(address, (uint64_t)NULL);
+			image_retval = start_elf(address, (uint64_t)&boot_notes);
+			break;
+
+		case 0x1:
+			/* Start ELF image */
+			image_retval = start_client_image(address, (uint64_t)&sparc64_of_client_interface);
 			break;
 
 		case 0x5:

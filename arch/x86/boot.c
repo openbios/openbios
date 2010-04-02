@@ -19,10 +19,10 @@
 #include "boot.h"
 
 struct sys_info sys_info;
+void *boot_notes = NULL;
 
 static int try_path(const char *path, char *param)
 {
-	void *boot_notes = NULL;
 	ucell valid;
 
 #ifdef CONFIG_LOADER_ELF
@@ -91,6 +91,11 @@ void go(void)
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
+			image_retval = start_elf(address, (uint32_t)&boot_notes);
+			break;
+
+		case 0x1:
+			/* Start ELF image */
 			image_retval = start_elf(address, (uint32_t)NULL);
 			break;
 
