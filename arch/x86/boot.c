@@ -86,7 +86,7 @@ void go(void)
 	feval("saved-program-state >sps.file-size @");
 	size = POP();
 
-	printk("Jumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
+	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
 
 	switch (type) {
 		case 0x0:
