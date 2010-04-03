@@ -245,7 +245,11 @@ handle_calls( prom_args_t *pb )
 	push_str( pb->service );
 	fword("client-call-iface");
 
-	for( i=0; i<pb->nret && dstackcnt > dstacksave; i++ ) {
+	/* Drop the return code from client-call-iface (status is handled by the 
+	   catch result which is the first parameter below) */
+	POP();
+
+	for( i=0; i<pb->nret; i++ ) {
                 val = POP();
 		pb->args[pb->nargs + i] = val;
 
@@ -253,9 +257,10 @@ handle_calls( prom_args_t *pb )
 		if( !i && val )
 			break;
 	}
+
 #ifdef DEBUG_CIF
 	/* useful for debug but not necessarily an error */
-	if( i != pb->nret || dstacksave != dstacksave ) {
+	if( i != pb->nret || dstackcnt != dstacksave ) {
                 printk("%s '%s': possible argument error (%ld--%ld) got %d\n",
 		       pb->service, (char*)pb->args[0], pb->nargs-2, pb->nret, i );
 	}
@@ -266,6 +271,7 @@ handle_calls( prom_args_t *pb )
         }
         printk("\n");
 #endif
+
 	dstackcnt = dstacksave;
 	return 0;
 }
@@ -279,6 +285,7 @@ of_client_interface( int *params )
 	if( pb->nargs < 0 || pb->nret < 0 ||
             pb->nargs + pb->nret > PROM_MAX_ARGS)
 		return -1;
+
 #ifdef DEBUG_CIF
 	dump_service(pb);
 #endif
@@ -302,16 +309,21 @@ of_client_interface( int *params )
 		return -1;
 	}
 
-	for( pb->nret=0; dstackcnt > dstacksave ; pb->nret++ )
-		pb->args[pb->nargs + pb->nret] = POP();
+	for( i=0; i<pb->nret ; i++ )
+		pb->args[pb->nargs + i] = POP();
 
-#ifdef DEBUG_CIF
 	if( dstackcnt != dstacksave ) {
-		printk("service %s: argument count error (%d %d)\n",
+#ifdef DEBUG_CIF
+		printk("service %s: possible argument error (%d %d)\n",
 		       pb->service, i, dstackcnt - dstacksave );
+#endif
+		/* Some clients request less parameters than the CIF method
+		returns, e.g. getprop with OpenSolaris. Hence we drop any
+		stack parameters after issuing a warning above */
 		dstackcnt = dstacksave;
 	}
 
+#ifdef DEBUG_CIF
 	dump_return(pb);
 #endif
 	return 0;
