@@ -302,11 +302,11 @@ of_client_interface( int *params )
 		return -1;
 	}
 
-	for( i=0; i<pb->nret && dstackcnt > dstacksave ; i++ )
-		pb->args[pb->nargs + i] = POP();
+	for( pb->nret=0; dstackcnt > dstacksave ; pb->nret++ )
+		pb->args[pb->nargs + pb->nret] = POP();
 
 #ifdef DEBUG_CIF
-	if( i != pb->nret || dstackcnt != dstacksave ) {
+	if( dstackcnt != dstacksave ) {
 		printk("service %s: argument count error (%d %d)\n",
 		       pb->service, i, dstackcnt - dstacksave );
 		dstackcnt = dstacksave;

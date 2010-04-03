@@ -341,4 +341,5 @@ device-end
 : client-call-iface ( [args] name len -- [args] -1 | [rets] 0 )
   ciface-ph find-method 0= if -1 exit then
   execute
+  0
 ;
