@@ -162,8 +162,6 @@ realloc( void *ptr, size_t size )
 /*	misc								*/
 /************************************************************************/
 
-extern char _start[], _end[];
-
 ucell ofmem_arch_default_translation_mode( ucell phys )
 {
 	/* XXX: Guard bit not set as it should! */

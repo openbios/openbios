@@ -472,6 +472,7 @@ go( void )
 {
     ucell addr;
 
+    feval("saved-program-state >sps.entry @");
     addr = POP();
 
     call_elf( 0, 0, addr);
