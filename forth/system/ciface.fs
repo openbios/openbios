@@ -92,7 +92,7 @@ external
   then
 
   \ return -1 if phandle is 0 (MacOS actually does this)
-  ?dup 0= if 2drop 2drop -1 exit then
+  ?dup 0= if drop 2drop -1 exit then
  
   over cstrlen swap
   ?phandle get-package-property if 2drop -1 exit then
