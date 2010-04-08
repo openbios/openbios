@@ -376,8 +376,6 @@ mem_claim( void )
 
     phys = ofmem_claim_phys(phys, size, align);
 
-    ofmem_map(phys, phys, size, -1);
-
     PUSH(phys & 0xffffffffUL);
     PUSH(phys >> 32);
 }
