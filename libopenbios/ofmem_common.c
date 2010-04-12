@@ -401,6 +401,8 @@ static ucell ofmem_claim_phys_( ucell phys, ucell size, ucell align,
 	}
 	add_entry( phys, size, &ofmem->phys_range );
 
+	ofmem_update_translations();
+
 	return phys;
 }
 
