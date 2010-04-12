@@ -23,6 +23,8 @@ typedef unsigned long long ucell;
 typedef __int128_t   dcell;
 typedef __uint128_t ducell;
 
+#define FMT_ucellx  "%016llx"
+
 #define FMT_elf     "%#x"
 
 #define bitspercell	(sizeof(cell)<<3)

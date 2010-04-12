@@ -519,6 +519,8 @@ int openbios(void)
         collect_sys_info(&sys_info);
 
         dict = malloc(DICTIONARY_SIZE);
+        dictlimit = DICTIONARY_SIZE;
+
 	load_dictionary((char *)sys_info.dict_start,
 			(unsigned long)sys_info.dict_end
                         - (unsigned long)sys_info.dict_start);

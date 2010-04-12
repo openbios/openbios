@@ -485,6 +485,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	dictlimit = DICTIONARY_SIZE;
 	memset(dict, 0, DICTIONARY_SIZE);
 
 	if (!segfault) {

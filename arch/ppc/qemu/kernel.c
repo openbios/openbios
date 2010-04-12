@@ -83,6 +83,8 @@ int
 initialize_forth( void )
 {
 	dict = malloc(DICTIONARY_SIZE);
+	dictlimit = DICTIONARY_SIZE;
+
 	load_dictionary( forth_dictionary, sizeof(forth_dictionary) );
 
 	PUSH_xt( bind_noname_func(arch_of_init) );

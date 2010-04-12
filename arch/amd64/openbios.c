@@ -19,7 +19,8 @@
 
 void boot(void);
 
-static char intdict[256 * 1024];
+#define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
+static char intdict[DICTIONARY_SIZE];
 
 static void init_memory(void)
 {
@@ -63,6 +64,8 @@ int openbios(void)
         collect_sys_info(&sys_info);
 
 	dict=intdict;
+	dictlimit = DICTIONARY_SIZE;
+
 	load_dictionary((char *)sys_info.dict_start,
 			sys_info.dict_end-sys_info.dict_start);
 

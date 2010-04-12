@@ -22,7 +22,8 @@
 void boot(void);
 void collect_sys_info(struct sys_info *info);
 
-static unsigned char intdict[256 * 1024];
+#define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
+static unsigned char intdict[DICTIONARY_SIZE];
 
 #ifdef CONFIG_DRIVER_PCI
 static const pci_arch_t default_pci_host = {
@@ -86,6 +87,8 @@ int openbios(void)
         collect_sys_info(&sys_info);
 
 	dict=intdict;
+	dictlimit = DICTIONARY_SIZE;
+
 	load_dictionary((char *)sys_info.dict_start,
 			(unsigned long)sys_info.dict_end -
 			(unsigned long)sys_info.dict_start);

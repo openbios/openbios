@@ -21,6 +21,7 @@
 unsigned char *dict = NULL;
 ucell *last;
 cell dicthead = 0;
+cell dictlimit = 0;
 
 /* lfa2nfa
  * converts a link field address to a name field address,

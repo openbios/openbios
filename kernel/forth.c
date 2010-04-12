@@ -851,6 +851,14 @@ static void herewrite(void)
 #ifdef CONFIG_DEBUG_INTERNAL
 	printk("here!: new value: %x\n", tmp);
 #endif
+
+	if (dictlimit && dicthead >= dictlimit) {
+	    printk("Dictionary space overflow:"
+	            " dicthead=" FMT_ucellx
+	            " dictlimit=" FMT_ucellx
+	            "\n",
+	            dicthead, dictlimit);
+	}
 }
 
 
