@@ -43,7 +43,6 @@ extern void	*memset(void * s,int c,size_t count);
 extern void 	*memcpy(void * dest,const void *src,size_t count);
 extern void 	*memmove(void * dest,const void *src,size_t count);
 extern int	memcmp(const void * cs,const void * ct,size_t count);
-extern void 	*memscan(void * addr, int c, size_t size);
 extern char 	*strstr(const char * s1,const char * s2);
 extern void	*memchr(const void *s, int c, size_t n);
 
