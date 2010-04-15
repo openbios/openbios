@@ -50,8 +50,6 @@ int strnicmp(const char *s1, const char *s2, size_t len)
 	return (int)c1 - (int)c2;
 }
 
-static char * ___strtok;
-
 /**
  * strcpy - Copy a %NUL terminated string
  * @dest: Where to copy the string to
@@ -263,33 +261,6 @@ char * strpbrk(const char * cs,const char * ct)
 		}
 	}
 	return NULL;
-}
-
-/**
- * strtok - Split a string into tokens
- * @s: The string to be searched
- * @ct: The characters to search for
- *
- * WARNING: strtok is deprecated, use strsep instead.
- */
-char * strtok(char * s,const char * ct)
-{
-	char *sbegin, *send;
-
-	sbegin  = s ? s : ___strtok;
-	if (!sbegin) {
-		return NULL;
-	}
-	sbegin += strspn(sbegin,ct);
-	if (*sbegin == '\0') {
-		___strtok = NULL;
-		return( NULL );
-	}
-	send = strpbrk( sbegin, ct);
-	if (send && *send != '\0')
-		*send++ = '\0';
-	___strtok = send;
-	return (sbegin);
 }
 
 /**
