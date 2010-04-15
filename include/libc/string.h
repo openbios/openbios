@@ -37,7 +37,6 @@ extern char 	*strchr(const char * s, int c);
 extern char 	*strrchr(const char * s, int c);
 extern size_t	strlen(const char * s);
 extern size_t	strnlen(const char * s, size_t count);
-extern size_t	strspn(const char *s, const char *accept);
 extern char 	*strpbrk(const char * cs,const char * ct);
 extern char 	*strsep(char **s, const char *ct);
 extern void	*memset(void * s,int c,size_t count);
