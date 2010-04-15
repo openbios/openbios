@@ -43,7 +43,6 @@ extern void	*memset(void * s,int c,size_t count);
 extern void 	*memcpy(void * dest,const void *src,size_t count);
 extern void 	*memmove(void * dest,const void *src,size_t count);
 extern int	memcmp(const void * cs,const void * ct,size_t count);
-extern void	*memchr(const void *s, int c, size_t n);
 
 extern char	*strdup( const char *str );
 extern int	strcasecmp( const char *cs, const char *ct );
