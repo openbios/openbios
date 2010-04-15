@@ -40,7 +40,6 @@ extern size_t	strnlen(const char * s, size_t count);
 extern char 	*strpbrk(const char * cs,const char * ct);
 extern char 	*strsep(char **s, const char *ct);
 extern void	*memset(void * s,int c,size_t count);
-extern char 	*bcopy(const char * src, char * dest, int count);
 extern void 	*memcpy(void * dest,const void *src,size_t count);
 extern void 	*memmove(void * dest,const void *src,size_t count);
 extern int	memcmp(const void * cs,const void * ct,size_t count);
