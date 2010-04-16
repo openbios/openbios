@@ -33,7 +33,7 @@
 #define APB_MEM_BASE         0x1ff00000000ULL
 
 #define MEMORY_SIZE     (512*1024)      /* 512K ram for hosted system */
-#define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
+#define DICTIONARY_SIZE (512*1024)      /* 512K for the dictionary   */
 
 static ucell *memory;
 
