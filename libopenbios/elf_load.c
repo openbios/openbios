@@ -264,11 +264,13 @@ static Elf_Bhdr *add_boot_note(Elf_Bhdr *bhdr, const char *name,
     memcpy(addr, &nhdr, sizeof(nhdr));
     addr += sizeof(nhdr);
 
-    memcpy(addr, name, nhdr.n_namesz);
-    addr += nhdr.n_namesz;
-    pad = padded(nhdr.n_namesz) - nhdr.n_namesz;
-    memset(addr, 0, pad);
-    addr += pad;
+    if (name && nhdr.n_namesz) {
+        memcpy(addr, name, nhdr.n_namesz);
+        addr += nhdr.n_namesz;
+        pad = padded(nhdr.n_namesz) - nhdr.n_namesz;
+        memset(addr, 0, pad);
+        addr += pad;
+    }
 
     memcpy(addr, desc, nhdr.n_descsz);
     addr += nhdr.n_descsz;

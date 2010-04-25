@@ -68,6 +68,9 @@ dlabel_open( dlabel_info_t *di )
 	if (!path) {
 		path = strdup("");
 	}
+        if (!path) {
+                goto out;
+        }
 	DPRINTF("dlabel-open '%s'\n", path );
 
 	/* open disk interface */
