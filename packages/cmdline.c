@@ -178,7 +178,7 @@ static void /* ( -- ) */
 cmdline_prompt( cmdline_info_t *ci )
 {
 	int cur_added=0, histind=0, ch, i, pos=0, n=0, prompt=1;
-	char *buf = ci->buf;
+        char *buf;
 	int terminate = 0;
 
 	buf = ci->buf;

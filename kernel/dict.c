@@ -286,7 +286,6 @@ ucell load_dictionary(const char *data, ucell len)
 	}
 
 	data += sizeof(dictionary_header_t);
-	len -= sizeof(dictionary_header_t);
 
 	dicthead = target_long(header->length);
 

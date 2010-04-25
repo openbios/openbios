@@ -103,7 +103,7 @@ void collect_elfboot_info(struct sys_info *info)
     Elf_Bhdr *hdr = NULL;
     char *addr, *end;
     Elf_Nhdr *nhdr;
-    char *name, *desc;
+    char *desc;
 
     if (info->boot_type == ELF_BHDR_MAGIC)
 	hdr = phys_to_virt(info->boot_data);
@@ -123,7 +123,6 @@ void collect_elfboot_info(struct sys_info *info)
     while (addr <  end) {
 	nhdr = (Elf_Nhdr *) addr;
 	addr += sizeof(Elf_Nhdr);
-	name = addr;
 	addr += (nhdr->n_namesz + 3) & ~3;
 	desc = addr;
 	addr += (nhdr->n_descsz + 3) & ~3;

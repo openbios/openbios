@@ -274,7 +274,6 @@ static Elf_Bhdr *add_boot_note(Elf_Bhdr *bhdr, const char *name,
     addr += nhdr.n_descsz;
     pad = padded(nhdr.n_descsz) - nhdr.n_descsz;
     memset(addr, 0, pad);
-    addr += pad;
 
     bhdr->b_size += ent_size;
     bhdr->b_records++;

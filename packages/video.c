@@ -308,7 +308,10 @@ NODE_METHODS( video ) = {
 void
 init_video( unsigned long fb,  int width, int height, int depth, int rb )
 {
-	int i, s, size;
+        int i;
+#ifdef CONFIG_PPC
+        int s, size;
+#endif
 	phandle_t ph=0;
 
 	video.fb.mphys = fb;
@@ -326,11 +329,10 @@ init_video( unsigned long fb,  int width, int height, int depth, int rb )
 	video.has_video = 1;
 	video.pal = malloc( 256 * sizeof(ulong) );
 
-	s = (video.fb.mphys & 0xfff);
-	size = ((video.fb.h * video.fb.rb + s) + 0xfff) & ~0xfff;
-	s = video.fb.mphys - s;
-
 #ifdef CONFIG_PPC
+        s = (video.fb.mphys & 0xfff);
+        size = ((video.fb.h * video.fb.rb + s) + 0xfff) & ~0xfff;
+
 	ofmem_claim_phys( video.fb.mphys, size, 0 );
 	ofmem_claim_virt( video.fb.mphys, size, 0 );
 	ofmem_map( video.fb.mphys, video.fb.mphys, size, -1 );

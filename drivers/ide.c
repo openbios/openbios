@@ -196,8 +196,10 @@ ob_ide_400ns_delay(struct ide_drive *drive)
 static void
 ob_ide_error(struct ide_drive *drive, unsigned char stat, const char *msg)
 {
+#ifdef CONFIG_DEBUG_IDE
 	struct ide_channel *chan = drive->channel;
 	unsigned char err;
+#endif
 
 	if (!stat)
 		stat = ob_ide_pio_readb(drive, IDEREG_STATUS);
@@ -206,11 +208,15 @@ ob_ide_error(struct ide_drive *drive, unsigned char stat, const char *msg)
 	IDE_DPRINTF("    cmd=%x, stat=%x", chan->ata_cmd.command, stat);
 
 	if ((stat & (BUSY_STAT | ERR_STAT)) == ERR_STAT) {
-		err = ob_ide_pio_readb(drive, IDEREG_ERROR);
+#ifdef CONFIG_DEBUG_IDE
+                err =
+#endif
+                    ob_ide_pio_readb(drive, IDEREG_ERROR);
 		IDE_DPRINTF(", err=%x", err);
 	}
 	IDE_DPRINTF("\n");
 
+#ifdef CONFIG_DEBUG_IDE
 	/*
 	 * see if sense is valid and dump that
 	 */
@@ -237,6 +243,7 @@ ob_ide_error(struct ide_drive *drive, unsigned char stat, const char *msg)
 			IDE_DPRINTF(", no sense");
 		IDE_DPRINTF("\n");
 	}
+#endif
 }
 
 /*

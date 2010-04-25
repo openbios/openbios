@@ -146,7 +146,7 @@ volume_readbuf(hfsp_vh* vh, char * p)
 	p = volume_readfork(p, &vh->ext_file   );
 	p = volume_readfork(p, &vh->cat_file   );
 	p = volume_readfork(p, &vh->attr_file  );
-	p = volume_readfork(p, &vh->start_file );
+        volume_readfork(p, &vh->start_file );
 	return 0;
   fail:
 	return -1;

@@ -97,10 +97,8 @@ ob_pci_decode_unit(int *idx)
 	int bus = 0;		/* no information */
 	char *ptr;
 
-	dev = 0;
 	fn = 0;
 	reg = 0;
-	ss = 0;
 	n = 0;
 	p = 0;
 	t = 0;
@@ -202,14 +200,13 @@ ob_pci_encode_unit(int *idx)
 	cell hi = POP();
 	cell mid = POP();
 	cell lo = POP();
-	int n, p, t, ss, bus, dev, fn, reg;
+        int n, p, t, ss, dev, fn, reg;
 
 	n = hi & IS_NOT_RELOCATABLE;
 	p = hi & IS_PREFETCHABLE;
 	t = hi & IS_ALIASED;
 	ss = (hi >> 24) & 0x03;
 
-	bus = (hi >> 16) & 0xFF;
 	dev = (hi >> 11) & 0x1F;
 	fn = (hi >> 8) & 0x07;
 	reg = hi & 0xFF;
@@ -928,7 +925,7 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 	pci_config_t config;
         const pci_dev_t *pci_dev;
 	uint32_t ccode;
-	uint8_t class, subclass, iface, rev;
+        uint8_t class, subclass, iface;
 	int num_bars, rom_bar;
 
 	activate_device("/");
@@ -950,7 +947,6 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 			class = ccode >> 8;
 			subclass = ccode;
 			iface = pci_config_read8(addr, PCI_CLASS_PROG);
-			rev = pci_config_read8(addr, PCI_REVISION_ID);
 
 			pci_dev = pci_find_device(class, subclass, iface,
 						  vid, did);

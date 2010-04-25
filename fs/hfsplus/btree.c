@@ -226,7 +226,7 @@ static int btree_init(btree* bt, volume* vol, hfsp_fork_raw* fork)
     p = btree_readnode(&node, p);
     if (node.kind != HFSP_NODE_HEAD)
 	return -1;   // should not happen ?
-    p = btree_readhead(&bt->head, p);
+    btree_readhead(&bt->head, p);
 
     node_size = bt->head.node_size;
     bt->blkpernode = node_size / vol->blksize;
