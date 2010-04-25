@@ -23,24 +23,24 @@
 
 #define PROGRAM_NAME "OpenBIOS"
 
+typedef unsigned long   ulong;
+typedef unsigned int    uint;
+typedef unsigned short  ushort;
+typedef unsigned char   uchar;
+
+typedef unsigned long long ullong;
+typedef long long       llong;
+
 #ifndef BOOTSTRAP
 
 #ifndef NULL
 #define	NULL		((void*)0)
 #endif
 
-typedef unsigned long	ulong;
-typedef unsigned int	uint;
-typedef unsigned short  ushort;
-typedef unsigned char	uchar;
-
 typedef unsigned int	size_t;
 typedef unsigned int	usize_t;
 typedef signed int	ssize_t;
 typedef signed int	off_t;
-
-typedef unsigned long long ullong;
-typedef long long 	llong;
 
 typedef unsigned int	time_t;
 
