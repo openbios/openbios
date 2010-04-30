@@ -658,6 +658,17 @@ arch_of_init( void )
                        stdin_path = "sccb";
                        stdout_path = "sccb";
                 }
+
+		/* Some bootloaders force the output to the screen device, so
+		   let's create a screen alias for the serial device too */
+        	push_str("/aliases");
+		fword("find-device");
+
+		push_str(stdout_path);
+		fword("pathres-resolve-aliases");
+		fword("encode-string");
+		push_str("screen");
+		fword("property");
         } else {
                 stdin_path = "adb-keyboard";
                 stdout_path = "screen";
