@@ -108,7 +108,7 @@ void* ofmem_malloc( size_t size )
 	top = ofmem_arch_get_heap_top();
 
 	if( (ucell)ofmem->next_malloc + size > top ) {
-		OFMEM_TRACE("out of malloc memory (%x)!\n", size );
+		printk("out of malloc memory (%x)!\n", size );
 		return NULL;
 	}
 
@@ -396,7 +396,7 @@ static ucell ofmem_claim_phys_( ucell phys, ucell size, ucell align,
 	}
 	phys = find_area( align, size, ofmem->phys_range, min, max, reverse );
 	if( phys == -1 ) {
-		OFMEM_TRACE("ofmem_claim_phys - out of space\n");
+		printk("ofmem_claim_phys - out of space (failed request for " FMT_ucellx " bytes)\n", size);
 		return -1;
 	}
 	add_entry( phys, size, &ofmem->phys_range );
@@ -431,7 +431,7 @@ static ucell ofmem_claim_virt_( ucell virt, ucell size, ucell align,
 
 	virt = find_area( align, size, ofmem->virt_range, min, max, reverse );
 	if( virt == -1 ) {
-		OFMEM_TRACE("ofmem_claim_virt - out of space\n");
+		printk("ofmem_claim_virt - out of space (failed request for " FMT_ucellx " bytes)\n", size);
 		return -1;
 	}
 	add_entry( virt, size, &ofmem->virt_range );
