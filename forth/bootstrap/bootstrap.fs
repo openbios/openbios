@@ -1542,7 +1542,7 @@ false value capital-hex?
 \ 
 
 : init-tmp-comp
-  200 alloc-mem tmp-comp-buf !
+  here 200 allot tmp-comp-buf !
 ;
 
 \ the end
