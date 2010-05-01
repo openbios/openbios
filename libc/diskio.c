@@ -164,27 +164,40 @@ get_fstype( int fd )
 int
 read_io( int fd, void *buf, size_t cnt )
 {
-	priv_fd_t *fdp = file_descriptors[fd];
+	priv_fd_t *fdp;
 	ucell ret;
 
-	PUSH( (ucell)buf );
-	PUSH( cnt );
-	call_package( fdp->read_xt, fdp->ih );
-	ret = POP();
+	if (fd != -1) {
+		fdp = file_descriptors[fd];
 
-	if( !ret && cnt )
+		PUSH( (ucell)buf );
+		PUSH( cnt );
+		call_package( fdp->read_xt, fdp->ih );
+		ret = POP();
+
+		if( !ret && cnt )
+			ret = -1;
+	} else {
 		ret = -1;
+	}
+
 	return ret;
 }
 
 int
 seek_io( int fd, llong offs )
 {
-	priv_fd_t *fdp = file_descriptors[fd];
+	priv_fd_t *fdp;
 
-	DPUSH( offs );
-	call_package( fdp->seek_xt, fdp->ih );
-	return ((((cell)POP()) >= 0)? 0 : -1);
+	if (fd != -1) {
+		fdp = file_descriptors[fd];
+		
+		DPUSH( offs );
+		call_package( fdp->seek_xt, fdp->ih );
+		return ((((cell)POP()) >= 0)? 0 : -1);
+	} else {
+		return -1;
+	}
 }
 
 llong
@@ -203,13 +216,17 @@ tell( int fd )
 int
 close_io( int fd )
 {
-	priv_fd_t *fdp = file_descriptors[fd];
+	priv_fd_t *fdp;
 
-	if( fdp->do_close )
-		close_dev( fdp->ih );
-	free( fdp );
+	if (fd != -1) {
+		fdp = file_descriptors[fd];
 
-	file_descriptors[fd]=NULL;
+		if( fdp->do_close )
+			close_dev( fdp->ih );
+		free( fdp );
+
+		file_descriptors[fd]=NULL;
+	}
 
 	return 0;
 }
