@@ -76,8 +76,10 @@ defer init-fcode-table
     cr ." byte-load: exception caught!" cr
   then
 
-  depth r@ <> if
-    cr ." byte-load: stack overflow, diff " depth r@ - . cr
+  s" fcode-debug?" evaluate if
+    depth r@ <> if
+      cr ." byte-load: warning stack overflow, diff " depth r@ - . cr
+    then
   then
 
   r> depth! 3drop 3drop
