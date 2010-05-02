@@ -78,6 +78,17 @@ static const struct hwdef hwdefs[] = {
 struct cpudef {
     unsigned long iu_version;
     const char *name;
+    unsigned long ecache_associativity;
+    unsigned long ecache_line_size;
+    unsigned long ecache_size;
+    unsigned long num_dtlb_entries;
+    unsigned long dcache_associativity;
+    unsigned long dcache_line_size;
+    unsigned long dcache_size;
+    unsigned long num_itlb_entries;
+    unsigned long icache_associativity;
+    unsigned long icache_line_size;
+    unsigned long icache_size;
 };
 
 /*
@@ -157,6 +168,61 @@ static void cpu_generic_init(const struct cpudef *cpu, uint32_t clock_frequency)
     push_str("clock-frequency");
     fword("property");
 
+    PUSH(cpu->ecache_associativity);
+    fword("encode-int");
+    push_str("ecache-associativity");
+    fword("property");
+
+    PUSH(cpu->ecache_line_size);
+    fword("encode-int");
+    push_str("ecache-line-size");
+    fword("property");
+
+    PUSH(cpu->ecache_size);
+    fword("encode-int");
+    push_str("ecache-size");
+    fword("property");
+
+    PUSH(cpu->dcache_associativity);
+    fword("encode-int");
+    push_str("dcache-associativity");
+    fword("property");
+
+    PUSH(cpu->dcache_line_size);
+    fword("encode-int");
+    push_str("dcache-line-size");
+    fword("property");
+
+    PUSH(cpu->dcache_size);
+    fword("encode-int");
+    push_str("dcache-size");
+    fword("property");
+
+    PUSH(cpu->icache_associativity);
+    fword("encode-int");
+    push_str("icache-associativity");
+    fword("property");
+
+    PUSH(cpu->ecache_line_size);
+    fword("encode-int");
+    push_str("icache-line-size");
+    fword("property");
+
+    PUSH(cpu->ecache_size);
+    fword("encode-int");
+    push_str("icache-size");
+    fword("property");
+
+    PUSH(cpu->num_itlb_entries);
+    fword("encode-int");
+    push_str("#itlb-entries");
+    fword("property");
+
+    PUSH(cpu->num_dtlb_entries);
+    fword("encode-int");
+    push_str("#dtlb-entries");
+    fword("property");
+
     fword("finish-device");
 
     // Trap table
@@ -190,14 +256,26 @@ static const struct cpudef sparc_defs[] = {
     {
         .iu_version = (0x17ULL << 48) | (0x10ULL << 32),
         .name = "SUNW,UltraSPARC",
+	.ecache_associativity = 1, .ecache_line_size = 0x40, .ecache_size = 0x100000,
+	.dcache_associativity = 1, .dcache_line_size = 0x20, .dcache_size = 0x4000,
+	.icache_associativity = 2, .icache_line_size = 0x20, .icache_size = 0x4000,
+	.num_dtlb_entries = 0x40, .num_itlb_entries = 0x40,
     },
     {
         .iu_version = (0x17ULL << 48) | (0x11ULL << 32),
         .name = "SUNW,UltraSPARC-II",
+	.ecache_associativity = 1, .ecache_line_size = 0x40, .ecache_size = 0x100000,
+	.dcache_associativity = 1, .dcache_line_size = 0x20, .dcache_size = 0x4000,
+	.icache_associativity = 2, .icache_line_size = 0x20, .icache_size = 0x4000,
+	.num_dtlb_entries = 0x40, .num_itlb_entries = 0x40,
     },
     {
         .iu_version = (0x17ULL << 48) | (0x12ULL << 32),
         .name = "SUNW,UltraSPARC-IIi",
+	.ecache_associativity = 1, .ecache_line_size = 0x40, .ecache_size = 0x40000,
+	.dcache_associativity = 1, .dcache_line_size = 0x20, .dcache_size = 0x4000,
+	.icache_associativity = 2, .icache_line_size = 0x20, .icache_size = 0x4000,
+	.num_dtlb_entries = 0x40, .num_itlb_entries = 0x40,
     },
     {
         .iu_version = (0x17ULL << 48) | (0x13ULL << 32),
