@@ -85,14 +85,14 @@ entry:
         mov     63 << 3, %g1
 1:      stxa    %g0, [%g1] ASI_ITLB_DATA_ACCESS
         subcc   %g1, 1 << 3, %g1
-        bne     1b
+        bpos    1b
          nop
 
         ! Clear DTLB
         mov     63 << 3, %g1
 1:      stxa    %g0, [%g1] ASI_DTLB_DATA_ACCESS
         subcc   %g1, 1 << 3, %g1
-        bne     1b
+        bpos    1b
          nop
 
         ! Get memory size from configuration device
