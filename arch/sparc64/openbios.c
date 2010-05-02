@@ -147,6 +147,11 @@ static void cpu_generic_init(const struct cpudef *cpu, uint32_t clock_frequency)
     push_str("cpuid");
     fword("property");
 
+    PUSH(0);
+    fword("encode-int");
+    push_str("upa-portid");
+    fword("property");
+
     PUSH(clock_frequency);
     fword("encode-int");
     push_str("clock-frequency");
