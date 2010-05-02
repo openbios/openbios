@@ -449,6 +449,23 @@ ucell ofmem_claim_virt( ucell virt, ucell size, ucell align )
 			get_ram_size(), ofmem_arch_get_virt_top(), 0 );
 }
 
+/* if align != 0, phys is ignored. Returns -1 on error */
+ucell ofmem_retain( ucell phys, ucell size, ucell align )
+{
+    ofmem_t *ofmem = ofmem_arch_get_private();
+    ucell retain_phys;
+
+    OFMEM_TRACE("ofmem_retain phys=" FMT_ucellx " size=" FMT_ucellx
+                " align=" FMT_ucellx "\n",
+                phys, size, align);
+
+	retain_phys = ofmem_claim_phys_( phys, size, align, 0, get_ram_size(), 0 );
+
+	/* Also add to the retain_phys_range list */
+	add_entry( phys, size, &ofmem->retain_phys_range );
+
+	return retain_phys;
+}
 
 /* allocate both physical and virtual space and add a translation */
 ucell ofmem_claim( ucell addr, ucell size, ucell align )

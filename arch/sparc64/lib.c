@@ -394,11 +394,35 @@ mem_release( void )
     ofmem_release_phys(phys, size);
 }
 
+/* ( name-cstr phys size align --- phys ) */
+static void
+mem_retain ( void )
+{
+    ucell phys=-1UL, size, align;
+
+    align = POP();
+    size = POP();
+    if (!align) {
+        phys = POP();
+        phys <<= 32;
+        phys |= POP();
+    }
+
+    /* Currently do nothing with the name */
+    POP();
+
+    phys = ofmem_retain(phys, size, align);
+
+    PUSH(phys & 0xffffffffUL);
+    PUSH(phys >> 32);
+}
+
 DECLARE_NODE(memory, INSTALL_OPEN, 0, "/memory");
 
 NODE_METHODS( memory ) = {
     { "claim",              mem_claim       },
     { "release",            mem_release     },
+    { "SUNW,retain",        mem_retain      },
 };
 
 DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);

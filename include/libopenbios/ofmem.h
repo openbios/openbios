@@ -46,9 +46,16 @@ typedef struct {
 
 	range_t			*phys_range;
 	range_t			*virt_range;
+	range_t 		*retain_phys_range;	/* physical memory that should survive a warm reset */
 
 	translation_t	*trans;		/* this is really a translation_t */
 } ofmem_t;
+
+/* structure for retained data at the top of the heap */
+typedef struct {
+	ucell			magic;
+	range_t			*retain_phys_range;
+} retain_t;
 
 /* TODO: temporary migration interface */
 extern ofmem_t* ofmem_arch_get_private(void);
@@ -85,6 +92,8 @@ extern void ofmem_register( phandle_t ph_memory, phandle_t ph_mmu );
 extern ucell ofmem_claim( ucell addr, ucell size, ucell align );
 extern ucell ofmem_claim_phys( ucell mphys, ucell size, ucell align );
 extern ucell ofmem_claim_virt( ucell mvirt, ucell size, ucell align );
+
+extern ucell ofmem_retain( ucell phys, ucell size, ucell align );
 
 extern int   ofmem_map( ucell phys, ucell virt, ucell size, ucell mode );
 extern int   ofmem_unmap( ucell virt, ucell size );

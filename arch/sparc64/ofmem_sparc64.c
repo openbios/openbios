@@ -26,19 +26,19 @@ static union {
 	ofmem_t ofmem;
 } s_ofmem_data;
 
-#define OFMEM      (&s_ofmem_data.ofmem)
-#define TOP_OF_RAM (s_ofmem_data.memory + MEMSIZE)
+#define OFMEM      	(&s_ofmem_data.ofmem)
+#define TOP_OF_RAM 	(s_ofmem_data.memory + MEMSIZE)
 
 translation_t **g_ofmem_translations = &s_ofmem_data.ofmem.trans;
-
-static ucell get_heap_top( void )
-{
-	return (ucell)TOP_OF_RAM;
-}
 
 static inline size_t ALIGN_SIZE(size_t x, size_t a)
 {
     return (x + a - 1) & ~(a-1);
+}
+
+static ucell get_heap_top( void )
+{
+	return (ucell)(TOP_OF_RAM - ALIGN_SIZE(sizeof(retain_t), 8));
 }
 
 ofmem_t* ofmem_arch_get_private(void)
@@ -95,10 +95,27 @@ static int remap_page_range( ucell phys, ucell virt, ucell size, ucell mode )
 	return 0;
 }
 
+#define RETAIN_OFMEM	(TOP_OF_RAM - ALIGN_SIZE(sizeof(retain_t), 8))
+#define RETAIN_MAGIC	0x1100220033004400
+
 void ofmem_init( void )
 {
-	memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
-	s_ofmem_data.ofmem.ramsize = qemu_mem_size;
+	retain_t *retained = (retain_t *)RETAIN_OFMEM;
+
+	/* Clear all memory except any retained areas */
+	if (!retained->magic == RETAIN_MAGIC) {
+		memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
+		s_ofmem_data.ofmem.ramsize = qemu_mem_size;
+
+		retained->magic = RETAIN_MAGIC;
+	} else {
+		/* TODO: walk retain_phys_range and add entries to phys_range to prevent
+		them being reused */
+		OFMEM_TRACE("ofmem_init has detected retained magic but currently not implemented");
+
+		memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
+		s_ofmem_data.ofmem.ramsize = qemu_mem_size;
+	}
 
 	/* inherit translations set up by entry.S */
 	ofmem_walk_boot_map(remap_page_range);
