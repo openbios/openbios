@@ -103,7 +103,7 @@ void ofmem_init( void )
 	retain_t *retained = (retain_t *)RETAIN_OFMEM;
 
 	/* Clear all memory except any retained areas */
-	if (!retained->magic == RETAIN_MAGIC) {
+	if (!(retained->magic == RETAIN_MAGIC)) {
 		memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
 		s_ofmem_data.ofmem.ramsize = qemu_mem_size;
 
