@@ -452,7 +452,7 @@ ucell ofmem_claim_virt( ucell virt, ucell size, ucell align )
 /* if align != 0, phys is ignored. Returns -1 on error */
 ucell ofmem_retain( ucell phys, ucell size, ucell align )
 {
-    ofmem_t *ofmem = ofmem_arch_get_private();
+    retain_t *retained = ofmem_arch_get_retained();
     ucell retain_phys;
 
     OFMEM_TRACE("ofmem_retain phys=" FMT_ucellx " size=" FMT_ucellx
@@ -461,8 +461,11 @@ ucell ofmem_retain( ucell phys, ucell size, ucell align )
 
 	retain_phys = ofmem_claim_phys_( phys, size, align, 0, get_ram_size(), 0 );
 
-	/* Also add to the retain_phys_range list */
-	add_entry( phys, size, &ofmem->retain_phys_range );
+	/* Add to the retain_phys_range list */
+	retained->retain_phys_range[retained->numentries].next = NULL;
+	retained->retain_phys_range[retained->numentries].start = retain_phys;
+	retained->retain_phys_range[retained->numentries].size = size;
+	retained->numentries++;
 
 	return retain_phys;
 }

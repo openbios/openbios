@@ -46,28 +46,29 @@ typedef struct {
 
 	range_t			*phys_range;
 	range_t			*virt_range;
-	range_t 		*retain_phys_range;	/* physical memory that should survive a warm reset */
 
 	translation_t	*trans;		/* this is really a translation_t */
 } ofmem_t;
 
-/* structure for retained data at the top of the heap */
+/* structure for retained data */
 typedef struct {
 	ucell			magic;
-	range_t			*retain_phys_range;
+	ucell			numentries;
+	range_t			retain_phys_range[8];	/* physical memory that should survive a warm reset */
 } retain_t;
 
 /* TODO: temporary migration interface */
-extern ofmem_t* ofmem_arch_get_private(void);
-extern void*    ofmem_arch_get_malloc_base(void);
-extern ucell    ofmem_arch_get_heap_top(void);
-extern ucell    ofmem_arch_get_virt_top(void);
-extern ucell    ofmem_arch_default_translation_mode( ucell phys );
-extern void     ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size,
+extern ofmem_t* 	ofmem_arch_get_private(void);
+extern void*    	ofmem_arch_get_malloc_base(void);
+extern ucell    	ofmem_arch_get_heap_top(void);
+extern ucell    	ofmem_arch_get_virt_top(void);
+extern retain_t*	ofmem_arch_get_retained(void);
+extern ucell    	ofmem_arch_default_translation_mode( ucell phys );
+extern void     	ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size,
                                            ucell mode);
-extern void     ofmem_arch_unmap_pages(ucell virt, ucell size);
+extern void     	ofmem_arch_unmap_pages(ucell virt, ucell size);
 /* sparc64 uses this method */
-extern int      ofmem_map_page_range( ucell phys, ucell virt, ucell size,
+extern int      	ofmem_map_page_range( ucell phys, ucell virt, ucell size,
                                       ucell mode );
 
 /* malloc interface */

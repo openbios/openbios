@@ -31,6 +31,8 @@ static union {
 
 translation_t **g_ofmem_translations = &s_ofmem_data.ofmem.trans;
 
+extern uint64_t qemu_mem_size;
+
 static inline size_t ALIGN_SIZE(size_t x, size_t a)
 {
     return (x + a - 1) & ~(a-1);
@@ -61,6 +63,12 @@ ucell ofmem_arch_get_virt_top(void)
 	return (ucell)TOP_OF_RAM;
 }
 
+retain_t *ofmem_arch_get_retained(void)
+{
+	/* Retained area is at the top of physical RAM */
+	return (retain_t *)(qemu_mem_size - sizeof(retain_t));
+}
+
 /************************************************************************/
 /* misc                                                                 */
 /************************************************************************/
@@ -79,8 +87,6 @@ ucell ofmem_arch_default_translation_mode( ucell phys )
 /* init / cleanup                                                       */
 /************************************************************************/
 
-extern uint64_t qemu_mem_size;
-
 static int remap_page_range( ucell phys, ucell virt, ucell size, ucell mode )
 {
 	ofmem_claim_phys(phys, size, 0);
@@ -95,32 +101,37 @@ static int remap_page_range( ucell phys, ucell virt, ucell size, ucell mode )
 	return 0;
 }
 
-#define RETAIN_OFMEM	(TOP_OF_RAM - ALIGN_SIZE(sizeof(retain_t), 8))
 #define RETAIN_MAGIC	0x1100220033004400
 
 void ofmem_init( void )
 {
-	retain_t *retained = (retain_t *)RETAIN_OFMEM;
+	retain_t *retained = ofmem_arch_get_retained();
+	int i;
 
-	/* Clear all memory except any retained areas */
-	if (!(retained->magic == RETAIN_MAGIC)) {
-		memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
-		s_ofmem_data.ofmem.ramsize = qemu_mem_size;
-
-		retained->magic = RETAIN_MAGIC;
-	} else {
-		/* TODO: walk retain_phys_range and add entries to phys_range to prevent
-		them being reused */
-		OFMEM_TRACE("ofmem_init has detected retained magic but currently not implemented");
-
-		memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
-		s_ofmem_data.ofmem.ramsize = qemu_mem_size;
-	}
+	memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
+	s_ofmem_data.ofmem.ramsize = qemu_mem_size;
 
 	/* inherit translations set up by entry.S */
 	ofmem_walk_boot_map(remap_page_range);
 
         /* Map the memory */
         ofmem_map_page_range(0, 0, qemu_mem_size, 0x36);
-}
 
+	if (!(retained->magic == RETAIN_MAGIC)) {
+		OFMEM_TRACE("ofmem_init: no retained magic found, creating\n");
+		retained->magic = RETAIN_MAGIC;
+		retained->numentries = 0;
+	} else {
+		OFMEM_TRACE("ofmem_init: retained magic found, total %lld mappings\n", retained->numentries);	
+
+		/* Mark physical addresses as used so they are not reallocated */
+		for (i = 0; i < retained->numentries; i++) {
+			ofmem_claim_phys(retained->retain_phys_range[i].start, 
+				retained->retain_phys_range[i].size, 0);
+		}
+
+		/* Reset retained area for next reset */
+		retained->magic = RETAIN_MAGIC;
+		retained->numentries = 0;
+	}
+}

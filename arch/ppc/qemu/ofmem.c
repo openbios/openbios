@@ -135,6 +135,12 @@ void ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
 	/* none yet */
 }
 
+retain_t *ofmem_arch_get_retained(void)
+{
+	/* not implemented */
+	return NULL;
+}
+
 /************************************************************************/
 /*	OF private allocations						*/
 /************************************************************************/
