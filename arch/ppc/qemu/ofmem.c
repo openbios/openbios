@@ -141,6 +141,30 @@ retain_t *ofmem_arch_get_retained(void)
 	return NULL;
 }
 
+int ofmem_arch_get_translation_entry_size(void)
+{
+	/* Return size of a single MMU package translation property entry in cells */
+	return 4;
+}
+
+void ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t)
+{
+	/* Generate translation property entry for PPC. According to the  
+	platform bindings for PPC (http://playground.sun.com/1275/bindings/ppc/release/ppc-2_1.html#REF34579)
+	a translation property entry has the following layout:
+
+		virtual address
+		length
+		physical address
+		mode
+	*/
+
+	transentry[0] = t->virt;
+	transentry[1] = t->size;
+	transentry[2] = t->phys;
+	transentry[3] = t->mode;
+}
+
 /************************************************************************/
 /*	OF private allocations						*/
 /************************************************************************/

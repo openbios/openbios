@@ -182,15 +182,15 @@ static void ofmem_update_mmu_translations( void )
 	for( t = ofmem->trans, ncells = 0; t ; t=t->next, ncells++ ) {
 	}
 
-	props = malloc(ncells * sizeof(ucell) * 3);
+	props = malloc(ncells * sizeof(ucell) * ofmem_arch_get_translation_entry_size());
 
 	if (props == NULL)
 		return;
 
+	/* Call architecture-specific routines to generate translation entries */
 	for( t = ofmem->trans, ncells = 0 ; t ; t=t->next ) {
-		props[ncells++] = t->virt;
-		props[ncells++] = t->size;
-		props[ncells++] = t->mode;
+		ofmem_arch_create_translation_entry(&props[ncells], t);
+		ncells += ofmem_arch_get_translation_entry_size();
 	}
 
 	set_property(s_phandle_mmu, "translations",

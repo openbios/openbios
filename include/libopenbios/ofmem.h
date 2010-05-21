@@ -63,6 +63,8 @@ extern void*    	ofmem_arch_get_malloc_base(void);
 extern ucell    	ofmem_arch_get_heap_top(void);
 extern ucell    	ofmem_arch_get_virt_top(void);
 extern retain_t*	ofmem_arch_get_retained(void);
+extern int 		ofmem_arch_get_translation_entry_size(void);
+extern void 		ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t);
 extern ucell    	ofmem_arch_default_translation_mode( ucell phys );
 extern void     	ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size,
                                            ucell mode);

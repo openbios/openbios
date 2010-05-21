@@ -69,6 +69,28 @@ retain_t *ofmem_arch_get_retained(void)
 	return (retain_t *)(qemu_mem_size - sizeof(retain_t));
 }
 
+int ofmem_arch_get_translation_entry_size(void)
+{
+	/* Return size of a single MMU package translation property entry in cells */
+	return 3;
+}
+
+void ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t)
+{
+	/* Generate translation property entry for SPARC. While there is no
+	formal documentation for this, both Linux kernel and OpenSolaris sources
+	expect a translation property entry to have the following layout:
+
+		virtual address
+		length
+		mode 
+	*/
+
+	transentry[0] = t->virt;
+	transentry[1] = t->size;
+	transentry[2] = t->mode;
+}
+
 /************************************************************************/
 /* misc                                                                 */
 /************************************************************************/
