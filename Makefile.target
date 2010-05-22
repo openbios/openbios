@@ -62,6 +62,7 @@ info:
 clean:
 	@printf "Cleaning up for $(ARCH)..."
 	@rm -rf forth.dict.core forthstrap *.dict openbios-*
+	@rm -f $(ODIR)/target/include/openbios-version.h $(ODIR)/forth/version.fs
 	@find . -type f \( -name "*~" -o -name '*.o' -o -name '*.a' \) -exec rm \{\} \;
 	@echo " ok"
 
