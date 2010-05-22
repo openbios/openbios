@@ -62,7 +62,7 @@ info:
 clean:
 	@printf "Cleaning up for $(ARCH)..."
 	@rm -rf forth.dict.core forthstrap *.dict openbios-*
-	@find . -type f -name "*~" -o -name '*.o' -o -name '*.a' -exec rm \{\} \;
+	@find . -type f \( -name "*~" -o -name '*.o' -o -name '*.a' \) -exec rm \{\} \;
 	@echo " ok"
 
 build-verbose: info build
