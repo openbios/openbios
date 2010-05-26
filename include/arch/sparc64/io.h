@@ -2,6 +2,7 @@
 #define _ASM_IO_H
 
 #include "asm/types.h"
+#include "asi.h"
 
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
@@ -62,24 +63,30 @@ static inline int in_8(volatile unsigned char *addr)
 {
     int ret;
 
-    __asm__ __volatile__("lduba [%1] 0x15, %0\n\t"
-                         :"=r"(ret):"r"(addr):"memory");
+    __asm__ __volatile__("lduba [%1] %2, %0\n\t"
+                         : "=r"(ret)
+                         : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
+                         : "memory");
 
     return ret;
 }
 
 static inline void out_8(volatile unsigned char *addr, int val)
 {
-    __asm__ __volatile__("stba %0, [%1] 0x15\n\t"
-                         : : "r"(val), "r"(addr):"memory");
+    __asm__ __volatile__("stba %0, [%1] %2\n\t"
+                         :
+                         : "r"(val), "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
+                         : "memory");
 }
 
 static inline int in_le16(volatile unsigned short *addr)
 {
     int ret;
 
-    __asm__ __volatile__("lduha [%1] 0x15, %0\n\t"
-                         :"=r"(ret):"r"(addr):"memory");
+    __asm__ __volatile__("lduha [%1] %2, %0\n\t"
+                         : "=r"(ret)
+                         : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
+                         : "memory");
 
     return ret;
 }
@@ -88,8 +95,10 @@ static inline int in_be16(volatile unsigned short *addr)
 {
     int ret;
 
-    __asm__ __volatile__("lduha [%1] 0x1d, %0\n\t"
-                         :"=r"(ret):"r"(addr):"memory");
+    __asm__ __volatile__("lduha [%1] %2, %0\n\t"
+                         : "=r"(ret)
+                         : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+                         : "memory");
 
     return ret;
 }
@@ -97,22 +106,28 @@ static inline int in_be16(volatile unsigned short *addr)
 static inline void out_le16(volatile unsigned short *addr, int val)
 {
 
-    __asm__ __volatile__("stha %0, [%1] 0x15\n\t"
-                         : : "r"(val), "r"(addr):"memory");
+    __asm__ __volatile__("stha %0, [%1] %2\n\t"
+                         :
+                         : "r"(val), "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
+                         : "memory");
 }
 
 static inline void out_be16(volatile unsigned short *addr, int val)
 {
-    __asm__ __volatile__("stha %0, [%1] 0x1d\n\t"
-                         : : "r"(val), "r"(addr):"memory");
+    __asm__ __volatile__("stha %0, [%1] %2\n\t"
+                         :
+                         : "r"(val), "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+                         : "memory");
 }
 
 static inline unsigned in_le32(volatile unsigned *addr)
 {
     unsigned ret;
 
-    __asm__ __volatile__("lduwa [%1] 0x15, %0\n\t"
-                         :"=r"(ret):"r"(addr):"memory");
+    __asm__ __volatile__("lduwa [%1] %2, %0\n\t"
+                         : "=r"(ret)
+                         : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
+                         : "memory");
 
     return ret;
 }
@@ -121,21 +136,27 @@ static inline unsigned in_be32(volatile unsigned *addr)
 {
     unsigned ret;
 
-    __asm__ __volatile__("lduwa [%1] 0x1d, %0\n\t"
-                         :"=r"(ret):"r"(addr):"memory");
+    __asm__ __volatile__("lduwa [%1] %2, %0\n\t"
+                         : "=r"(ret)
+                         : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+                         : "memory");
     return ret;
 }
 
 static inline void out_le32(volatile unsigned *addr, int val)
 {
-    __asm__ __volatile__("stwa %0, [%1] 0x15\n\t"
-                         : : "r"(val), "r"(addr):"memory");
+    __asm__ __volatile__("stwa %0, [%1] %2\n\t"
+                         :
+                         : "r"(val), "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
+                         : "memory");
 }
 
 static inline void out_be32(volatile unsigned *addr, int val)
 {
-    __asm__ __volatile__("stwa %0, [%1] 0x1d\n\t"
-                         : : "r"(val), "r"(addr):"memory");
+    __asm__ __volatile__("stwa %0, [%1] %2\n\t"
+                         :
+                         : "r"(val), "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+                         : "memory");
 }
 
 static inline void _insw_ns(volatile uint16_t * port, void *buf, int ns)
