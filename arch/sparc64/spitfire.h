@@ -7,7 +7,7 @@
 #ifndef _SPARC64_SPITFIRE_H
 #define _SPARC64_SPITFIRE_H
 
-#include "asi.h"
+#include <asm/asi.h>
 
 /* The following register addresses are accessible via ASI_DMMU
  * and ASI_IMMU, that is there is a distinct and unique copy of

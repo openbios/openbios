@@ -1,5 +1,5 @@
 #include "pstate.h"
-#include "asi.h"
+#include <asm/asi.h>
 #define ASI_BP ASI_M_BYPASS
 #define REGWIN_SZ   0x40
 

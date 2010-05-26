@@ -8,7 +8,7 @@
  */
 
 #define __ASSEMBLY__
-#include "asi.h"
+#include <asm/asi.h>
 #include "pstate.h"
 #include "lsu.h"
 #define NO_QEMU_PROTOS

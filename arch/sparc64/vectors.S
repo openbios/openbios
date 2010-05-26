@@ -25,7 +25,7 @@
 
 #define __ASSEMBLY__
 #include "pstate.h"
-#include "asi.h"
+#include <asm/asi.h>
 #define ASI_BP ASI_PHYS_BYPASS_EC_E
 #define PROM_ADDR 0x1fff0000000
 #define SER_ADDR 0x1fe020003f8
