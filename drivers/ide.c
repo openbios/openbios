@@ -1369,7 +1369,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	struct ide_channel *chan;
 	int io_ports[IDE_MAX_CHANNELS];
 	int ctl_ports[IDE_MAX_CHANNELS];
-	cell props[6];
+	u32 props[6];
 
 	io_ports[0] = io_port0;
 	ctl_ports[0] = ctl_port0 + 2;
@@ -1428,17 +1428,17 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 		dnode = find_dev(nodebuff);
 
-#ifndef CONFIG_PPC
+#if !defined(CONFIG_PPC) && !defined(CONFIG_SPARC64)
 		props[0]=14; props[1]=0;
 		set_property(dnode, "interrupts",
-			     (char *)&props, 2*sizeof(cell));
+			     (char *)&props, 2*sizeof(props[0]));
 #endif
 
 		props[0] = __cpu_to_be32(chan->io_regs[0]);
 		props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
 		props[3] = __cpu_to_be32(chan->io_regs[8]);
 		props[4] = __cpu_to_be32(1); props[5] = __cpu_to_be32(2);
-		set_property(dnode, "reg", (char *)&props, 6*sizeof(cell));
+		set_property(dnode, "reg", (char *)&props, 6*sizeof(props[0]));
 
 		IDE_DPRINTF(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
 		            current_channel, chan->io_regs[0],
@@ -1523,7 +1523,7 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 	int i, j;
 	char nodebuff[128];
 	phandle_t dnode;
-	cell props[8];
+	u32 props[8];
 	struct ide_channel *chan;
 
 	for (i = 0; i < nb_channels; i++, current_channel++) {
@@ -1585,7 +1585,7 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 		props[6] = 0x00000000;
 		props[7] = 0x00000000;
 		OLDWORLD(set_property(dnode, "AAPL,pio-timing",
-				      (char *)&props, 8*sizeof(cell)));
+				      (char *)&props, 8*sizeof(props[0])));
 
 		/* The first interrupt entry is the ide interrupt, the second
 		   the dbdma interrupt */
@@ -1610,25 +1610,25 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 		props[1] = 0x00000000; /* XXX level triggered on real hw */
 		props[3] = 0x00000000;
 		set_property(dnode, "interrupts",
-			     (char *)&props, 4*sizeof(cell));
+			     (char *)&props, 4*sizeof(props[0]));
 		set_int_property(dnode, "#interrupt-cells", 2);
 		OLDWORLD(set_property(dnode, "AAPL,interrupts",
-				      (char *)&props, 2*sizeof(cell)));
+				      (char *)&props, 2*sizeof(props[0])));
 
 		props[0] = MACIO_IDE_OFFSET + i * MACIO_IDE_SIZE;
 		props[1] = MACIO_IDE_SIZE;
 		props[2] = 0x00008b00 + i * 0x0200;
 		props[3] = 0x0200;
-		set_property(dnode, "reg", (char *)&props, 4*sizeof(cell));
+		set_property(dnode, "reg", (char *)&props, 4*sizeof(props[0]));
 
 		props[0] = addr + MACIO_IDE_OFFSET  + i * MACIO_IDE_SIZE;
 		props[1] = addr + 0x00008b00 + i * 0x0200;
 		OLDWORLD(set_property(dnode, "AAPL,address",
-				      (char *)&props, 2*sizeof(cell)));
+				      (char *)&props, 2*sizeof(props[0])));
 
 		props[0] = 0;
 		OLDWORLD(set_property(dnode, "AAPL,bus-id", (char*)props,
-			 1 * sizeof(cell)));
+			 1 * sizeof(props[0])));
 		IDE_DPRINTF(DEV_NAME": [io ports 0x%lx]\n",
 		            current_channel, chan->mmio);
 
