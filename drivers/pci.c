@@ -546,24 +546,24 @@ int eth_config_cb (const pci_config_t *config)
 static inline void pci_decode_pci_addr(pci_addr addr, int *flags,
 				       int *space_code, uint32_t *mask)
 {
+    *flags = 0;
+
 	if (addr & 0x01) {
-
 		*space_code = IO_SPACE;
-		*flags = 0;
 		*mask = 0x00000001;
-
-	} else if (addr & 0x04) {
-
-		*flags = IS_NOT_RELOCATABLE;
-		*space_code = MEMORY_SPACE_64;
-		*mask = 0x0000000F;
-
 	} else {
+	    if (addr & 0x04) {
+            *space_code = MEMORY_SPACE_64;
+            *flags |= IS_NOT_RELOCATABLE; /* XXX: why not relocatable? */
+        } else {
+            *space_code = MEMORY_SPACE_32;
+        }
 
-		*space_code = MEMORY_SPACE_32;
-		*flags = IS_NOT_RELOCATABLE;
-		*mask = 0x0000000F;
+        if (addr & 0x08) {
+            *flags |= IS_PREFETCHABLE;
+        }
 
+        *mask = 0x0000000F;
 	}
 }
 
