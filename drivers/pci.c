@@ -52,7 +52,21 @@ enum {
 	MEMORY_SPACE_64 = 3,
 };
 
-static inline void pci_encode_phys_addr(u32 *phys, int flags, int space_code,
+static int encode_int32_cells(int num_cells, u32 *prop, ucell val)
+{
+    int i = 0;
+
+    /* hi ... lo */
+    for (i=0; i < num_cells; ++i) {
+        prop[num_cells - i - 1] = val;
+        val >>= 16;
+        val >>= 16;
+    }
+
+    return num_cells;
+}
+
+static inline int pci_encode_phys_addr(u32 *phys, int flags, int space_code,
 				 pci_addr dev, uint8_t reg, uint64_t addr)
 {
 
@@ -67,7 +81,43 @@ static inline void pci_encode_phys_addr(u32 *phys, int flags, int space_code,
 	/* phys.lo */
 
 	phys[2] = addr;
+
+	return 3;
 }
+
+static inline int pci_encode_size(u32 *prop, uint64_t size)
+{
+    return encode_int32_cells(2, prop, size);
+}
+
+static int host_address_cells(void)
+{
+    return get_int_property(find_dev("/"), "#address-cells", NULL);
+}
+
+static int host_encode_phys_addr(u32 *prop, ucell addr)
+{
+    return encode_int32_cells(host_address_cells(), prop, addr);
+}
+
+static int host_size_cells(void)
+{
+    return get_int_property(find_dev("/"), "#size-cells", NULL);
+}
+
+/*
+static int parent_address_cells(void)
+{
+    phandle_t parent_ph = ih_to_phandle(my_parent());
+    return get_int_property(parent_ph, "#address-cells", NULL);
+}
+
+static int parent_size_cells(void)
+{
+    phandle_t parent_ph = ih_to_phandle(my_parent());
+    return get_int_property(parent_ph, "#size-cells", NULL);
+}
+*/
 
 static void
 ob_pci_open(int *idx)
@@ -318,13 +368,22 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 
 static void pci_host_set_reg(const pci_config_t *config)
 {
-	phandle_t dev = get_cur_dev();
-	u32 props[2];
+    phandle_t dev = get_cur_dev();
+    /* at most 2 integers for address and size */
+    u32 props[4];
+    int ncells = 0;
 
-	props[0] = arch->cfg_base;
-	props[1] = arch->cfg_len;
-	set_property(dev, "reg", (char *)props, 2 * sizeof(props[0]));
+    ncells += encode_int32_cells(host_address_cells(), props + ncells,
+            arch->cfg_base);
+
+    ncells += encode_int32_cells(host_size_cells(), props + ncells,
+            arch->cfg_len);
+
+    set_property(dev, "reg", (char *)props, ncells * sizeof(props[0]));
 }
+
+/* child-phys : parent-phys : size */
+/* 3 cells for PCI : 2 cells for 64bit parent : 2 cells for PCI */
 
 static void pci_host_set_ranges(const pci_config_t *config)
 {
@@ -333,29 +392,31 @@ static void pci_host_set_ranges(const pci_config_t *config)
 	int ncells;
 
 	ncells = 0;
+	/* first encode PCI configuration space */
+	{
+	    ncells += pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
+                     config->dev, 0, 0);
+        ncells += host_encode_phys_addr(props + ncells, arch->cfg_addr);
+        ncells += pci_encode_size(props + ncells, arch->cfg_len);
+	}
+
 	if (arch->io_base) {
-		pci_encode_phys_addr(props + ncells, 0, IO_SPACE,
+	    ncells += pci_encode_phys_addr(props + ncells, 0, IO_SPACE,
 				     config->dev, 0, 0);
-		ncells += 3;
-		props[ncells++] = arch->io_base;
-		props[ncells++] = 0x00000000;
-		props[ncells++] = arch->io_len;
+        ncells += host_encode_phys_addr(props + ncells, arch->io_base);
+        ncells += pci_encode_size(props + ncells, arch->io_len);
 	}
 	if (arch->rbase) {
-		pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
+	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
 				     config->dev, 0, 0);
-		ncells += 3;
-		props[ncells++] = arch->rbase;
-		props[ncells++] = 0x00000000;
-		props[ncells++] = arch->rlen;
+        ncells += host_encode_phys_addr(props + ncells, arch->rbase);
+        ncells += pci_encode_size(props + ncells, arch->rlen);
 	}
 	if (arch->mem_base) {
-		pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
+	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
 				     config->dev, 0, arch->mem_base);
-		ncells += 3;
-		props[ncells++] = arch->mem_base;
-		props[ncells++] = 0x00000000;
-		props[ncells++] = arch->mem_len;
+        ncells += host_encode_phys_addr(props + ncells, arch->mem_base);
+        ncells += pci_encode_size(props + ncells, arch->mem_len);
 	}
 	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
 }
@@ -548,11 +609,10 @@ static void pci_set_assigned_addresses(const pci_config_t *config, int num_bars)
 		pci_decode_pci_addr(config->assigned[i],
 				    &flags, &space_code, &mask);
 
-		pci_encode_phys_addr(props + ncells,
+		ncells += pci_encode_phys_addr(props + ncells,
 				     flags, space_code, config->dev,
 				     PCI_BASE_ADDR_0 + (i * sizeof(uint32_t)),
 				     config->assigned[i] & ~mask);
-		ncells += 3;
 
 		props[ncells++] = 0x00000000;
 		props[ncells++] = config->sizes[i];
@@ -571,13 +631,13 @@ static void pci_set_reg(const pci_config_t *config, int num_bars)
 	uint32_t mask;
 	int space_code, flags;
 
-	ncells = 0;
-	pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
-			     config->dev, 0, 0);
-	ncells += 3;
+    ncells = 0;
 
-	props[ncells++] = 0x00000000;
-	props[ncells++] = 0x00000000;
+    /* first (addr, size) pair is the beginning of configuration address space */
+	ncells += pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
+			     config->dev, 0, 0);
+
+	ncells += pci_encode_size(props + ncells, 0);
 
 	for (i = 0; i < num_bars; i++) {
 		if (!config->assigned[i] || !config->sizes[i])
@@ -586,17 +646,15 @@ static void pci_set_reg(const pci_config_t *config, int num_bars)
 		pci_decode_pci_addr(config->regions[i],
 				    &flags, &space_code, &mask);
 
-		pci_encode_phys_addr(props + ncells,
+		ncells += pci_encode_phys_addr(props + ncells,
 				     flags, space_code, config->dev,
 				     PCI_BASE_ADDR_0 + (i * sizeof(uint32_t)),
 				     config->regions[i] & ~mask);
-		ncells += 3;
 
 		/* set size */
-
-		props[ncells++] = 0x00000000;
-		props[ncells++] = config->sizes[i];
+		ncells += pci_encode_size(props + ncells, config->sizes[i]);
 	}
+
 	set_property(dev, "reg", (char *)props, ncells * sizeof(props[0]));
 }
 
@@ -624,10 +682,9 @@ static void pci_set_ranges(const pci_config_t *config)
 
 		pci_decode_pci_addr(config->assigned[i],
 				    &flags, &space_code, &mask);
-		pci_encode_phys_addr(props + ncells, flags, space_code,
+		ncells += pci_encode_phys_addr(props + ncells, flags, space_code,
 				     config->dev, 0x10 + i * 4,
 				     config->assigned[i] & ~mask);
-		ncells += 3;
 
 		/* size */
 
