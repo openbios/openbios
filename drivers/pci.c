@@ -32,6 +32,12 @@
 #include "macio.h"
 #endif
 
+#if defined (CONFIG_DEBUG_PCI)
+# define PCI_DPRINTF(format, ...) printk(format, ## __VA_ARGS__)
+#else
+# define PCI_DPRINTF(format, ...) do { } while (0)
+#endif
+
 #define set_bool_property(ph, name) set_property(ph, name, NULL, 0);
 
 /* DECLARE data structures for the nodes.  */
@@ -824,9 +830,7 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	pci_set_assigned_addresses(config, num_bars);
 	OLDWORLD(pci_set_AAPL_address(config));
 
-#ifdef CONFIG_DEBUG_PCI
-	printk("\n");
-#endif
+	PCI_DPRINTF("\n");
 
 	if (pci_dev && pci_dev->config_cb)
 		pci_dev->config_cb(config);
@@ -1010,10 +1014,9 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 			pci_dev = pci_find_device(class, subclass, iface,
 						  vid, did);
 
-#ifdef CONFIG_DEBUG_PCI
-			printk("%x:%x.%x - %x:%x - ", bus, devnum, fn,
+			PCI_DPRINTF("%x:%x.%x - %x:%x - ", bus, devnum, fn,
 					vid, did);
-#endif
+
 			htype = pci_config_read8(addr, PCI_HEADER_TYPE);
 			if (fn == 0)
 				is_multi = htype & 0x80;
@@ -1024,9 +1027,9 @@ static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
 			else
                             snprintf(config.path, sizeof(config.path),
 				     "%s/%s", *path, pci_dev->name);
-#ifdef CONFIG_DEBUG_PCI
-			printk("%s - ", config.path);
-#endif
+
+			PCI_DPRINTF("%s - ", config.path);
+
 			config.dev = addr & 0x00FFFFFF;
 
                         if (class == PCI_BASE_CLASS_BRIDGE &&
@@ -1069,9 +1072,7 @@ int ob_pci_init(void)
         unsigned long mem_base, io_base;
 	char *path;
 
-#ifdef CONFIG_DEBUG_PCI
-	printk("Initializing PCI devices...\n");
-#endif
+	PCI_DPRINTF("Initializing PCI devices...\n");
 
 	/* brute force bus scan */
 
