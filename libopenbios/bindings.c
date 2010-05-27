@@ -507,16 +507,18 @@ bind_node( int flags, int size, const char * const *paths, int npaths,
 	activate_dev( save_ph );
 }
 
-void
+phandle_t
 bind_new_node( int flags, int size, const char *name,
 	   const method_t *methods, int nmet )
 {
 	phandle_t save_ph = get_cur_dev();
-
+	phandle_t new_ph;
 	/* create node */
 	push_str( name );
 	fword("create-node");
 	add_methods( flags, size, methods, nmet );
+    new_ph = get_cur_dev();
 
 	activate_dev( save_ph );
+	return new_ph;
 }

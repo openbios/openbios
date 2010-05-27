@@ -8,6 +8,9 @@ struct pci_config_t {
 	uint32_t sizes[7];
 	int irq_pin;
 	int irq_line;
+	u32 primary_bus;
+	u32 secondary_bus;
+	u32 subordinate_bus;
 };
 
 typedef struct pci_dev_t pci_dev_t;

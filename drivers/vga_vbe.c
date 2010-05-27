@@ -155,7 +155,11 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 
 	vga_vbe_set_mode(width, height, depth);
 
-	ph = find_dev(path);
+#if 0
+    ph = find_dev(path);
+#else
+    ph = get_cur_dev();
+#endif
 
 	set_int_property(ph, "width", width);
 	set_int_property(ph, "height", height);

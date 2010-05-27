@@ -125,6 +125,18 @@ static int parent_size_cells(void)
 }
 */
 
+#if defined(CONFIG_DEBUG_PCI)
+static void dump_reg_property(const char* description, int nreg, u32 *reg)
+{
+    int i;
+    printk("%s reg", description);
+    for (i=0; i < nreg; ++i) {
+        printk(" %08X", reg[i]);
+    }
+    printk("\n");
+}
+#endif
+
 static void
 ob_pci_open(int *idx)
 {
@@ -152,6 +164,8 @@ ob_pci_decode_unit(int *idx)
 	int dev, fn, reg, ss, n, p, t;
 	int bus = 0;		/* no information */
 	char *ptr;
+
+	PCI_DPRINTF("ob_pci_decode_unit idx=%p\n", idx);
 
 	fn = 0;
 	reg = 0;
@@ -245,6 +259,10 @@ ob_pci_decode_unit(int *idx)
 	PUSH(lo);
 	PUSH(mid);
 	PUSH(hi);
+
+	PCI_DPRINTF("ob_pci_decode_unit idx=%p addr="
+	        FMT_ucellx " " FMT_ucellx " " FMT_ucellx "\n",
+	        idx, lo, mid, hi);
 }
 
 /*  ( phys.lo phy.mid phys.hi -- str len ) */
@@ -305,6 +323,9 @@ ob_pci_encode_unit(int *idx)
 		break;
 	}
 	push_str(buf);
+
+	PCI_DPRINTF("ob_pci_encode_unit space=%d dev=%d fn=%d buf=%s\n",
+	        ss, dev, fn, buf);
 }
 
 NODE_METHODS(ob_pci_bus_node) = {
@@ -323,11 +344,22 @@ NODE_METHODS(ob_pci_simple_node) = {
 
 static void pci_set_bus_range(const pci_config_t *config)
 {
-	phandle_t dev = get_cur_dev();
+	phandle_t dev = find_dev(config->path);
 	u32 props[2];
 
-	props[0] = (config->dev >> 16) & 0xFF;
-	props[1] = 1;
+	props[0] = config->secondary_bus;
+	props[1] = config->subordinate_bus;
+
+	PCI_DPRINTF("setting bus range for %s PCI device, "
+	        "package handle " FMT_ucellx " "
+            "bus primary=%d secondary=%d subordinate=%d\n",
+            config->path,
+            dev,
+            config->primary_bus,
+            config->secondary_bus,
+            config->subordinate_bus);
+
+
 	set_property(dev, "bus-range", (char *)props, 2 * sizeof(props[0]));
 }
 
@@ -372,9 +404,10 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 #endif
 }
 
-static void pci_host_set_reg(const pci_config_t *config)
+static void pci_host_set_reg(phandle_t phandle)
 {
-    phandle_t dev = get_cur_dev();
+    phandle_t dev = phandle;
+
     /* at most 2 integers for address and size */
     u32 props[4];
     int ncells = 0;
@@ -386,6 +419,10 @@ static void pci_host_set_reg(const pci_config_t *config)
             arch->cfg_len);
 
     set_property(dev, "reg", (char *)props, ncells * sizeof(props[0]));
+
+#if defined(CONFIG_DEBUG_PCI)
+    dump_reg_property("pci_host_set_reg", 4, props);
+#endif
 }
 
 /* child-phys : parent-phys : size */
@@ -438,68 +475,18 @@ static unsigned long pci_bus_addr_to_host_addr(uint32_t ba)
 
 int host_config_cb(const pci_config_t *config)
 {
-	phandle_t aliases;
-
-	aliases = find_dev("/aliases");
-	if (aliases)
-		set_property(aliases, "pci",
-			     config->path, strlen(config->path) + 1);
-
 	//XXX this overrides "reg" property
-	pci_host_set_reg(config);
+	pci_host_set_reg(get_cur_dev());
 	pci_host_set_ranges(config);
-	pci_set_bus_range(config);
 	pci_host_set_interrupt_map(config);
 
 	return 0;
 }
 
-int sabre_config_cb(const pci_config_t *config)
+static int sabre_configure(phandle_t dev)
 {
-        phandle_t dev = get_cur_dev();
         uint32_t props[28];
 
-        props[0] = 0x00000000;
-        props[1] = 0x00000003;
-        set_property(dev, "bus-range", (char *)props, 2 * sizeof(props[0]));
-        props[0] = 0x000001fe;
-        props[1] = 0x00000000;
-        props[2] = 0x00000000;
-        props[3] = 0x00010000;
-        props[4] = 0x000001fe;
-        props[5] = 0x01000000;
-        props[6] = 0x00000000;
-        props[7] = 0x00000100;
-        set_property(dev, "reg", (char *)props, 8 * sizeof(props[0]));
-        props[0] = 0x00000000;
-        props[1] = 0x00000000;
-        props[2] = 0x00000000;
-        props[3] = 0x000001fe;
-        props[4] = 0x01000000;
-        props[5] = 0x00000000;
-        props[6] = 0x01000000;
-        props[7] = 0x01000000;
-        props[8] = 0x00000000;
-        props[9] = 0x00000000;
-        props[10] = 0x000001fe;
-        props[11] = 0x02000000;
-        props[12] = 0x00000000;
-        props[13] = 0x01000000;
-        props[14] = 0x02000000;
-        props[15] = 0x00000000;
-        props[16] = 0x00000000;
-        props[17] = 0x000001ff;
-        props[18] = 0x00000000;
-        props[19] = 0x00000001;
-        props[20] = 0x00000000;
-        props[21] = 0x03000000;
-        props[22] = 0x00000000;
-        props[23] = 0x00000000;
-        props[24] = 0x000001ff;
-        props[25] = 0x00000000;
-        props[26] = 0x00000001;
-        props[27] = 0x00000000;
-        set_property(dev, "ranges", (char *)props, 28 * sizeof(props[0]));
         props[0] = 0xc0000000;
         props[1] = 0x20000000;
         set_property(dev, "virtual-dma", (char *)props, 2 * sizeof(props[0]));
@@ -518,14 +505,19 @@ int sabre_config_cb(const pci_config_t *config)
         return 0;
 }
 
+int sabre_config_cb(const pci_config_t *config)
+{
+    host_config_cb(config);
+
+    return sabre_configure(get_cur_dev());
+}
+
 int bridge_config_cb(const pci_config_t *config)
 {
 	phandle_t aliases;
 
 	aliases = find_dev("/aliases");
 	set_property(aliases, "bridge", config->path, strlen(config->path) + 1);
-
-	pci_set_bus_range(config);
 
 	return 0;
 }
@@ -599,9 +591,10 @@ static void pci_set_AAPL_address(const pci_config_t *config)
 			     ncells * sizeof(cell));
 }
 
-static void pci_set_assigned_addresses(const pci_config_t *config, int num_bars)
+static void pci_set_assigned_addresses(phandle_t phandle,
+                                       const pci_config_t *config, int num_bars)
 {
-	phandle_t dev = get_cur_dev();
+	phandle_t dev = phandle;
 	u32 props[32];
 	int ncells;
 	int i;
@@ -628,9 +621,32 @@ static void pci_set_assigned_addresses(const pci_config_t *config, int num_bars)
 			     ncells * sizeof(props[0]));
 }
 
-static void pci_set_reg(const pci_config_t *config, int num_bars)
+/* call after writing "reg" property to update config->path */
+static void ob_pci_reload_device_path(phandle_t phandle, pci_config_t *config)
 {
-	phandle_t dev = get_cur_dev();
+    /* since "name" and "reg" are now assigned
+       we need to reload current node name */
+
+    PUSH(phandle);
+    fword("get-package-path");
+    char *new_path = pop_fstr_copy();
+    if (new_path) {
+        if (0 != strcmp(config->path, new_path)) {
+            PCI_DPRINTF("\n=== CHANGED === package path old=%s new=%s\n",
+                    config->path, new_path);
+            strncpy(config->path, new_path, sizeof(config->path));
+            config->path[sizeof(config->path)-1] = '\0';
+        }
+        free(new_path);
+    } else {
+        PCI_DPRINTF("\n=== package path old=%s new=NULL\n", config->path);
+    }
+}
+
+static void pci_set_reg(phandle_t phandle,
+                        pci_config_t *config, int num_bars)
+{
+	phandle_t dev = phandle;
 	u32 props[38];
 	int ncells;
 	int i;
@@ -662,6 +678,11 @@ static void pci_set_reg(const pci_config_t *config, int num_bars)
 	}
 
 	set_property(dev, "reg", (char *)props, ncells * sizeof(props[0]));
+    ob_pci_reload_device_path(dev, config);
+
+#if defined(CONFIG_DEBUG_PCI)
+    dump_reg_property("pci_set_reg", ncells, props);
+#endif
 }
 
 
@@ -746,10 +767,13 @@ int ebus_config_cb(const pci_config_t *config)
     return 0;
 }
 
-static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
+static void ob_pci_add_properties(phandle_t phandle,
+                                  pci_addr addr, const pci_dev_t *pci_dev,
                                   const pci_config_t *config, int num_bars)
 {
-	phandle_t dev=get_cur_dev();
+	/* cannot use get_cur_dev() path resolution since "name" and "reg"
+	   properties are being changed */
+	phandle_t dev=phandle;
 	int status,id;
 	uint16_t vendor_id, device_id;
 	uint8_t rev;
@@ -759,6 +783,26 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 	device_id = pci_config_read16(addr, PCI_DEVICE_ID);
 	rev = pci_config_read8(addr, PCI_REVISION_ID);
 	class_code = pci_config_read16(addr, PCI_CLASS_DEVICE);
+
+    if (pci_dev) {
+        /**/
+        if (pci_dev->name) {
+            push_str(pci_dev->name);
+            fword("encode-string");
+            push_str("name");
+            fword("property");
+        } else {
+            char path[256];
+            snprintf(path, sizeof(path),
+                    "pci%x,%x", vendor_id, device_id);
+            push_str(path);
+            fword("encode-string");
+            push_str("name");
+            fword("property");
+        }
+    } else {
+        PCI_DPRINTF("*** missing pci_dev\n");
+    }
 
 	/* create properties as described in 2.5 */
 
@@ -826,14 +870,10 @@ static void ob_pci_add_properties(pci_addr addr, const pci_dev_t *pci_dev,
 					      pci_dev->icells);
 	}
 
-	pci_set_reg(config, num_bars);
-	pci_set_assigned_addresses(config, num_bars);
+	pci_set_assigned_addresses(phandle, config, num_bars);
 	OLDWORLD(pci_set_AAPL_address(config));
 
 	PCI_DPRINTF("\n");
-
-	if (pci_dev && pci_dev->config_cb)
-		pci_dev->config_cb(config);
 }
 
 #ifdef CONFIG_XBOX
@@ -979,113 +1019,284 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, int num_regs, int rom_bar,
         pci_config_write16(addr, PCI_COMMAND, cmd);
 }
 
-static void ob_scan_pci_bus(int bus, unsigned long *mem_base,
-                            unsigned long *io_base, char **path)
-{
-	int devnum, fn, is_multi, vid, did;
-	unsigned int htype;
-	pci_addr addr;
-	pci_config_t config;
-        const pci_dev_t *pci_dev;
-	uint32_t ccode;
-        uint8_t class, subclass, iface;
-	int num_bars, rom_bar;
+static void ob_configure_pci_device(const char* parent_path,
+        int *bus_num, unsigned long *mem_base, unsigned long *io_base,
+        int bus, int devnum, int fn, int *p_is_multi);
 
-	activate_device("/");
+static void ob_scan_pci_bus(int *bus_num, unsigned long *mem_base,
+                            unsigned long *io_base, const char *path,
+                            int bus)
+{
+	int devnum, fn, is_multi;
+
+	PCI_DPRINTF("\nScanning bus %d at %s...\n", bus, path);
+
 	for (devnum = 0; devnum < 32; devnum++) {
 		is_multi = 0;
 		for (fn = 0; fn==0 || (is_multi && fn<8); fn++) {
-#ifdef CONFIG_XBOX
-			if (pci_xbox_blacklisted (bus, devnum, fn))
-				continue;
-#endif
-			addr = PCI_ADDR(bus, devnum, fn);
-			vid = pci_config_read16(addr, PCI_VENDOR_ID);
-			did = pci_config_read16(addr, PCI_DEVICE_ID);
-
-			if (vid==0xffff || vid==0)
-				continue;
-
-			ccode = pci_config_read16(addr, PCI_CLASS_DEVICE);
-			class = ccode >> 8;
-			subclass = ccode;
-			iface = pci_config_read8(addr, PCI_CLASS_PROG);
-
-			pci_dev = pci_find_device(class, subclass, iface,
-						  vid, did);
-
-			PCI_DPRINTF("%x:%x.%x - %x:%x - ", bus, devnum, fn,
-					vid, did);
-
-			htype = pci_config_read8(addr, PCI_HEADER_TYPE);
-			if (fn == 0)
-				is_multi = htype & 0x80;
-
-			if (pci_dev == NULL || pci_dev->name == NULL)
-                            snprintf(config.path, sizeof(config.path),
-				     "%s/pci%x,%x", *path, vid, did);
-			else
-                            snprintf(config.path, sizeof(config.path),
-				     "%s/%s", *path, pci_dev->name);
-
-			PCI_DPRINTF("%s - ", config.path);
-
-			config.dev = addr & 0x00FFFFFF;
-
-                        if (class == PCI_BASE_CLASS_BRIDGE &&
-                            (subclass == PCI_SUBCLASS_BRIDGE_HOST ||
-                             subclass == PCI_SUBCLASS_BRIDGE_PCI))
-                            REGISTER_NAMED_NODE(ob_pci_bus_node, config.path);
-                        else
-                            REGISTER_NAMED_NODE(ob_pci_simple_node, config.path);
-
-			activate_device(config.path);
-
-			if (htype & PCI_HEADER_TYPE_BRIDGE) {
-				num_bars = 2;
-				rom_bar  = PCI_ROM_ADDRESS1;
-			} else {
-				num_bars = 6;
-				rom_bar  = PCI_ROM_ADDRESS;
-			}
-
-			ob_pci_configure(addr, &config, num_bars, rom_bar,
-                                         mem_base, io_base);
-			ob_pci_add_properties(addr, pci_dev, &config, num_bars);
-
-                        if (class == PCI_BASE_CLASS_BRIDGE &&
-                            (subclass == PCI_SUBCLASS_BRIDGE_HOST ||
-                             subclass == PCI_SUBCLASS_BRIDGE_PCI)) {
-				/* host or bridge */
-				free(*path);
-				*path = strdup(config.path);
-			}
+		    ob_configure_pci_device(path, bus_num, mem_base, io_base,
+		            bus, devnum, fn, &is_multi);
 
 		}
 	}
-	device_end();
+}
+
+static void ob_configure_pci_bridge(pci_addr addr,
+                                    int *bus_num, unsigned long *mem_base,
+                                    unsigned long *io_base,
+                                    int primary_bus, pci_config_t *config)
+{
+    config->primary_bus = primary_bus;
+    pci_config_write8(addr, PCI_PRIMARY_BUS, config->primary_bus);
+
+    config->secondary_bus = *bus_num;
+    pci_config_write8(addr, PCI_SECONDARY_BUS, config->secondary_bus);
+
+    config->subordinate_bus = 0xff;
+    pci_config_write8(addr, PCI_SUBORDINATE_BUS, config->subordinate_bus);
+
+    PCI_DPRINTF("scanning new pci bus %u under bridge %s\n",
+            config->secondary_bus, config->path);
+
+    /* make pci bridge parent device, prepare for recursion */
+
+    ob_scan_pci_bus(bus_num, mem_base, io_base,
+                    config->path, config->secondary_bus);
+
+    /* bus scan updates *bus_num to last revealed pci bus number */
+    config->subordinate_bus = *bus_num;
+    pci_config_write8(addr, PCI_SUBORDINATE_BUS, config->subordinate_bus);
+
+    PCI_DPRINTF("bridge %s PCI bus primary=%d secondary=%d subordinate=%d\n",
+            config->path, config->primary_bus, config->secondary_bus,
+            config->subordinate_bus);
+
+    pci_set_bus_range(config);
+}
+
+static int ob_pci_read_identification(int bus, int devnum, int fn,
+                                 int *p_vid, int *p_did,
+                                 uint8_t *p_class, uint8_t *p_subclass)
+{
+    int vid, did;
+    uint32_t ccode;
+    pci_addr addr;
+
+#ifdef CONFIG_XBOX
+    if (pci_xbox_blacklisted (bus, devnum, fn))
+        return;
+#endif
+    addr = PCI_ADDR(bus, devnum, fn);
+    vid = pci_config_read16(addr, PCI_VENDOR_ID);
+    did = pci_config_read16(addr, PCI_DEVICE_ID);
+
+    if (vid==0xffff || vid==0) {
+        return 0;
+    }
+
+    if (p_vid) {
+        *p_vid = vid;
+    }
+
+    if (p_did) {
+        *p_did = did;
+    }
+
+    ccode = pci_config_read16(addr, PCI_CLASS_DEVICE);
+
+    if (p_class) {
+        *p_class = ccode >> 8;
+    }
+
+    if (p_subclass) {
+        *p_subclass = ccode;
+    }
+
+    return 1;
+}
+
+static void ob_configure_pci_device(const char* parent_path,
+        int *bus_num, unsigned long *mem_base, unsigned long *io_base,
+        int bus, int devnum, int fn, int *p_is_multi)
+{
+    int vid, did;
+    unsigned int htype;
+    pci_addr addr;
+    pci_config_t config = {};
+        const pci_dev_t *pci_dev;
+    uint8_t class, subclass, iface;
+    int num_bars, rom_bar;
+
+    phandle_t phandle = 0;
+    int is_host_bridge = 0;
+
+    if (!ob_pci_read_identification(bus, devnum, fn, &vid, &did, &class, &subclass)) {
+        return;
+    }
+
+    addr = PCI_ADDR(bus, devnum, fn);
+    iface = pci_config_read8(addr, PCI_CLASS_PROG);
+
+    pci_dev = pci_find_device(class, subclass, iface,
+                  vid, did);
+
+    PCI_DPRINTF("%x:%x.%x - %x:%x - ", bus, devnum, fn,
+            vid, did);
+
+    htype = pci_config_read8(addr, PCI_HEADER_TYPE);
+
+    if (fn == 0) {
+        if (p_is_multi) {
+            *p_is_multi = htype & 0x80;
+        }
+    }
+
+    /* stop adding host bridge accessible from it's primary bus
+       PCI host bridge is to be added by host code
+    */
+    if (class == PCI_BASE_CLASS_BRIDGE &&
+            subclass == PCI_SUBCLASS_BRIDGE_HOST) {
+        is_host_bridge = 1;
+    }
+
+    if (is_host_bridge) {
+        /* reuse device tree node */
+        PCI_DPRINTF("host bridge found - ");
+        snprintf(config.path, sizeof(config.path),
+                "%s", parent_path);
+    } else if (pci_dev == NULL || pci_dev->name == NULL) {
+        snprintf(config.path, sizeof(config.path),
+                "%s/pci%x,%x", parent_path, vid, did);
+    }
+    else {
+        snprintf(config.path, sizeof(config.path),
+                "%s/%s", parent_path, pci_dev->name);
+    }
+
+    PCI_DPRINTF("%s - ", config.path);
+
+    config.dev = addr & 0x00FFFFFF;
+
+    switch (class) {
+    case PCI_BASE_CLASS_BRIDGE:
+        if (subclass != PCI_SUBCLASS_BRIDGE_HOST) {
+            REGISTER_NAMED_NODE_PHANDLE(ob_pci_bus_node, config.path, phandle);
+        }
+        break;
+    default:
+        REGISTER_NAMED_NODE_PHANDLE(ob_pci_simple_node, config.path, phandle);
+        break;
+    }
+
+    if (is_host_bridge) {
+        phandle = find_dev(config.path);
+
+        if (get_property(phandle, "vendor-id", NULL)) {
+            PCI_DPRINTF("host bridge already configured\n");
+            return;
+        }
+    }
+
+    activate_dev(phandle);
+
+    if (htype & PCI_HEADER_TYPE_BRIDGE) {
+        num_bars = 2;
+        rom_bar  = PCI_ROM_ADDRESS1;
+    } else {
+        num_bars = 6;
+        rom_bar  = PCI_ROM_ADDRESS;
+    }
+
+    ob_pci_configure(addr, &config, num_bars, rom_bar,
+                     mem_base, io_base);
+
+    ob_pci_add_properties(phandle, addr, pci_dev, &config, num_bars);
+
+    if (!is_host_bridge) {
+        pci_set_reg(phandle, &config, num_bars);
+    }
+
+    /* call device-specific configuration callback */
+    if (pci_dev && pci_dev->config_cb) {
+        //activate_device(config.path);
+        pci_dev->config_cb(&config);
+    }
+
+    /* device is configured so we may move it out of scope */
+    device_end();
+
+    /* scan bus behind bridge device */
+    //if (htype & PCI_HEADER_TYPE_BRIDGE && class == PCI_BASE_CLASS_BRIDGE) {
+    if ( class == PCI_BASE_CLASS_BRIDGE &&
+            ( subclass == PCI_SUBCLASS_BRIDGE_PCI ||
+              subclass == PCI_SUBCLASS_BRIDGE_HOST ) ) {
+
+        if (subclass == PCI_SUBCLASS_BRIDGE_PCI) {
+            /* reserve next pci bus number for this PCI bridge */
+            ++(*bus_num);
+        }
+
+        ob_configure_pci_bridge(addr, bus_num, mem_base, io_base, bus, &config);
+    }
 }
 
 int ob_pci_init(void)
 {
-        int bus;
-        unsigned long mem_base, io_base;
-	char *path;
+    int bus, devnum, fn;
+    uint8_t class, subclass;
+    unsigned long mem_base, io_base;
 
-	PCI_DPRINTF("Initializing PCI devices...\n");
+    pci_config_t config = {}; /* host bridge */
+    phandle_t phandle_host;
 
-	/* brute force bus scan */
+    PCI_DPRINTF("Initializing PCI host bridge...\n");
 
-	/* Find all PCI bridges */
+    activate_device("/");
 
-	mem_base = arch->mem_base;
-        /* I/O ports under 0x400 are used by devices mapped at fixed
-           location. */
-        io_base = arch->io_base + 0x400;
-	path = strdup("");
-	for (bus = 0; bus<0x100; bus++) {
-		ob_scan_pci_bus(bus, &mem_base, &io_base, &path);
-	}
-	free(path);
-	return 0;
+    /* Find all PCI bridges */
+
+    mem_base = arch->mem_base;
+    /* I/O ports under 0x400 are used by devices mapped at fixed
+       location. */
+    io_base = arch->io_base + 0x400;
+
+    bus = 0;
+
+    for (devnum = 0; devnum < 32; devnum++) {
+        /* scan only fn 0 */
+        fn = 0;
+
+        if (!ob_pci_read_identification(bus, devnum, fn,
+                                        0, 0, &class, &subclass)) {
+            continue;
+        }
+
+        if (class != PCI_BASE_CLASS_BRIDGE || subclass != PCI_SUBCLASS_BRIDGE_HOST) {
+            continue;
+        }
+
+        /* create root node for host PCI bridge */
+
+        /* configure  */
+        snprintf(config.path, sizeof(config.path), "/pci");
+
+        REGISTER_NAMED_NODE_PHANDLE(ob_pci_bus_node, config.path, phandle_host);
+
+        pci_host_set_reg(phandle_host);
+
+        /* update device path after changing "reg" property */
+        ob_pci_reload_device_path(phandle_host, &config);
+
+        ob_configure_pci_device(config.path, &bus, &mem_base, &io_base,
+                bus, devnum, fn, 0);
+
+        /* we expect single host PCI bridge
+           but this may be machine-specific */
+        break;
+    }
+
+
+    device_end();
+
+    return 0;
 }
