@@ -84,34 +84,70 @@ int is_newworld(void)
 }
 
 static const pci_arch_t known_arch[] = {
-        [ARCH_PREP] = { "PREP", PCI_VENDOR_ID_MOTOROLA,
-                        PCI_DEVICE_ID_MOTOROLA_RAVEN,
-                        0x80800000, 0x800c0000,
-			0x80000000, 0x00100000, 0xf0000000, 0x10000000,
-			0x80000000, 0x00010000, 0x00000000, 0x00400000,
-			{ 9, 11, 9, 11 }
-		      },
-        [ARCH_MAC99] = { "MAC99", PCI_VENDOR_ID_APPLE,
-                         PCI_DEVICE_ID_APPLE_UNI_N_PCI,
-                         0xf2800000, 0xf2c00000,
-                         0xf2000000, 0x02000000, 0x80000000, 0x10000000,
-                         0xf2000000, 0x00800000, 0x00000000, 0x01000000,
-                         { 0x1b, 0x1c, 0x1d, 0x1e }
-		       },
-        [ARCH_MAC99_U3] = { "MAC99_U3", PCI_VENDOR_ID_APPLE,
-                            PCI_DEVICE_ID_APPLE_U3_AGP,
-                            0xf0800000, 0xf0c00000,
-                            0xf0000000, 0x02000000, 0x80000000, 0x10000000,
-                            0xf2000000, 0x00800000, 0x00000000, 0x01000000,
-                            { 0x1b, 0x1c, 0x1d, 0x1e }
-                          },
-        [ARCH_HEATHROW] = { "HEATHROW", PCI_VENDOR_ID_MOTOROLA,
-                            PCI_DEVICE_ID_MOTOROLA_MPC106,
-                            0xfec00000, 0xfee00000,
-			    0x80000000, 0x7f000000, 0x80000000, 0x01000000,
-			    0xfe000000, 0x00800000, 0xfd000000, 0x01000000,
-			    { 21, 22, 23, 24 }
-			  },
+    [ARCH_PREP] = {
+        .name = "PREP",
+        .vendor_id = PCI_VENDOR_ID_MOTOROLA,
+        .device_id = PCI_DEVICE_ID_MOTOROLA_RAVEN,
+        .cfg_addr = 0x80800000,
+        .cfg_data = 0x800c0000,
+        .cfg_base = 0x80000000,
+        .cfg_len = 0x00100000,
+        .mem_base = 0xf0000000,
+        .mem_len = 0x10000000,
+        .io_base = 0x80000000,
+        .io_len = 0x00010000,
+        .rbase = 0x00000000,
+        .rlen = 0x00400000,
+        .irqs = { 9, 11, 9, 11 }
+    },
+    [ARCH_MAC99] = {
+        .name = "MAC99",
+        .vendor_id = PCI_VENDOR_ID_APPLE,
+        .device_id = PCI_DEVICE_ID_APPLE_UNI_N_PCI,
+        .cfg_addr = 0xf2800000,
+        .cfg_data = 0xf2c00000,
+        .cfg_base = 0xf2000000,
+        .cfg_len = 0x02000000,
+        .mem_base = 0x80000000,
+        .mem_len = 0x10000000,
+        .io_base = 0xf2000000,
+        .io_len = 0x00800000,
+        .rbase = 0x00000000,
+        .rlen = 0x01000000,
+        .irqs = { 0x1b, 0x1c, 0x1d, 0x1e }
+    },
+    [ARCH_MAC99_U3] = {
+        .name = "MAC99_U3",
+        .vendor_id = PCI_VENDOR_ID_APPLE,
+        .device_id = PCI_DEVICE_ID_APPLE_U3_AGP,
+        .cfg_addr = 0xf0800000,
+        .cfg_data = 0xf0c00000,
+        .cfg_base = 0xf0000000,
+        .cfg_len = 0x02000000,
+        .mem_base = 0x80000000,
+        .mem_len = 0x10000000,
+        .io_base = 0xf2000000,
+        .io_len = 0x00800000,
+        .rbase = 0x00000000,
+        .rlen = 0x01000000,
+        .irqs = { 0x1b, 0x1c, 0x1d, 0x1e }
+    },
+    [ARCH_HEATHROW] = {
+        .name = "HEATHROW",
+        .vendor_id = PCI_VENDOR_ID_MOTOROLA,
+        .device_id = PCI_DEVICE_ID_MOTOROLA_MPC106,
+        .cfg_addr = 0xfec00000,
+        .cfg_data = 0xfee00000,
+        .cfg_base = 0x80000000,
+        .cfg_len = 0x7f000000,
+        .mem_base = 0x80000000,
+        .mem_len = 0x01000000,
+        .io_base = 0xfe000000,
+        .io_len = 0x00800000,
+        .rbase = 0xfd000000,
+        .rlen = 0x01000000,
+        .irqs = { 21, 22, 23, 24 }
+    },
 };
 uint32_t isa_io_base;
 
