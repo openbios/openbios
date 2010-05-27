@@ -161,7 +161,7 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 	set_int_property(ph, "height", height);
 	set_int_property(ph, "depth", depth);
 	set_int_property(ph, "linebytes", linebytes);
-	set_int_property(ph, "address", fb & ~0x0000000F);
+	set_int_property(ph, "address", (u32)(fb & ~0x0000000F));
 
 	chosen = find_dev("/chosen");
 	push_str(path);

@@ -320,11 +320,11 @@ init_video( unsigned long fb,  int width, int height, int depth, int rb )
 	video.fb.depth = depth;
 	video.fb.rb = rb;
 	while( (ph=dt_iterate_type(ph, "display")) ) {
-		set_property( ph, "width", (char*)&video.fb.w, 4 );
-		set_property( ph, "height", (char*)&video.fb.h, 4 );
-		set_property( ph, "depth", (char*)&video.fb.depth, 4 );
-		set_property( ph, "linebytes", (char*)&video.fb.rb, 4 );
-		set_property( ph, "address", (char*)&video.fb.mphys, 4 );
+		set_int_property( ph, "width", video.fb.w );
+		set_int_property( ph, "height", video.fb.h );
+		set_int_property( ph, "depth", video.fb.depth );
+		set_int_property( ph, "linebytes", video.fb.rb );
+		set_int_property( ph, "address", video.fb.mphys );
 	}
 	video.has_video = 1;
 	video.pal = malloc( 256 * sizeof(ulong) );
