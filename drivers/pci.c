@@ -455,10 +455,10 @@ static void pci_host_set_ranges(const pci_config_t *config)
         ncells += host_encode_phys_addr(props + ncells, arch->rbase);
         ncells += pci_encode_size(props + ncells, arch->rlen);
 	}
-	if (arch->mem_base) {
+	if (arch->host_mem_base) {
 	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
-				     config->dev, 0, arch->mem_base);
-        ncells += host_encode_phys_addr(props + ncells, arch->mem_base);
+				     config->dev, 0, arch->pci_mem_base);
+        ncells += host_encode_phys_addr(props + ncells, arch->host_mem_base);
         ncells += pci_encode_size(props + ncells, arch->mem_len);
 	}
 	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
@@ -1255,7 +1255,7 @@ int ob_pci_init(void)
 
     /* Find all PCI bridges */
 
-    mem_base = arch->mem_base;
+    mem_base = arch->pci_mem_base;
     /* I/O ports under 0x400 are used by devices mapped at fixed
        location. */
     io_base = arch->io_base + 0x400;
