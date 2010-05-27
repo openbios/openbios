@@ -603,7 +603,8 @@ static void pci_set_assigned_addresses(phandle_t phandle,
 
 	ncells = 0;
 	for (i = 0; i < num_bars; i++) {
-		if (!config->assigned[i] || !config->sizes[i])
+		/* consider only bars with non-zero region size */
+		if (!config->sizes[i])
 			continue;
 		pci_decode_pci_addr(config->assigned[i],
 				    &flags, &space_code, &mask);
@@ -662,7 +663,8 @@ static void pci_set_reg(phandle_t phandle,
 	ncells += pci_encode_size(props + ncells, 0);
 
 	for (i = 0; i < num_bars; i++) {
-		if (!config->assigned[i] || !config->sizes[i])
+		/* consider only bars with non-zero region size */
+		if (!config->sizes[i])
 			continue;
 
 		pci_decode_pci_addr(config->regions[i],
