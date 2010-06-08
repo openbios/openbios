@@ -20,6 +20,7 @@
 #include "filesys.h"
 #include "glue.h"
 #include "libc/diskio.h"
+#include "libc/vsprintf.h"
 
 /************************************************************************/
 /* 	grub GLOBALS (horrible... but difficult to fix)			*/
@@ -97,6 +98,8 @@ typedef struct {
 	const struct fsys_entry *fsys;
 	grubfile_t *fd;
 	int		dev_fd;
+	llong	offset;		/* Offset added onto each device read; should only ever be non-zero
+				when probing a partition for a filesystem */
 } grubfs_t;
 
 static grubfs_t dummy_fs;
@@ -199,7 +202,7 @@ open_path( fs_ops_t *fs, const char *path )
 	printk("Path=%s\n",path);
 #endif
 	if (!curfs->fsys->dir_func((char *) path)) {
-		printk("File not found\n");
+		forth_printf("File not found\n");
 		return NULL;
 	}
 	ret=malloc(sizeof(grubfile_t));
@@ -249,6 +252,7 @@ fs_grubfs_open( int fd, fs_ops_t *fs )
 	curfs=&dummy_fs;
 
 	curfs->dev_fd = fd;
+	curfs->offset = 0;
 
 	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {
 #ifdef CONFIG_DEBUG_FS
@@ -269,6 +273,31 @@ fs_grubfs_open( int fd, fs_ops_t *fs )
 			return 0;
 		}
 	}
+#ifdef CONFIG_DEBUG_FS
+	printk("Unknown filesystem type\n");
+#endif
+	return -1;
+}
+
+/* Probe for filesystem (with partition offset); returns 0 on success */
+int
+fs_grubfs_probe( int fd, llong offs )
+{
+	int i;
+
+	curfs = &dummy_fs;
+
+	curfs->dev_fd = fd;
+	curfs->offset = offs;
+
+	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {
+#ifdef CONFIG_DEBUG_FS
+		printk("Probing for %s\n", fsys_table[i].name);
+#endif
+		if (fsys_table[i].mount_func())
+			return 0;
+	}
+
 #ifdef CONFIG_DEBUG_FS
 	printk("Unknown filesystem type\n");
 #endif
@@ -297,7 +326,7 @@ devread( unsigned long sector, unsigned long byte_offset,
 		return -1;
 	}
 
-	if( seek_io(curfs->dev_fd, offs) ) {
+	if( seek_io(curfs->dev_fd, offs + curfs->offset) ) {
 #ifdef CONFIG_DEBUG_FS
 		printk("seek failure\n");
 #endif

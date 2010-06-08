@@ -36,18 +36,31 @@ new-device
     r> drop 0
   ;
 
-  : find-filesystem ( ih -- ph | 0 )
-    >r fs-handlers
+  : find-filesystem ( offs.d ih -- ph | 0 )
+    >r fs-handlers	( offs.d listhead )
     begin list-get while
-      ( nextlist dictptr )
-      r@ over @ execute if
-        ( nextlist dictptr )
-        na1+ @ r> rot 2drop exit
-      then
-      drop
+      2over	( offs.d nextlist dictptr offs.d )
+      r@ 	( offs.d nextlist dictptr offs.d ih )
+	3 pick	( offs.d nextlist dictptr offs.d ih dictptr )
+ 	@	( offs.d nextlist dictptr offs.d ih probe-xt )
+	execute ( offs.d nextlist dictptr flag? )
+	if
+        	( offs.d nextlist dictptr )
+        	na1+	( offs.d nextlist dictptr+1 ) 
+		@ 	( offs.d nextlist phandle )
+		r>	( offs.d nextlist phandle ih )
+		rot	( offs.d phandle ih nextlist )
+		2drop	( offs.d phandle )
+ 		-rot	( phandle offs.d )
+		2drop	( phandle )
+		exit
+      	then
+      drop	( offs.d nextlist )
     repeat
+    2drop	( offs.d )
     r> drop 0
   ;
+
 
   : register-part-handler ( handler-ph -- )
     dup " probe" rot find-method

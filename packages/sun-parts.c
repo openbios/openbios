@@ -15,9 +15,12 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/byteorder.h"
+#include "libc/vsprintf.h"
 #include "packages.h"
 
-#ifdef CONFIG_DEBUG_SUN_PARTS
+//#define DEBUG_SUN_PARTS
+
+#ifdef DEBUG_SUN_PARTS
 #define DPRINTF(fmt, args...)                   \
     do { printk(fmt , ##args); } while (0)
 #else
@@ -25,6 +28,7 @@
 #endif
 
 typedef struct {
+	xt_t		seek_xt, read_xt;
         ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
 	int		type;
@@ -32,9 +36,8 @@ typedef struct {
 
 DECLARE_NODE( sunparts, INSTALL_OPEN, sizeof(sunparts_info_t), "+/packages/sun-parts" );
 
-
-#define SEEK( pos )		({ DPUSH(pos); call_parent(seek_xt); POP(); })
-#define READ( buf, size )	({ PUSH((ucell)buf); PUSH(size); call_parent(read_xt); POP(); })
+#define SEEK( pos )		({ DPUSH(pos); call_parent(di->seek_xt); POP(); })
+#define READ( buf, size )	({ PUSH((ucell)buf); PUSH(size); call_parent(di->read_xt); POP(); })
 
 /* Layout of SUN partition table */
 struct sun_disklabel {
@@ -89,26 +92,56 @@ static void
 sunparts_open( sunparts_info_t *di )
 {
 	char *str = my_args_copy();
-	xt_t seek_xt = find_parent_method("seek");
-	xt_t read_xt = find_parent_method("read");
+	char *argstr = strdup("");
+	char *parstr = strdup("");
 	int parnum = -1;
 	unsigned char buf[512];
         struct sun_disklabel *p;
         unsigned int i, bs;
         ducell offs, size;
+	phandle_t ph;
 
 	DPRINTF("sunparts_open '%s'\n", str );
 
-	if( str ) {
-            if( !strlen(str) )
-                parnum = -1;
-            else if (str[0] >= 'a' && str[0] < ('a' + 8))
-                parnum = str[0] - 'a';
-            else
-                parnum = atol(str);
+	/* 
+		Arguments that we accept:
+		id: [0-7] | [a-h]
+		[(id,)][filespec]
+	*/
 
-            free( str );
+	if( str ) {
+		if ( !strlen(str) )
+			parnum = -1;
+		else {
+			/* If end of string, we just have a partition id */
+			if (str[1] == '\0') {
+				parstr = str;
+			} else {
+				/* If a comma, then we have a partition id plus argument */
+				if (str[1] == ',') {
+					str[1] = '\0';
+					parstr = str;
+					argstr = &str[2];
+				} else {
+					/* Otherwise we have just an argument */
+					argstr = str;
+				}
+			}
+		
+			/* Convert the id to a partition number */
+			if (strlen(parstr)) {
+				if (parstr[0] >= 'a' && parstr[0] < ('a' + 8))
+					parnum = parstr[0] - 'a';
+				else
+					parnum = atol(parstr);
+			}	
+		}
 	}
+
+	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
+
+	di->read_xt = find_parent_method("read");
+	di->seek_xt = find_parent_method("seek");
 
 	SEEK( 0 );
 	if( READ(buf, 512) != 512 )
@@ -137,6 +170,7 @@ sunparts_open( sunparts_info_t *di )
             parnum = 0;
 
 	DPRINTF("Selected partition %d\n", parnum);
+
         offs = (llong)__be32_to_cpu(p->partitions[parnum].start_cylinder) *
             __be16_to_cpu(p->ntrks) * __be16_to_cpu(p->nsect) * bs;
 
@@ -146,9 +180,28 @@ sunparts_open( sunparts_info_t *di )
         di->size_hi = size >> BITS;
         di->size_lo = size & (ucell) -1;
         di->type = __be32_to_cpu(p->infos[parnum].id);
-        DPRINTF("Found Sun partition table, offs %lld size %lld\n",
+
+        DPRINTF("Found Sun partition, offs %lld size %lld\n",
                 (llong)offs, (llong)size);
 
+	/* Probe for filesystem at current offset */
+	DPRINTF("sun-parts: about to probe for fs\n");
+	DPUSH( offs );
+	PUSH_ih( my_parent() );
+	parword("find-filesystem");
+	DPRINTF("sun-parts: done fs probe\n");
+
+	ph = POP_ph();
+	if( ph ) {
+		DPRINTF("sun-parts: filesystem found with ph " FMT_ucellx " and args %s\n", ph, str);
+		push_str( argstr );
+		PUSH_ph( ph );
+		fword("interpose");
+	} else {
+		DPRINTF("sun-parts: no filesystem found; bypassing misc-files interpose\n");
+	}
+
+	free( str );
         RET( -1 );
 }
 
@@ -157,6 +210,8 @@ static void
 sunparts_probe( __attribute__((unused))sunparts_info_t *dummy )
 {
 	unsigned char *buf = (unsigned char *)POP();
+
+	DPRINTF("probing for Sun partitions\n");
 
 	RET ( has_sun_part_magic(buf) );
 }
@@ -185,11 +240,52 @@ sunparts_initialize( __attribute__((unused))sunparts_info_t *di )
 	fword("register-partition-package");
 }
 
+/* ( pos.d -- status ) */
+static void
+sunparts_seek(sunparts_info_t *di )
+{
+	llong pos = DPOP();
+	llong offs;
+
+	DPRINTF("sunparts_seek %llx:\n", pos);
+
+	/* Calculate the seek offset for the parent */
+	offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
+	offs += pos;
+	DPUSH(offs);
+
+	DPRINTF("sunparts_seek parent offset %llx:\n", offs);
+
+	call_package(di->seek_xt, my_parent());
+}
+
+/* ( buf len -- actlen ) */
+static void
+sunparts_read(sunparts_info_t *di )
+{
+	DPRINTF("sunparts_read\n");
+
+	/* Pass the read back up to the parent */
+	call_package(di->read_xt, my_parent());
+}
+
+/* ( addr -- size ) */
+static void
+sunparts_load( __attribute__((unused))sunparts_info_t *di )
+{
+	forth_printf("load currently not implemented for /packages/sun-parts\n");
+	PUSH(0);
+}
+
+
 NODE_METHODS( sunparts ) = {
 	{ "probe",	sunparts_probe 		},
 	{ "open",	sunparts_open 		},
 	{ "get-info",	sunparts_get_info 	},
 	{ "block-size",	sunparts_block_size 	},
+	{ "seek",	sunparts_seek 		},
+	{ "read",	sunparts_read 		},
+	{ "load",	sunparts_load	 	},
 	{ NULL,		sunparts_initialize	},
 };
 

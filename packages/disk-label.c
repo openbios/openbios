@@ -17,6 +17,7 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/diskio.h"
+#include "libc/vsprintf.h"
 #include "packages.h"
 
 //#define DEBUG_DISK_LABEL
@@ -29,7 +30,9 @@ do { printk("DISK-LABEL - %s: " fmt, __func__ , ##args); } while (0)
 #endif
 
 typedef struct {
-	int		fd;
+	xt_t 		parent_seek_xt;
+	xt_t 		parent_tell_xt;
+	xt_t		parent_read_xt;
 
         ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
@@ -44,117 +47,81 @@ DECLARE_NODE( dlabel, 0, sizeof(dlabel_info_t), "/packages/disk-label" );
 
 /* ( -- ) */
 static void
-dlabel_close( dlabel_info_t *di )
+dlabel_close( __attribute__((unused))dlabel_info_t *di )
 {
-	if( di->part_ih )
-		close_package( di->part_ih );
-
-	if( di->fd )
-		close_io( di->fd );
 }
 
 /* ( -- success? ) */
 static void
 dlabel_open( dlabel_info_t *di )
 {
-	const char *s, *filename;
 	char *path;
 	char block0[512];
 	phandle_t ph;
-	int fd, success=0;
-	xt_t xt;
+	int success=0;
+	cell status;
 
 	path = my_args_copy();
 	if (!path) {
 		path = strdup("");
 	}
-        if (!path) {
-                goto out;
-        }
+
 	DPRINTF("dlabel-open '%s'\n", path );
 
-	/* open disk interface */
+	/* Find parent methods */
+	di->parent_seek_xt = find_parent_method("seek");
+	di->parent_tell_xt = find_parent_method("tell");
+        di->parent_read_xt = find_parent_method("read");	
 
-	if( (fd=open_ih(my_parent())) == -1 )
+	/* Read first block from parent device */
+	DPUSH(0);
+	call_package(di->parent_seek_xt, my_parent());
+	POP();
+
+	PUSH((ucell)block0);
+	PUSH(sizeof(block0));
+	call_package(di->parent_read_xt, my_parent());
+	status = POP();
+	if (status != sizeof(block0))
 		goto out;
-	di->fd = fd;
 
-	/* argument format: parnum,filename */
-
-	s = path;
-	filename = "";
-	if( *s == '-' || isdigit(*s) ||
-	    (*s >= 'a' && *s < ('a' + 8)
-	     && (*(s + 1) == ',' || *(s + 1) == '\0'))) {
-		if( (s=strpbrk(path,",")) ) {
-			filename = s+1;
-		}
-	} else {
-		filename = s;
-		if( *s == ',' )
-			filename++;
-	}
-	DPRINTF("filename %s\n", filename);
-
-	/* find partition handler */
-	seek_io( fd, 0 );
-	if( read_io(fd, block0, sizeof(block0)) != sizeof(block0) )
-		goto out;
+	/* Find partition handler */
 	PUSH( (ucell)block0 );
 	selfword("find-part-handler");
 	ph = POP_ph();
-
-	/* open partition package */
 	if( ph ) {
-		if( !(di->part_ih=open_package(path, ph)) )
-			goto out;
-		if( !(xt=find_ih_method("get-info", di->part_ih)) )
-			goto out;
-		call_package( xt , di->part_ih );
-		di->size_hi = POP();
-		di->size_lo = POP();
-		di->offs_hi = POP();
-		di->offs_lo = POP();
-		di->type = POP();
-		di->block_size = 512;
-		xt = find_ih_method("block-size", di->part_ih);
-		if (xt) {
-			call_package(xt, di->part_ih);
-			di->block_size = POP();
-		}
+		/* We found a suitable partition handler, so interpose it */
+		DPRINTF("Partition found on disk - scheduling interpose with ph " FMT_ucellx "\n", ph);
+
+		push_str(path);
+		PUSH_ph(ph);
+		fword("interpose");	
+
+		success = 1;
 	} else {
 		/* unknown (or missing) partition map,
 		 * try the whole disk
 		 */
-		di->offs_hi = 0;
-		di->offs_lo = 0;
-		di->size_hi = 0;
-		di->size_lo = 0;
-		di->part_ih = 0;
-		di->type = -1;
-		di->block_size = 512;
-		xt = find_parent_method("block-size");
-		if (xt) {
-			call_parent(xt);
-			di->block_size = POP();
+
+		DPRINTF("Unknown or missing partition map; trying whole disk\n");
+
+		/* Probe for filesystem from start of device */
+		DPUSH ( 0 );	
+		PUSH_ih( my_self() );
+		selfword("find-filesystem");
+		ph = POP_ph();
+		if( ph ) {
+			push_str( path );
+			PUSH_ph( ph );
+			fword("interpose");
+		} else if (*path && strcmp(path, "%BOOT") != 0) {
+			goto out;
 		}
+
+		success = 1;
 	}
 
-	/* probe for filesystem */
-
-	PUSH_ih( my_self() );
-	selfword("find-filesystem");
-	ph = POP_ph();
-	if( ph ) {
-		push_str( filename );
-		PUSH_ph( ph );
-		fword("interpose");
-	} else if (*filename && strcmp(filename, "%BOOT") != 0) {
-		goto out;
-	}
-	success = 1;
-
- out:
+out:
 	if( path )
 		free( path );
 	if( !success ) {
@@ -168,60 +135,25 @@ dlabel_open( dlabel_info_t *di )
 static void
 dlabel_read( dlabel_info_t *di )
 {
-	int ret, len = POP();
-	char *buf = (char*)POP();
-	llong pos = tell( di->fd );
-	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
-	ducell size = ((ducell)di->size_hi << BITS) | di->size_lo;
-
-	if (size && len > pos - offs + size) {
-		len = size - (pos - offs);
-	}
-
-	ret = read_io( di->fd, buf, len );
-	PUSH( ret );
+	/* Call back up to parent */
+	call_package(di->parent_read_xt, my_parent());
 }
 
 /* ( pos.d -- status ) */
 static void
 dlabel_seek( dlabel_info_t *di )
 {
-	llong pos = DPOP();
-	int ret;
-	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
-	ducell size = ((ducell)di->size_hi << BITS) | di->size_lo;
-
-	DPRINTF("dlabel_seek %llx [%llx, %llx]\n", pos, offs, size);
-	if( pos != -1 )
-		pos += offs;
-	else if( size ) {
-		DPRINTF("Seek EOF\n");
-		pos = offs + size;
-	} else {
-		/* let parent handle the EOF seek. */
-	}
-	DPRINTF("dlabel_seek: 0x%llx\n", pos );
-	if (size && (pos - offs >= size )) {
-		PUSH(-1);
-		return;
-	}
-
-	ret = seek_io( di->fd, pos );
-	PUSH( ret );
+	/* Call back up to parent */
+	call_package(di->parent_seek_xt, my_parent());
 }
 
 /* ( -- filepos.d ) */
 static void
 dlabel_tell( dlabel_info_t *di )
 {
-	llong pos = tell( di->fd );
-	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
-	if( pos != -1 )
-		pos -= offs;
-
-	DPUSH( pos );
+	/* Call back up to parent */
+	call_package(di->parent_tell_xt, my_parent());
 }
-
 
 /* ( addr len -- actual ) */
 static void
@@ -231,39 +163,32 @@ dlabel_write( __attribute__((unused)) dlabel_info_t *di )
 	PUSH( -1 );
 }
 
-/* ( rel.d -- abs.d ) */
-static void
-dlabel_offset( dlabel_info_t *di )
-{
-	ullong rel = DPOP();
-	ducell offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
-	rel += offs;
-	DPUSH( rel );
-}
-
 /* ( addr -- size ) */
 static void
 dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 {
-	/* XXX: try the load method of the part package */
+	/* Try the load method of the part package */
+	char *buf;
+	xt_t xt;
 
-	printk("Can't load from this device!\n");
-	POP();
-	PUSH(0);
-}
+	buf = (char *)POP();
 
-static void
-dlabel_block_size( dlabel_info_t *di )
-{
-	PUSH(di->block_size);
+	DPRINTF("load invoked with address %p\n", buf);
+
+	xt = find_ih_method("load", di->part_ih);
+	if (!xt) {
+		forth_printf("load currently not implemented for /packages/disk-label\n");
+		PUSH(0);
+		return;
+	}
+
+	call_package(xt, di->part_ih);
 }
 
 NODE_METHODS( dlabel ) = {
 	{ "open",	dlabel_open 	},
 	{ "close",	dlabel_close 	},
-	{ "offset",	dlabel_offset 	},
 	{ "load",	dlabel_load 	},
-	{ "block-size", dlabel_block_size },
 	{ "read",	dlabel_read 	},
 	{ "write",	dlabel_write 	},
 	{ "seek",	dlabel_seek 	},

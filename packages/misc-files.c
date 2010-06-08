@@ -19,7 +19,17 @@
 #include "libopenbios/bindings.h"
 #include "fs/fs.h"
 #include "libc/diskio.h"
+#include "libc/vsprintf.h"
 #include "packages.h"
+
+//#define CONFIG_DEBUG_MISC_FILES
+
+#ifdef CONFIG_DEBUG_MISC_FILES
+#define DPRINTF(fmt, args...)                   \
+    do { printk(fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...)
+#endif
 
 #define PATHBUF_SIZE	256
 #define VOLNAME_SIZE	64
@@ -42,17 +52,36 @@ do_open( ihandle_t ih )
 	fs_ops_t *fs = malloc( sizeof(*fs) );
 	int err, fd;
 
-	err = (fd=open_ih(ih)) == -1;
+	DPRINTF("misc-files doing open with ih " FMT_ucellX "\n", ih);
+
+	err = (fd = open_ih(ih)) == -1;
 
 	if( !err ) {
-		err=fs_hfsp_open(fd, fs);
-		if( err ) err = fs_hfs_open(fd, fs);
-		if( err ) err = fs_iso9660_open(fd, fs);
-		if( err ) err = fs_ext2_open(fd, fs);
-		if( err ) err = fs_grubfs_open(fd, fs);
-	}
+		err = fs_hfsp_open(fd, fs);
+		DPRINTF("--- HFSP returned %d\n", err);
 
-	fs->fd = fd;
+		if( err ) {
+			err = fs_hfs_open(fd, fs);
+			DPRINTF("--- HFS returned %d\n", err);
+		}
+
+		if( err ) {
+			err = fs_iso9660_open(fd, fs);
+			DPRINTF("--- ISO9660 returned %d\n", err);
+		}
+
+		if( err ) {
+			err = fs_ext2_open(fd, fs);
+			DPRINTF("--- ext2 returned %d\n", err);
+		}
+
+		if( err ) {
+			err = fs_grubfs_open(fd, fs);
+			DPRINTF("--- grubfs returned %d\n", err);
+		}
+
+		fs->fd = fd;
+	}
 
 	if( err ) {
 		if( fd != -1 )
@@ -60,6 +89,8 @@ do_open( ihandle_t ih )
 		free( fs );
 		return NULL;
 	}
+
+	DPRINTF("misc-files open returns %p\n", fs);
 
 	return fs;
 }
@@ -83,15 +114,29 @@ files_open( files_info_t *mi )
 		RET( 0 );
 
 	name = my_args_copy();
+
+	mi->fs = fs;
+
+	DPRINTF("misc-files open arguments: %s\n", name);
+
+	/* If we have been passed a specific file, open it */
 	if( name ) {
-		if( !(mi->file=fs_open_path(fs, name)) ) {
+		if( !(mi->file = fs_open_path(fs, name)) ) {
+			forth_printf("Unable to open path %s\n", name);
 			free( name );
 			do_close( fs );
 			RET(0);
 		}
-		/* printk("PATH: %s\n", fs->get_path(mi->file, mi->pathbuf, PATHBUF_SIZE) ); */
+
+		DPRINTF("Successfully opened %s\n", name);
+		// printk("PATH: %s\n", fs->get_path(mi->file, mi->pathbuf, PATHBUF_SIZE) );
+	} else {
+		/* No file was specified, but return success so that we can read
+		the filesystem. If mi->file is not set, routines simply call their
+		parent which in this case is the partition handler. */
+
+		RET(-1);
 	}
-	mi->fs = fs;
 
 	if( name )
 		free( name );
@@ -183,17 +228,23 @@ files_close( files_info_t *mi )
 static void
 files_read( files_info_t *mi )
 {
-	int len = POP();
-	char *buf = (char*)POP();
+	int len;
+	char *buf;
 	int ret;
 
 	if( mi->file ) {
+		len = POP();
+		buf = (char*)POP();
+
 		ret = mi->fs->read( mi->file, buf, len );
 		mi->filepos += ret;
+
+		PUSH( ret );
 	} else {
-		ret = read_io( mi->fs->fd, buf, len );
+		DPRINTF("misc-files read: no valid FS so calling parent\n");
+
+		call_parent_method("read");
 	}
-	PUSH( ret );
 }
 
 /* ( buf len -- actlen ) */
@@ -208,12 +259,13 @@ files_write( files_info_t *mi )
 static void
 files_seek( files_info_t *mi )
 {
-	llong pos = DPOP();
-	cell ret;
-
 	if( mi->file ) {
+		llong pos = DPOP();
+		cell ret;
 		int offs = (int)pos;
 		int whence = SEEK_SET;
+
+		DPRINTF("misc-files seek: using FS handle\n");
 
 		if( offs == -1 ) {
 			offs = 0;
@@ -221,10 +273,13 @@ files_seek( files_info_t *mi )
 		}
 		mi->filepos = mi->fs->lseek( mi->file, offs, whence );
 		ret = (mi->filepos < 0)? -1 : 0;
+
+		PUSH( ret );
 	} else {
-		ret = seek_io( mi->fs->fd, pos );
+		DPRINTF("misc-files seek: no valid FS so calling parent\n");
+
+		call_parent_method("seek");
 	}
-	PUSH( ret );
 }
 
 /* ( -- filepos.d ) */
@@ -250,42 +305,89 @@ files_get_fstype( files_info_t *mi )
 static void
 files_load( files_info_t *mi)
 {
-	char *buf = (char*)POP();
+	char *buf;
 	int ret, size;
 
-	if (!mi->file) {
-		PUSH(0);
-		return;
-	}
+	if (mi->file) {
+		buf = (char*)POP();
+		size = 0;
 
-	size = 0;
-	while(1) {
-		ret = mi->fs->read( mi->file, buf, 512 );
-		if (ret <= 0)
-			break;
-		buf += ret;
-		mi->filepos += ret;
-		size += ret;
-		if (ret != 512)
-			break;
+		DPRINTF("misc-files load at address %p\n", buf);
+
+		while (1) {
+			ret = mi->fs->read( mi->file, buf, 8192 );
+			if (ret <= 0)
+				break;
+			buf += ret;
+			mi->filepos += ret;
+			size += ret;
+	
+			if (size % 0x100000 == 0)
+				DPRINTF("----> size is %dM\n", size / 0x100000);
+	
+			if (ret != 8192)
+				break;
+		}
+	
+		DPRINTF("load complete with size: %d\n", size);
+		PUSH( size );
+	} else {
+
+		DPRINTF("misc-files load: no valid FS so calling parent\n");
+
+		call_parent_method("load");
 	}
-	PUSH( size );
 }
 
-/* static method, ( ih -- flag? ) */
+/* static method, ( pos.d ih -- flag? ) */
 static void
-files_probe( files_info_t *dummy )
+files_probe( files_info_t *mi )
 {
 	ihandle_t ih = POP_ih();
-	fs_ops_t *fs;
-	int ret = 0;
+	llong offs = DPOP();
+	int fd, err = 0;
 
-	if( (fs=do_open(ih)) != NULL ) {
-		/* printk("HFS[+] filesystem found\n"); */
-		do_close( fs );
-		ret = -1;
+	DPRINTF("misc-files probe with offset %llx\n", offs);
+
+	err = (fd = open_ih(ih)) == -1;
+	if( !err ) {
+		/*
+		err = fs_hfsp_open(fd, fs);
+		DPRINTF("--- HFSP returned %d\n", err);
+
+		if( err ) {
+			err = fs_hfs_open(fd, fs);
+			DPRINTF("--- HFS returned %d\n", err);
+		}
+
+		if( err ) {
+			err = fs_iso9660_open(fd, fs);
+			DPRINTF("--- ISO9660 returned %d\n", err);
+		}
+
+		if( err ) {
+			err = fs_ext2_open(fd, fs);
+			DPRINTF("--- ext2 returned %d\n", err);
+		}
+		*/
+
+		if( err ) {
+			err = fs_grubfs_probe(fd, offs);
+			DPRINTF("--- grubfs returned %d\n", err);
+		}
 	}
-	PUSH( ret );
+
+	if (fd)
+		close_io(fd);
+
+	/* If no errors occurred, indicate success */
+	if (!err) {
+		DPRINTF("misc-files probe found filesystem\n");
+		PUSH(-1);
+	} else {
+		DPRINTF("misc-files probe could not find filesystem\n");
+		PUSH(0);
+	}
 }
 
 static void

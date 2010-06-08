@@ -38,47 +38,47 @@ enum {
 };
 
 typedef struct {
-	long		ddBlock;		/* first block of driver */
-	short		ddSize;			/* driver size in blocks */
-	short		ddType;			/* 1 & -1 for SCSI */
+	u32		ddBlock;		/* first block of driver */
+	u16		ddSize;			/* driver size in blocks */
+	s16		ddType;			/* 1 & -1 for SCSI */
 } driver_entry_t;
 
 typedef struct { /* Block 0 of a device */
-	short		sbSig;			/* always 0x4552 */
-	short		sbBlockSize;		/* 512 */
-	long		sbBlkCount;		/* #blocks on device */
-	short		sbDevType;    		/* 0 */
-	short		sbDevID;      		/* 0 */
-	long		sbData;      		/* 0 */
-	short		sbDrvrCount;		/* #driver descriptors */
+	u16		sbSig;			/* always 0x4552 */
+	u16		sbBlockSize;		/* 512 */
+	s32		sbBlkCount;		/* #blocks on device */
+	u16		sbDevType;    		/* 0 */
+	u16		sbDevID;      		/* 0 */
+	u32		sbData;      		/* 0 */
+	s16		sbDrvrCount;		/* #driver descriptors */
 
 	/* driver entries goes here */
 	driver_entry_t	drivers[61] __attribute__ ((packed));
 
-	short		filler1;
-	long		filler2;
+	u16		filler1;
+	u32		filler2;
 } desc_map_t;
 
 typedef struct { /* Partition descriptor */
-	short		pmSig;			/* always 0x504d 'PM' */
-	short		pmSigPad;		/* 0 */
-	ulong		pmMapBlkCnt;		/* #blocks in partition map */
-	ulong		pmPyPartStart;		/* first physical block of part. */
-	ulong		pmPartBlkCnt;		/* #blocks in partition */
+	u16		pmSig;			/* always 0x504d 'PM' */
+	u16		pmSigPad;		/* 0 */
+	u32		pmMapBlkCnt;		/* #blocks in partition map */
+	u32		pmPyPartStart;		/* first physical block of part. */
+	u32		pmPartBlkCnt;		/* #blocks in partition */
 	char		pmPartName[32];		/* partition name */
 	char		pmPartType[32];		/* partition type */
 
 	/* these fields may or may not be used */
-	ulong		pmLgDataStart;
-	ulong		pmDataCnt;
-	ulong		pmPartStatus;
-	ulong		pmLgBootStart;
-	ulong		pmBootSize;
-	ulong		pmBootLoad;
-	ulong		pmBootLoad2;
-	ulong		pmBootEntry;
-	ulong		pmBootEntry2;
-	ulong		pmBootCksum;
+	u32		pmLgDataStart;
+	u32		pmDataCnt;
+	u32		pmPartStatus;
+	u32		pmLgBootStart;
+	u32		pmBootSize;
+	u32		pmBootLoad;
+	u32		pmBootLoad2;
+	u32		pmBootEntry;
+	u32		pmBootEntry2;
+	u32		pmBootCksum;
 	char		pmProcessor[16];
 
 	char		filler[376];		/* might contain extra information */

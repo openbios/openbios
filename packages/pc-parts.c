@@ -15,24 +15,40 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/byteorder.h"
+#include "libc/vsprintf.h"
 #include "packages.h"
 
+//#define DEBUG_PC_PARTS
+
+#ifdef DEBUG_PC_PARTS
+#define DPRINTF(fmt, args...)                   \
+    do { printk(fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...)
+#endif
+
 typedef struct {
-	ullong		offs;
-	ullong		size;
+	xt_t		seek_xt, read_xt;
+	ucell	        offs_hi, offs_lo;
+        ucell	        size_hi, size_lo;
 } pcparts_info_t;
 
 DECLARE_NODE( pcparts, INSTALL_OPEN, sizeof(pcparts_info_t), "+/packages/pc-parts" );
 
+#define SEEK( pos )		({ DPUSH(pos); call_parent(di->seek_xt); POP(); })
+#define READ( buf, size )	({ PUSH((ucell)buf); PUSH(size); call_parent(di->read_xt); POP(); })
 
-#define SEEK( pos )		({ DPUSH(pos); call_parent(seek_xt); POP(); })
-#define READ( buf, size )	({ PUSH((ucell)buf); PUSH(size); call_parent(read_xt); POP(); })
+/* three helper functions */
 
-/* two helper functions */
+static inline int has_pc_valid_partition(unsigned char *sect)
+{
+	/* Make sure the partition table contains at least one valid entry */
+	return (sect[0x1c2] != 0 || sect[0x1d2] != 0 || sect[0x1e2] != 0);
+}
 
 static inline int has_pc_part_magic(unsigned char *sect)
 {
-	return sect[510]==0x55 && sect[511]==0xAA;
+	return sect[0x1fe]==0x55 && sect[0x1ff]==0xAA;
 }
 
 static inline int is_pc_extended_part(unsigned char type)
@@ -45,9 +61,13 @@ static void
 pcparts_open( pcparts_info_t *di )
 {
 	char *str = my_args_copy();
-	xt_t seek_xt = find_parent_method("seek");
-	xt_t read_xt = find_parent_method("read");
+	char *argstr = strdup("");
+	char *parstr = strdup("");
 	int bs, parnum=-1;
+	int found = 0;
+	phandle_t ph;
+	ducell offs, size;
+
 	/* Layout of PC partition table */
 	struct pc_partition {
 		unsigned char boot;
@@ -60,19 +80,50 @@ pcparts_open( pcparts_info_t *di )
 		unsigned char e_cyl;
 		u32 start_sect; /* unaligned little endian */
 		u32 nr_sects; /* ditto */
-	} *p;
+	} *p, *partition;
+
 	unsigned char buf[512];
 
-	/* printk("pcparts_open '%s'\n", str ); */
+	DPRINTF("pcparts_open '%s'\n", str );
+
+	/* 
+		Arguments that we accept:
+		id: [0-7]
+		[(id,)][filespec]
+	*/
 
 	if( str ) {
-		parnum = atol(str);
-		if( !strlen(str) )
-			parnum = 1;
-		free( str );
+		if ( !strlen(str) )
+			parnum = -1;
+		else {
+			/* If end of string, we just have a partition id */
+			if (str[1] == '\0') {
+				parstr = str;
+			} else {
+				/* If a comma, then we have a partition id plus argument */
+				if (str[1] == ',') {
+					str[1] = '\0';
+					parstr = str;
+					argstr = &str[2];
+				} else {
+					/* Otherwise we have just an argument */
+					argstr = str;
+				}
+			}
+		
+			/* Convert the id to a partition number */
+			if (strlen(parstr))
+				parnum = atol(parstr);
+		}
 	}
+
+	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
+
 	if( parnum < 0 )
-		parnum = 1;
+		parnum = 0;
+
+	di->read_xt = find_parent_method("read");
+	di->seek_xt = find_parent_method("seek");
 
 	SEEK( 0 );
 	if( READ(buf, 512) != 512 )
@@ -80,29 +131,40 @@ pcparts_open( pcparts_info_t *di )
 
 	/* Check Magic */
 	if (!has_pc_part_magic(buf)) {
-		printk("pc partition magic not found.\n");
+		DPRINTF("pc partition magic not found.\n");
 		RET(0);
 	}
 
-	/* get partition data */
-	p = (struct pc_partition *) (buf + 0x1be);
+	/* Actual partition data */
+	partition = (struct pc_partition *) (buf + 0x1be);
 
-	bs=512;
+	/* Make sure we use a copy accessible from an aligned pointer (some archs
+	   e.g. SPARC will crash otherwise) */
+	p = malloc(sizeof(struct pc_partition));
+
+	bs = 512;
 
 	if (parnum < 4) {
 		/* primary partition */
-		p += parnum;
-		if (p->type==0 || is_pc_extended_part(p->type)) {
-			printk("partition %d does not exist\n", parnum+1 );
+		partition += parnum;
+		memcpy(p, partition, sizeof(struct pc_partition));
+
+		if (p->type == 0 || is_pc_extended_part(p->type)) {
+			DPRINTF("partition %d does not exist\n", parnum+1 );
 			RET( 0 );
 		}
-		di->offs = (llong)(__le32_to_cpu(p->start_sect)) * bs;
-		di->size = (llong)(__le32_to_cpu(p->nr_sects)) * bs;
 
-		/* printk("Primary partition at sector %x\n",
-				__le32_to_cpu(p->start_sect)); */
+		offs = (llong)(__le32_to_cpu(p->start_sect)) * bs;
+		di->offs_hi = offs >> BITS;
+		di->offs_lo = offs & (ucell) -1;
 
-		RET( -1 );
+		size = (llong)(__le32_to_cpu(p->nr_sects)) * bs;
+        	di->size_hi = size >> BITS;
+        	di->size_lo = size & (ucell) -1;
+
+		DPRINTF("Primary partition at sector %x\n", __le32_to_cpu(p->start_sect));
+
+		found = 1;
 	} else {
 		/* Extended partition */
 		int i, cur_part;
@@ -116,55 +178,96 @@ pcparts_open( pcparts_info_t *di )
 		}
 
 		if (i >= 4) {
-			printk("Extended partition not found\n");
+			DPRINTF("Extended partition not found\n");
 			RET( 0 );
 		}
 
-		printk("Extended partition at %d\n", i+1);
+		DPRINTF("Extended partition at %d\n", i+1);
 
 		/* Visit each logical partition labels */
 		ext_start = __le32_to_cpu(p[i].start_sect);
 		cur_table = ext_start;
 		cur_part = 4;
 
-		for (;;) {
-			/* printk("cur_part=%d at %x\n", cur_part, cur_table); */
+		while (cur_part <= parnum) {
+			DPRINTF("cur_part=%d at %lx\n", cur_part, cur_table);
 
-			SEEK( cur_table*bs );
+			SEEK( cur_table * bs );
 			if( READ(buf, sizeof(512)) != sizeof(512) )
 				RET( 0 );
 
 			if (!has_pc_part_magic(buf)) {
-				printk("Extended partition has no magic\n");
+				DPRINTF("Extended partition has no magic\n");
 				break;
 			}
 
-			p = (struct pc_partition *) (buf + 0x1be);
+			/* Read the extended partition, making sure we are aligned again */
+			partition = (struct pc_partition *) (buf + 0x1be);
+			memcpy(p, partition, sizeof(struct pc_partition));
+
 			/* First entry is the logical partition */
 			if (cur_part == parnum) {
-				if (p->type==0) {
-					printk("Partition %d is empty\n", parnum+1);
+				if (p->type == 0) {
+					DPRINTF("Partition %d is empty\n", parnum+1);
 					RET( 0 );
 				}
-				di->offs =
-					(llong)(cur_table+__le32_to_cpu(p->start_sect)) * bs;
-				di->size = (llong)__le32_to_cpu(p->nr_sects) * bs;
-				RET ( -1 );
+
+				offs = (llong)(cur_table+__le32_to_cpu(p->start_sect)) * bs;
+				di->offs_hi = offs >> BITS;
+				di->offs_lo = offs & (ucell) -1;
+
+				size = (llong)__le32_to_cpu(p->nr_sects) * bs;
+				di->size_hi = size >> BITS;
+				di->size_lo = size & (ucell) -1;
+
+				found = 1;
+				break;
 			}
 
 			/* Second entry is link to next partition */
 			if (!is_pc_extended_part(p[1].type)) {
-				printk("no link\n");
+				DPRINTF("no link\n");
 				break;
 			}
-			cur_table = ext_start + __le32_to_cpu(p[1].start_sect);
 
+			cur_table = ext_start + __le32_to_cpu(p[1].start_sect);
 			cur_part++;
 		}
-		printk("Logical partition %d does not exist\n", parnum+1);
+
+		if (!found) {
+			DPRINTF("Logical partition %d does not exist\n", parnum+1);
+			RET( 0 );
+		}
+	}
+	
+	free(p);
+
+	if (found) {
+		/* We have a valid partition - so probe for a filesystem at the current offset */
+		DPRINTF("pc-parts: about to probe for fs\n");
+		DPUSH( offs );
+		PUSH_ih( my_parent() );
+		parword("find-filesystem");
+		DPRINTF("pc-parts: done fs probe\n");
+	
+		ph = POP_ph();
+		if( ph ) {
+			DPRINTF("pc-parts: filesystem found with ph " FMT_ucellx " and args %s\n", ph, str);
+			push_str( argstr );
+			PUSH_ph( ph );
+			fword("interpose");
+		} else {
+			DPRINTF("pc-parts: no filesystem found; bypassing misc-files interpose\n");
+		}
+	
+		free( str );
+		RET( -1 );
+	} else {
+		DPRINTF("pc-parts: unable to locate partition\n");
+
+		free( str );
 		RET( 0 );
 	}
-	/* we should never reach this point */
 }
 
 /* ( block0 -- flag? ) */
@@ -173,16 +276,24 @@ pcparts_probe( pcparts_info_t *dummy )
 {
 	unsigned char *buf = (unsigned char *)POP();
 
-	RET ( has_pc_part_magic(buf) );
+	DPRINTF("probing for PC partitions\n");
+
+	/* We also check that at least one valid partition exists; this is because
+	some CDs seem broken in that they have a partition table but it is empty
+	e.g. MorphOS. */
+	RET ( has_pc_part_magic(buf) && has_pc_valid_partition(buf) );
 }
 
 /* ( -- type offset.d size.d ) */
 static void
 pcparts_get_info( pcparts_info_t *di )
 {
+	DPRINTF("PC get_info\n");
 	PUSH( -1 );		/* no type */
-	DPUSH( di->offs );
-	DPUSH( di->size );
+	PUSH( di->offs_lo );
+	PUSH( di->offs_hi );
+	PUSH( di->size_lo );
+	PUSH( di->size_hi );
 }
 
 static void
@@ -197,9 +308,50 @@ pcparts_initialize( pcparts_info_t *di )
 	fword("register-partition-package");
 }
 
+/* ( pos.d -- status ) */
+static void
+pcparts_seek(pcparts_info_t *di )
+{
+	llong pos = DPOP();
+	llong offs;
+
+	DPRINTF("pcparts_seek %llx:\n", pos);
+
+	/* Calculate the seek offset for the parent */
+	offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
+	offs += pos;
+	DPUSH(offs);
+
+	DPRINTF("pcparts_seek parent offset %llx:\n", offs);
+
+	call_package(di->seek_xt, my_parent());
+}
+
+/* ( buf len -- actlen ) */
+static void
+pcparts_read(pcparts_info_t *di )
+{
+	DPRINTF("pcparts_read\n");
+
+	/* Pass the read back up to the parent */
+	call_package(di->read_xt, my_parent());
+}
+
+/* ( addr -- size ) */
+static void
+pcparts_load( __attribute__((unused))pcparts_info_t *di )
+{
+	forth_printf("load currently not implemented for /packages/pc-parts\n");
+	PUSH(0);
+}
+
+
 NODE_METHODS( pcparts ) = {
 	{ "probe",	pcparts_probe 		},
 	{ "open",	pcparts_open 		},
+	{ "seek",	pcparts_seek 		},
+	{ "read",	pcparts_read 		},
+	{ "load",	pcparts_load 		},
 	{ "get-info",	pcparts_get_info 	},
 	{ "block-size",	pcparts_block_size 	},
 	{ NULL,		pcparts_initialize	},

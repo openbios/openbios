@@ -77,6 +77,7 @@ static inline int	fs_ext2_open( int fd, fs_ops_t *fs ) { return -1; }
 
 #ifdef CONFIG_GRUBFS
 extern int		fs_grubfs_open( int fd, fs_ops_t *fs );
+extern int 		fs_grubfs_probe( int fd, llong offs );
 #else
 static inline int	fs_grubfs_open( int fd, fs_ops_t *fs ) { return -1; }
 #endif
