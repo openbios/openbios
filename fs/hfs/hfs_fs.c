@@ -458,3 +458,12 @@ fs_hfs_open( int os_fd, fs_ops_t *fs )
 
 	return 0;
 }
+
+int 
+fs_hfs_probe( int fd, llong offs )
+{
+	if (hfs_probe(fd, offs))
+		return -1;
+
+	return 0;
+}

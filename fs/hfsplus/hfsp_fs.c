@@ -397,3 +397,12 @@ fs_hfsp_open( int os_fd, fs_ops_t *fs )
 
 	return 0;
 }
+
+int 
+fs_hfsp_probe(int fd, llong offs)
+{
+	if (volume_probe(fd, offs))
+		return -1;
+
+	return 0;
+}

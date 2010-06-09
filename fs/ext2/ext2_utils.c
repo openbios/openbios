@@ -12,6 +12,23 @@
 #include "libc/diskio.h"
 #include "libc/byteorder.h"
 
+int ext2_probe(int fd, llong offset)
+{
+	struct ext2_super_block *super;
+
+	super = (struct ext2_super_block*)malloc(sizeof(struct ext2_super_block));
+	seek_io(fd, 2 * 512 + offset);
+	read_io(fd, super, sizeof (*super));
+
+	if (__be16_to_cpu(super->s_magic) != EXT2_SUPER_MAGIC) {
+		free(super);
+		return 0;
+	}
+
+	free(super);
+	return -1;
+}
+
 void ext2_get_super(int fd, struct ext2_super_block *super)
 {
 	seek_io(fd, 2 * 512);

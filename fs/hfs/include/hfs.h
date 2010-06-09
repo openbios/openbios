@@ -177,3 +177,4 @@ int hfs_nparts(const char *);
 
 int hfs_format(const char *, int, int,
 	       const char *, unsigned int, const unsigned long []);
+int hfs_probe(int fd, llong offset);

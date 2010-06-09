@@ -32,6 +32,8 @@
 #include "record.h"
 #include "os.h"
 
+#include "libc/byteorder.h"
+
 /*
  * NAME:	vol->init()
  * DESCRIPTION:	initialize volume structure
@@ -588,4 +590,23 @@ done:
 
 fail:
   return -1;
+}
+
+/* Determine whether the volume is a HFS volume */
+int
+v_probe(int fd, llong offset)
+{
+	MDB *mdb;
+
+	mdb = (MDB*)malloc(2 * 512);
+	os_seek_offset( fd, 2 * 512 + offset );
+	os_read(fd, mdb, 2, 9);
+
+	if (__be16_to_cpu(mdb->drSigWord) != HFS_SIGWORD) {
+		free(mdb);
+		return 0;
+	}
+
+	free(mdb);
+	return -1;
 }

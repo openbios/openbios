@@ -35,6 +35,7 @@
 #include "swab.h"
 #include "hfstime.h"
 
+
 /* Fill a given buffer with the given block in volume.
  */
 int
@@ -287,4 +288,23 @@ volume_create_extents_tree(volume* vol)
 	}
   fail:
 	vol->extents = NULL;
+}
+
+/* Determine whether the volume is a HFS-plus volume */
+int
+volume_probe(int fd, llong offset)
+{
+	struct hfsp_vh *vol;
+
+	vol = (struct hfsp_vh*)malloc(2 * 1 << HFSP_BLOCKSZ_BITS);
+	os_seek_offset( fd, 2 * (1 << HFSP_BLOCKSZ_BITS) + offset );
+	os_read(fd, vol, 2, HFSP_BLOCKSZ_BITS);
+
+	if (__be16_to_cpu(vol->signature) != HFSP_VOLHEAD_SIG) {
+		free(vol);
+		return 0;
+	}
+
+	free(vol);
+	return -1;
 }

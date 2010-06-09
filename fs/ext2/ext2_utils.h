@@ -36,6 +36,7 @@
 
 /* utilities */
 
+extern int ext2_probe(int fd, llong offset);
 extern void ext2_get_super(int fd, struct ext2_super_block *super);
 extern void ext2_read_block(ext2_VOLUME* volume, unsigned int fsblock);
 extern void ext2_get_group_desc(ext2_VOLUME* volume,

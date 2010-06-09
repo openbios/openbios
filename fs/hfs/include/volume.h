@@ -66,5 +66,6 @@ int v_mkdir(hfsvol *, unsigned long, const char *);
 
 int v_scavenge(hfsvol *);
 
+int v_probe(int fd, llong offset);
 
 #endif   /* _H_VOLUME */

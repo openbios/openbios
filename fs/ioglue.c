@@ -79,6 +79,12 @@ os_seek( int fd, ulong blknum, int blksize_bits )
 	return blknum;
 }
 
+void
+os_seek_offset( int fd, llong offset )
+{
+	seek_io(fd, offset);
+}
+
 int
 os_same( int fd1, int fd2 )
 {

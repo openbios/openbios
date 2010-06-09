@@ -47,5 +47,11 @@ unsigned long os_read( int fd, void *buf, unsigned long len, int blksize_bits);
  */
 unsigned long os_write( int fd, const void *buf, unsigned long len, int blksize_bits);
 
+/*
+ * NAME:	os->seek_offset()
+ * DESCRIPTION:	set a descriptor's seek pointer (offset in bytes)
+ */
+void os_seek_offset( int fd, llong offset );
+
 
 #endif   /* _H_OS */

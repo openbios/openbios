@@ -53,14 +53,18 @@ const char 		*fs_get_name( fs_ops_t *fs );
 
 #ifdef CONFIG_HFSP
 extern int		fs_hfsp_open( int fd, fs_ops_t *fs );
+extern int 		fs_hfsp_probe( int fd, llong offs );
 #else
 static inline int	fs_hfsp_open( int fd, fs_ops_t *fs ) { return -1; }
+static inline int	fs_hfsp_probe( int fd, llong offs ) { return -1; }
 #endif
 
 #ifdef CONFIG_HFS
 extern int		fs_hfs_open( int fd, fs_ops_t *fs );
+extern int 		fs_hfs_probe( int fd, llong offs );
 #else
 static inline int	fs_hfs_open( int fd, fs_ops_t *fs ) { return -1; }
+static inline int	fs_hfs_probe( int fd, llong offs ) { return -1; }
 #endif
 
 #ifdef CONFIG_ISO9660
@@ -71,8 +75,10 @@ static inline int	fs_iso9660_open( int fd, fs_ops_t *fs ) { return -1; }
 
 #ifdef CONFIG_EXT2
 extern int		fs_ext2_open( int fd, fs_ops_t *fs );
+extern int 		fs_ext2_probe( int fd, llong offs );
 #else
 static inline int	fs_ext2_open( int fd, fs_ops_t *fs ) { return -1; }
+static inline int	fs_ext2_probe( int fd, llong offs ) { return -1; }
 #endif
 
 #ifdef CONFIG_GRUBFS
@@ -80,6 +86,7 @@ extern int		fs_grubfs_open( int fd, fs_ops_t *fs );
 extern int 		fs_grubfs_probe( int fd, llong offs );
 #else
 static inline int	fs_grubfs_open( int fd, fs_ops_t *fs ) { return -1; }
+static inline int	fs_grubfs_probe( int fd, llong offs ) { return -1; }
 #endif
 
 
