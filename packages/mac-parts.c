@@ -127,13 +127,12 @@ macparts_open( macparts_info_t *di )
 		/* search a bootable partition */
 		/* see PowerPC Microprocessor CHRP bindings */
 
-		parnum = 1;
-		while (parnum <= __be32_to_cpu(par.pmMapBlkCnt)) {
-			SEEK( (bs * parnum) );
+		for (parnum = 0; parnum <= __be32_to_cpu(par.pmMapBlkCnt); parnum++) {
+			SEEK( (bs * (parnum + 1)) );
 			READ( &par, sizeof(par) );
 			if( __be16_to_cpu(par.pmSig) != DESC_PART_SIGNATURE ||
                             !__be16_to_cpu(par.pmPartBlkCnt) )
-				goto out;
+				break;
 
 			DPRINTF("found partition type: %s\n", par.pmPartType);
 
@@ -169,7 +168,6 @@ macparts_open( macparts_info_t *di )
 				goto out;
 			}
 
-			parnum++;
 		}
 		/* not found */
 		if (firstHFS != -1) {
@@ -199,7 +197,7 @@ macparts_open( macparts_info_t *di )
 		goto out;
 
 found:
-	SEEK( (bs * parnum) );
+	SEEK( (bs * (parnum + 1)) );
 	READ( &par, sizeof(par) );
 	if( __be16_to_cpu(par.pmSig) != DESC_PART_SIGNATURE || !__be32_to_cpu(par.pmPartBlkCnt) )
 		goto out;

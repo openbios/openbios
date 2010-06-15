@@ -294,17 +294,21 @@ volume_create_extents_tree(volume* vol)
 int
 volume_probe(int fd, llong offset)
 {
-	struct hfsp_vh *vol;
+	UInt16 *vol;
+	int ret = 0;
 
-	vol = (struct hfsp_vh*)malloc(2 * 1 << HFSP_BLOCKSZ_BITS);
+	vol = (UInt16 *)malloc(2 * 1 << HFSP_BLOCKSZ_BITS);
 	os_seek_offset( fd, 2 * (1 << HFSP_BLOCKSZ_BITS) + offset );
 	os_read(fd, vol, 2, HFSP_BLOCKSZ_BITS);
 
-	if (__be16_to_cpu(vol->signature) != HFSP_VOLHEAD_SIG) {
-		free(vol);
-		return 0;
+	if (__be16_to_cpu(vol[0]) == HFS_VOLHEAD_SIG &&
+		__be16_to_cpu(vol[0x7c]) == HFSP_VOLHEAD_SIG) {
+		ret = -1;	
+	} else if (__be16_to_cpu(vol[0]) == HFSP_VOLHEAD_SIG) {
+		ret = -1;
 	}
 
 	free(vol);
-	return -1;
+	return ret;
 }
+
