@@ -106,26 +106,37 @@ sunparts_open( sunparts_info_t *di )
 	/* 
 		Arguments that we accept:
 		id: [0-7] | [a-h]
-		[(id,)][filespec]
+		[(id)][,][filespec]
 	*/
 
 	if( str ) {
 		if ( !strlen(str) )
 			parnum = -1;
 		else {
-			/* If end of string, we just have a partition id */
-			if (str[1] == '\0') {
-				parstr = str;
-			} else {
-				/* If a comma, then we have a partition id plus argument */
-				if (str[1] == ',') {
-					str[1] = '\0';
-					parstr = str;
-					argstr = &str[2];
-				} else {
-					/* Otherwise we have just an argument */
-					argstr = str;
-				}
+			/* Detect the boot parameters */
+			char *ptr;
+			ptr = str;
+
+			/* <id>,<file> */
+			if (((*ptr >= '0' && *ptr <= '9') || (*ptr >= 'a' && *ptr <= 'a' + 8)) && *(ptr + 1) == ',') {
+				parstr = ptr;
+				*(ptr + 1) = '\0';
+				argstr = ptr + 2;
+			}
+
+			/* <id> */
+			else if (((*ptr >= '0' && *ptr <= '9') || (*ptr >= 'a' && *ptr <= 'a' + 8)) && *(ptr + 1) == '\0') {
+				parstr = ptr;
+			}
+
+			/* ,<file> */
+			else if (*ptr == ',') {
+				argstr = ptr + 1;
+			}	
+
+			/* <file> */
+			else {
+				argstr = str;
 			}
 		
 			/* Convert the id to a partition number */
@@ -134,7 +145,7 @@ sunparts_open( sunparts_info_t *di )
 					parnum = parstr[0] - 'a';
 				else
 					parnum = atol(parstr);
-			}	
+			}
 		}
 	}
 
