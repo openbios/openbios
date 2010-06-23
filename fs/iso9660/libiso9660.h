@@ -14,6 +14,7 @@
 
 extern iso9660_VOLUME* iso9660_mount(int fd);
 extern int iso9660_umount(iso9660_VOLUME *volume);
+extern int iso9660_probe(int fd, llong offs);
 extern iso9660_DIR* iso9660_opendir(iso9660_VOLUME *, const char *name);
 extern iso9660_FILE* iso9660_open(iso9660_VOLUME *, const char *pathname);
 extern int iso9660_closedir(iso9660_DIR *dir);

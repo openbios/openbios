@@ -402,7 +402,7 @@ int
 fs_hfsp_probe(int fd, llong offs)
 {
 	if (volume_probe(fd, offs))
-		return -1;
+		return 0;
 
-	return 0;
+	return -1;
 }

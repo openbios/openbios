@@ -152,6 +152,15 @@ static const fs_ops_t iso9660_ops = {
 	.get_fstype	= get_fstype,
 };
 
+int  
+fs_iso9660_probe( int fd, llong offs ) 
+{ 
+	if (iso9660_probe(fd, offs)) 
+		return 0; 
+
+	return -1; 
+} 
+
 int fs_iso9660_open(int fd, fs_ops_t *fs)
 {
 	iso9660_VOLUME *volume;

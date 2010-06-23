@@ -463,7 +463,7 @@ int
 fs_hfs_probe( int fd, llong offs )
 {
 	if (hfs_probe(fd, offs))
-		return -1;
+		return 0;
 
-	return 0;
+	return -1;
 }

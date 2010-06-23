@@ -189,6 +189,22 @@ int iso9660_umount(iso9660_VOLUME* volume)
 	return 0;
 }
 
+int iso9660_probe(int fd, llong offset)
+{
+	struct iso_primary_descriptor ipd;
+
+	seek_io(fd, 16 * ISOFS_BLOCK_SIZE + offset);
+	read_io(fd, &ipd, sizeof (ipd));
+
+	if ((ipd.type[0] != ISO_VD_PRIMARY) ||
+	    (strncmp(ipd.id, ISO_STANDARD_ID, sizeof (ipd.id)) != 0) ||
+	    (ipd.version[0] != 1)) {
+		return 0;
+	}
+
+	return -1;
+}
+
 struct iso_directory_record *iso9660_get_root_node(iso9660_VOLUME* volume)
 {
 	return (struct iso_directory_record *)volume->descriptor->root_directory_record;

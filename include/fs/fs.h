@@ -69,8 +69,10 @@ static inline int	fs_hfs_probe( int fd, llong offs ) { return -1; }
 
 #ifdef CONFIG_ISO9660
 extern int		fs_iso9660_open( int fd, fs_ops_t *fs );
+extern int 		fs_iso9660_probe( int fd, llong offs );
 #else
 static inline int	fs_iso9660_open( int fd, fs_ops_t *fs ) { return -1; }
+static inline int	fs_iso9660_probe( int fd, llong offs ) { return -1; }
 #endif
 
 #ifdef CONFIG_EXT2

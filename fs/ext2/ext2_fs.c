@@ -205,7 +205,7 @@ int fs_ext2_open(int fd, fs_ops_t *fs)
 int fs_ext2_probe(int fd, llong offs)
 {
 	if (ext2_probe(fd, offs))
-		return -1;
+		return 0;
 
-	return 0;
+	return -1;
 }
