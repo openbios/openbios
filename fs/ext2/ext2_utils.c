@@ -20,7 +20,7 @@ int ext2_probe(int fd, llong offset)
 	seek_io(fd, 2 * 512 + offset);
 	read_io(fd, super, sizeof (*super));
 
-	if (__be16_to_cpu(super->s_magic) != EXT2_SUPER_MAGIC) {
+	if (__le16_to_cpu(super->s_magic) != EXT2_SUPER_MAGIC) {
 		free(super);
 		return 0;
 	}
