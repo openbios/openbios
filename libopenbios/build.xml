@@ -15,6 +15,7 @@
   <object source="init.c"/>
   <object source="initprogram.c"/>
   <object source="ipchecksum.c"/>
+  <object source="load.c"/>
   <object source="linuxbios_info.c" condition="LINUXBIOS"/>
   <object source="ofmem_common.c" condition="OFMEM"/>
   <object source="xcoff_load.c" condition="LOADER_XCOFF"/>

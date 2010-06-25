@@ -14,6 +14,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/load.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 #include "packages.h"
@@ -284,8 +285,8 @@ sunparts_read(sunparts_info_t *di )
 static void
 sunparts_load( __attribute__((unused))sunparts_info_t *di )
 {
-	forth_printf("load currently not implemented for /packages/sun-parts\n");
-	PUSH(0);
+	/* Invoke the loader */
+	load(my_self());
 }
 
 

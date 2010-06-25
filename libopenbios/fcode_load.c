@@ -24,7 +24,7 @@ is_fcode(unsigned char *fcode)
 }
 
 int 
-fcode_load(const char *filename)
+fcode_load(ihandle_t dev)
 {
     int retval = -1;
     uint8_t fcode_header[8];
@@ -34,7 +34,7 @@ fcode_load(const char *filename)
     /* Mark the saved-program-state as invalid */
     feval("0 state-valid !");
 
-    fd = open_io(filename);
+    fd = open_ih(dev);
     if (!fd)
         goto out;
 
@@ -42,7 +42,7 @@ fcode_load(const char *filename)
         seek_io(fd, offset);
         if (read_io(fd, &fcode_header, sizeof(fcode_header))
             != sizeof(fcode_header)) {
-            debug("Can't read FCode header from file %s\n", filename);
+            debug("Can't read FCode header from ihandle " FMT_ucellx "\n", dev);
             retval = LOADER_NOT_SUPPORT;
             goto out;
         }
@@ -59,11 +59,12 @@ fcode_load(const char *filename)
     size = (fcode_header[4] << 24) | (fcode_header[5] << 16) |
         (fcode_header[6] << 8) | fcode_header[7];
 
-    start = 0x4000;
+    fword("load-base");
+    start = POP();
 
-    printf("Loading FCode image...\n");
+    printf("\nLoading FCode image...\n");
 
-    seek_io(fd, offset + sizeof(fcode_header));
+    seek_io(fd, offset);
 
     if ((size_t)read_io(fd, (void *)start, size) != size) {
         printf("Can't read file (size 0x%lx)\n", size);
@@ -92,6 +93,7 @@ fcode_init_program(void)
 {
 	/* If the payload is Fcode then we execute it immediately */
 	ucell address;
+	uint8_t fcode_header[8];
 
 	fword("load-base");
 	address = POP();
@@ -101,7 +103,7 @@ fcode_init_program(void)
 		return;
 	}
 
-	PUSH(address);
+	PUSH(address + sizeof(fcode_header));
 	PUSH(1);
 	fword("byte-load");
 }

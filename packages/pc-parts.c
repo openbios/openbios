@@ -14,6 +14,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/load.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
 #include "packages.h"
@@ -352,8 +353,8 @@ pcparts_read(pcparts_info_t *di )
 static void
 pcparts_load( __attribute__((unused))pcparts_info_t *di )
 {
-	forth_printf("load currently not implemented for /packages/pc-parts\n");
-	PUSH(0);
+	/* Invoke the loader */
+	load(my_self());
 }
 
 

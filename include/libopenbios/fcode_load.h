@@ -18,7 +18,7 @@
 #define _H_FCODELOAD
 
 extern int is_fcode(unsigned char *fcode);
-extern int fcode_load(const char *filename);
+extern int fcode_load(ihandle_t dev);
 extern void fcode_init_program(void);
 
 #endif   /* _H_FCODELOAD */

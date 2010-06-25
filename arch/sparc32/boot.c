@@ -30,11 +30,15 @@ static int try_path(const char *path, char *param)
 {
 	void *boot_notes = NULL;
 	ucell valid;
+	ihandle_t dev;
 
         push_str(path);
         fword("pathres-resolve-aliases");
         bootpath = pop_fstr_copy();
         printk("Trying %s (%s)\n", path, bootpath);
+
+	/* Open device used by this path */
+	dev = open_dev(path);
 
 #ifdef CONFIG_LOADER_ELF
 	/* ELF Boot loader */
@@ -59,7 +63,7 @@ static int try_path(const char *path, char *param)
 
 #ifdef CONFIG_LOADER_FCODE
 	/* Fcode loader */
-	fcode_load(path);
+	fcode_load(dev);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)
@@ -74,6 +78,8 @@ static int try_path(const char *path, char *param)
 	if (valid)
 		goto start_image;
 #endif
+
+	close_dev(dev);
 
 	return 0;
 

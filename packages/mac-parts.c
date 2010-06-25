@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/load.h"
 #include "mac-parts.h"
 #include "libc/byteorder.h"
 #include "libc/vsprintf.h"
@@ -328,8 +329,8 @@ macparts_read(macparts_info_t *di )
 static void
 macparts_load( __attribute__((unused))macparts_info_t *di )
 {
-	forth_printf("load currently not implemented for /packages/mac-parts\n");
-	PUSH(0);
+	/* Invoke the loader */
+	load(my_self());
 }
 
 NODE_METHODS( macparts ) = {

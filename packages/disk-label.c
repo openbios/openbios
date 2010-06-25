@@ -177,7 +177,7 @@ dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 
 	xt = find_ih_method("load", di->part_ih);
 	if (!xt) {
-		forth_printf("load currently not implemented for /packages/disk-label\n");
+		forth_printf("load currently not implemented for ihandle " FMT_ucellx "\n", di->part_ih);
 		PUSH(0);
 		return;
 	}

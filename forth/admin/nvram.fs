@@ -358,7 +358,7 @@ s" false"    s" ttyb-rts-dtr-off"      bool-config
 
 [IFDEF] CONFIG_SPARC64
 \ ---- SPARC64 ----
-s" 4000000"  s" load-base"          int-config
+s" 4000"     s" load-base"          int-config
 s" false"    s" little-endian?"       bool-config
 [THEN]
 
