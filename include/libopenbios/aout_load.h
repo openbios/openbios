@@ -21,7 +21,7 @@
 #include "libopenbios/sys_info.h"
 
 extern int is_aout(struct exec *ehdr);
-extern int aout_load(struct sys_info *info, const char *filename);
+extern int aout_load(struct sys_info *info, ihandle_t dev);
 extern void aout_init_program(void);
 
 #endif   /* _H_AOUTLOAD */

@@ -15,7 +15,6 @@ uint64_t start_elf(uint64_t entry_point, uint64_t param);
 uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler);
 
 // boot.c
-extern struct sys_info sys_info;
 extern uint64_t kernel_image;
 extern uint64_t kernel_size;
 extern uint64_t qemu_cmdline;

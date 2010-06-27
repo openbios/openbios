@@ -68,7 +68,7 @@ is_aout(struct exec *ehdr)
 }
 
 int 
-aout_load(struct sys_info *info, const char *filename)
+aout_load(struct sys_info *info, ihandle_t dev)
 {
     int retval = -1;
     struct exec ehdr;
@@ -80,7 +80,7 @@ aout_load(struct sys_info *info, const char *filename)
     /* Mark the saved-program-state as invalid */
     feval("0 state-valid !");
 
-    fd = open_io(filename);
+    fd = open_ih(dev);
     if (!fd)
 	goto out;
 
@@ -113,8 +113,8 @@ aout_load(struct sys_info *info, const char *filename)
     if (size < 7680)
         size = 7680;
 
-
-    start = 0x4000; // N_TXTADDR(ehdr);
+    fword("load-base");
+    start = POP(); // N_TXTADDR(ehdr);
 
     if (!check_mem_ranges(info, start, size))
 	goto out;

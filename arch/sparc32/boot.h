@@ -17,7 +17,6 @@ unsigned int start_elf(unsigned long entry_point, unsigned long param);
 void *init_openprom(void);
 
 // boot.c
-extern struct sys_info sys_info;
 extern const char *bootpath;
 extern void boot(void);
 extern void go(void);

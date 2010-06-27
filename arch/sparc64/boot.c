@@ -46,7 +46,7 @@ static int try_path(const char *path, char *param)
 
 #ifdef CONFIG_LOADER_AOUT
 	/* a.out loader */
-	aout_load(&sys_info, path);
+	aout_load(&sys_info, dev);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)
