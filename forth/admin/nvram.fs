@@ -347,6 +347,7 @@ s" true"     s" little-endian?"       bool-config
 
 [IFDEF] CONFIG_SPARC32
 \ ---- SPARC32 ----
+s" 4000"     s" load-base"             int-config
 s" true"     s" tpe-link-test?"        bool-config
 s" 9600,8,n,1,-" s" ttya-mode"         str-config
 s" true"     s" ttya-ignore-cd"        bool-config
