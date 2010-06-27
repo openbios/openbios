@@ -20,7 +20,7 @@
 #include "libopenbios/load.h"
 
 #include "libopenbios/fcode_load.h"
-
+#include "libopenbios/forth_load.h"
 
 void load(ihandle_t dev)
 {
@@ -28,6 +28,10 @@ void load(ihandle_t dev)
 
 #ifdef CONFIG_LOADER_FCODE
 	fcode_load(dev);
+#endif
+
+#ifdef CONFIG_LOADER_FORTH
+	forth_load(dev);
 #endif
 
 }
