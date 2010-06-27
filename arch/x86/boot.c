@@ -61,7 +61,7 @@ static int try_path(const char *path, char *param)
 
 #ifdef CONFIG_LOADER_FORTH
 	/* Forth loader */
-	forth_load(path);
+	forth_load(dev);
 	feval("state-valid @");
 	valid = POP();
 	if (valid)

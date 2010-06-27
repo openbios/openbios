@@ -23,7 +23,7 @@ int is_forth(char *forth)
 	return (forth[0] == '\\' && forth[1] == ' ');
 }
 
-int forth_load(const char *filename)
+int forth_load(ihandle_t dev)
 {
     char magic[2];
     unsigned long forthsize;
@@ -32,7 +32,7 @@ int forth_load(const char *filename)
     /* Mark the saved-program-state as invalid */
     feval("0 state-valid !");
 
-    fd = open_io(filename);
+    fd = open_ih(dev);
     if (!fd)
 	goto out;
 
