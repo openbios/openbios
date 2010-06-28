@@ -19,6 +19,8 @@
 #include "arch/common/nvram.h"
 #include "packages/nvram.h"
 
+//#define CONFIG_DEBUG_NVRAM 1
+
 #ifdef CONFIG_DEBUG_NVRAM
 #define DPRINTF(fmt, args...) \
 do { printk("NVRAM: " fmt , ##args); } while (0)
@@ -262,7 +264,7 @@ nvram_read( nvram_ibuf_t *nd )
 		n++;
 	}
 	PUSH(n);
-	DPRINTF("read %08x %x -- %x\n", (int)p, len, n);
+	DPRINTF("read %p %x -- %x\n", p, len, n);
 }
 
 /* ( addr len -- actual ) */
@@ -278,7 +280,7 @@ nvram_write( nvram_ibuf_t *nd )
 		n++;
 	}
 	PUSH(n);
-	DPRINTF("write %08x %x -- %x\n", (int)p, len, n );
+	DPRINTF("write %p %x -- %x\n", p, len, n );
 }
 
 /* ( -- size ) */
