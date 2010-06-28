@@ -468,6 +468,31 @@ void arch_nvram_get(char *data)
 
     ob_mmu_init(cpu->name, ram_size);
 
+    /* Setup nvram variables */
+    push_str("/options");
+    fword("find-device");
+
+    switch (boot_device) {
+        case 'a':
+            push_str("/obio/SUNW,fdtwo");
+            break;
+        case 'c':
+            push_str("disk");
+            break;
+        default:
+        case 'd':
+            push_str("cdrom");
+            break;
+        case 'n':
+            push_str("net");
+            break;
+    }
+
+    fword("encode-string");
+    push_str("boot-device");
+    fword("property");
+
+    /* Set up other properties */
     push_str("/chosen");
     fword("find-device");
 
@@ -478,6 +503,16 @@ void arch_nvram_get(char *data)
     push_str(bootpath);
     fword("encode-string");
     push_str("bootpath");
+    fword("property");
+
+    /* bootpath/bootargs should be set to NVRAM default */
+    fword("boot-device");
+    fword("encode-string");
+    push_str("bootpath");
+    fword("property");
+    fword("boot-args");
+    fword("encode-string");
+    push_str("bootargs");
     fword("property");
 
     push_str(obio_cmdline);

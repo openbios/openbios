@@ -21,6 +21,9 @@
 #include "openbios.h"
 #include "boot.h"
 #include "packages/video.h"
+#define NO_QEMU_PROTOS
+#define NO_OPENBIOS_PROTOS
+#include "arch/common/fw_cfg.h"
 
 #define MEMORY_SIZE     (128*1024)       /* 16K ram for hosted system */
 #define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
@@ -148,6 +151,20 @@ arch_init( void )
 	ob_sbus_init(hwdef->iommu_base + 0x1000ULL, qemu_machine_type);
 #endif
 	device_end();
+
+	/* Set up other properties */
+        push_str("/chosen");
+        fword("find-device");
+
+	/* bootpath/bootargs should be set to NVRAM default */
+	fword("boot-device");
+	fword("encode-string");
+	push_str("bootpath");
+	fword("property");
+	fword("boot-args");
+	fword("encode-string");
+	push_str("bootargs");
+	fword("property");
 
 	bind_func("platform-boot", boot );
 }

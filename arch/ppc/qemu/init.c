@@ -714,8 +714,38 @@ arch_of_init( void )
                 stdout_path = "screen";
         }
 
+	/* Setup nvram variables */
+        push_str("/options");
+        fword("find-device");
+
+	uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
+	switch (boot_device) {
+		case 'c':
+			push_str("hd:");
+			break;
+		default:
+		case 'd':
+			push_str("cd:");
+			break;
+	}
+
+	fword("encode-string");
+	push_str("boot-device");
+	fword("property");
+
+	/* Set up other properties */
         push_str("/chosen");
         fword("find-device");
+
+	/* bootpath/bootargs should be set to NVRAM default */
+	fword("boot-device");
+	fword("encode-string");
+	push_str("bootpath");
+	fword("property");
+	fword("boot-args");
+	fword("encode-string");
+	push_str("bootargs");
+	fword("property");
 
         push_str(stdin_path);
         fword("open-dev");

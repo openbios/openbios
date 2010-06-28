@@ -329,7 +329,6 @@ s" true"     s" scroll-lock"          bool-config
 
 [IFDEF] CONFIG_PPC
 \ ---- PPC ----
-s" disk"     s" boot-device"          str-config    \ 7.4.3.5
 s" false"    s" little-endian?"       bool-config
 s" false"    s" real-mode?"           bool-config
 s" -1"       s" real-base"            int-config
@@ -341,7 +340,6 @@ s" -1"       s" virt-size"            int-config
 
 [IFDEF] CONFIG_X86
 \ ---- X86 ----
-s" disk"     s" boot-device"          str-config    \ 7.4.3.5
 s" true"     s" little-endian?"       bool-config
 [THEN]
 
@@ -367,6 +365,7 @@ s" false"    s" little-endian?"       bool-config
 s" "         s" boot-screen"          str-config
 s" "         s" boot-script"          str-config
 s" false"    s" use-generic?"         bool-config
+s" disk"     s" boot-device"          str-config    \ 7.4.3.5
 s" "         s" boot-args"            str-config    \ ???
 
 \ defers

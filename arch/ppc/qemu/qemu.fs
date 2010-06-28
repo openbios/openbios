@@ -56,3 +56,7 @@
   stdout @ encode-int " stdout" property
   device-end
 ;
+
+:noname
+  set-defaults
+; PREPOST-initializer

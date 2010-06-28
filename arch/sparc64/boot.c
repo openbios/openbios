@@ -151,30 +151,14 @@ void boot(void)
         }
 
 	if(!path) {
-            push_str("boot-device");
-            push_str("/options");
+            /* No path specified, so grab defaults from /chosen */
+            push_str("bootpath");
+	    push_str("/chosen");
             fword("(find-dev)");
             POP();
             fword("get-package-property");
-            if (!POP()) {
-                path = pop_fstr_copy();
-            } else {
-                switch (boot_device) {
-                case 'a':
-                    path = strdup("/obio/SUNW,fdtwo");
-                    break;
-                case 'c':
-                    path = strdup("disk");
-                    break;
-                default:
-                case 'd':
-                    path = strdup("cdrom");
-                    break;
-                case 'n':
-                    path = strdup("net");
-                    break;
-                }
-            }
+            POP();
+            path = pop_fstr_copy();
 	}
 
 	param = strchr(path, ' ');

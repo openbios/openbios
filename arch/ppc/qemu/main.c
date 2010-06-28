@@ -221,43 +221,19 @@ newworld_boot( void )
 
         if (!path) {
             NEWWORLD_DPRINTF("Entering boot, no path\n");
-            push_str("boot-device");
-            push_str("/options");
+
+            /* No path specified, so grab defaults from /chosen */
+            push_str("bootpath");
+	    push_str("/chosen");
             fword("(find-dev)");
             POP();
             fword("get-package-property");
-            if (!POP()) {
-                path = pop_fstr_copy();
-                param = strchr(path, ' ');
-                if (param) {
-                    *param = '\0';
-                    param++;
-                } else {
-                    push_str("boot-args");
-                    push_str("/options");
-                    fword("(find-dev)");
-                    POP();
-                    fword("get-package-property");
-                    POP();
-                    param = pop_fstr_copy();
-                }
-                try_path(path, NULL, param);
-                for (i = 0; chrp_path[i]; i++)
-	            try_path(path, chrp_path[i], param);
-            } else {
-                uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
-                switch (boot_device) {
-                case 'c':
-                    path = strdup("hd:");
-                    break;
-                default:
-                case 'd':
-                    path = strdup("cd:");
-                    break;
-                }
-                for (i = 0; chrp_path[i]; i++)
-	            try_path(path, chrp_path[i], param);
-            }
+            POP();
+            path = pop_fstr_copy();
+
+            for (i = 0; chrp_path[i]; i++)
+		try_path(path, chrp_path[i], param);
+
         } else {
             NEWWORLD_DPRINTF("Entering boot, path %s\n", path);
 	    try_path(path, NULL, param);
