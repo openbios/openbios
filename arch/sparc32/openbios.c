@@ -22,7 +22,6 @@
 #include "boot.h"
 #include "packages/video.h"
 #define NO_QEMU_PROTOS
-#define NO_OPENBIOS_PROTOS
 #include "arch/common/fw_cfg.h"
 
 #define MEMORY_SIZE     (128*1024)       /* 16K ram for hosted system */
@@ -165,6 +164,8 @@ arch_init( void )
 	fword("encode-string");
 	push_str("bootargs");
 	fword("property");
+
+	boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
 
 	bind_func("platform-boot", boot );
 }

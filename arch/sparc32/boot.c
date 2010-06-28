@@ -157,38 +157,30 @@ void boot(void)
 	int result;
 
 	if(!path) {
-            push_str("boot-device");
-            push_str("/options");
-            fword("(find-dev)");
-            POP();
-            fword("get-package-property");
-            if (!POP()) {
-                path = pop_fstr_copy();
-            } else {
-                switch (boot_device) {
-                case 'a':
-                    path = strdup("/obio/SUNW,fdtwo");
-                    oldpath = "fd()";
-                    break;
-                case 'c':
-                    path = strdup("disk");
-                    oldpath = "sd(0,0,0):d";
-                    break;
-                default:
-                case 'd':
-                    path = strdup("cdrom");
-                    // FIXME: hardcoding this looks almost definitely wrong.
-                    // With sd(0,2,0):b we get to see the solaris kernel though
-                    //oldpath = "sd(0,2,0):d";
-                    oldpath = "sd(0,2,0):b";
-                    unit = 2;
-                    break;
-                case 'n':
-                    path = strdup("net");
-                    oldpath = "le()";
-                    break;
-                }
-            }
+		/* No path specified, so grab defaults from firmware */
+		switch (boot_device) {
+		case 'a':
+			path = strdup("/obio/SUNW,fdtwo");
+			oldpath = "fd()";
+			break;
+		case 'c':
+			path = strdup("disk");
+			oldpath = "sd(0,0,0):d";
+			break;
+		default:
+		case 'd':
+			path = strdup("cdrom");
+			// FIXME: hardcoding this looks almost definitely wrong.
+			// With sd(0,2,0):b we get to see the solaris kernel though
+			//oldpath = "sd(0,2,0):d";
+			oldpath = "sd(0,2,0):b";
+			unit = 2;
+			break;
+		case 'n':
+			path = strdup("net");
+			oldpath = "le()";
+			break;
+		}
 	}
 
         obp_arg.boot_dev_ctrl = 0;
