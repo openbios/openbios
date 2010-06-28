@@ -1,7 +1,7 @@
 \ 7.4.3.5 User commands for booting
 
 : boot    ( "{param-text}<cr>" -- )
-  linefeed parse cr
+  (encode-bootpath)
   s" platform-boot" $find if 
     execute
   else

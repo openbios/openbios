@@ -704,6 +704,11 @@ variable span 0 span !
   >r              \ save delimiter
   ib >in @ +
   span @ >in @ -  \ ib+offs len-offset.
+  dup 0 < if      \ if we are already at the end of the string, return an empty string
+    + 0	          \ move to end of input string
+    r> drop
+    exit
+  then
   2dup r>         \ ib+offs len-offset ib+offs len-offset delim
   findchar if     \ look for the delimiter. 
     nip dup 1+
