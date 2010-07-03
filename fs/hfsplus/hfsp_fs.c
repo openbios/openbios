@@ -216,7 +216,7 @@ hfsp_files_open( hfsp_info_t *mi )
 	if (volume_open(mi->vol, fd)) {
 		free( path );
 		close_io( fd );
-		RET( -1 );
+		RET( 0 );
 	}
 
 	mi->hfspfile = malloc( sizeof(hfsp_file_t) );
@@ -244,7 +244,7 @@ hfsp_files_open( hfsp_info_t *mi )
 	if( !search_files(&(mi->hfspfile->rec), 0, match_path, path, mi->hfspfile ) )
 		RET ( -1 );
 	
-	RET ( 0 );
+	RET ( -1 );
 }
 
 /* ( -- ) */
@@ -383,11 +383,11 @@ hfsp_files_load( hfsp_info_t *mi )
 	RET ( act_count );
 }
 
-/* ( -- str len ) */
+/* ( -- cstr ) */
 static void
 hfsp_files_get_fstype( hfsp_info_t *mi )
 {
-	push_str("HFS+");
+	PUSH( (ucell)strdup("HFS+") );
 }
 
 /* ( -- cstr ) */
