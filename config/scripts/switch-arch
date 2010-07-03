@@ -88,7 +88,7 @@ select_prefix()
 {
     for TARGET in ${1}-linux-gnu- ${1}-elf- ${1}-eabi-
     do
-        if type -p ${TARGET}gcc > /dev/null
+        if type ${TARGET}gcc > /dev/null 2>&1
         then
             return
         fi
