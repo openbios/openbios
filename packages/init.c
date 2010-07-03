@@ -30,6 +30,9 @@ modules_init( void )
 #ifdef CONFIG_DISK_LABEL
 	disklabel_init();
 #endif
+#ifdef CONFIG_ISO9660
+	iso9660_init();
+#endif
 #ifdef CONFIG_FS
 	files_init();
 #endif

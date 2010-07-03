@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/load.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "packages.h"
@@ -68,6 +69,8 @@ dlabel_open( dlabel_info_t *di )
 
 	DPRINTF("dlabel-open '%s'\n", path );
 
+	di->part_ih = 0;
+
 	/* Find parent methods */
 	di->parent_seek_xt = find_parent_method("seek");
 	di->parent_tell_xt = find_parent_method("tell");
@@ -111,9 +114,16 @@ dlabel_open( dlabel_info_t *di )
 		selfword("find-filesystem");
 		ph = POP_ph();
 		if( ph ) {
-			push_str( path );
-			PUSH_ph( ph );
-			fword("interpose");
+			/* If we have been asked to open a particular file, interpose the filesystem package with the passed filename as an argument */
+			DPRINTF("path: %s length: %d\n", path, strlen(path));
+
+			if (strlen(path)) {
+				DPRINTF("INTERPOSE!\n");
+
+				push_str( path );
+				PUSH_ph( ph );
+				fword("interpose");
+			}
 		} else if (*path && strcmp(path, "%BOOT") != 0) {
 			goto out;
 		}
@@ -175,14 +185,24 @@ dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 
 	DPRINTF("load invoked with address %p\n", buf);
 
-	xt = find_ih_method("load", di->part_ih);
-	if (!xt) {
-		forth_printf("load currently not implemented for ihandle " FMT_ucellx "\n", di->part_ih);
-		PUSH(0);
-		return;
-	}
+	/* If we have a partition handle, invoke the load word on it */
+	if (di->part_ih) {
+		xt = find_ih_method("load", di->part_ih);
+		if (!xt) {
+			forth_printf("load currently not implemented for ihandle " FMT_ucellx "\n", di->part_ih);
+			PUSH(0);
+			return;
+		}
+	
+		DPRINTF("calling load on ihandle " FMT_ucellx "\n", di->part_ih);
 
-	call_package(xt, di->part_ih);
+		call_package(xt, di->part_ih);
+	} else {
+		/* Otherwise attempt load directly on the raw disk */
+		DPRINTF("calling load on raw disk ihandle " FMT_ucellx "\n", my_self());
+
+		load(my_self());
+	}
 }
 
 NODE_METHODS( dlabel ) = {

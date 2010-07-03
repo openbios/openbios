@@ -36,6 +36,7 @@ typedef struct {
 	ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
 	uint		blocksize;
+	phandle_t	filesystem_ph;
 } macparts_info_t;
 
 DECLARE_NODE( macparts, INSTALL_OPEN, sizeof(macparts_info_t), "+/packages/mac-parts" );
@@ -111,6 +112,7 @@ macparts_open( macparts_info_t *di )
 	DPRINTF("want_bootcode %d\n", want_bootcode);
 	DPRINTF("macparts_open %d\n", parnum);
 
+	di->filesystem_ph = 0;
 	di->read_xt = find_parent_method("read");
 	di->seek_xt = find_parent_method("seek");
 
@@ -244,10 +246,16 @@ found:
 
 	ph = POP_ph();
 	if( ph ) {
-		DPRINTF("mac-parts: filesystem found with ph " FMT_ucellx " and args %s\n", ph, str);
-		push_str( argstr );
-		PUSH_ph( ph );
-		fword("interpose");
+		DPRINTF("mac-parts: filesystem found with ph " FMT_ucellx " and args %s\n", ph, argstr);
+		di->filesystem_ph = ph;
+
+		/* If we have been asked to open a particular file, interpose the filesystem package with 
+		   the passed filename as an argument */
+		if (strlen(argstr)) {
+			push_str( argstr );
+			PUSH_ph( ph );
+			fword("interpose");
+		}
 	} else {
 		DPRINTF("mac-parts: no filesystem found; bypassing misc-files interpose\n");
 	}

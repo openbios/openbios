@@ -66,11 +66,6 @@ do_open( ihandle_t ih )
 		}
 
 		if( err ) {
-			err = fs_iso9660_open(fd, fs);
-			DPRINTF("--- ISO9660 returned %d\n", err);
-		}
-
-		if( err ) {
 			err = fs_ext2_open(fd, fs);
 			DPRINTF("--- ext2 returned %d\n", err);
 		}
@@ -358,11 +353,6 @@ files_probe( files_info_t *mi )
 		if( err ) {
 			err = fs_hfs_probe(fd, offs);
 			DPRINTF("--- HFS returned %d\n", err);
-		}
-
-		if( err ) {
-			err = fs_iso9660_probe(fd, offs);
-			DPRINTF("--- ISO9660 returned %d\n", err);
 		}
 
 		if( err ) {

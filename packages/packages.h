@@ -20,6 +20,7 @@
 extern void	deblocker_init( void );
 extern void	disklabel_init( void );
 extern void	files_init( void );
+extern void	iso9660_init( void );
 extern void	macparts_init( void );
 extern void	pcparts_init( void );
 extern void	sunparts_init( void );

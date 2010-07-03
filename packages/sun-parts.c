@@ -33,6 +33,7 @@ typedef struct {
         ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
 	int		type;
+	phandle_t	filesystem_ph;
 } sunparts_info_t;
 
 DECLARE_NODE( sunparts, INSTALL_OPEN, sizeof(sunparts_info_t), "+/packages/sun-parts" );
@@ -152,6 +153,7 @@ sunparts_open( sunparts_info_t *di )
 
 	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
 
+	di->filesystem_ph = 0;
 	di->read_xt = find_parent_method("read");
 	di->seek_xt = find_parent_method("seek");
 
@@ -205,10 +207,16 @@ sunparts_open( sunparts_info_t *di )
 
 	ph = POP_ph();
 	if( ph ) {
-		DPRINTF("sun-parts: filesystem found with ph " FMT_ucellx " and args %s\n", ph, str);
-		push_str( argstr );
-		PUSH_ph( ph );
-		fword("interpose");
+		DPRINTF("sun-parts: filesystem found with ph " FMT_ucellx " and args %s\n", ph, argstr);
+		di->filesystem_ph = ph;
+
+		/* If we have been asked to open a particular file, interpose the filesystem package with 
+		   the passed filename as an argument */
+		if (strlen(argstr)) {
+			push_str( argstr );
+			PUSH_ph( ph );
+			fword("interpose");
+		}
 	} else {
 		DPRINTF("sun-parts: no filesystem found; bypassing misc-files interpose\n");
 	}
