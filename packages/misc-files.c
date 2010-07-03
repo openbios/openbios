@@ -57,14 +57,8 @@ do_open( ihandle_t ih )
 	err = (fd = open_ih(ih)) == -1;
 
 	if( !err ) {
-		err = fs_hfsp_open(fd, fs);
-		DPRINTF("--- HFSP returned %d\n", err);
-
-		if( err ) {
-			err = fs_hfs_open(fd, fs);
-			DPRINTF("--- HFS returned %d\n", err);
-		}
-
+		err = fs_hfs_open(fd, fs);
+		
 		if( err ) {
 			err = fs_ext2_open(fd, fs);
 			DPRINTF("--- ext2 returned %d\n", err);
@@ -347,13 +341,8 @@ files_probe( files_info_t *mi )
 	err = (fd = open_ih(ih)) == -1;
 	if( !err ) {
 
-		err = fs_hfsp_probe(fd, offs);
-		DPRINTF("--- HFSP returned %d\n", err);
-
-		if( err ) {
-			err = fs_hfs_probe(fd, offs);
-			DPRINTF("--- HFS returned %d\n", err);
-		}
+		err = fs_hfs_probe(fd, offs);
+		DPRINTF("--- HFS returned %d\n", err);
 
 		if( err ) {
 			err = fs_ext2_probe(fd, offs);

@@ -2,11 +2,12 @@
  *   Creation Date: <2001/05/05 23:33:49 samuel>
  *   Time-stamp: <2004/01/12 10:25:39 samuel>
  *
- *	<hfsp_fs.c>
+ *	/package/hfsplus-files
  *
  *	HFS+ file system interface (and ROM lookup support)
  *
  *   Copyright (C) 2001, 2002, 2003, 2004 Samuel Rydh (samuel@ibrium.se)
+ *   Copyright (C) 2010 Mark Cave-Ayland (mark.cave-ayland@siriusit.co.uk)
  *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
@@ -15,13 +16,14 @@
  */
 
 #include "config.h"
+#include "libopenbios/bindings.h"
 #include "fs/fs.h"
 #include "libhfsp.h"
 #include "volume.h"
 #include "record.h"
 #include "unicode.h"
 #include "blockiter.h"
-
+#include "libc/diskio.h"
 
 #define MAC_OS_ROM_CREATOR	0x63687270	/* 'chrp' */
 #define MAC_OS_ROM_TYPE		0x74627869	/* 'tbxi' */
@@ -32,13 +34,22 @@
 #define SYSTEM_TYPE		0x7A737973	/* 'zsys' */
 #define SYSTEM_CREATOR		0x4D414353	/* 'MACS' */
 
+#define VOLNAME_SIZE	64
+
+extern void     hfsp_init( void );
 
 typedef struct {
 	record		rec;
 	char		*path;
-
 	off_t		pos;
 } hfsp_file_t;
+
+typedef struct {
+	volume *vol;
+	hfsp_file_t *hfspfile;
+} hfsp_info_t;
+
+DECLARE_NODE( hfsp, 0, sizeof(hfsp_info_t), "+/packages/hfsplus-files" );
 
 
 /************************************************************************/
@@ -88,9 +99,8 @@ search_files( record *par, int recursive, match_proc_t proc, const void *match_d
 }
 
 static int
-root_search_files( fs_ops_t *fs, int recursive, match_proc_t proc, const void *match_data, hfsp_file_t *pt )
+root_search_files( volume *vol, int recursive, match_proc_t proc, const void *match_data, hfsp_file_t *pt )
 {
-	volume *vol = (volume*)fs->fs_data;
 	record r;
 
 	record_init_root( &r, &vol->catalog );
@@ -183,34 +193,34 @@ match_path( record *r, record *par, const void *match_data, hfsp_file_t *pt )
 
 
 /************************************************************************/
-/*	File System Operations						*/
+/*	Standard package methods						*/
 /************************************************************************/
 
+/* ( -- success? ) */
 static void
-close_fs( fs_ops_t *fs )
+hfsp_files_open( hfsp_info_t *mi )
 {
-	volume *vol = (volume*)fs->fs_data;
-	volume_close( vol );
-	free( vol );
-}
+	int fd;
+	char *path = my_args_copy();
 
-static file_desc_t *
-_create_fops( hfsp_file_t *t )
-{
-	hfsp_file_t *r = malloc( sizeof(hfsp_file_t) );
+	if ( ! path )
+		RET( 0 );
 
-	*r = *t;
-	r->pos = 0;
-	return (file_desc_t*)r;
-}
+	fd = open_ih( my_parent() );
+	if ( fd == -1 ) {
+		free( path );
+		RET( 0 );
+	}
 
-static file_desc_t *
-open_path( fs_ops_t *fs, const char *path )
-{
-	hfsp_file_t t;
-	volume *vol = (volume*)fs->fs_data;
-	record r;
+	mi->vol = malloc( sizeof(volume) );
+	if (volume_open(mi->vol, fd)) {
+		free( path );
+		close_io( fd );
+		RET( -1 );
+	}
 
+	mi->hfspfile = malloc( sizeof(hfsp_file_t) );
+	
 	/* Leading \\ means system folder. The finder info block has
 	 * the following meaning.
 	 *
@@ -219,102 +229,43 @@ open_path( fs_ops_t *fs, const char *path )
 	 *  [5] MacOS X boot directory ID
 	 */
 	if( !strncmp(path, "\\\\", 2) ) {
-		int *p = (int*)&vol->vol.finder_info[0];
+		int *p = (int*)&(mi->vol)->vol.finder_info[0];
 		int cnid = p[0];
 		/* printk(" p[0] = %x, p[3] = %x, p[5] = %x\n", p[0], p[3], p[5] ); */
 		if( p[0] == p[5] && p[3] )
 			cnid = p[3];
-		if( record_init_cnid(&r, &vol->catalog, cnid) )
-			return NULL;
+		if( record_init_cnid(&(mi->hfspfile->rec), &(mi->vol)->catalog, cnid) )
+			RET ( 0 );
 		path += 2;
 	} else {
-		record_init_root( &r, &vol->catalog );
+		record_init_root( &(mi->hfspfile->rec), &(mi->vol)->catalog );
 	}
 
-	if( !search_files(&r, 0, match_path, path, &t) )
-		return _create_fops( &t );
-	return NULL;
+	if( !search_files(&(mi->hfspfile->rec), 0, match_path, path, mi->hfspfile ) )
+		RET ( -1 );
+	
+	RET ( 0 );
 }
 
-static file_desc_t *
-search_rom( fs_ops_t *fs )
-{
-	hfsp_file_t t;
-
-	if( !root_search_files(fs, 1, match_rom, NULL, &t) )
-		return _create_fops( &t );
-	return NULL;
-}
-
-static file_desc_t *
-search_file( fs_ops_t *fs, const char *name )
-{
-	hfsp_file_t t;
-
-	if( !root_search_files(fs, 1, match_file, name, &t) )
-		return _create_fops( &t );
-	return NULL;
-}
-
-
-/************************************************************************/
-/*	File Operations							*/
-/************************************************************************/
-
-static char *
-get_path( file_desc_t *fd, char *buf, int len )
-{
-	hfsp_file_t *t = (hfsp_file_t*)fd;
-	if( !t->path )
-		return NULL;
-
-	strncpy( buf, t->path, len );
-	buf[len-1] = 0;
-	return buf;
-}
-
+/* ( -- ) */
 static void
-file_close( file_desc_t *fd )
+hfsp_files_close( hfsp_info_t *mi )
 {
-	hfsp_file_t *t = (hfsp_file_t*)fd;
-	if( t->path )
-		free( t->path );
-	free( t );
+	volume_close(mi->vol);
+
+	if( mi->hfspfile->path )
+		free( mi->hfspfile->path );
+	free( mi->hfspfile );
 }
 
-static int
-file_lseek( file_desc_t *fd, off_t offs, int whence )
+/* ( buf len -- actlen ) */
+static void
+hfsp_files_read( hfsp_info_t *mi )
 {
-	hfsp_file_t *t = (hfsp_file_t*)fd;
-	hfsp_cat_file *file = &t->rec.record.u.file;
-	int total = file->data_fork.total_size;
+	int count = POP();
+	char *buf = (char *)POP();
 
-	switch( whence ){
-	case SEEK_CUR:
-		t->pos += offs;
-		break;
-	case SEEK_END:
-		t->pos = total + offs;
-		break;
-	default:
-	case SEEK_SET:
-		t->pos = offs;
-		break;
-	}
-
-	if( t->pos < 0 )
-		t->pos = 0;
-
-	if( t->pos > total )
-		t->pos = total;
-
-	return t->pos;
-}
-
-static int
-file_read( file_desc_t *fd, void *buf, size_t count )
-{
-	hfsp_file_t *t = (hfsp_file_t*)fd;
+	hfsp_file_t *t = mi->hfspfile;
 	volume *vol = t->rec.tree->vol;
 	UInt32 blksize = vol->blksize;
 	hfsp_cat_file *file = &t->rec.record.u.file;
@@ -324,8 +275,10 @@ file_read( file_desc_t *fd, void *buf, size_t count )
 
 	blockiter_init( &iter, vol, &file->data_fork, HFSP_EXTENT_DATA, file->id );
 	while( curpos + blksize < t->pos ) {
-		if( blockiter_next( &iter ) )
-			return -1;
+		if( blockiter_next( &iter ) ) {
+			RET ( -1 );
+			return;
+		}
 		curpos += blksize;
 	}
 	act_count = 0;
@@ -352,57 +305,176 @@ file_read( file_desc_t *fd, void *buf, size_t count )
 	}
 
 	t->pos += act_count;
-	return (act_count > 0)? act_count : -1;
+
+	RET ( act_count );
 }
 
-static char *
-vol_name( fs_ops_t *fs, char *buf, int size )
+/* ( pos.d -- status ) */
+static void
+hfsp_files_seek( hfsp_info_t *mi )
 {
-	return get_hfs_vol_name( fs->fd, buf, size );
+	llong pos = DPOP();
+	int offs = (int)pos;
+	int whence = SEEK_SET;
+
+	hfsp_file_t *t = mi->hfspfile;
+	hfsp_cat_file *file = &t->rec.record.u.file;
+	int total = file->data_fork.total_size;
+
+	if( offs == -1 ) {
+		offs = 0;
+		whence = SEEK_END;
+	}
+
+	switch( whence ){
+	case SEEK_END:
+		t->pos = total + offs;
+		break;
+	default:
+	case SEEK_SET:
+		t->pos = offs;
+		break;
+	}
+
+	if( t->pos < 0 )
+		t->pos = 0;
+
+	if( t->pos > total )
+		t->pos = total;
+
+	RET ( 0 );
 }
 
-static const char *
-get_fstype( fs_ops_t *fs )
+/* ( addr -- size ) */
+static void
+hfsp_files_load( hfsp_info_t *mi )
 {
-	return ("HFS+");
+	char *buf = (char *)POP();
+
+	hfsp_file_t *t = mi->hfspfile;
+	volume *vol = t->rec.tree->vol;
+	UInt32 blksize = vol->blksize;
+	hfsp_cat_file *file = &t->rec.record.u.file;
+	int total = file->data_fork.total_size;
+	blockiter iter;
+	char buf2[blksize];
+	int act_count;
+
+	blockiter_init( &iter, vol, &file->data_fork, HFSP_EXTENT_DATA, file->id );
+
+	act_count = 0;
+
+	while( act_count < total ){
+		UInt32 block = blockiter_curr(&iter);
+		int max = blksize, size;
+
+		if( volume_readinbuf( vol, buf2, block ) )
+			break;
+
+		size = (total-act_count > max)? max : total-act_count;
+		memcpy( (char *)buf + act_count, &buf2, size );
+
+		act_count += size;
+
+		if( blockiter_next( &iter ) )
+			break;
+	}
+
+	RET ( act_count );
+}
+
+/* ( -- str len ) */
+static void
+hfsp_files_get_fstype( hfsp_info_t *mi )
+{
+	push_str("HFS+");
+}
+
+/* ( -- cstr ) */
+static void
+hfsp_files_get_path( hfsp_info_t *mi )
+{
+	char *buf;
+	hfsp_file_t *t = mi->hfspfile;
+
+	if( !t->path )
+		RET ( 0 );
+
+	buf = malloc(strlen(t->path) + 1);
+	strncpy( buf, t->path, strlen(t->path) );
+	buf[strlen(t->path)] = 0;
+
+	PUSH ((ucell)buf);
+}
+
+/* ( -- success? ) */
+static void
+hfsp_files_open_nwrom( hfsp_info_t *mi )
+{
+	/* Switch to an existing ROM image file on the fs! */
+	if( !root_search_files(mi->vol, 1, match_rom, NULL, mi->hfspfile) )
+		RET ( -1 );
+
+	RET ( 0 );
+}
+
+/* ( -- cstr|0 ) */
+static void
+hfsp_files_volume_name( hfsp_info_t *mi )
+{
+	int fd;
+	char *volname = malloc(VOLNAME_SIZE);
+
+	fd = open_ih(my_self());
+	get_hfs_vol_name(fd, volname, VOLNAME_SIZE);
+	close_io(fd);
+
+	PUSH ((ucell)volname);
+}
+
+/* static method, ( pos.d ih -- flag? ) */
+static void
+hfsp_files_probe( hfsp_info_t *dummy )
+{
+	ihandle_t ih = POP_ih();
+	llong offs = DPOP(); 
+	int fd, ret = 0;
+
+	fd = open_ih(ih);
+	if (volume_probe(fd, offs))
+		ret = -1;
+
+	close_io(fd);
+
+	RET (ret);
 }
 
 
-static const fs_ops_t fs_ops = {
-	.close_fs	= close_fs,
-	.open_path	= open_path,
-	.search_rom	= search_rom,
-	.search_file	= search_file,
-	.vol_name	= vol_name,
+static void
+hfsp_initializer( hfsp_info_t *dummy )
+{
+	fword("register-fs-package");
+}
 
-	.get_path	= get_path,
-	.close		= file_close,
-	.read		= file_read,
-	.lseek		= file_lseek,
+NODE_METHODS( hfsp ) = {
+	{ "probe",	hfsp_files_probe	},
+	{ "open",	hfsp_files_open		},
+	{ "close",	hfsp_files_close	},
+	{ "read",	hfsp_files_read		},
+	{ "seek",	hfsp_files_seek		},
+	{ "load",	hfsp_files_load		},
 
-	.get_fstype     = get_fstype
+	/* special */
+	{ "open-nwrom",	 	hfsp_files_open_nwrom 	},
+	{ "get-path",		hfsp_files_get_path	},
+	{ "get-fstype",		hfsp_files_get_fstype	},
+	{ "volume-name",	hfsp_files_volume_name	},
+
+	{ NULL,		hfsp_initializer	},
 };
 
-int
-fs_hfsp_open( int os_fd, fs_ops_t *fs )
+void
+hfsp_init( void )
 {
-	volume *vol = malloc( sizeof(volume) );
-
-	if( volume_open(vol, os_fd) ) {
-		free( vol );
-		return -1;
-	}
-	*fs = fs_ops;
-	fs->fs_data = vol;
-
-	return 0;
-}
-
-int 
-fs_hfsp_probe(int fd, llong offs)
-{
-	if (volume_probe(fd, offs))
-		return 0;
-
-	return -1;
+	REGISTER_NODE( hfsp );
 }
