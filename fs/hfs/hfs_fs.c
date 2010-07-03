@@ -2,11 +2,12 @@
  *   Creation Date: <2001/05/06 22:47:23 samuel>
  *   Time-stamp: <2004/01/12 10:24:35 samuel>
  *
- *	<hfs_fs.c>
+ *	/packages/hfs-files
  *
  *	HFS world interface
  *
  *   Copyright (C) 2001-2004 Samuel Rydh (samuel@ibrium.se)
+ *   Copyright (C) 2010 Mark Cave-Ayland (mark.cave-ayland@siriusit.co.uk)
  *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
@@ -15,8 +16,10 @@
  */
 
 #include "config.h"
+#include "libopenbios/bindings.h"
 #include "fs/fs.h"
 #include "libc/vsprintf.h"
+#include "libc/diskio.h"
 #include "libhfs.h"
 
 #define MAC_OS_ROM_CREATOR	0x63687270	/* 'chrp' */
@@ -28,6 +31,10 @@
 #define SYSTEM_TYPE		0x7A737973	/* 'zsys' */
 #define SYSTEM_CREATOR		0x4D414353	/* 'MACS' */
 
+#define VOLNAME_SIZE	64
+
+extern void     hfs_init( void );
+
 typedef struct {
 	enum { FILE, DIR } type;
 	union {
@@ -36,6 +43,12 @@ typedef struct {
 	};
 } hfscommon;
 
+typedef struct {
+	hfsvol *vol;
+	hfscommon *common;
+} hfs_info_t;
+
+DECLARE_NODE( hfs, 0, sizeof(hfs_info_t), "+/packages/hfs-files" );
 
 /************************************************************************/
 /*	Search Functions						*/
@@ -64,7 +77,7 @@ _find_file( hfsvol *vol, const char *path, ulong type, ulong creator )
 
 /* ret: 0=success, 1=not_found, 2=not_a_dir */
 static int
-_search( hfsvol *vol, const char *path, const char *sname, file_desc_t **ret_fd )
+_search( hfsvol *vol, const char *path, const char *sname, hfsfile **ret_fd )
 {
 	hfsdir *dir;
 	hfsdirent ent;
@@ -111,7 +124,7 @@ _search( hfsvol *vol, const char *path, const char *sname, file_desc_t **ret_fd 
 				|| _find_file( vol, path, SYSTEM_TYPE, SYSTEM_CREATOR );
 		}
 	}
-	if( !status && topdir && ret_fd && !(*ret_fd=(file_desc_t*)hfs_open(vol, buf)) ) {
+	if( !status && topdir && ret_fd && !(*ret_fd=hfs_open(vol, buf)) ) {
 		printk("Unexpected error: failed to open matched ROM\n");
 		status = 1;
 	}
@@ -120,239 +133,18 @@ _search( hfsvol *vol, const char *path, const char *sname, file_desc_t **ret_fd 
 	return status;
 }
 
-static file_desc_t *
-_do_search( fs_ops_t *fs, const char *sname )
+static hfsfile *
+_do_search( hfs_info_t *mi, const char *sname )
 {
 	hfsvol *vol = hfs_getvol( NULL );
-	file_desc_t *ret_fd = NULL;
 
-	(void)_search( vol, ":", sname, &ret_fd );
-	return ret_fd;
+	mi->common->type = FILE;
+	(void)_search( vol, ":", sname, &mi->common->file );
+
+	return mi->common->file;
 }
 
-static file_desc_t *
-search_rom( fs_ops_t *fs )
-{
-	return _do_search( fs, NULL );
-}
-
-static file_desc_t *
-search_file( fs_ops_t *fs, const char *sname )
-{
-	return _do_search( fs, sname );
-}
-
-
-/************************************************************************/
-/*	file/fs ops							*/
-/************************************************************************/
-
-static void
-file_close( file_desc_t *fd )
-{
-	hfscommon *common = (hfscommon*)fd;
-	if (common->type == FILE)
-		hfs_close( common->file );
-	else if (common->type == DIR)
-		hfs_closedir( common->dir );
-	free(common);
-}
-
-static int
-file_lseek( file_desc_t *fd, off_t offs, int whence )
-{
-	hfscommon *common = (hfscommon*)fd;
-
-	if (common->type != FILE)
-		return -1;
-
-	switch( whence ) {
-	case SEEK_CUR:
-		whence = HFS_SEEK_CUR;
-		break;
-	case SEEK_END:
-		whence = HFS_SEEK_END;
-		break;
-	default:
-	case SEEK_SET:
-		whence = HFS_SEEK_SET;
-		break;
-	}
-
-	return hfs_seek( common->file, offs, whence );
-}
-
-static int
-file_read( file_desc_t *fd, void *buf, size_t count )
-{
-	hfscommon *common = (hfscommon*)fd;
-	if (common->type != FILE)
-		return -1;
-	return hfs_read( common->file, buf, count );
-}
-
-static char *
-get_path( file_desc_t *fd, char *retbuf, int len )
-{
-	char buf[256], buf2[256];
-	hfscommon *common = (hfscommon*)fd;
-	hfsvol *vol = hfs_getvol( NULL );
-	hfsdirent ent;
-	int start, ns;
-	ulong id;
-
-	if (common->type != FILE)
-		return NULL;
-
-	hfs_fstat( common->file, &ent );
-	start = sizeof(buf) - strlen(ent.name) - 1;
-	if( start <= 0 )
-		return NULL;
-	strcpy( buf+start, ent.name );
-	buf[--start] = '\\';
-
-	ns = start;
-	for( id=ent.parid ; !hfs_dirinfo(vol, &id, buf2) ; ) {
-		start = ns;
-		ns -= strlen(buf2);
-		if( ns <= 0 )
-			return NULL;
-		strcpy( buf+ns, buf2 );
-		buf[--ns] = buf[start] = '\\';
-	}
-	if( strlen(buf + start) >= len )
-		return NULL;
-
-	strcpy( retbuf, buf+start );
-	return retbuf;
-}
-
-static char *
-vol_name( fs_ops_t *fs, char *buf, int size )
-{
-	return get_hfs_vol_name( fs->fd, buf, size );
-}
-
-
-static file_desc_t *
-open_path( fs_ops_t *fs, const char *fullpath )
-{
-	hfsvol *vol = (hfsvol*)fs->fs_data;
-	const char *s;
-	char buf[256];
-	hfscommon *common;
-	char *path = strdup(fullpath);
-
-	if( !strncmp(path, "\\\\", 2) ) {
-		hfsvolent ent;
-
-		/* \\ is an alias for the (blessed) system folder */
-		if( hfs_vstat(vol, &ent) < 0 || hfs_setcwd(vol, ent.blessed) ) {
-			free(path);
-			return NULL;
-		}
-		path += 2;
-	} else {
-		hfs_chdir( vol, ":" );
-	}
-
-	common = malloc(sizeof(*common));
-	if (!common) {
-		free(path);
-		return NULL;
-	}
-
-	if (strcmp(path, "\\") == 0) {
-		/* root directory is in fact ":" */
-		common->dir = hfs_opendir(vol, ":");
-		common->type = DIR;
-		free(path);
-		return (file_desc_t*)common;
-	}
-
-	if (path[strlen(path) - 1] == '\\') {
-		path[strlen(path) - 1] = 0;
-	}
-
-	for( path-- ;; ) {
-		int n;
-
-		s = ++path;
-		path = strchr(s, '\\');
-		if( !path || !path[1])
-			break;
-		n = MIN( sizeof(buf)-1, (path-s) );
-		if( !n )
-			continue;
-
-		strncpy( buf, s, n );
-		buf[n] = 0;
-		if( hfs_chdir(vol, buf) ) {
-			free(common);
-			free(path);
-			return NULL;
-		}
-	}
-
-	/* support the ':filetype' syntax */
-	if( *s == ':' ) {
-		unsigned long id, oldid = hfs_getcwd(vol);
-		file_desc_t *ret = NULL;
-		hfsdirent ent;
-		hfsdir *dir;
-
-		s++;
-		id = oldid;
-		hfs_dirinfo( vol, &id, buf );
-		hfs_setcwd( vol, id );
-
-		if( !(dir=hfs_opendir(vol, buf)) ) {
-			free(common);
-			free(path);
-			return NULL;
-		}
-		hfs_setcwd( vol, oldid );
-
-		while( !hfs_readdir(dir, &ent) ) {
-			if( ent.flags & HFS_ISDIR )
-				continue;
-			if( !strncmp(s, ent.u.file.type, 4) ) {
-				common->type = FILE;
-				common->file = hfs_open( vol, ent.name );
-				ret = (file_desc_t*)common;
-				break;
-			}
-		}
-		hfs_closedir( dir );
-		free(path);
-		return ret;
-	}
-
-	common->dir = hfs_opendir(vol, s);
-	if (!common->dir) {
-		common->file = hfs_open( vol, s );
-		if (common->file == NULL) {
-			free(common);
-			free(path);
-			return NULL;
-		}
-		common->type = FILE;
-		free(path);
-		return (file_desc_t*)common;
-	}
-	common->type = DIR;
-	free(path);
-	return (file_desc_t*)common;
-}
-
-static void
-close_fs( fs_ops_t *fs )
-{
-	hfsvol *vol = (hfsvol*)fs->fs_data;
-
-	hfs_umount( vol );
-	/* callers responsibility to call free(fs) */
-}
+/*
 
 static const int days_month[12] =
 	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -422,48 +214,319 @@ dir_fs( file_desc_t *fd )
 			forth_printf("%s\n", ent.name);
 	}
 }
+*/
 
-static const char *
-get_fstype( fs_ops_t *fs )
+/************************************************************************/
+/*	Standard package methods						*/
+/************************************************************************/
+
+/* ( -- success? ) */
+static void
+hfs_files_open( hfs_info_t *mi )
 {
-	return ("HFS");
+	int fd;
+	char *path = my_args_copy();
+
+	const char *s;
+	char buf[256];
+
+	fd = open_ih( my_parent() );
+	if ( fd == -1 ) {
+		free( path );
+		RET( 0 );
+	}
+
+	mi->vol = hfs_mount(fd, 0);
+	if (!mi->vol) {
+		RET( 0 );
+	}
+
+	if( !strncmp(path, "\\\\", 2) ) {
+		hfsvolent ent;
+
+		/* \\ is an alias for the (blessed) system folder */
+		if( hfs_vstat(mi->vol, &ent) < 0 || hfs_setcwd(mi->vol, ent.blessed) ) {
+			free(path);
+			RET( -1 );
+		}
+		path += 2;
+	} else {
+		hfs_chdir( mi->vol, ":" );
+	}
+
+	mi->common = malloc(sizeof(hfscommon));
+	if (!mi->common) {
+		free(path);
+		RET( 0 );
+	}
+
+	if (strcmp(path, "\\") == 0) {
+		/* root directory is in fact ":" */
+		mi->common->dir = hfs_opendir(mi->vol, ":");
+		mi->common->type = DIR;
+		free(path);
+		RET( -1 );
+	}
+
+	if (path[strlen(path) - 1] == '\\') {
+		path[strlen(path) - 1] = 0;
+	}
+
+	for( path-- ;; ) {
+		int n;
+
+		s = ++path;
+		path = strchr(s, '\\');
+		if( !path || !path[1])
+			break;
+		n = MIN( sizeof(buf)-1, (path-s) );
+		if( !n )
+			continue;
+
+		strncpy( buf, s, n );
+		buf[n] = 0;
+		if( hfs_chdir(mi->vol, buf) ) {
+			free(mi->common);
+			free(path);
+			RET( 0 );
+		}
+	}
+
+	/* support the ':filetype' syntax */
+	if( *s == ':' ) {
+		unsigned long id, oldid = hfs_getcwd(mi->vol);
+		hfsdirent ent;
+		hfsdir *dir;
+
+		s++;
+		id = oldid;
+		hfs_dirinfo( mi->vol, &id, buf );
+		hfs_setcwd( mi->vol, id );
+
+		if( !(dir=hfs_opendir(mi->vol, buf)) ) {
+			free(mi->common);
+			free(path);
+			RET( 0 );
+		}
+		hfs_setcwd( mi->vol, oldid );
+
+		while( !hfs_readdir(dir, &ent) ) {
+			if( ent.flags & HFS_ISDIR )
+				continue;
+			if( !strncmp(s, ent.u.file.type, 4) ) {
+				mi->common->type = FILE;
+				mi->common->file = hfs_open( mi->vol, ent.name );
+				break;
+			}
+		}
+		hfs_closedir( dir );
+		free(path);
+		RET( -1 );
+	}
+
+	mi->common->dir = hfs_opendir(mi->vol, s);
+	if (!mi->common->dir) {
+		mi->common->file = hfs_open( mi->vol, s );
+		if (mi->common->file == NULL) {
+			free(mi->common);
+			free(path);
+			RET( 0 );
+		}
+		mi->common->type = FILE;
+		free(path);
+		RET( -1 );
+	}
+	mi->common->type = DIR;
+	free(path);
+	
+	RET( -1 );
 }
 
-static const fs_ops_t hfs_ops = {
-	.dir		= dir_fs,
-	.close_fs	= close_fs,
-	.open_path	= open_path,
-	.search_rom	= search_rom,
-	.search_file	= search_file,
-	.vol_name	= vol_name,
+/* ( -- ) */
+static void
+hfs_files_close( hfs_info_t *mi )
+{
+	hfscommon *common = mi->common;
+	if (common->type == FILE)
+		hfs_close( common->file );
+	else if (common->type == DIR)
+		hfs_closedir( common->dir );
+	free(common);
+}
 
-	.get_path	= get_path,
-	.close		= file_close,
-	.read		= file_read,
-	.lseek		= file_lseek,
+/* ( buf len -- actlen ) */
+static void
+hfs_files_read( hfs_info_t *mi )
+{
+	int count = POP();
+	char *buf = (char *)POP();
 
-	.get_fstype	= get_fstype,
+	hfscommon *common = mi->common;
+	if (common->type != FILE)
+		RET( -1 );
+
+	RET ( hfs_read( common->file, buf, count ) );
+}
+
+/* ( pos.d -- status ) */
+static void
+hfs_files_seek( hfs_info_t *mi )
+{
+	llong pos = DPOP();
+	int offs = (int)pos;
+	int whence = SEEK_SET;
+	int ret;
+	hfscommon *common = mi->common;
+
+	if (common->type != FILE)
+		RET( -1 );
+
+	switch( whence ) {
+	case SEEK_END:
+		whence = HFS_SEEK_END;
+		break;
+	default:
+	case SEEK_SET:
+		whence = HFS_SEEK_SET;
+		break;
+	}
+
+	ret = hfs_seek( common->file, offs, whence );
+	if (ret)
+		RET( -1 );
+	else
+		RET( 0 );
+}
+
+/* ( addr -- size ) */
+static void
+hfs_files_load( hfs_info_t *mi )
+{
+	char *buf = (char *)POP();
+	int count;
+
+	hfscommon *common = mi->common;
+	if (common->type != FILE)
+		RET( -1 );
+
+	/* Seek to the end in order to get the file size */
+	hfs_seek(common->file, 0, HFS_SEEK_END);
+	count = common->file->pos;
+	hfs_seek(common->file, 0, HFS_SEEK_SET);
+
+	RET ( hfs_read( common->file, buf, count ) );
+}
+
+/* ( -- success? ) */
+static void
+hfs_files_open_nwrom( hfs_info_t *mi )
+{
+	/* Switch to an existing ROM image file on the fs! */
+	if ( _do_search( mi, NULL ) )
+		RET( -1 );
+	
+	RET( 0 );
+}
+
+/* ( -- cstr ) */
+static void
+hfs_files_get_path( hfs_info_t *mi )
+{
+	char buf[256], buf2[256];
+	hfscommon *common = mi->common;
+	hfsvol *vol = hfs_getvol( NULL );
+	hfsdirent ent;
+	int start, ns;
+	ulong id;
+
+	if (common->type != FILE)
+		RET( 0 );
+
+	hfs_fstat( common->file, &ent );
+	start = sizeof(buf) - strlen(ent.name) - 1;
+	if( start <= 0 )
+		RET ( 0 );
+	strcpy( buf+start, ent.name );
+	buf[--start] = '\\';
+
+	ns = start;
+	for( id=ent.parid ; !hfs_dirinfo(vol, &id, buf2) ; ) {
+		start = ns;
+		ns -= strlen(buf2);
+		if( ns <= 0 )
+			RET( 0 );
+		strcpy( buf+ns, buf2 );
+		buf[--ns] = buf[start] = '\\';
+	}
+	if( strlen(buf) >= sizeof(buf) )
+		RET( 0 );
+
+	RET( (ucell) strdup(buf+start) );
+}
+
+/* ( -- cstr ) */
+static void
+hfs_files_get_fstype( hfs_info_t *mi )
+{
+	PUSH( (ucell)strdup("HFS") );
+}
+
+/* ( -- cstr|0 ) */
+static void
+hfs_files_volume_name( hfs_info_t *mi )
+{
+	int fd;
+	char *volname = malloc(VOLNAME_SIZE);
+
+	fd = open_ih(my_self());
+	get_hfs_vol_name(fd, volname, VOLNAME_SIZE);
+	close_io(fd);
+
+	PUSH ((ucell)volname);
+}
+
+/* static method, ( pos.d ih -- flag? ) */
+static void
+hfs_files_probe( hfs_info_t *dummy )
+{
+	ihandle_t ih = POP_ih();
+	llong offs = DPOP(); 
+	int fd, ret = 0;
+
+	fd = open_ih(ih);
+	if (hfs_probe(fd, offs))
+		ret = -1;
+
+	close_io(fd);
+
+	RET (ret);
+}
+
+static void
+hfs_initializer( hfs_info_t *dummy )
+{
+	fword("register-fs-package");
+}
+
+NODE_METHODS( hfs ) = {
+	{ "probe",	hfs_files_probe	},
+	{ "open",	hfs_files_open	},
+	{ "close",	hfs_files_close },
+	{ "read",	hfs_files_read	},
+	{ "seek",	hfs_files_seek	},
+	{ "load",	hfs_files_load	},
+
+	/* special */
+	{ "open-nwrom",	 	hfs_files_open_nwrom 	},
+	{ "get-path",		hfs_files_get_path	},
+	{ "get-fstype",		hfs_files_get_fstype	},
+	{ "volume-name",	hfs_files_volume_name	},
+
+	{ NULL,		hfs_initializer	},
 };
 
-int
-fs_hfs_open( int os_fd, fs_ops_t *fs )
+void
+hfs_init( void )
 {
-	hfsvol *vol = hfs_mount( os_fd, 0 );
-
-	if( !vol )
-		return -1;
-
-	*fs = hfs_ops;
-	fs->fs_data = vol;
-
-	return 0;
-}
-
-int 
-fs_hfs_probe( int fd, llong offs )
-{
-	if (hfs_probe(fd, offs))
-		return 0;
-
-	return -1;
+	REGISTER_NODE( hfs );
 }

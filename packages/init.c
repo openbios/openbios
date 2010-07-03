@@ -33,6 +33,9 @@ modules_init( void )
 #ifdef CONFIG_HFSP
 	hfsp_init();
 #endif
+#ifdef CONFIG_HFS
+	hfs_init();
+#endif
 #ifdef CONFIG_ISO9660
 	iso9660_init();
 #endif
