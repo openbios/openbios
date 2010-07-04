@@ -392,10 +392,10 @@ hfs_files_seek( hfs_info_t *mi )
 	}
 
 	ret = hfs_seek( common->file, offs, whence );
-	if (ret)
-		RET( -1 );
-	else
+	if (ret != -1)
 		RET( 0 );
+	else
+		RET( -1 );
 }
 
 /* ( addr -- size ) */
