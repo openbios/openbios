@@ -42,6 +42,9 @@ modules_init( void )
 #ifdef CONFIG_ISO9660
 	iso9660_init();
 #endif
+#ifdef CONFIG_GRUBFS
+	grubfs_init();
+#endif
 #ifdef CONFIG_FS
 	files_init();
 #endif

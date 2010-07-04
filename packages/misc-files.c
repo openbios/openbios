@@ -58,7 +58,7 @@ do_open( ihandle_t ih )
 
 	if( !err ) {
 
-		err = fs_grubfs_open(fd, fs);
+		err = -1;
 		DPRINTF("--- grubfs returned %d\n", err);
 
 		fs->fd = fd;
@@ -333,8 +333,8 @@ files_probe( files_info_t *mi )
 	err = (fd = open_ih(ih)) == -1;
 	if( !err ) {
 
-		err = fs_grubfs_probe(fd, offs);
-		DPRINTF("--- grubfs returned %d\n", err);
+		err = -1;
+		offs = 0;
 	}
 
 	if (fd)

@@ -1,10 +1,11 @@
 /*
- *	<grubfs_fs.c>
+ *	/packages/grubfs-files
  *
  *	grub vfs
  *
  *   Copyright (C) 2004 Stefan Reinauer
  *   Copyright (C) 2004 Samuel Rydh
+ *   Copyright (C) 2010 Mark Cave-Ayland
  *
  *   inspired by HFS code from Samuel Rydh
  *
@@ -21,6 +22,8 @@
 #include "glue.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
+
+extern void     grubfs_init( void );
 
 /************************************************************************/
 /* 	grub GLOBALS (horrible... but difficult to fix)			*/
@@ -91,218 +94,25 @@ typedef struct {
 	unsigned long	pos;
 	unsigned long	len;
 	const char	*path;
-	const fs_ops_t	*fs;
 } grubfile_t;
 
 typedef struct {
 	const struct fsys_entry *fsys;
 	grubfile_t *fd;
-	int		dev_fd;
-	llong	offset;		/* Offset added onto each device read; should only ever be non-zero
+	int dev_fd;
+	llong offset;		/* Offset added onto each device read; should only ever be non-zero
 				when probing a partition for a filesystem */
 } grubfs_t;
 
-static grubfs_t dummy_fs;
-static grubfs_t 	*curfs=&dummy_fs;
-
-/************************************************************************/
-/*	file/fs ops							*/
-/************************************************************************/
-
-static void
-grubfs_file_close( file_desc_t *fd )
-{
-	grubfile_t *gf = (grubfile_t *)fd;
-
-	if (gf->path)
-		free((void *)(gf->path));
-	free(fd);
-	filepos=0;
-	filemax=0;
-}
-
-static int
-grubfs_file_lseek( file_desc_t *fd, off_t offs, int whence )
-{
-	grubfile_t *file = (grubfile_t*)fd;
-	unsigned long newpos;
-
-	switch( whence ) {
-	case SEEK_CUR:
-		if (offs < 0 && (unsigned long) -offs > file->pos)
-			newpos = 0;
-		else
-			newpos = file->pos + offs;
-		break;
-	case SEEK_END:
-		if (offs < 0 && (unsigned long) -offs > file->len)
-			newpos = 0;
-		else
-			newpos = file->len + offs;
-		break;
-	default:
-	case SEEK_SET:
-		newpos = (offs < 0) ? 0 : offs;
-		break;
-	}
-	if (newpos > file->len)
-		newpos = file->len;
-
-	file->pos = newpos;
-
-	return newpos;
-}
-
-static int
-grubfs_file_read( file_desc_t *fd, void *buf, size_t count )
-{
-	grubfile_t *file = (grubfile_t*)fd;
-        int ret;
-
-        curfs = (grubfs_t *)file->fs->fs_data;
-
-	filepos=file->pos;
-	filemax=file->len;
-
-	if (count > filemax - filepos)
-		count = filemax - filepos;
-
-	ret=curfs->fsys->read_func(buf, count);
-
-	file->pos=filepos;
-	return ret;
-}
-
-static char *
-get_path( file_desc_t *fd, char *retbuf, int len )
-{
-	const char *path=((grubfile_t *)fd)->path;
-
-	if(strlen(path) > len)
-		return NULL;
-
-	strcpy( retbuf, path );
-
-	return retbuf;
-}
-
-static file_desc_t *
-open_path( fs_ops_t *fs, const char *path )
-{
-	grubfile_t *ret = NULL;
-        char *s = (char *)path;
-
-	curfs = (grubfs_t *)fs->fs_data;
-
-	while(*s) {
-		if(*s=='\\') *s='/';
-		s++;
-	}
-#ifdef CONFIG_DEBUG_FS
-	printk("Path=%s\n",path);
-#endif
-	if (!curfs->fsys->dir_func((char *) path)) {
-		forth_printf("File not found\n");
-		return NULL;
-	}
-	ret=malloc(sizeof(grubfile_t));
-
-	ret->pos=filepos;
-	ret->len=filemax;
-	ret->path=strdup(path);
-	ret->fs=fs;
-
-	return (file_desc_t *)ret;
-}
-
-static void
-close_fs( fs_ops_t *fs )
-{
-	free( fs->fs_data );
-	fs->fs_data = NULL;
-
-	/* callers responsibility to call free(fs) */
-}
-
-static const char *
-grubfs_get_fstype( fs_ops_t *fs )
-{
-	grubfs_t *gfs = (grubfs_t*)fs->fs_data;
-	return gfs->fsys->name;
-}
-
-static const fs_ops_t grubfs_ops = {
-	.close_fs	= close_fs,
-	.open_path	= open_path,
-	.get_path	= get_path,
-	.close		= grubfs_file_close,
-	.read		= grubfs_file_read,
-	.lseek		= grubfs_file_lseek,
-
-	.get_fstype	= grubfs_get_fstype,
-};
-
-/* mount */
-int
-fs_grubfs_open( int fd, fs_ops_t *fs )
-{
+typedef struct {
 	grubfs_t *gfs;
-	int i;
+} grubfs_info_t;
 
-	curfs=&dummy_fs;
+/* Static block and global pointer required for I/O glue */
+static grubfs_t dummy_fs;
+static grubfs_t *curfs = &dummy_fs;
 
-	curfs->dev_fd = fd;
-	curfs->offset = 0;
-
-	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {
-#ifdef CONFIG_DEBUG_FS
-		printk("Trying %s\n", fsys_table[i].name);
-#endif
-		if (fsys_table[i].mount_func()) {
-			const fsys_entry_t *fsys = &fsys_table[i];
-#ifdef CONFIG_DEBUG_FS
-			printk("Mounted %s\n", fsys->name);
-#endif
-
-			gfs = malloc(sizeof(*gfs));
-			gfs->fsys = fsys;
-			gfs->dev_fd = fd;
-
-			*fs=grubfs_ops;
-			fs->fs_data = (void*)gfs;
-			return 0;
-		}
-	}
-#ifdef CONFIG_DEBUG_FS
-	printk("Unknown filesystem type\n");
-#endif
-	return -1;
-}
-
-/* Probe for filesystem (with partition offset); returns 0 on success */
-int
-fs_grubfs_probe( int fd, llong offs )
-{
-	int i;
-
-	curfs = &dummy_fs;
-
-	curfs->dev_fd = fd;
-	curfs->offset = offs;
-
-	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {
-#ifdef CONFIG_DEBUG_FS
-		printk("Probing for %s\n", fsys_table[i].name);
-#endif
-		if (fsys_table[i].mount_func())
-			return 0;
-	}
-
-#ifdef CONFIG_DEBUG_FS
-	printk("Unknown filesystem type\n");
-#endif
-	return -1;
-}
+DECLARE_NODE( grubfs, 0, sizeof(grubfs_info_t), "+/packages/grubfs-files" );
 
 
 /************************************************************************/
@@ -344,4 +154,232 @@ file_read( void *buf, unsigned long len )
 		len = filemax - filepos;
 	errnum = 0;
 	return curfs->fsys->read_func( buf, len );
+}
+
+
+/************************************************************************/
+/*	Standard package methods					*/
+/************************************************************************/
+
+/* ( -- success? ) */
+static void
+grubfs_files_open( grubfs_info_t *mi )
+{
+	int fd, i;
+	char *path = my_args_copy();
+	char *s;
+
+	fd = open_ih( my_parent() );
+	if ( fd == -1 ) {
+		free( path );
+		RET( 0 );
+	}
+
+	mi->gfs = &dummy_fs;
+
+	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {
+#ifdef CONFIG_DEBUG_FS
+		printk("Trying %s\n", fsys_table[i].name);
+#endif
+		if (fsys_table[i].mount_func()) {
+			const fsys_entry_t *fsys = &fsys_table[i];
+#ifdef CONFIG_DEBUG_FS
+			printk("Mounted %s\n", fsys->name);
+#endif
+			mi->gfs = malloc(sizeof(grubfs_t));
+			mi->gfs->fsys = fsys;
+			mi->gfs->dev_fd = fd;
+			mi->gfs->offset = 0;
+
+			s = path;
+			while (*s) {
+				if(*s=='\\') *s='/';
+				s++;
+			}
+#ifdef CONFIG_DEBUG_FS
+			printk("Path=%s\n",path);
+#endif
+			if (!mi->gfs->fsys->dir_func((char *) path)) {
+				forth_printf("File not found\n");
+				RET( 0 );
+			}
+
+			mi->gfs->fd = malloc(sizeof(grubfile_t));
+			mi->gfs->fd->pos = filepos;
+			mi->gfs->fd->len = filemax;
+			mi->gfs->fd->path = strdup(path);
+
+			RET( -1 );
+		}
+	}
+#ifdef CONFIG_DEBUG_FS
+	printk("Unknown filesystem type\n");
+#endif
+
+	RET( 0 );
+}
+
+/* ( -- ) */
+static void
+grubfs_files_close( grubfs_info_t *mi )
+{
+	grubfile_t *gf = mi->gfs->fd;
+
+	if (gf->path)
+		free((void *)(gf->path));
+	free(gf);
+
+	filepos = 0;
+	filemax = 0;
+}
+
+/* ( buf len -- actlen ) */
+static void
+grubfs_files_read( grubfs_info_t *mi )
+{
+	int count = POP();
+	char *buf = (char *)POP();
+
+	grubfile_t *file = mi->gfs->fd;
+        int ret;
+
+	filepos = file->pos;
+	filemax = file->len;
+
+	if (count > filemax - filepos)
+		count = filemax - filepos;
+
+	ret = mi->gfs->fsys->read_func(buf, count);
+
+	file->pos = filepos;
+
+	RET( ret );
+}
+
+/* ( pos.d -- status ) */
+static void
+grubfs_files_seek( grubfs_info_t *mi )
+{
+	llong pos = DPOP();
+	int offs = (int)pos;
+	int whence = SEEK_SET;
+
+	grubfile_t *file = mi->gfs->fd;
+	unsigned long newpos;
+
+	switch( whence ) {
+	case SEEK_END:
+		if (offs < 0 && (unsigned long) -offs > file->len)
+			newpos = 0;
+		else
+			newpos = file->len + offs;
+		break;
+	default:
+	case SEEK_SET:
+		newpos = (offs < 0) ? 0 : offs;
+		break;
+	}
+
+	if (newpos > file->len)
+		newpos = file->len;
+
+	file->pos = newpos;
+
+	if (newpos)
+		RET( -1 );
+	else
+		RET( 0 );
+}
+
+/* ( addr -- size ) */
+static void
+grubfs_files_load( grubfs_info_t *mi )
+{
+	char *buf = (char *)POP();
+	int count, ret;
+
+	grubfile_t *file = mi->gfs->fd;
+	count = file->len;
+
+	ret = mi->gfs->fsys->read_func(buf, count);
+	file->pos = filepos;
+
+	RET( ret );
+}
+
+/* ( -- cstr ) */
+static void
+grubfs_files_get_path( grubfs_info_t *mi )
+{
+	grubfile_t *file = mi->gfs->fd;
+	const char *path = file->path;
+
+	RET( (ucell) strdup(path) );
+}
+
+/* ( -- cstr ) */
+static void
+grubfs_files_get_fstype( grubfs_info_t *mi )
+{
+	grubfs_t *gfs = mi->gfs;
+
+	PUSH( (ucell)strdup(gfs->fsys->name) );
+}
+
+
+/* static method, ( pos.d ih -- flag? ) */
+static void
+grubfs_files_probe( grubfs_info_t *dummy )
+{
+	ihandle_t ih = POP_ih();
+	llong offs = DPOP(); 
+	int i;
+
+	curfs->dev_fd = open_ih(ih);
+	curfs->offset = offs;
+
+	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {
+#ifdef CONFIG_DEBUG_FS
+		printk("Probing for %s\n", fsys_table[i].name);
+#endif
+		if (fsys_table[i].mount_func()) {
+			RET( -1 );
+		}
+	}
+
+#ifdef CONFIG_DEBUG_FS
+	printk("Unknown filesystem type\n");
+#endif
+
+	close_io(curfs->dev_fd);
+
+	RET ( 0 );
+}
+
+
+static void
+grubfs_initializer( grubfs_info_t *dummy )
+{
+	fword("register-fs-package");
+}
+
+NODE_METHODS( grubfs ) = {
+	{ "probe",	grubfs_files_probe	},
+	{ "open",	grubfs_files_open	},
+	{ "close",	grubfs_files_close 	},
+	{ "read",	grubfs_files_read	},
+	{ "seek",	grubfs_files_seek	},
+	{ "load",	grubfs_files_load	},
+
+	/* special */
+	{ "get-path",	grubfs_files_get_path	},
+	{ "get-fstype",	grubfs_files_get_fstype	},
+
+	{ NULL,		grubfs_initializer	},
+};
+
+void
+grubfs_init( void )
+{
+	REGISTER_NODE( grubfs );
 }
