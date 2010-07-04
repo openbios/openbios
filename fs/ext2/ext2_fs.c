@@ -1,15 +1,22 @@
 /*
+ *	/packages/ext2-files 
  *
  * (c) 2008-2009 Laurent Vivier <Laurent@lvivier.info>
+ * (c) 2010 Mark Cave-Ayland <mark.cave-ayland@siriusit.co.uk>
  *
  * This file has been copied from EMILE, http://emile.sf.net
  *
  */
 
+#include "config.h"
+#include "libopenbios/bindings.h"
 #include "libext2.h"
 #include "ext2_utils.h"
 #include "fs/fs.h"
 #include "libc/vsprintf.h"
+#include "libc/diskio.h"
+
+extern void     ext2_init( void );
 
 typedef struct {
 	enum { FILE, DIR } type;
@@ -19,14 +26,14 @@ typedef struct {
 	};
 } ext2_COMMON;
 
-static void
-umount( fs_ops_t *fs )
-{
-        ext2_VOLUME *volume = (ext2_VOLUME *)fs->fs_data;
+typedef struct {
+	ext2_VOLUME *volume;
+	ext2_COMMON *common;
+} ext2_info_t;
 
-        ext2_umount( volume );
-}
+DECLARE_NODE( ext2, 0, sizeof(ext2_info_t), "+/packages/ext2-files" );
 
+/*
 static const int days_month[12] =
 	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 static const int days_month_leap[12] =
@@ -97,115 +104,177 @@ dir_fs ( file_desc_t *fd)
 			forth_printf("%s\n", entry->name);
 	}
 }
+*/
 
-static file_desc_t *
-open_path( fs_ops_t *fs, const char *path )
-{
-	ext2_VOLUME *volume = (ext2_VOLUME *)fs->fs_data;
-	ext2_COMMON *common;
+/************************************************************************/
+/*	Standard package methods					*/
+/************************************************************************/
 
-	common = (ext2_COMMON*)malloc(sizeof(*common));
-	if (common == NULL)
-		return NULL;
-
-	common->dir = ext2_opendir(volume, path);
-	if (common->dir == NULL) {
-		common->file = ext2_open(volume, path);
-		if (common->file == NULL) {
-			free(common);
-			return NULL;
-		}
-		common->type = FILE;
-		return (file_desc_t *)common;
-	}
-	common->type = DIR;
-	return (file_desc_t *)common;
-}
-
-static char *
-get_path( file_desc_t *fd, char *buf, int size )
-{
-	ext2_COMMON *common =(ext2_COMMON *)fd;
-
-	if (common->type != FILE)
-		return NULL;
-
-	strncpy(buf, common->file->path, size);
-
-	return buf;
-}
-
-static int
-file_lseek( file_desc_t *fd, off_t offs, int whence )
-{
-	ext2_COMMON *common =(ext2_COMMON *)fd;
-
-	if (common->type != FILE)
-		return -1;
-
-	return ext2_lseek(common->file, offs, whence);
-}
-
+/* ( -- success? ) */
 static void
-file_close( file_desc_t *fd )
+ext2_files_open( ext2_info_t *mi )
 {
-	ext2_COMMON *common =(ext2_COMMON *)fd;
+	int fd;
+	char *path = my_args_copy();
+
+	fd = open_ih( my_parent() );
+	if ( fd == -1 ) {
+		free( path );
+		RET( 0 );
+	}
+
+	mi->volume = ext2_mount(fd);
+	if (!mi->volume) {
+		RET( 0 );
+	}
+
+	mi->common = (ext2_COMMON*)malloc(sizeof(ext2_COMMON));
+	if (mi->common == NULL)
+		RET( 0 );
+
+	mi->common->dir = ext2_opendir(mi->volume, path);
+	if (mi->common->dir == NULL) {
+		mi->common->file = ext2_open(mi->volume, path);
+		if (mi->common->file == NULL) {
+			free(mi->common);
+			RET( 0 );
+		}
+		mi->common->type = FILE;
+		RET( -1 );
+	}
+	mi->common->type = DIR;
+	RET( -1 );
+}
+
+/* ( -- ) */
+static void
+ext2_files_close( ext2_info_t *mi )
+{
+	ext2_COMMON *common = mi->common;
 
 	if (common->type == FILE)
 		ext2_close(common->file);
 	else if (common->type == DIR)
 		ext2_closedir(common->dir);
 	free(common);
+
+	ext2_umount(mi->volume);
 }
 
-static int
-file_read( file_desc_t *fd, void *buf, size_t count )
+/* ( buf len -- actlen ) */
+static void
+ext2_files_read( ext2_info_t *mi )
 {
-	ext2_COMMON *common =(ext2_COMMON *)fd;
+	int count = POP();
+	char *buf = (char *)POP();
+
+	ext2_COMMON *common = mi->common;
+	if (common->type != FILE)
+		RET( -1 );
+
+	RET ( ext2_read( common->file, buf, count ) );
+}
+
+/* ( pos.d -- status ) */
+static void
+ext2_files_seek( ext2_info_t *mi )
+{
+	llong pos = DPOP();
+	int offs = (int)pos;
+	int whence = SEEK_SET;
+	int ret;
+	ext2_COMMON *common = mi->common;
 
 	if (common->type != FILE)
-		return -1;
+		RET( -1 );
 
-	return ext2_read(common->file, buf, count);
+	ret = ext2_lseek(common->file, offs, whence);
+	if (ret)
+		RET( -1 );
+	else
+		RET( 0 );
 }
 
-static const char *
-get_fstype( fs_ops_t *fs)
+/* ( addr -- size ) */
+static void
+ext2_files_load( ext2_info_t *mi )
 {
-	return "EXT2";
+	char *buf = (char *)POP();
+	int count;
+
+	ext2_COMMON *common = mi->common;
+	if (common->type != FILE)
+		RET( -1 );
+
+	/* Seek to the end in order to get the file size */
+	ext2_lseek(common->file, 0, SEEK_END);
+	count = common->file->offset;
+	ext2_lseek(common->file, 0, SEEK_SET);
+
+	RET ( ext2_read( common->file, buf, count ) );
 }
 
-static const fs_ops_t ext2_ops = {
-	.dir		= dir_fs,
-	.close_fs	= umount,
+/* ( -- cstr ) */
+static void
+ext2_files_get_path( ext2_info_t *mi )
+{
+	ext2_COMMON *common = mi->common;
 
-	.open_path	= open_path,
-	.get_path	= get_path,
-	.close		= file_close,
-	.read		= file_read,
-	.lseek		= file_lseek,
+	if (common->type != FILE)
+		RET( 0 );
 
-	.get_fstype	= get_fstype,
+	RET( (ucell) strdup(common->file->path) );
+}
+
+/* ( -- cstr ) */
+static void
+ext2_files_get_fstype( ext2_info_t *mi )
+{
+	PUSH( (ucell)strdup("ext2") );
+}
+
+
+/* static method, ( pos.d ih -- flag? ) */
+static void
+ext2_files_probe( ext2_info_t *dummy )
+{
+	ihandle_t ih = POP_ih();
+	llong offs = DPOP(); 
+	int fd, ret = 0;
+
+	fd = open_ih(ih);
+	if (ext2_probe(fd, offs))
+		ret = -1;
+
+	close_io(fd);
+
+	RET (ret);
+}
+
+
+static void
+ext2_initializer( ext2_info_t *dummy )
+{
+	fword("register-fs-package");
+}
+
+NODE_METHODS( ext2 ) = {
+	{ "probe",	ext2_files_probe	},
+	{ "open",	ext2_files_open		},
+	{ "close",	ext2_files_close 	},
+	{ "read",	ext2_files_read		},
+	{ "seek",	ext2_files_seek		},
+	{ "load",	ext2_files_load		},
+
+	/* special */
+	{ "get-path",	ext2_files_get_path	},
+	{ "get-fstype",	ext2_files_get_fstype	},
+
+	{ NULL,		ext2_initializer	},
 };
 
-int fs_ext2_open(int fd, fs_ops_t *fs)
+void
+ext2_init( void )
 {
-	ext2_VOLUME *volume;
-
-	volume = ext2_mount(fd);
-	if (volume == NULL)
-		return -1;
-
-	*fs = ext2_ops;
-	fs->fs_data = volume;
-
-	return 0;
-}
-
-int fs_ext2_probe(int fd, llong offs)
-{
-	if (ext2_probe(fd, offs))
-		return 0;
-
-	return -1;
+	REGISTER_NODE( ext2 );
 }
