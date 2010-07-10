@@ -297,6 +297,23 @@ sunparts_load( __attribute__((unused))sunparts_info_t *di )
 	load(my_self());
 }
 
+/* ( pathstr len -- ) */
+static void
+sunparts_dir( sunparts_info_t *di )
+{
+	if ( di->filesystem_ph) {
+		PUSH( my_self() );
+		push_str("dir");
+		PUSH( di->filesystem_ph );
+		fword("find-method");
+		POP();
+		fword("execute");
+	} else {
+		forth_printf("sun-parts: Unable to determine filesystem\n");
+		POP();
+		POP();
+	}
+}
 
 NODE_METHODS( sunparts ) = {
 	{ "probe",	sunparts_probe 		},
@@ -306,6 +323,7 @@ NODE_METHODS( sunparts ) = {
 	{ "seek",	sunparts_seek 		},
 	{ "read",	sunparts_read 		},
 	{ "load",	sunparts_load	 	},
+	{ "dir",	sunparts_dir 		},
 	{ NULL,		sunparts_initialize	},
 };
 

@@ -41,6 +41,7 @@ typedef struct {
 	int		type;		/* partition type or -1 */
 
 	ihandle_t	part_ih;
+	phandle_t	filesystem_ph;
 } dlabel_info_t;
 
 DECLARE_NODE( dlabel, 0, sizeof(dlabel_info_t), "/packages/disk-label" );
@@ -72,6 +73,7 @@ dlabel_open( dlabel_info_t *di )
 	di->part_ih = 0;
 
 	/* Find parent methods */
+	di->filesystem_ph = 0;
 	di->parent_seek_xt = find_parent_method("seek");
 	di->parent_tell_xt = find_parent_method("tell");
         di->parent_read_xt = find_parent_method("read");	
@@ -115,6 +117,9 @@ dlabel_open( dlabel_info_t *di )
 		ph = POP_ph();
 		if( ph ) {
 			/* If we have been asked to open a particular file, interpose the filesystem package with the passed filename as an argument */
+			di->filesystem_ph = ph;
+
+			DPRINTF("Located filesystem with ph " FMT_ucellx "\n", ph);
 			DPRINTF("path: %s length: %d\n", path, strlen(path));
 
 			if (strlen(path)) {
@@ -205,6 +210,24 @@ dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 	}
 }
 
+/* ( pathstr len -- ) */
+static void
+dlabel_dir( dlabel_info_t *di )
+{
+	if ( di->filesystem_ph ) {
+		PUSH( my_self() );
+		push_str("dir");
+		PUSH( di->filesystem_ph );
+		fword("find-method");
+		POP();
+		fword("execute");
+ 	} else {
+		forth_printf("disk-label: Unable to determine filesystem\n");
+		POP();
+		POP();
+	}
+}
+
 NODE_METHODS( dlabel ) = {
 	{ "open",	dlabel_open 	},
 	{ "close",	dlabel_close 	},
@@ -213,6 +236,7 @@ NODE_METHODS( dlabel ) = {
 	{ "write",	dlabel_write 	},
 	{ "seek",	dlabel_seek 	},
 	{ "tell",	dlabel_tell 	},
+	{ "dir",	dlabel_dir 	},
 };
 
 void

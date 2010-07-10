@@ -365,6 +365,23 @@ pcparts_load( __attribute__((unused))pcparts_info_t *di )
 	load(my_self());
 }
 
+/* ( pathstr len -- ) */
+static void
+pcparts_dir( pcparts_info_t *di )
+{
+	if ( di->filesystem_ph ) {
+		PUSH( my_self() );
+		push_str("dir");
+		PUSH( di->filesystem_ph );
+		fword("find-method");
+		POP();
+		fword("execute");
+	} else {
+		forth_printf("pc-parts: Unable to determine filesystem\n");
+		POP();
+		POP();
+	}
+}
 
 NODE_METHODS( pcparts ) = {
 	{ "probe",	pcparts_probe 		},
@@ -372,6 +389,7 @@ NODE_METHODS( pcparts ) = {
 	{ "seek",	pcparts_seek 		},
 	{ "read",	pcparts_read 		},
 	{ "load",	pcparts_load 		},
+	{ "dir",	pcparts_dir 		},
 	{ "get-info",	pcparts_get_info 	},
 	{ "block-size",	pcparts_block_size 	},
 	{ NULL,		pcparts_initialize	},

@@ -181,7 +181,6 @@ macparts_open( macparts_info_t *di )
 				ret = -1;
 				goto out;
 			}
-
 		}
 		/* not found */
 		if (firstHFS != -1) {
@@ -341,12 +340,34 @@ macparts_load( __attribute__((unused))macparts_info_t *di )
 	load(my_self());
 }
 
+/* ( pathstr len -- ) */
+static void
+macparts_dir( macparts_info_t *di )
+{
+	/* On PPC Mac, the first partition chosen according to the CHRP boot
+	specification (i.e. marked as bootable) may not necessarily contain 
+	a valid FS */
+	if ( di->filesystem_ph ) {
+		PUSH( my_self() );
+		push_str("dir");
+		PUSH( di->filesystem_ph );
+		fword("find-method");
+		POP();
+		fword("execute");
+	} else {
+		forth_printf("mac-parts: Unable to determine filesystem\n");
+		POP();
+		POP();
+	}
+}
+
 NODE_METHODS( macparts ) = {
 	{ "probe",	macparts_probe 		},
 	{ "open",	macparts_open 		},
 	{ "seek",	macparts_seek 		},
 	{ "read",	macparts_read 		},
 	{ "load",	macparts_load 		},
+	{ "dir",	macparts_dir 		},
 	{ "get-info",	macparts_get_info 	},
 	{ "block-size",	macparts_block_size 	},
 	{ NULL,		macparts_initialize	},

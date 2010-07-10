@@ -33,7 +33,7 @@ typedef struct {
 
 DECLARE_NODE( ext2, 0, sizeof(ext2_info_t), "+/packages/ext2-files" );
 
-/*
+
 static const int days_month[12] =
 	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 static const int days_month_leap[12] =
@@ -83,28 +83,6 @@ print_date(time_t sec)
 		     year, month, day, hour, minute, second);
 }
 
-static void
-dir_fs ( file_desc_t *fd)
-{
-	ext2_COMMON *common = (ext2_COMMON *)fd;
-	struct ext2_dir_entry_2 *entry;
-	struct ext2_inode inode;
-
-	if (common->type != DIR)
-		return;
-
-	forth_printf("\n");
-	while ( (entry = ext2_readdir(common->dir)) ) {
-		ext2_get_inode(common->dir->volume, entry->inode, &inode);
-		forth_printf("% 10d ", inode.i_size);
-		print_date(inode.i_mtime);
-		if (S_ISDIR(inode.i_mode))
-			forth_printf("%s\\\n", entry->name);
-		else
-			forth_printf("%s\n", entry->name);
-	}
-}
-*/
 
 /************************************************************************/
 /*	Standard package methods					*/
@@ -233,6 +211,52 @@ ext2_files_get_fstype( ext2_info_t *mi )
 	PUSH( (ucell)strdup("ext2") );
 }
 
+/* static method, ( pathstr len ihandle -- ) */
+static void
+ext2_files_dir( ext2_info_t *dummy )
+{
+	ext2_COMMON *common;
+	ext2_VOLUME *volume;
+	struct ext2_dir_entry_2 *entry;
+	struct ext2_inode inode;
+	int fd;
+
+	ihandle_t ih = POP();
+	char *path = pop_fstr_copy();
+
+	fd = open_ih( ih );
+	if ( fd == -1 ) {
+		free( path );
+		return;
+	}
+
+	volume = ext2_mount(fd);
+	if (!volume) {
+		return;
+	}
+
+	common = (ext2_COMMON*)malloc(sizeof(ext2_COMMON));
+	common->dir = ext2_opendir(volume, path);
+
+	forth_printf("\n");
+	while ( (entry = ext2_readdir(common->dir)) ) {
+		ext2_get_inode(common->dir->volume, entry->inode, &inode);
+		forth_printf("% 10d ", inode.i_size);
+		print_date(inode.i_mtime);
+		if (S_ISDIR(inode.i_mode))
+			forth_printf("%s\\\n", entry->name);
+		else
+			forth_printf("%s\n", entry->name);
+	}
+
+	ext2_closedir( common->dir );
+	ext2_umount( volume );
+
+	close_io( fd );
+
+	free( common );
+	free( path );
+}
 
 /* static method, ( pos.d ih -- flag? ) */
 static void
@@ -265,6 +289,7 @@ NODE_METHODS( ext2 ) = {
 	{ "read",	ext2_files_read		},
 	{ "seek",	ext2_files_seek		},
 	{ "load",	ext2_files_load		},
+	{ "dir",	ext2_files_dir		},
 
 	/* special */
 	{ "get-path",	ext2_files_get_path	},

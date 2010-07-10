@@ -24,6 +24,7 @@
 #include "unicode.h"
 #include "blockiter.h"
 #include "libc/diskio.h"
+#include "libc/vsprintf.h"
 
 #define MAC_OS_ROM_CREATOR	0x63687270	/* 'chrp' */
 #define MAC_OS_ROM_TYPE		0x74627869	/* 'tbxi' */
@@ -432,6 +433,16 @@ hfsp_files_volume_name( hfsp_info_t *mi )
 	PUSH ((ucell)volname);
 }
 
+/* static method, ( pathstr len ihandle -- ) */
+static void
+hfsp_files_dir( hfsp_info_t *dummy )
+{
+	forth_printf("dir method not implemented for HFS+ filesystem\n");
+	POP();
+	POP();
+	POP();
+}
+
 /* static method, ( pos.d ih -- flag? ) */
 static void
 hfsp_files_probe( hfsp_info_t *dummy )
@@ -449,7 +460,6 @@ hfsp_files_probe( hfsp_info_t *dummy )
 	RET (ret);
 }
 
-
 static void
 hfsp_initializer( hfsp_info_t *dummy )
 {
@@ -463,6 +473,7 @@ NODE_METHODS( hfsp ) = {
 	{ "read",	hfsp_files_read		},
 	{ "seek",	hfsp_files_seek		},
 	{ "load",	hfsp_files_load		},
+	{ "dir",	hfsp_files_dir		},
 
 	/* special */
 	{ "open-nwrom",	 	hfsp_files_open_nwrom 	},

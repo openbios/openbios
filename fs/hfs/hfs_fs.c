@@ -144,7 +144,6 @@ _do_search( hfs_info_t *mi, const char *sname )
 	return mi->common->file;
 }
 
-/*
 
 static const int days_month[12] =
 	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -195,6 +194,7 @@ print_date(time_t sec)
 		     year, month, day, hour, minute, second);
 }
 
+/*
 static void
 dir_fs( file_desc_t *fd )
 {
@@ -485,6 +485,83 @@ hfs_files_volume_name( hfs_info_t *mi )
 	PUSH ((ucell)volname);
 }
 
+/* static method, ( pathstr len ihandle -- ) */
+static void
+hfs_files_dir( hfs_info_t *dummy )
+{
+	hfsvol *volume;
+	hfscommon *common;
+	hfsdirent ent;
+	const char *s;
+	char buf[256], *tmppath;
+	int fd;
+
+	ihandle_t ih = POP();
+	char *path = pop_fstr_copy();
+
+	fd = open_ih( ih );
+	if ( fd == -1 ) {
+		free( path );
+		return;
+	}
+
+	volume = hfs_mount(fd, 0);
+	if (!volume) {
+		return;
+	}
+
+	common = malloc(sizeof(hfscommon));
+
+	if (strcmp(path, "\\") == 0) {
+		common->dir = hfs_opendir(volume, ":");
+	} else {
+		if (path[strlen(path) - 1] == '\\') {
+			path[strlen(path) - 1] = 0;
+		}
+
+		tmppath = path;
+		for( tmppath-- ;; ) {
+			int n;
+	
+			s = ++tmppath;
+			tmppath = strchr(s, '\\');
+			if( !tmppath || !tmppath[1])
+				break;
+			n = MIN( sizeof(buf)-1, (path-s) );
+			if( !n )
+				continue;
+	
+			strncpy( buf, s, n );
+			buf[n] = 0;
+			if( hfs_chdir(volume, buf) ) {
+				free(common);
+				free(path);
+				return;
+			}
+		}
+
+		common->dir = hfs_opendir(volume, s);
+	}
+
+	forth_printf("\n");
+	while( !hfs_readdir(common->dir, &ent) ) {
+		forth_printf("% 10d ", ent.u.file.dsize);
+		print_date(ent.mddate);
+		if( ent.flags & HFS_ISDIR )
+			forth_printf("%s\\\n", ent.name);
+		else
+			forth_printf("%s\n", ent.name);
+	}
+
+	hfs_closedir( common->dir );
+	hfs_umount( volume );
+
+	close_io( fd );
+
+	free( common );
+	free( path );
+}
+
 /* static method, ( pos.d ih -- flag? ) */
 static void
 hfs_files_probe( hfs_info_t *dummy )
@@ -515,6 +592,7 @@ NODE_METHODS( hfs ) = {
 	{ "read",	hfs_files_read	},
 	{ "seek",	hfs_files_seek	},
 	{ "load",	hfs_files_load	},
+	{ "dir",	hfs_files_dir	},
 
 	/* special */
 	{ "open-nwrom",	 	hfs_files_open_nwrom 	},

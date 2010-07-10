@@ -156,17 +156,37 @@ iso9660_files_load( iso9660_info_t *mi)
 	PUSH( size );
 }
 
+/* static method, ( pathstr len ihandle -- ) */
 static void
-iso9660_files_dir( iso9660_info_t *mi )
+iso9660_files_dir( iso9660_info_t *dummy )
 {
+	iso9660_VOLUME *volume;
+	iso9660_COMMON *common;
 	struct iso_directory_record *idr;
 	char name_buf[256];
+	int fd;
  
-	if (mi->common->type != DIR)
+	ihandle_t ih = POP();
+	char *path = pop_fstr_copy();
+
+	fd = open_ih( ih );
+	if ( fd == -1 ) {
+		free( path );
 		return;
+	}
+ 
+	volume = iso9660_mount( fd );
+	if ( volume == NULL ) {
+		free ( path );
+		close_io( fd );
+		return;
+	}
+
+	common = malloc(sizeof(iso9660_COMMON));
+	common->dir = iso9660_opendir( volume, path );
 
 	forth_printf("\n");
-	while ( (idr = iso9660_readdir(mi->common->dir)) ) {
+	while ( (idr = iso9660_readdir(common->dir)) ) {
  
 		forth_printf("% 10d ", isonum_733(idr->size));
 		forth_printf("%d-%02d-%02d %02d:%02d:%02d ",
@@ -174,12 +194,20 @@ iso9660_files_dir( iso9660_info_t *mi )
 			     idr->date[1], /* month */
                              idr->date[2], /* day */
 			     idr->date[3], idr->date[4], idr->date[5]);
-		iso9660_name(mi->common->dir->volume, idr, name_buf);
+		iso9660_name(common->dir->volume, idr, name_buf);
 		if (idr->flags[0] & 2)
 			forth_printf("%s\\\n", name_buf);
 		else
 			forth_printf("%s\n", name_buf);
 	}
+
+	iso9660_closedir( common->dir );
+	iso9660_umount( volume );
+
+	close_io( fd );
+
+	free( common );
+	free( path );
 }
 
 /* static method, ( pos.d ih -- flag? ) */

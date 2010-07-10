@@ -356,6 +356,15 @@ grubfs_files_probe( grubfs_info_t *dummy )
 	RET ( 0 );
 }
 
+/* static method, ( pathstr len ihandle -- ) */
+static void
+grubfs_files_dir( grubfs_info_t *mi )
+{
+	forth_printf("dir method not implemented for grubfs filesystem\n");
+	POP();
+	POP();
+	POP();
+}
 
 static void
 grubfs_initializer( grubfs_info_t *dummy )
@@ -370,6 +379,7 @@ NODE_METHODS( grubfs ) = {
 	{ "read",	grubfs_files_read	},
 	{ "seek",	grubfs_files_seek	},
 	{ "load",	grubfs_files_load	},
+	{ "dir",	grubfs_files_dir	},
 
 	/* special */
 	{ "get-path",	grubfs_files_get_path	},
