@@ -45,9 +45,6 @@ modules_init( void )
 #ifdef CONFIG_GRUBFS
 	grubfs_init();
 #endif
-#ifdef CONFIG_FS
-	files_init();
-#endif
 #ifdef CONFIG_MAC_PARTS
 	macparts_init();
 #endif

@@ -53,7 +53,6 @@
   <option name="CONFIG_PART_SUPPORT" type="boolean" value="true"/>
   <option name="CONFIG_PC_PARTS" type="boolean" value="false"/>
   <option name="CONFIG_SUN_PARTS" type="boolean" value="true"/>
-  <option name="CONFIG_FS" type="boolean" value="true"/>
   <option name="CONFIG_HFS" type="boolean" value="false"/>
   <option name="CONFIG_HFSP" type="boolean" value="false"/>
   <option name="CONFIG_GRUBFS" type="boolean" value="true"/>
