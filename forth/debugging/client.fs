@@ -91,11 +91,12 @@ variable file-size
 
 : dir ( "{paths}<cr>" -- )
   linefeed parse
+  split-path-device
   open-dev dup 0= if
     drop
     exit
   then
-  dup
+  -rot 2 pick
   " dir" rot ['] $call-method catch
   if
     3drop

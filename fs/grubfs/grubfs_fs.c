@@ -358,7 +358,7 @@ grubfs_files_probe( grubfs_info_t *dummy )
 
 /* static method, ( pathstr len ihandle -- ) */
 static void
-grubfs_files_dir( grubfs_info_t *mi )
+grubfs_files_dir( grubfs_info_t *dummy )
 {
 	forth_printf("dir method not implemented for grubfs filesystem\n");
 	POP();
