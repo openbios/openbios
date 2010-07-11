@@ -492,8 +492,7 @@ hfs_files_dir( hfs_info_t *dummy )
 	hfsvol *volume;
 	hfscommon *common;
 	hfsdirent ent;
-	const char *s;
-	char buf[256], *tmppath;
+	int i;
 	int fd;
 
 	ihandle_t ih = POP();
@@ -512,36 +511,12 @@ hfs_files_dir( hfs_info_t *dummy )
 
 	common = malloc(sizeof(hfscommon));
 
-	if (strcmp(path, "\\") == 0) {
-		common->dir = hfs_opendir(volume, ":");
-	} else {
-		if (path[strlen(path) - 1] == '\\') {
-			path[strlen(path) - 1] = 0;
-		}
+	/* HFS paths are colon separated, not backslash separated */
+	for (i = 0; i < strlen(path); i++)
+		if (path[i] == '\\')
+			path[i] = ':';
 
-		tmppath = path;
-		for( tmppath-- ;; ) {
-			int n;
-	
-			s = ++tmppath;
-			tmppath = strchr(s, '\\');
-			if( !tmppath || !tmppath[1])
-				break;
-			n = MIN( sizeof(buf)-1, (path-s) );
-			if( !n )
-				continue;
-	
-			strncpy( buf, s, n );
-			buf[n] = 0;
-			if( hfs_chdir(volume, buf) ) {
-				free(common);
-				free(path);
-				return;
-			}
-		}
-
-		common->dir = hfs_opendir(volume, s);
-	}
+	common->dir = hfs_opendir(volume, path);
 
 	forth_printf("\n");
 	while( !hfs_readdir(common->dir, &ent) ) {
