@@ -60,7 +60,7 @@ modules_init( void )
 #ifdef CONFIG_LOADER_ELF
 	elf_loader_init();
 #endif
-#ifdef CONFIG_PPC
+#ifdef CONFIG_LOADER_BOOTINFO
 	bootinfo_loader_init();
 #endif
 
