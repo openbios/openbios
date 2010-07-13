@@ -57,7 +57,7 @@ macparts_open( macparts_info_t *di )
 	int ret = 0;
 	int want_bootcode = 0;
 	phandle_t ph;
-	ducell offs, size;
+	ducell offs = 0, size = -1;
 
 	DPRINTF("macparts_open '%s'\n", str );
 
@@ -102,8 +102,10 @@ macparts_open( macparts_info_t *di )
 				parnum = atol(parstr);
 
 			/* Detect if we are looking for the bootcode */
-			if (strcmp(argstr, "%BOOT") == 0)
+			if (strcmp(argstr, "%BOOT") == 0) {
 				want_bootcode = 1;
+				argstr = strdup("");
+			}
 		}
 	}
 
@@ -136,99 +138,83 @@ macparts_open( macparts_info_t *di )
         if (__be16_to_cpu(par.pmSig) != DESC_PART_SIGNATURE)
 		goto out;
 
-        if (parnum == -1) {
-		int firstHFS = -1;
-		/* search a bootable partition */
-		/* see PowerPC Microprocessor CHRP bindings */
+	/*
+	 * Implement partition selection as per the PowerPC Microprocessor CHRP bindings
+	 */
 
-		for (parnum = 0; parnum <= __be32_to_cpu(par.pmMapBlkCnt); parnum++) {
-			SEEK( (bs * (parnum + 1)) );
-			READ( &par, sizeof(par) );
-			if( __be16_to_cpu(par.pmSig) != DESC_PART_SIGNATURE ||
-                            !__be16_to_cpu(par.pmPartBlkCnt) )
-				break;
-
-			DPRINTF("found partition type: %s\n", par.pmPartType);
-
-			if (firstHFS == -1 &&
-			    strcmp(par.pmPartType, "Apple_HFS") == 0)
-				firstHFS = parnum;
-
-			if( (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsBootValid) &&
-			    (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
-			    (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
-			    (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) &&
-			    (strcmp(par.pmProcessor, "PowerPC") == 0) ) {
-				di->blocksize =(uint)bs;
-
-				offs = (llong)(__be32_to_cpu(par.pmPyPartStart)) * bs;
-				di->offs_hi = offs >> BITS;
-				di->offs_lo = offs & (ucell) -1;
-
-				size = (llong)(__be32_to_cpu(par.pmPartBlkCnt)) * bs;
-				di->size_hi = size >> BITS;
-				di->size_lo = size & (ucell) -1;
-
-				if (want_bootcode) {
-					offs = (llong)(__be32_to_cpu(par.pmLgBootStart)) * bs;
-					di->offs_hi = offs >> BITS;
-					di->offs_lo = offs & (ucell) -1;
-
-					size = (llong)(__be32_to_cpu(par.pmBootSize)) * bs;
-					di->size_hi = size >> BITS;
-					di->size_lo = size & (ucell) -1;
-				}
-				ret = -1;
-				goto out;
-			}
-		}
-		/* not found */
-		if (firstHFS != -1) {
-			parnum = firstHFS;
-			goto found;
-		}
-		ret = 0;
-		goto out;
-        }
-
-	if (parnum == 0) {
-		di->blocksize =(uint)bs;
-
+	if (str == NULL || parnum == 0) {
+		/* According to the spec, partition 0 as well as no arguments means the whole disk */
 		offs = (llong)0;
+		size = (llong)__be32_to_cpu(dmap.sbBlkCount) * bs;	
+
+		di->blocksize = (uint)bs;
+
 		di->offs_hi = offs >> BITS;
 		di->offs_lo = offs & (ucell) -1;
-
-		size = (llong)__be32_to_cpu(dmap.sbBlkCount) * bs;
+	
 		di->size_hi = size >> BITS;
 		di->size_lo = size & (ucell) -1;
 
 		ret = -1;
 		goto out;
+
+	} else if (parnum == -1) {
+
+		DPRINTF("mac-parts: counted %d partitions\n", __be32_to_cpu(par.pmMapBlkCnt));
+
+		/* No partition was explicitly requested, so find one */
+		for (parnum = 1; parnum <= __be32_to_cpu(par.pmMapBlkCnt); parnum++) {
+			SEEK( bs * parnum );
+			READ( &par, sizeof(par) );
+			if( __be16_to_cpu(par.pmSig) != DESC_PART_SIGNATURE ||
+                            !__be32_to_cpu(par.pmPartBlkCnt) )
+				break;
+
+			DPRINTF("found partition type: %s with status %x\n", par.pmPartType, __be32_to_cpu(par.pmPartStatus));
+
+			/* Ignore any partition maps when searching */
+			if (strcmp(par.pmPartType, "Apple_partition_map")) {
+				if( (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
+				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
+				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
+					offs = (llong)__be32_to_cpu(par.pmPyPartStart) * bs;
+					size = (llong)__be32_to_cpu(par.pmPartBlkCnt) * bs;
+	
+					goto found;
+				}
+			}
+		}
+
+	} else {
+		/* Another partition was explicitly requested */
+		SEEK( bs * parnum );
+		READ( &par, sizeof(par) );
+
+		if( (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
+			    (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
+			    (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
+
+			offs = (llong)__be32_to_cpu(par.pmPyPartStart) * bs;
+			size = (llong)__be32_to_cpu(par.pmPartBlkCnt) * bs;
+		}
 	}
 
-	if( parnum > __be32_to_cpu(par.pmMapBlkCnt))
+	/* If we couldn't find a partition, exit */
+	if (size == -1) {
+		DPRINTF("Unable to automatically find partition!\n");
 		goto out;
+	}
 
 found:
-	SEEK( (bs * (parnum + 1)) );
-	READ( &par, sizeof(par) );
-	if( __be16_to_cpu(par.pmSig) != DESC_PART_SIGNATURE || !__be32_to_cpu(par.pmPartBlkCnt) )
-		goto out;
-	if( !(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) ||
-	    !(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) ||
-	    !(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) )
-		goto out;
 
-	ret = -1;
-	di->blocksize = (uint)bs;
-
-	offs = (llong)__be32_to_cpu(par.pmPyPartStart) * bs;
-	size = (llong)__be32_to_cpu(par.pmPartBlkCnt) * bs;
-
+	/* If the filename was set to %BOOT, we actually want the bootcode instead */
 	if (want_bootcode) {
 		offs += (llong)__be32_to_cpu(par.pmLgBootStart) * bs;
 		size = (llong)__be32_to_cpu(par.pmBootSize);
 	}
+
+	ret = -1;
+	di->blocksize = (uint)bs;
 
 	di->offs_hi = offs >> BITS;
 	di->offs_lo = offs & (ucell) -1;
@@ -308,9 +294,14 @@ static void
 macparts_seek(macparts_info_t *di )
 {
 	llong pos = DPOP();
-	llong offs;
+	llong offs, size;
 
 	DPRINTF("macparts_seek %llx:\n", pos);
+
+	/* Seek is invalid if we reach the end of the device */
+	size = ((ducell)di->size_hi << BITS) | di->size_lo;
+	if (pos > size)
+		RET( -1 );
 
 	/* Calculate the seek offset for the parent */
 	offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;

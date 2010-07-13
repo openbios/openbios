@@ -265,9 +265,14 @@ static void
 sunparts_seek(sunparts_info_t *di )
 {
 	llong pos = DPOP();
-	llong offs;
+	llong offs, size;;
 
 	DPRINTF("sunparts_seek %llx:\n", pos);
+
+	/* Seek is invalid if we reach the end of the device */
+	size = ((ducell)di->size_hi << BITS) | di->size_lo;
+	if (pos > size)
+		RET( -1 );
 
 	/* Calculate the seek offset for the parent */
 	offs = ((ducell)di->offs_hi << BITS) | di->offs_lo;
