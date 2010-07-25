@@ -446,6 +446,27 @@ int printf_console( const char *fmt, ... )
 	return i;
 }
 
+static
+int getchar_console( void )
+{
+	cell tmp;
+
+	/* Push to the Forth interpreter for console output */
+	tmp = rstackcnt;
+
+	trampoline[1] = findword("key");
+
+	PUSHR(PC);
+	PC = pointer2cell(trampoline);
+
+	while (rstackcnt > tmp) {
+		dbg_interp_printk("getchar_console: NEXT\n");
+		next();
+	}
+
+	return POP();
+}
+
 static void
 display_dbg_dstack ( void )
 {
@@ -567,8 +588,7 @@ do_source_dbg( struct debug_xt *debug_xt_item )
 		return;
 
 	/* Otherwise in step mode, prompt for a keypress */
-	while (!availchar());
-	k = getchar();
+	k = getchar_console();
 
 	/* Only proceed if done is true */
 	while (!done)
@@ -601,8 +621,7 @@ do_source_dbg( struct debug_xt *debug_xt_item )
 				/* Down - mark current word for debug and step into it */
 				done = add_debug_xt(read_ucell(cell2pointer(PC)));
 				if (!done) {
-					while (!availchar());
-					k = getchar();
+					k = getchar_console();
 				}
 				break;
 
@@ -618,8 +637,7 @@ do_source_dbg( struct debug_xt *debug_xt_item )
 				/* Display rstack */
 				display_dbg_rstack();
 				done = 0;
-				while (!availchar());
-				k = getchar();
+				k = getchar_console();
 				break;
 
 			case 'f':
@@ -636,8 +654,7 @@ do_source_dbg( struct debug_xt *debug_xt_item )
 			default:
 				/* Display debug banner */
 				printf_console(DEBUG_BANNER);
-				while (!availchar());
-				k = getchar();
+				k = getchar_console();
 		}
 	}
 }
