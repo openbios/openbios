@@ -268,7 +268,7 @@ ob_sd_open(__attribute__((unused))sd_private_t **sd)
 
     fword("my-unit");
     id = POP();
-    //POP(); // unit id is 2 ints but we only need one.
+    POP(); // unit id is 2 ints but we only need one.
     *sd = &global_esp->sd[id];
 
 #ifdef CONFIG_DEBUG_ESP
