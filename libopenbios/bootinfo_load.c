@@ -43,20 +43,28 @@ get_device( const char *path )
 	return buf;
 }
 
-static int
+static char *
 get_partition( const char *path )
 {
+	static char buf[2];
+
+	buf[0] = '\0';
+	buf[1] = '\0';
+
 	while ( *path && *path != ':' )
 		path++;
 
 	if (!*path)
-		return -1;
+		return buf;
 	path++;
 
-	if (!strchr(path, ',')) /* check if there is a ',' */
-		return -1;
+	if (path[0] == ',' || !strchr(path, ',')) /* if there is not a ',' or no partition id then return */
+		return buf;
 
-	return atol(path);
+	/* Must be a partition id */
+	buf[0] = path[0];
+
+	return buf;
 }
 
 static char *
@@ -128,8 +136,7 @@ bootinfo_init_program(void)
 	phandle_t chosen;
 	int tag, taglen, script, scriptlen, scriptvalid, entity, chrp;
 	char tagbuf[128], c;
-	char *device, *filename, *directory;
-	int partition;
+	char *device, *filename, *directory, *partition;
 	int current, size;
 	char *bootscript;
         char *tmp;
@@ -220,11 +227,8 @@ bootinfo_init_program(void)
 				strcpy(bootscript + scriptlen, device);
 				scriptlen += strlen(device);
 			} else if (strncasecmp(tagbuf, "partition", 9) == 0) {
-				if (partition != -1)
-			sprintf(bootscript + scriptlen, "%d", partition);
-				else
-					*(bootscript + scriptlen) = 0;
-				scriptlen = strlen(bootscript);
+				strcpy(bootscript + scriptlen, partition);
+				scriptlen += strlen(partition);
 			} else if (strncasecmp(tagbuf, "directory", 9) == 0) {
 				strcpy(bootscript + scriptlen, directory);
 				scriptlen += strlen(directory);
@@ -249,8 +253,10 @@ bootinfo_init_program(void)
 	}
 
 	/* If the payload is bootinfo then we execute it immediately */
-	if (scriptvalid)
+	if (scriptvalid) {
+		DPRINTF("bootscript: %s\n", bootscript);
 		feval(bootscript);
+	}
 	else
 		DPRINTF("Unable to parse bootinfo bootscript\n");
 }
