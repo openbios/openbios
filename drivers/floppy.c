@@ -1153,6 +1153,7 @@ int ob_floppy_init(const char *path, const char *dev_name,
                    unsigned long io_base, unsigned long mmio_base)
 {
         char nodebuff[128];
+	phandle_t aliases;
 
         snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
         if (!mmio_base) {
@@ -1163,5 +1164,9 @@ int ob_floppy_init(const char *path, const char *dev_name,
             REGISTER_NODE_METHODS(ob_floppy, nodebuff);
         }
         floppy_init(io_base, mmio_base);
+
+	aliases = find_dev("/aliases");
+	set_property(aliases, "floppy", nodebuff, strlen(nodebuff) + 1);
+
 	return 0;
 }
