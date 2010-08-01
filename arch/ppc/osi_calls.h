@@ -107,7 +107,7 @@ type name( void ) 						\
 #define _osi_call1( type, name, number, type1, arg1 ) 		\
 type name( type1 arg1 ) 					\
 	_oc_head( dreg(r6) )					\
-	__oc_r6 = (ulong)arg1;					\
+	__oc_r6 = (unsigned long)arg1;				\
 	_oc_syscall( number )					\
 	_oc_input( ir(r6) )					\
 	_oc_tail
@@ -115,8 +115,8 @@ type name( type1 arg1 ) 					\
 #define _osi_call2( type, name, number, t1, a1, t2, a2 ) 	\
 type name( t1 a1, t2 a2 ) 					\
 	_oc_head( dreg(r6), dreg(r7) )				\
-	__oc_r6 = (ulong)a1;					\
-	__oc_r7 = (ulong)a2;					\
+	__oc_r6 = (unsigned long)a1;				\
+	__oc_r7 = (unsigned long)a2;				\
 	_oc_syscall( number )					\
 	_oc_input( ir(r6), ir(r7) )				\
 	_oc_tail
@@ -124,9 +124,9 @@ type name( t1 a1, t2 a2 ) 					\
 #define _osi_call3( type, name, number, t1, a1, t2, a2, t3, a3 ) \
 type name( t1 a1, t2 a2, t3 a3 ) 				\
 	_oc_head( dreg(r6), dreg(r7), dreg(r8) )		\
-	__oc_r6 = (ulong)a1;					\
-	__oc_r7 = (ulong)a2;					\
-	__oc_r8 = (ulong)a3;					\
+	__oc_r6 = (unsigned long)a1;				\
+	__oc_r7 = (unsigned long)a2;				\
+	__oc_r8 = (unsigned long)a3;				\
 	_oc_syscall( number )					\
 	_oc_input( ir(r6), ir(r7), ir(r8) )			\
 	_oc_tail
@@ -134,10 +134,10 @@ type name( t1 a1, t2 a2, t3 a3 ) 				\
 #define _osi_call4( type, name, number, t1, a1, t2, a2, t3, a3, t4, a4 ) \
 type name( t1 a1, t2 a2, t3 a3, t4 a4 ) 			\
 	_oc_head( dreg(r6), dreg(r7), dreg(r8), dreg(r9) )	\
-	__oc_r6 = (ulong)a1;					\
-	__oc_r7 = (ulong)a2;					\
-	__oc_r8 = (ulong)a3;					\
-	__oc_r9 = (ulong)a4;					\
+	__oc_r6 = (unsigned long)a1;				\
+	__oc_r7 = (unsigned long)a2;				\
+	__oc_r8 = (unsigned long)a3;				\
+	__oc_r9 = (unsigned long)a4;				\
 	_oc_syscall( number )					\
 	_oc_input( ir(r6), ir(r7), ir(r8), ir(r9) )		\
 	_oc_tail
@@ -145,11 +145,11 @@ type name( t1 a1, t2 a2, t3 a3, t4 a4 ) 			\
 #define _osi_call5( type, name, number, t1, a1, t2, a2, t3, a3, t4, a4, t5, a5 ) \
 type name( t1 a1, t2 a2, t3 a3, t4 a4, t5 a5 ) 				\
 	_oc_head( dreg(r6), dreg(r7), dreg(r8), dreg(r9), dreg(r10) )	\
-	__oc_r6 = (ulong)a1;						\
-	__oc_r7 = (ulong)a2;						\
-	__oc_r8 = (ulong)a3;						\
-	__oc_r9 = (ulong)a4;						\
-	__oc_r10 = (ulong)a5;						\
+	__oc_r6 = (unsigned long)a1;					\
+	__oc_r7 = (unsigned long)a2;					\
+	__oc_r8 = (unsigned long)a3;					\
+	__oc_r9 = (unsigned long)a4;					\
+	__oc_r10 = (unsigned long)a5;					\
 	_oc_syscall( number )						\
 	_oc_input( ir(r6), ir(r7), ir(r8), ir(r9), ir(r10) )		\
 	_oc_tail
@@ -157,12 +157,12 @@ type name( t1 a1, t2 a2, t3 a3, t4 a4, t5 a5 ) 				\
 #define _osi_call6( type, name, number, t1, a1, t2, a2, t3, a3, t4, a4, t5, a5, t6, a6 ) \
 type name( t1 a1, t2 a2, t3 a3, t4 a4, t5 a5, t6 a6 ) 				\
 	_oc_head( dreg(r6), dreg(r7), dreg(r8), dreg(r9), dreg(r10), dreg(r11) )\
-	__oc_r6 = (ulong)a1;						\
-	__oc_r7 = (ulong)a2;						\
-	__oc_r8 = (ulong)a3;						\
-	__oc_r9 = (ulong)a4;						\
-	__oc_r10 = (ulong)a5;						\
-	__oc_r11 = (ulong)a6;						\
+	__oc_r6 = (unsigned long)a1;					\
+	__oc_r7 = (unsigned long)a2;					\
+	__oc_r8 = (unsigned long)a3;					\
+	__oc_r9 = (unsigned long)a4;					\
+	__oc_r10 = (unsigned long)a5;					\
+	__oc_r11 = (unsigned long)a6;					\
 	_oc_syscall( number )						\
 	_oc_input( ir(r6), ir(r7), ir(r8), ir(r9), ir(r10), ir(r11) )	\
 	_oc_tail
@@ -186,8 +186,8 @@ type name( type1 retarg1 ) 					\
 	_oc_head()						\
 	_oc_syscall( number, rr(r4), rr(r5) )			\
 	_oc_input()						\
-	((ulong*)retarg1)[0] = __oc_r4;				\
-	((ulong*)retarg1)[1] = __oc_r5;				\
+	((unsigned long*)retarg1)[0] = __oc_r4;			\
+	((unsigned long*)retarg1)[1] = __oc_r5;			\
 	_oc_tail
 
 /* r4-r8 returned in retarg1 pointer */
@@ -197,68 +197,68 @@ type name( type1 retarg1 ) 					\
 	_oc_syscall( number, 					\
 		rr(r4), rr(r5), rr(r6), rr(r7), rr(r8) )	\
 	_oc_input()						\
-	((ulong*)retarg1)[0] = __oc_r4;				\
-	((ulong*)retarg1)[1] = __oc_r5;				\
-	((ulong*)retarg1)[2] = __oc_r6;				\
-	((ulong*)retarg1)[3] = __oc_r7;				\
-	((ulong*)retarg1)[4] = __oc_r8;				\
+	((unsigned long*)retarg1)[0] = __oc_r4;			\
+	((unsigned long*)retarg1)[1] = __oc_r5;			\
+	((unsigned long*)retarg1)[2] = __oc_r6;			\
+	((unsigned long*)retarg1)[3] = __oc_r7;			\
+	((unsigned long*)retarg1)[4] = __oc_r8;			\
 	_oc_tail
 
 /* r4 returned in retarg pointer */
 #define _osi_call1_w1( type, name, number, t1, a1, t2, retarg ) \
 type name( t1 a1, t2 retarg ) 					\
 	_oc_head( dreg(r6) )					\
-	__oc_r6 = (ulong)a1;					\
+	__oc_r6 = (unsigned long)a1;				\
 	_oc_syscall( number, rr(r4) )				\
 	_oc_input( ir(r6) )					\
-	((ulong*)retarg)[0] = __oc_r4;				\
+	((unsigned long*)retarg)[0] = __oc_r4;			\
 	_oc_tail
 
 /* r4,r5 returned in retarg1, retarg2 */
 #define _osi_call1_w1w1( type, name, number, t1, a1, t2, retarg1, t3, retarg2 ) \
 type name( t1 a1, t2 retarg1, t3 retarg2 )			\
 	_oc_head( dreg(r6) )					\
-	__oc_r6 = (ulong)a1;					\
+	__oc_r6 = (unsigned long)a1;				\
 	_oc_syscall( number, rr(r4), rr(r5) )			\
 	_oc_input( ir(r6) )					\
-	((ulong*)retarg1)[0] = __oc_r4;				\
-	((ulong*)retarg2)[0] = __oc_r5;				\
+	((unsigned long*)retarg1)[0] = __oc_r4;			\
+	((unsigned long*)retarg2)[0] = __oc_r5;			\
 	_oc_tail
 
 /* r4,r5 returned in retarg1, retarg2, retarg3 */
 #define _osi_call1_w1w1w1( type, name, number, t1, a1, t2, retarg1, t3, retarg2, t4, retarg3 ) \
 type name( t1 a1, t2 retarg1, t3 retarg2, t4 retarg3 )		\
 	_oc_head( dreg(r6) )					\
-	__oc_r6 = (ulong)a1;					\
+	__oc_r6 = (unsigned long)a1;				\
 	_oc_syscall( number, rr(r4), rr(r5), rr(r6) )		\
 	_oc_input( ir(r6) )					\
-	((ulong*)retarg1)[0] = __oc_r4;				\
-	((ulong*)retarg2)[0] = __oc_r5;				\
-	((ulong*)retarg3)[0] = __oc_r6;				\
+	((unsigned long*)retarg1)[0] = __oc_r4;			\
+	((unsigned long*)retarg2)[0] = __oc_r5;			\
+	((unsigned long*)retarg3)[0] = __oc_r6;			\
 	_oc_tail
 
 /* r4,r5 returned in retarg pointer */
 #define _osi_call1_w2( type, name, number, t1, a1, t2, retarg ) \
 type name( t1 a1, t2 retarg ) 					\
 	_oc_head( dreg(r6) )					\
-	__oc_r6 = (ulong)a1;					\
+	__oc_r6 = (unsigned long)a1;				\
 	_oc_syscall( number, rr(r4), rr(r5) )			\
 	_oc_input( ir(r6) )					\
-	((ulong*)retarg)[0] = __oc_r4;				\
-	((ulong*)retarg)[1] = __oc_r5;				\
+	((unsigned long*)retarg)[0] = __oc_r4;			\
+	((unsigned long*)retarg)[1] = __oc_r5;			\
 	_oc_tail
 
 /* r4-r7 returned in retarg pointer */
 #define _osi_call1_w4( type, name, number, t1, a1, t2, retarg ) \
 type name( t1 a1, t2 retarg )					\
 	_oc_head( dreg(r6), dreg(r7) )				\
-	__oc_r6 = (ulong)a1;					\
+	__oc_r6 = (unsigned long)a1;				\
 	_oc_syscall( number, rr(r4), rr(r5), rr(r6), rr(r7) )	\
 	_oc_input( ir(r6) )					\
-	((ulong*)retarg)[0] = __oc_r4;				\
-	((ulong*)retarg)[1] = __oc_r5;				\
-	((ulong*)retarg)[2] = __oc_r6;				\
-	((ulong*)retarg)[3] = __oc_r7;				\
+	((unsigned long*)retarg)[0] = __oc_r4;			\
+	((unsigned long*)retarg)[1] = __oc_r5;			\
+	((unsigned long*)retarg)[2] = __oc_r6;			\
+	((unsigned long*)retarg)[3] = __oc_r7;			\
 	_oc_tail
 
 
@@ -266,26 +266,26 @@ type name( t1 a1, t2 retarg )					\
 #define _osi_call2_w2( type, name, number, t1, a1, t2, a2, t3, retarg ) \
 type name( t1 a1, t2 a2, t3 retarg ) 				\
 	_oc_head( dreg(r6), dreg(r7) )				\
-	__oc_r6 = (ulong)a1;					\
-	__oc_r7 = (ulong)a2;					\
+	__oc_r6 = (unsigned long)a1;				\
+	__oc_r7 = (unsigned long)a2;				\
 	_oc_syscall( number, rr(r4), rr(r5) )			\
 	_oc_input( ir(r6), ir(r7) )				\
-	((ulong*)retarg)[0] = __oc_r4;				\
-	((ulong*)retarg)[1] = __oc_r5;				\
+	((unsigned long*)retarg)[0] = __oc_r4;			\
+	((unsigned long*)retarg)[1] = __oc_r5;			\
 	_oc_tail
 
 /* r4-r7 returned in retarg pointer */
 #define _osi_call2_w4( type, name, number, t1, a1, t2, a2, t3, retarg ) \
 type name( t1 a1, t2 a2, t3 retarg ) 				\
 	_oc_head( dreg(r6), dreg(r7) )				\
-	__oc_r6 = (ulong)a1;					\
-	__oc_r7 = (ulong)a2;					\
+	__oc_r6 = (unsigned long)a1;				\
+	__oc_r7 = (unsigned long)a2;				\
 	_oc_syscall( number, rr(r4), rr(r5), rr(r6), rr(r7) )	\
 	_oc_input( ir(r6), ir(r7) )				\
-	((ulong*)retarg)[0] = __oc_r4;				\
-	((ulong*)retarg)[1] = __oc_r5;				\
-	((ulong*)retarg)[2] = __oc_r6;				\
-	((ulong*)retarg)[3] = __oc_r7;				\
+	((unsigned long*)retarg)[0] = __oc_r4;			\
+	((unsigned long*)retarg)[1] = __oc_r5;			\
+	((unsigned long*)retarg)[2] = __oc_r6;			\
+	((unsigned long*)retarg)[3] = __oc_r7;			\
 	_oc_tail
 
 #ifdef SHORT_REGLIST
@@ -293,9 +293,9 @@ type name( t1 a1, t2 a2, t3 retarg ) 				\
 #define _osi_call2_w6( type, name, number, t1, a1, t2, a2, t3, retarg ) \
 type name( t1 a1, t2 a2, t3 retarg ) 				\
 	_oc_head( dreg(r6), dreg(r7), dreg(r10) )		\
-        __oc_r6 = (ulong)a1;					\
-        __oc_r7 = (ulong)a2;					\
-	__oc_r10 = (ulong)retarg;				\
+        __oc_r6 = (unsigned long)a1;				\
+        __oc_r7 = (unsigned long)a2;				\
+	__oc_r10 = (unsigned long)retarg;			\
 	_oc_syscall_r10w6( number, ir(r6), ir(r7) )		\
 	_oc_tail
 
@@ -305,16 +305,16 @@ type name( t1 a1, t2 a2, t3 retarg ) 				\
 #define _osi_call2_w6( type, name, number, t1, a1, t2, a2, t3, retarg ) \
 type name( t1 a1, t2 a2, t3 retarg ) 				\
 	_oc_head( dreg(r6), dreg(r7), dreg(r8), dreg(r9) )	\
-	__oc_r6 = (ulong)a1;					\
-	__oc_r7 = (ulong)a2;					\
+	__oc_r6 = (unsigned long)a1;				\
+	__oc_r7 = (unsigned long)a2;				\
 	_oc_syscall( number, rr(r4), rr(r5), rr(r6), rr(r7), rr(r8), rr(r9) )	\
 	_oc_input( ir(r6), ir(r7) )				\
-	((ulong*)retarg)[0] = __oc_r4;				\
-	((ulong*)retarg)[1] = __oc_r5;				\
-	((ulong*)retarg)[2] = __oc_r6;				\
-	((ulong*)retarg)[3] = __oc_r7;				\
-	((ulong*)retarg)[4] = __oc_r8;				\
-	((ulong*)retarg)[5] = __oc_r9;				\
+	((unsigned long*)retarg)[0] = __oc_r4;			\
+	((unsigned long*)retarg)[1] = __oc_r5;			\
+	((unsigned long*)retarg)[2] = __oc_r6;			\
+	((unsigned long*)retarg)[3] = __oc_r7;			\
+	((unsigned long*)retarg)[4] = __oc_r8;			\
+	((unsigned long*)retarg)[5] = __oc_r9;			\
 	_oc_tail
 
 #endif /* SHORT_REGLIST */
@@ -332,8 +332,8 @@ static inline _osi_call1( int, OSI_Debugger, OSI_DEBUGGER, int, num );
 static inline _osi_call0( int, OSI_Exit, OSI_EXIT );
 
 /* misc */
-static inline _osi_call0( ulong, OSI_GetLocalTime, OSI_GET_LOCALTIME );
-static inline _osi_call0( ulong, OSI_GetGMTTime, OSI_GET_GMT_TIME );
+static inline _osi_call0( unsigned long, OSI_GetLocalTime, OSI_GET_LOCALTIME );
+static inline _osi_call0( unsigned long, OSI_GetGMTTime, OSI_GET_GMT_TIME );
 static inline _osi_call1( int, OSI_USleep, OSI_USLEEP, int, usecs );
 
 /* NVRAM */
@@ -378,7 +378,7 @@ static inline _osi_call0( int, OSI_PICGetActiveIRQ, OSI_PIC_GET_ACTIVE_IRQ );
 static inline _osi_call1( int, OSI_SoundCntl, OSI_SOUND_CNTL, int, cmd );
 static inline _osi_call2( int, OSI_SoundCntl1, OSI_SOUND_CNTL, int, cmd, int, p1 );
 static inline _osi_call3( int, OSI_SoundCntl2, OSI_SOUND_CNTL, int, cmd, int, p1, int, p2 );
-static inline _osi_call0_w2( int, OSI_SoundIRQAck, OSI_SOUND_IRQ_ACK, ulong *, timestamp );
+static inline _osi_call0_w2( int, OSI_SoundIRQAck, OSI_SOUND_IRQ_ACK, unsigned long *, timestamp );
 static inline _osi_call3( int, OSI_SoundWrite, OSI_SOUND_WRITE, int, physbuf, int, len, int, restart );
 static inline _osi_call3( int, OSI_SoundSetVolume, OSI_SOUND_SET_VOLUME, int, hwvol, int, speakervol, int, mute );
 
@@ -393,9 +393,9 @@ static inline _osi_call3( int, OSI_ABlkRingSetup, OSI_ABLK_RING_SETUP, int, chan
 static inline _osi_call2( int, OSI_ABlkCntrl, OSI_ABLK_CNTRL, int, channel, int, cmd );
 static inline _osi_call3( int, OSI_ABlkCntrl1, OSI_ABLK_CNTRL, int, channel, int, cmd, int, param );
 static inline _osi_call5( int, OSI_ABlkSyncRead, OSI_ABLK_SYNC_READ, int, channel, int, unit,
-			  int, blk, ulong, mphys, int, size );
+			  int, blk, unsigned long, mphys, int, size );
 static inline _osi_call5( int, OSI_ABlkSyncWrite, OSI_ABLK_SYNC_WRITE, int, channel, int, unit,
-			  int, blk, ulong, mphys, int, size );
+			  int, blk, unsigned long, mphys, int, size );
 static inline _osi_call2( int, OSI_ABlkBlessDisk, OSI_ABLK_BLESS_DISK, int, channel, int, unit );
 
 static inline _osi_call0( int, OSI_CMountDrvVol, OSI_CMOUNT_DRV_VOL );
@@ -409,15 +409,15 @@ static inline _osi_call2( int, OSI_Enet2Cntrl1, OSI_ENET2_CNTRL, int, cmd, int, 
 static inline _osi_call1( int, OSI_Enet2Cntrl, OSI_ENET2_CNTRL, int, cmd );
 static inline _osi_call0( int, OSI_Enet2Kick, OSI_ENET2_KICK );
 
-static inline _osi_call0_w2( int, OSI_Enet2GetHWAddr__, OSI_ENET2_GET_HWADDR, ulong *, retbuf );
+static inline _osi_call0_w2( int, OSI_Enet2GetHWAddr__, OSI_ENET2_GET_HWADDR, unsigned long *, retbuf );
 static inline int OSI_Enet2GetHWAddr( unsigned char *addr ) {
 	int ret;
-	ulong buf[2];
+	unsigned long buf[2];
 
 	ret = OSI_Enet2GetHWAddr__( buf );
 
-	((ulong*)addr)[0] = buf[0];
-	((ushort*)addr)[2] = (buf[1] >> 16);
+	((unsigned long*)addr)[0] = buf[0];
+	((unsigned short*)addr)[2] = (buf[1] >> 16);
 	return ret;
 }
 static inline _osi_call2( int, OSI_Enet2IRQAck, OSI_ENET2_IRQ_ACK, int, irq_enable, int, rx_head );
@@ -430,12 +430,12 @@ static inline _osi_call5( int, OSI_PromIface3, OSI_PROM_IFACE, int, what, int, p
 static inline _osi_call2( int, OSI_PromPathIface, OSI_PROM_PATH_IFACE, int, what, const char *, p );
 
 /* emulation acceleration */
-static inline _osi_call1( int, OSI_MapinMregs, OSI_MAPIN_MREGS, ulong, mphys );
+static inline _osi_call1( int, OSI_MapinMregs, OSI_MAPIN_MREGS, unsigned long, mphys );
 static inline _osi_call3( int, OSI_EmuAccel, OSI_EMUACCEL, int, emuaccel_flags, int, param, int, inst_addr );
 
 /* timer frequency */
-static inline _osi_call1( int, OSI_MticksToUsecs, OSI_MTICKS_TO_USECS, ulong, mticks );
-static inline _osi_call1( int, OSI_UsecsToMticks, OSI_USECS_TO_MTICKS, ulong, usecs );
+static inline _osi_call1( int, OSI_MticksToUsecs, OSI_MTICKS_TO_USECS, unsigned long, mticks );
+static inline _osi_call1( int, OSI_UsecsToMticks, OSI_USECS_TO_MTICKS, unsigned long, usecs );
 
 /* fb info */
 struct osi_fb_info;

@@ -35,7 +35,7 @@ typedef struct prom_args {
         const char 	*service;
         long 		nargs;
         long 		nret;
-        ulong 		args[PROM_MAX_ARGS];
+        unsigned long	args[PROM_MAX_ARGS];
 } prom_args_t;
 
 #ifdef DEBUG_CIF

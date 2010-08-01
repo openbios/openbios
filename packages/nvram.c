@@ -35,10 +35,10 @@ do { printk("NVRAM: " fmt , ##args); } while (0)
 
 
 typedef struct {
-	uchar		signature;
-	uchar		checksum;
-	uchar		len_hi;
-	uchar		len_lo;
+	unsigned char	signature;
+	unsigned char	checksum;
+	unsigned char	len_hi;
+	unsigned char	len_lo;
 	char		name[12];
 	char		data[0];
 } nvpart_t;
@@ -225,8 +225,8 @@ nvconf_init( void )
 /************************************************************************/
 
 typedef struct {
-	uint   mark_hi;
-	uint   mark_lo;
+	unsigned int   mark_hi;
+	unsigned int   mark_lo;
 } nvram_ibuf_t;
 
 DECLARE_UNNAMED_NODE( nvram, INSTALL_OPEN, sizeof(nvram_ibuf_t ));

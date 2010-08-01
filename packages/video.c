@@ -31,7 +31,7 @@ typedef struct osi_fb_info {
 static struct {
 	int		has_video;
 	osi_fb_info_t	fb;
-	ulong		*pal;		/* 256 elements */
+	unsigned long		*pal;		/* 256 elements */
 } video;
 
 
@@ -83,11 +83,11 @@ startup_splash( void )
 
 		for( y=0 ; y<height; y++, pp += video.fb.rb ) {
 			if( video.fb.depth >= 24 ) {
-				ulong *d = (ulong*)pp;
+				unsigned long *d = (unsigned long*)pp;
 				for( x=0; x<width; x++, p+=3, d++ )
 					*d = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
 			} else if( video.fb.depth == 15 ) {
-				ushort *d = (ushort*)pp;
+				unsigned short *d = (unsigned short*)pp;
 				for( x=0; x<width; x++, p+=3, d++ ) {
 					int col = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
 					*d = ((col>>9) & 0x7c00) | ((col>>6) & 0x03e0) | ((col>>3) & 0x1f);
@@ -102,10 +102,10 @@ startup_splash( void )
 #endif
 }
 
-static ulong
+static unsigned long
 get_color( int col_ind )
 {
-	ulong col;
+	unsigned long col;
 	if( !video.has_video || col_ind < 0 || col_ind > 255 )
 		return 0;
 	if( video.fb.depth == 8 )
@@ -129,7 +129,7 @@ draw_pixel( int x, int y, int colind )
 	color = get_color( colind );
 
 	if( d >= 24 )
-		*((ulong*)p + x) = color;
+		*((unsigned long*)p + x) = color;
 	else if( d >= 15 )
 		*((short*)p + x) = color;
 	else
@@ -140,7 +140,7 @@ static void
 fill_rect( int col_ind, int x, int y, int w, int h )
 {
 	char *pp;
-	ulong col = get_color(col_ind);
+	unsigned long col = get_color(col_ind);
 
 	if( !video.has_video || x < 0 || y < 0 || x+w > video.fb.w || y+h > video.fb.h )
 		return;
@@ -149,15 +149,15 @@ fill_rect( int col_ind, int x, int y, int w, int h )
 	for( ; h--; pp += video.fb.rb ) {
 		int ww = w;
 		if( video.fb.depth == 24 || video.fb.depth == 32 ) {
-			ulong *p = (ulong*)pp + x;
+			unsigned long *p = (unsigned long*)pp + x;
 			while( ww-- )
 				*p++ = col;
 		} else if( video.fb.depth == 16 || video.fb.depth == 15 ) {
-			ushort *p = (ushort*)pp + x;
+			unsigned short *p = (unsigned short*)pp + x;
 			while( ww-- )
 				*p++ = col;
 		} else {
-                        char *p = (char *)((ushort*)pp + x);
+                        char *p = (char *)((unsigned short*)pp + x);
 
 			while( ww-- )
 				*p++ = col;
@@ -175,7 +175,7 @@ refresh_palette( void )
 }
 
 void
-set_color( int ind, ulong color )
+set_color( int ind, unsigned long color )
 {
 	if( !video.has_video || ind < 0 || ind > 255 )
 		return;
@@ -240,11 +240,11 @@ video_set_colors( void )
 {
 	int count = POP();
 	int start = POP();
-	uchar *p = (uchar*)POP();
+	unsigned char *p = (unsigned char*)POP();
 	int i;
 
 	for( i=0; i<count; i++, p+=3 ) {
-		ulong col = (p[0] << 16) | (p[1] << 8) | p[2];
+		unsigned long col = (p[0] << 16) | (p[1] << 8) | p[2];
 		set_color( i + start, col );
 	}
 	refresh_palette();
@@ -258,7 +258,7 @@ video_color_bang( void )
 	int b = POP();
 	int g = POP();
 	int r = POP();
-	ulong col = ((r << 16) & 0xff0000) | ((g << 8) & 0x00ff00) | (b & 0xff);
+	unsigned long col = ((r << 16) & 0xff0000) | ((g << 8) & 0x00ff00) | (b & 0xff);
 	/* printk("color!: %08lx %08lx %08lx %08lx\n", r, g, b, index ); */
 	set_color( index, col );
 	refresh_palette();
@@ -327,7 +327,7 @@ init_video( unsigned long fb,  int width, int height, int depth, int rb )
 		set_int_property( ph, "address", video.fb.mphys );
 	}
 	video.has_video = 1;
-	video.pal = malloc( 256 * sizeof(ulong) );
+	video.pal = malloc( 256 * sizeof(unsigned long) );
 
 #ifdef CONFIG_PPC
         s = (video.fb.mphys & 0xfff);

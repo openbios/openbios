@@ -168,11 +168,11 @@ pcparts_open( pcparts_info_t *di )
 			RET( 0 );
 		}
 
-		offs = (llong)(__le32_to_cpu(p->start_sect)) * bs;
+		offs = (long long)(__le32_to_cpu(p->start_sect)) * bs;
 		di->offs_hi = offs >> BITS;
 		di->offs_lo = offs & (ucell) -1;
 
-		size = (llong)(__le32_to_cpu(p->nr_sects)) * bs;
+		size = (long long)(__le32_to_cpu(p->nr_sects)) * bs;
         	di->size_hi = size >> BITS;
         	di->size_lo = size & (ucell) -1;
 
@@ -226,11 +226,11 @@ pcparts_open( pcparts_info_t *di )
 					RET( 0 );
 				}
 
-				offs = (llong)(cur_table+__le32_to_cpu(p->start_sect)) * bs;
+				offs = (long long)(cur_table+__le32_to_cpu(p->start_sect)) * bs;
 				di->offs_hi = offs >> BITS;
 				di->offs_lo = offs & (ucell) -1;
 
-				size = (llong)__le32_to_cpu(p->nr_sects) * bs;
+				size = (long long)__le32_to_cpu(p->nr_sects) * bs;
 				di->size_hi = size >> BITS;
 				di->size_lo = size & (ucell) -1;
 
@@ -332,8 +332,8 @@ pcparts_initialize( pcparts_info_t *di )
 static void
 pcparts_seek(pcparts_info_t *di )
 {
-	llong pos = DPOP();
-	llong offs, size;
+	long long pos = DPOP();
+	long long offs, size;
 
 	DPRINTF("pcparts_seek %llx:\n", pos);
 

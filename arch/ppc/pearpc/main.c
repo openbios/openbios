@@ -26,9 +26,9 @@
 #include "libopenbios/ofmem.h"
 
 static void
-transfer_control_to_elf( ulong entry )
+transfer_control_to_elf( unsigned long entry )
 {
-	extern void call_elf( ulong entry );
+	extern void call_elf( unsigned long entry );
 	printk("Starting ELF image at 0x%08lX\n", entry);
 	call_elf( 0x400000 );
 	//call_elf( entry );
@@ -37,7 +37,7 @@ transfer_control_to_elf( ulong entry )
 }
 
 static int
-load_elf_rom( ulong *entry, int fd )
+load_elf_rom( unsigned long *entry, int fd )
 {
 	int i, lszz_offs, elf_offs;
 	char buf[128], *addr;
@@ -91,7 +91,7 @@ load_elf_rom( ulong *entry, int fd )
 		flush_icache_range( addr, addr+s );
 
 		/*printk("ELF ROM-section loaded at %08lX (size %08lX)\n",
-		   (ulong)phdr[i].p_vaddr, (ulong)phdr[i].p_memsz );*/
+		   (unsigned long)phdr[i].p_vaddr, (unsigned long)phdr[i].p_memsz );*/
 	}
 	free( phdr );
 	return lszz_offs;
@@ -115,7 +115,7 @@ pearpc_startup( void )
 {
 	const char *paths[] = { "hd:0,\\zImage.chrp", NULL };
 	const char *args[] = { "root=/dev/hda2 console=ttyS0,115200", NULL };
-	ulong entry;
+	unsigned long entry;
 	int i, fd;
 
 	for( i=0; paths[i]; i++ ) {

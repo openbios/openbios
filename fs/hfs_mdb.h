@@ -89,27 +89,27 @@ typedef struct hfs_mdb {
 
 typedef struct hfs_plus_mdb
 {
-	ushort	signature;
-	ushort	version;
-	uint	attributes;
-	uint	lastMountedVersion;
-	uint	reserved;
+	unsigned short	signature;
+	unsigned short	version;
+	unsigned int	attributes;
+	unsigned int	lastMountedVersion;
+	unsigned int	reserved;
 
-	uint	createDate;
-	uint	modifyDate;
-	uint	backupDate;
-	uint	checkedDate;
+	unsigned int	createDate;
+	unsigned int	modifyDate;
+	unsigned int	backupDate;
+	unsigned int	checkedDate;
 
-	uint	fileCount;
-	uint	folderCount;
+	unsigned int	fileCount;
+	unsigned int	folderCount;
 
-	uint	blockSize;
-	uint	totalBlocks;
-	uint	freeBlocks;
+	unsigned int	blockSize;
+	unsigned int	totalBlocks;
+	unsigned int	freeBlocks;
 
-	uint	nextAllocation;
-	uint	rsrcClumpSize;
-	uint	dataClumpSize;
+	unsigned int	nextAllocation;
+	unsigned int	rsrcClumpSize;
+	unsigned int	dataClumpSize;
 
 	/* ... there are more fields here ... */
 } hfs_plus_mdb_t;

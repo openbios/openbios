@@ -61,7 +61,7 @@
 
 struct icommon
   {
-    u_short ic_mode;		/*  0: mode and type of file */
+    unsigned short ic_mode;	/*  0: mode and type of file */
     short ic_nlink;		/*  2: number of links to file */
     mach_uid_t ic_uid;		/*  4: owner's user id */
     mach_gid_t ic_gid;		/*  6: owner's group id */

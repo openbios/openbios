@@ -161,7 +161,7 @@ static int fd;
 
 static unsigned long file_size(void)
 {
-	llong fpos, fsize;
+	long long fpos, fsize;
 
 	/* Save current position */
 	fpos = tell(fd);

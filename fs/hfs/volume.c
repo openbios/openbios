@@ -594,7 +594,7 @@ fail:
 
 /* Determine whether the volume is a HFS volume */
 int
-v_probe(int fd, llong offset)
+v_probe(int fd, long long offset)
 {
 	MDB *mdb;
 

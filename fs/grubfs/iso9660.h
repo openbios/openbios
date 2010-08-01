@@ -57,23 +57,19 @@
 
 #ifndef ASM_FILE
 
-typedef uint8_t   u_int8_t;
-typedef uint16_t  u_int16_t;
-typedef uint32_t  u_int32_t;
-
 typedef	union {
- u_int8_t l,b;
+	uint8_t l,b;
 }	iso_8bit_t;
 
 typedef	struct __iso_16bit {
-	u_int16_t l, b;
+	uint16_t l, b;
 } iso_16bit_t;
 
 typedef	struct __iso_32bit {
-	u_int32_t l, b;
+	uint32_t l, b;
 } iso_32bit_t;
 
-typedef u_int8_t		iso_date_t[7];
+typedef uint8_t		iso_date_t[7];
 
 struct iso_directory_record {
 	iso_8bit_t	length;
@@ -86,49 +82,49 @@ struct iso_directory_record {
 	iso_8bit_t	interleave;
 	iso_16bit_t	volume_seq_number;
 	iso_8bit_t	name_len;
-	u_int8_t	name[1];
+	uint8_t	name[1];
 } __attribute__ ((packed));
 
 struct iso_primary_descriptor {
 	iso_8bit_t	type;
-	u_int8_t	id[5];
+	uint8_t		id[5];
 	iso_8bit_t	version;
-	u_int8_t	_unused1[1];
-	u_int8_t	system_id[32];
-	u_int8_t	volume_id[32];
-	u_int8_t	_unused2[8];
+	uint8_t		_unused1[1];
+	uint8_t		system_id[32];
+	uint8_t		volume_id[32];
+	uint8_t		_unused2[8];
 	iso_32bit_t	volume_space_size;
-	u_int8_t	_unused3[32];
+	uint8_t		_unused3[32];
 	iso_16bit_t	volume_set_size;
 	iso_16bit_t	volume_seq_number;
 	iso_16bit_t	logical_block_size;
 	iso_32bit_t	path_table_size;
-	u_int8_t	type_l_path_table[4];
-	u_int8_t	opt_type_l_path_table[4];
-	u_int8_t	type_m_path_table[4];
-	u_int8_t	opt_type_m_path_table[4];
+	uint8_t		type_l_path_table[4];
+	uint8_t		opt_type_l_path_table[4];
+	uint8_t		type_m_path_table[4];
+	uint8_t		opt_type_m_path_table[4];
 	struct iso_directory_record root_directory_record;
-	u_int8_t	volume_set_id[128];
-	u_int8_t	publisher_id[128];
-	u_int8_t	preparer_id[128];
-	u_int8_t	application_id[128];
-	u_int8_t	copyright_file_id[37];
-	u_int8_t	abstract_file_id[37];
-	u_int8_t	bibliographic_file_id[37];
-	u_int8_t	creation_date[17];
-	u_int8_t	modification_date[17];
-	u_int8_t	expiration_date[17];
-	u_int8_t	effective_date[17];
+	uint8_t		volume_set_id[128];
+	uint8_t		publisher_id[128];
+	uint8_t		preparer_id[128];
+	uint8_t		application_id[128];
+	uint8_t		copyright_file_id[37];
+	uint8_t		abstract_file_id[37];
+	uint8_t		bibliographic_file_id[37];
+	uint8_t		creation_date[17];
+	uint8_t		modification_date[17];
+	uint8_t		expiration_date[17];
+	uint8_t		effective_date[17];
 	iso_8bit_t	file_structure_version;
-	u_int8_t	_unused4[1];
-	u_int8_t	application_data[512];
-	u_int8_t	_unused5[653];
+	uint8_t		_unused4[1];
+	uint8_t		application_data[512];
+	uint8_t		_unused5[653];
 } __attribute__ ((packed));
 
 struct rock_ridge {
-	u_int16_t	signature;
-	u_int8_t	len;
-	u_int8_t	version;
+	uint16_t	signature;
+	uint8_t		len;
+	uint8_t		version;
 	union {
 	  struct CE {
 	    iso_32bit_t	extent;
@@ -137,7 +133,7 @@ struct rock_ridge {
 	  } ce;
 	  struct NM {
 	    iso_8bit_t	flags;
-	    u_int8_t	name[0];
+	    uint8_t	name[0];
 	  } nm;
 	  struct PX {
 	    iso_32bit_t	mode;

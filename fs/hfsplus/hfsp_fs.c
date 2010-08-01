@@ -314,7 +314,7 @@ hfsp_files_read( hfsp_info_t *mi )
 static void
 hfsp_files_seek( hfsp_info_t *mi )
 {
-	llong pos = DPOP();
+	long long pos = DPOP();
 	int offs = (int)pos;
 	int whence = SEEK_SET;
 
@@ -448,7 +448,7 @@ static void
 hfsp_files_probe( hfsp_info_t *dummy )
 {
 	ihandle_t ih = POP_ih();
-	llong offs = DPOP(); 
+	long long offs = DPOP();
 	int fd, ret = 0;
 
 	fd = open_ih(ih);

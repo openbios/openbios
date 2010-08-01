@@ -189,7 +189,7 @@ int iso9660_umount(iso9660_VOLUME* volume)
 	return 0;
 }
 
-int iso9660_probe(int fd, llong offset)
+int iso9660_probe(int fd, long long offset)
 {
 	struct iso_primary_descriptor ipd;
 

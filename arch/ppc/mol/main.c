@@ -32,9 +32,9 @@ static void	patch_newworld_rom( char *start, size_t size );
 static void	newworld_timer_hack( char *start, size_t size );
 
 static void
-transfer_control_to_elf( ulong entry )
+transfer_control_to_elf( unsigned long entry )
 {
-	extern void call_elf( ulong entry );
+	extern void call_elf( unsigned long entry );
 	printk("Starting ELF boot loader\n");
 	call_elf( entry );
 
@@ -42,7 +42,7 @@ transfer_control_to_elf( ulong entry )
 }
 
 static int
-load_elf_rom( ulong *entry, int fd )
+load_elf_rom( unsigned long *entry, int fd )
 {
 	int i, lszz_offs, elf_offs;
 	char buf[128], *addr;
@@ -95,7 +95,7 @@ load_elf_rom( ulong *entry, int fd )
 		flush_icache_range( addr, addr+s );
 
 		/* printk("ELF ROM-section loaded at %08lX (size %08lX)\n",
-		   (ulong)phdr[i].p_vaddr, (ulong)phdr[i].p_memsz );*/
+		   (unsigned long)phdr[i].p_vaddr, (unsigned long)phdr[i].p_memsz );*/
 	}
 	free( phdr );
 	return lszz_offs;
@@ -113,18 +113,18 @@ static void
 patch_newworld_rom( char *start, size_t size )
 {
 	int s;
-	ulong mark[] = { 0x7c7d1b78, 		/* mr r29,r3 */
-			 0x7c9c2378,		/* mr r28,r4 */
-			 0x7cc33378,		/* mr r3,r6 */
-			 0x7c864214,		/* add r4,r6,r8   <------ BUG -- */
-			 0x80b10000,		/* lwz r5,0(r17) */
-			 0x38a500e8 };		/* addi r5,r5,232 */
+	unsigned long mark[] = { 0x7c7d1b78, 		/* mr r29,r3 */
+                                 0x7c9c2378,		/* mr r28,r4 */
+                                 0x7cc33378,		/* mr r3,r6 */
+                                 0x7c864214,		/* add r4,r6,r8   <------ BUG -- */
+                                 0x80b10000,		/* lwz r5,0(r17) */
+                                 0x38a500e8 };		/* addi r5,r5,232 */
 
 	/* Correcting add r4,r6,r8  ---->  addi r4,r6,8 */
 	for( s=0; s<size-sizeof(mark); s+=4 )
 		if( memcmp( start+s, mark, sizeof(mark)) == 0 ) {
 			printk("FIXING ROM BUG @ %X!\n", s+12);
-			((ulong*)(start+s))[3] = 0x38860008;	/* addi r4,r6,8 */
+			((unsigned long*)(start+s))[3] = 0x38860008;	/* addi r4,r6,8 */
 		}
 }
 
@@ -137,22 +137,22 @@ static void
 newworld_timer_hack( char *start, size_t size )
 {
 	int s;
-	ulong mark[] = { 0x7d0000a6, 0x5507045e, 0x7ce00124, 0x4c00012c,
-			 0x38e00000, 0x3c80000f, 0x6084ffff, 0x98830c00,
-			 0x7c0006ac, 0x98830a00, 0x7c0006ac, 0x7c9603a6,
-			 0x4c00012c, 0x7cb602a6, 0x2c050000, 0x4181fff8,
-			 0x7c0004ac, 0x88830a00, 0x7c0006ac, 0x88a30800,
-			 0x7c0006ac, 0x88c30a00, 0x7c0006ac, 0x7c043040,
-			 0x40a2ffe4, 0x5085442e, 0x7ca500d0, 0x54a5043e,
-			 0x7c053840, 0x7ca72b78, 0x4082ff9c, 0x7ca32b78,
-			 0x7d000124, 0x4c00012c, 0x4e800020
+	unsigned long mark[] = { 0x7d0000a6, 0x5507045e, 0x7ce00124, 0x4c00012c,
+                                 0x38e00000, 0x3c80000f, 0x6084ffff, 0x98830c00,
+                                 0x7c0006ac, 0x98830a00, 0x7c0006ac, 0x7c9603a6,
+                                 0x4c00012c, 0x7cb602a6, 0x2c050000, 0x4181fff8,
+                                 0x7c0004ac, 0x88830a00, 0x7c0006ac, 0x88a30800,
+                                 0x7c0006ac, 0x88c30a00, 0x7c0006ac, 0x7c043040,
+                                 0x40a2ffe4, 0x5085442e, 0x7ca500d0, 0x54a5043e,
+                                 0x7c053840, 0x7ca72b78, 0x4082ff9c, 0x7ca32b78,
+                                 0x7d000124, 0x4c00012c, 0x4e800020
 	};
 
 	/* return #via ticks corresponding to 0xfffff DEC ticks (VIA frequency == 47/60 MHz) */
 	for( s=0; s < size-sizeof(mark); s+=4 ) {
 		if( !memcmp( start+s, mark, sizeof(mark)) ) {
 			extern char timer_calib_start[], timer_calib_end[];
-			extern ulong nw_dec_calibration;
+			extern unsigned long nw_dec_calibration;
 			int hz = OSI_UsecsToMticks(1000);
 			nw_dec_calibration = OSI_MticksToUsecs(0xfffff*47)/60;
 			memcpy( start + s, timer_calib_start, timer_calib_end - timer_calib_start );
@@ -164,11 +164,11 @@ newworld_timer_hack( char *start, size_t size )
 	}
 }
 
-static ulong
+static unsigned long
 load_newworld_rom( int fd )
 {
 	int lszz_offs, lszz_size;
-	ulong entry, data[2];
+	unsigned long entry, data[2];
 	phandle_t ph;
 
 	lszz_offs = load_elf_rom( &entry, fd );
@@ -315,7 +315,7 @@ newworld_startup( void )
 		OSI_ABlkBlessDisk( 0 /*channel*/, bootunit );
 
 		update_nvram();
-		transfer_control_to_elf( (ulong)entry );
+		transfer_control_to_elf( (unsigned long)entry );
 		/* won't come here */
 		return;
 	}
@@ -336,7 +336,7 @@ static void
 yaboot_startup( void )
 {
 	const char *paths[] = { "pseudo:,ofclient", "pseudo:,yaboot", NULL };
-	ulong entry;
+	unsigned long entry;
 	int i, fd;
 
 	for( i=0; paths[i]; i++ ) {

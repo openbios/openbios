@@ -23,14 +23,6 @@
 
 #define PROGRAM_NAME "OpenBIOS"
 
-typedef unsigned long   ulong;
-typedef unsigned int    uint;
-typedef unsigned short  ushort;
-typedef unsigned char   uchar;
-
-typedef unsigned long long ullong;
-typedef long long       llong;
-
 #ifndef BOOTSTRAP
 
 #ifndef NULL
@@ -44,7 +36,7 @@ typedef signed int	off_t;
 
 typedef unsigned int	time_t;
 
-#define UINT_MAX	((uint)-1)
+#define UINT_MAX	((unsigned int)-1)
 
 #define ENOMEM		1
 #define EIO		2

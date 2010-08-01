@@ -185,18 +185,18 @@ sunparts_open( sunparts_info_t *di )
 
 	DPRINTF("Selected partition %d\n", parnum);
 
-        offs = (llong)__be32_to_cpu(p->partitions[parnum].start_cylinder) *
+        offs = (long long)__be32_to_cpu(p->partitions[parnum].start_cylinder) *
             __be16_to_cpu(p->ntrks) * __be16_to_cpu(p->nsect) * bs;
 
         di->offs_hi = offs >> BITS;
         di->offs_lo = offs & (ucell) -1;
-        size = (llong)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
+        size = (long long)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
         di->size_hi = size >> BITS;
         di->size_lo = size & (ucell) -1;
         di->type = __be32_to_cpu(p->infos[parnum].id);
 
         DPRINTF("Found Sun partition, offs %lld size %lld\n",
-                (llong)offs, (llong)size);
+                (long long)offs, (long long)size);
 
 	/* Probe for filesystem at current offset */
 	DPRINTF("sun-parts: about to probe for fs\n");
@@ -264,8 +264,8 @@ sunparts_initialize( __attribute__((unused))sunparts_info_t *di )
 static void
 sunparts_seek(sunparts_info_t *di )
 {
-	llong pos = DPOP();
-	llong offs, size;;
+	long long pos = DPOP();
+	long long offs, size;;
 
 	DPRINTF("sunparts_seek %llx:\n", pos);
 

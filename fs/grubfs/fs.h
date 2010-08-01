@@ -231,9 +231,9 @@ struct fs
     int fs_postblformat;	/* format of positional layout tables */
     int fs_nrpos;		/* number of rotaional positions */
     int fs_postbloff;		/* (short) rotation block list head */
-    int fs_rotbloff;		/* (u_char) blocks for each rotation */
+    int fs_rotbloff;		/* (char) blocks for each rotation */
     int fs_magic;		/* magic number */
-    u_char fs_space[1];		/* list of blocks for each rotation */
+    unsigned char fs_space[1];	/* list of blocks for each rotation */
 /* actually longer */
   };
 /*
@@ -257,7 +257,7 @@ struct fs
 #define fs_rotbl(fs) \
     (((fs)->fs_postblformat == FS_42POSTBLFMT) \
     ? ((fs)->fs_space) \
-    : ((u_char *)((char *)(fs) + (fs)->fs_rotbloff)))
+    : ((unsigned char *)((char *)(fs) + (fs)->fs_rotbloff)))
 
 /*
  * Convert cylinder group to base address of its global summary info.
@@ -288,10 +288,10 @@ struct cg
     int cg_btotoff;		/* (long) block totals per cylinder */
     int cg_boff;		/* (short) free block positions */
     int cg_iusedoff;		/* (char) used inode map */
-    int cg_freeoff;		/* (u_char) free block map */
-    int cg_nextfreeoff;		/* (u_char) next available space */
+    int cg_freeoff;		/* (char) free block map */
+    int cg_nextfreeoff;		/* (char) next available space */
     int cg_sparecon[16];	/* reserved for future use */
-    u_char cg_space[1];		/* space for cylinder group maps */
+    unsigned char cg_space[1];	       /* space for cylinder group maps */
 /* actually longer */
   };
 /*
@@ -312,7 +312,7 @@ struct cg
 #define cg_blksfree(cgp) \
     (((cgp)->cg_magic != CG_MAGIC) \
     ? (((struct ocg *)(cgp))->cg_free) \
-    : ((u_char *)((char *)(cgp) + (cgp)->cg_freeoff)))
+    : ((unsigned char *)((char *)(cgp) + (cgp)->cg_freeoff)))
 #define cg_chkmagic(cgp) \
     ((cgp)->cg_magic == CG_MAGIC || ((struct ocg *)(cgp))->cg_magic == CG_MAGIC)
 
@@ -338,7 +338,7 @@ struct ocg
     short cg_b[32][8];		/* positions of free blocks */
     char cg_iused[256];		/* used inode map */
     int cg_magic;		/* magic number */
-    u_char cg_free[1];		/* free block map */
+    unsigned char cg_free[1];	/* free block map */
 /* actually longer */
   };
 

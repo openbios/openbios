@@ -108,8 +108,8 @@ extern ucell ofmem_translate( ucell virt, ucell *ret_mode );
 #ifdef CONFIG_PPC
 #define PAGE_SHIFT   12
 
-ulong get_ram_top( void );
-ulong get_ram_bottom( void );
+unsigned long get_ram_top( void );
+unsigned long get_ram_bottom( void );
 
 #elif defined(CONFIG_SPARC32)
 #define PAGE_SHIFT   12

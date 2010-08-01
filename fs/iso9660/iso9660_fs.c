@@ -105,7 +105,7 @@ iso9660_files_read( iso9660_info_t *mi )
 static void
 iso9660_files_seek( iso9660_info_t *mi )
 {
-	llong pos = DPOP();
+	long long pos = DPOP();
 	cell ret;
 	int offs = (int)pos;
 	int whence = SEEK_SET;
@@ -215,7 +215,7 @@ static void
 iso9660_files_probe( iso9660_info_t *dummy )
 {
 	ihandle_t ih = POP_ih();
-	llong offs = DPOP(); 
+	long long offs = DPOP();
 	int fd, ret = 0;
 
 	fd = open_ih(ih);

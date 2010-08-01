@@ -42,14 +42,6 @@
 #define	btodb(byte_offset)	((byte_offset) >> 9)
 #define	dbtob(block_number)	((block_number) << 9)
 
-/*
- * Compatibility definitions for old type names.
- */
-
-typedef unsigned char u_char;	/* unsigned char */
-typedef unsigned short u_short;	/* unsigned short */
-typedef unsigned int u_int;	/* unsigned int */
-
 typedef struct _quad_
   {
     unsigned int val[2];	/* 2 int values make... */

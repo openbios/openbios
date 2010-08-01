@@ -37,7 +37,7 @@
 /* called from assembly */
 extern void	dsi_exception( void );
 extern void	isi_exception( void );
-extern void	setup_mmu( ulong code_base, ulong code_size, ulong ramsize );
+extern void	setup_mmu( unsigned long code_base, unsigned long code_size, unsigned long ramsize );
 
 /****************************************************************
  * Memory usage (before of_quiesce is called)
@@ -74,13 +74,13 @@ static ofmem_t s_ofmem;
 #define IO_BASE			0x80000000
 #define OFMEM (&s_ofmem)
 
-static inline ulong
+static inline unsigned long
 get_hash_base( void )
 {
 	return HASH_BASE;
 }
 
-static inline ulong
+static inline unsigned long
 get_hash_size( void )
 {
 	return HASH_SIZE;
@@ -201,7 +201,7 @@ static void
 hash_page( ucell ea, ucell phys, ucell mode )
 {
 	static int next_grab_slot=0;
-	ulong *upte, cmp, hash1;
+	unsigned long *upte, cmp, hash1;
 	int i, vsid, found;
 	mPTE_t *pp;
 
@@ -213,7 +213,7 @@ hash_page( ucell ea, ucell phys, ucell mode )
 	hash1 &= (get_hash_size() - 1) >> 6;
 
 	pp = (mPTE_t*)(get_hash_base() + (hash1 << 6));
-	upte = (ulong*)pp;
+	upte = (unsigned long*)pp;
 
 	/* replace old translation */
 	for( found=0, i=0; !found && i<8; i++ )
@@ -240,7 +240,7 @@ hash_page( ucell ea, ucell phys, ucell mode )
 void
 dsi_exception( void )
 {
-	ulong dar, dsisr;
+	unsigned long dar, dsisr;
 	ucell mode;
 	ucell phys;
 
@@ -256,7 +256,7 @@ dsi_exception( void )
 void
 isi_exception( void )
 {
-	ulong nip, srr1;
+	unsigned long nip, srr1;
 	ucell mode;
 	ucell phys;
 
@@ -275,11 +275,11 @@ isi_exception( void )
 /************************************************************************/
 
 void
-setup_mmu( ulong code_base, ulong code_size, ulong ramsize )
+setup_mmu( unsigned long code_base, unsigned long code_size, unsigned long ramsize )
 {
-	ulong sdr1 = HASH_BASE | ((HASH_SIZE-1) >> 16);
-	ulong sr_base = (0x20 << 24) | SEGR_BASE;
-	ulong msr;
+	unsigned long sdr1 = HASH_BASE | ((HASH_SIZE-1) >> 16);
+	unsigned long sr_base = (0x20 << 24) | SEGR_BASE;
+	unsigned long msr;
 	int i;
 
 	asm volatile("mtsdr1 %0" :: "r" (sdr1) );

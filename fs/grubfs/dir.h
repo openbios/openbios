@@ -76,9 +76,9 @@
 
 struct direct
   {
-    u_int d_ino;		/* inode number of entry */
-    u_short d_reclen;		/* length of this record */
-    u_short d_namlen;		/* length of string in d_name */
+    unsigned int d_ino;		/* inode number of entry */
+    unsigned short d_reclen;	/* length of this record */
+    unsigned short d_namlen;	/* length of string in d_name */
     char d_name[MAXNAMLEN + 1];	/* name with length <= MAXNAMLEN */
   };
 
@@ -100,11 +100,11 @@ struct direct
  */
 struct dirtemplate
   {
-    u_int dot_ino;
+    unsigned int dot_ino;
     short dot_reclen;
     short dot_namlen;
     char dot_name[4];		/* must be multiple of 4 */
-    u_int dotdot_ino;
+    unsigned int dotdot_ino;
     short dotdot_reclen;
     short dotdot_namlen;
     char dotdot_name[4];	/* ditto */

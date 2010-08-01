@@ -292,7 +292,7 @@ volume_create_extents_tree(volume* vol)
 
 /* Determine whether the volume is a HFS-plus volume */
 int
-volume_probe(int fd, llong offset)
+volume_probe(int fd, long long offset)
 {
 	UInt16 *vol;
 	int ret = 0;

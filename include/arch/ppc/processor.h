@@ -389,15 +389,15 @@
 
 /* opcode macros */
 
-#define OPCODE_PRIM(n)		( ((ulong)(n)) >> 26 )
-#define OPCODE_EXT(n)		( (((ulong)(n)) >> 1) & 0x3ff )
+#define OPCODE_PRIM(n)		( ((unsigned long)(n)) >> 26 )
+#define OPCODE_EXT(n)		( (((unsigned long)(n)) >> 1) & 0x3ff )
 #define OPCODE(op,op_ext)	( ((op)<<10) + op_ext )
 
-#define	B1(n)			( (((ulong)(n)) >> 21) & 0x1f )
-#define	B2(n)			( (((ulong)(n)) >> 16) & 0x1f )
-#define	B3(n)			( (((ulong)(n)) >> 11) & 0x1f )
+#define	B1(n)			( (((unsigned long)(n)) >> 21) & 0x1f )
+#define	B2(n)			( (((unsigned long)(n)) >> 16) & 0x1f )
+#define	B3(n)			( (((unsigned long)(n)) >> 11) & 0x1f )
 
-#define BD(n)	((ulong)((n) & 0x7fff) + (((n) & 0x8000) ? (ulong)0xffff8000 : 0))
+#define BD(n)	((unsigned long)((n) & 0x7fff) + (((n) & 0x8000) ? (unsigned long)0xffff8000 : 0))
 
 #define SPRNUM_FLIP( v )	( (((v)>>5) & 0x1f) | (((v)<<5) & 0x3e0) )
 

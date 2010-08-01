@@ -185,7 +185,7 @@ read_io( int fd, void *buf, size_t cnt )
 }
 
 int
-seek_io( int fd, llong offs )
+seek_io( int fd, long long offs )
 {
 	priv_fd_t *fdp;
 
@@ -200,11 +200,11 @@ seek_io( int fd, llong offs )
 	}
 }
 
-llong
+long long
 tell( int fd )
 {
 	priv_fd_t *fdp = file_descriptors[fd];
-	llong offs;
+	long long offs;
 
 	if( lookup_xt(fdp->ih, "tell", &fdp->tell_xt) )
 		return -1;

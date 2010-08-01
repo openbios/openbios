@@ -39,7 +39,7 @@ rtas_instantiate( void )
 {
 	ucell physbase = POP();
 	ucell s=0x1000, size = (ucell)of_rtas_end - (ucell)of_rtas_start;
-	ulong virt;
+	unsigned long virt;
 
 	while( s < size )
 		s += 0x1000;
@@ -110,10 +110,10 @@ DECLARE_NODE( ciface, 0, 0, "+/openprom/client-services" );
 
 /* ( -- ) */
 static void
-ciface_quiesce( ulong args[], ulong ret[] )
+ciface_quiesce( unsigned long args[], unsigned long ret[] )
 {
 #if 0
-	ulong msr;
+	unsigned long msr;
 	/* This seems to be the correct thing to do - but I'm not sure */
 	asm volatile("mfmsr %0" : "=r" (msr) : );
 	msr &= ~(MSR_IR | MSR_DR);
@@ -125,10 +125,10 @@ ciface_quiesce( ulong args[], ulong ret[] )
 #define TIMER_FREQUENCY 16600000ULL
 
 static void
-ciface_milliseconds( ulong args[], ulong ret[] )
+ciface_milliseconds( unsigned long args[], unsigned long ret[] )
 {
-	ulong tbu, tbl, temp;
-	ullong ticks, msecs;
+	unsigned long tbu, tbl, temp;
+	unsigned long long ticks, msecs;
 
 	asm volatile(
 		"1:\n"
@@ -141,7 +141,7 @@ ciface_milliseconds( ulong args[], ulong ret[] )
 		:
 		: "cc");
 
-	ticks = (((ullong)tbu) << 32) | (ullong)tbl;
+	ticks = (((unsigned long long)tbu) << 32) | (unsigned long long)tbl;
 	msecs = (1000 * ticks) / TIMER_FREQUENCY;
 	PUSH( msecs );
 }

@@ -36,7 +36,7 @@ void
 		return NULL;
 	}
 
-	(ullong *)entry = ehdr.e_entry;
+	(unsigned long long *)entry = ehdr.e_entry;
 
 	lszz_offs = elf_offs;
 	for( i=0; i<ehdr.e_phnum; i++ ) {
@@ -52,7 +52,7 @@ void
 			continue;
 
 		 printk("ELF ROM-section loaded at %08lX (size %08lX)\n",
-				 (ulong)phdr[i].p_vaddr, (ulong)phdr[i].p_memsz);
+				 (unsigned long)phdr[i].p_vaddr, (unsigned long)phdr[i].p_memsz);
 	}
 	free( phdr );
 	return entry;

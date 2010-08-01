@@ -52,7 +52,7 @@ rtas_instantiate( void )
 {
 	int physbase = POP();
 	int s=0x1000, size = (int)of_rtas_end - (int)of_rtas_start;
-	ulong virt;
+	unsigned long virt;
 
 	while( s < size )
 		s += 0x1000;
@@ -159,7 +159,7 @@ typedef struct {
 	char 	keytable[32];
 } kbd_state_t;
 
-static const uchar adb_ascii_table[128] =
+static const unsigned char adb_ascii_table[128] =
 	/* 0x00 */	"asdfhgzxcv`bqwer"
 	/* 0x10 */	"yt123465=97-80]o"
 	/* 0x20 */	"u[ip\nlj'k;\\,/nm."
@@ -169,7 +169,7 @@ static const uchar adb_ascii_table[128] =
 	/* 0x60 */	"                "
 	/* 0x70 */	"                ";
 
-static const uchar adb_shift_table[128] =
+static const unsigned char adb_shift_table[128] =
 	/* 0x00 */	"ASDFHGZXCV~BQWER"
 	/* 0x10 */	"YT!@#$^%+(&_*)}O"
 	/* 0x20 */	"U{IP\nLJ\"K:|<?NM>"
@@ -273,10 +273,10 @@ DECLARE_NODE( ciface, 0, 0, "/packages/client-iface" );
 
 /* ( -- ) */
 static void
-ciface_quiesce( ulong args[], ulong ret[] )
+ciface_quiesce( unsigned long args[], unsigned long ret[] )
 {
 #if 0
-	ulong msr;
+	unsigned long msr;
 	/* This seems to be the correct thing to do - but I'm not sure */
 	asm volatile("mfmsr %0" : "=r" (msr) : );
 	msr &= ~(MSR_IR | MSR_DR);
@@ -290,10 +290,10 @@ ciface_quiesce( ulong args[], ulong ret[] )
 
 /* ( -- ms ) */
 static void
-ciface_milliseconds( ulong args[], ulong ret[] )
+ciface_milliseconds( unsigned long args[], unsigned long ret[] )
 {
-	static ulong mticks=0, usecs=0;
-	ulong t;
+	static unsigned long mticks=0, usecs=0;
+	unsigned long t;
 
 	asm volatile("mftb %0" : "=r" (t) : );
 	if( mticks )

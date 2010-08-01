@@ -56,13 +56,13 @@ static struct {
 static int
 get_conschar( int x, int y )
 {
-	if( (uint)x < cons.w && (uint)y < cons.h )
+	if( (unsigned int)x < cons.w && (unsigned int)y < cons.h )
 		return cons.buf[y*cons.w + x];
 	return ' ';
 }
 
 static void
-draw_char( uint h, uint v )
+draw_char( unsigned int h, unsigned int v )
 {
         const unsigned char *c = fontdata;
 	int x, y, xx, rskip, m;
@@ -152,7 +152,7 @@ console_close( void )
 static void
 rec_char( int ch, int x, int y )
 {
-	if( (uint)x < cons.w && (uint)y < cons.h ) {
+	if( (unsigned int)x < cons.w && (unsigned int)y < cons.h ) {
 		cons.buf[y*cons.w + x] = ch;
 		draw_char( x, y );
 	}
@@ -318,8 +318,8 @@ do_con_trol(unsigned char ch)
             cons.y = cons.vc_par[0];
             return;
         case 'J':
-            if (cons.vc_par[0] == 0 && (uint)cons.y < (uint)cons.h &&
-                (uint)cons.x < (uint)cons.w) {
+            if (cons.vc_par[0] == 0 && (unsigned int)cons.y < (unsigned int)cons.h &&
+                (unsigned int)cons.x < (unsigned int)cons.w) {
                 // erase from cursor to end of display
                 for (i = cons.x; i < cons.w; i++)
                     cons.buf[cons.y * cons.w + i] = ' ';

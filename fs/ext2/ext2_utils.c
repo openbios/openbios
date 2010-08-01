@@ -12,7 +12,7 @@
 #include "libc/diskio.h"
 #include "libc/byteorder.h"
 
-int ext2_probe(int fd, llong offset)
+int ext2_probe(int fd, long long offset)
 {
 	struct ext2_super_block *super;
 
@@ -81,7 +81,7 @@ void ext2_get_super(int fd, struct ext2_super_block *super)
 
 void ext2_read_block(ext2_VOLUME* volume, unsigned int fsblock)
 {
-	llong offset;
+	long long offset;
 
 	if (fsblock == volume->current)
 		return;

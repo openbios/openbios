@@ -382,7 +382,7 @@ go_up:
 			pos = n = strlen( buf );
 			break;
 		}
-		if( (uint)ch < 32 )
+		if( (unsigned int)ch < 32 )
 			drop = 1;
 
 		if( !drop && n < ci->ncol ) {

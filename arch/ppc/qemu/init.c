@@ -683,8 +683,8 @@ arch_of_init( void )
 	if( !(ph=find_dev("/rtas")) )
 		printk("Warning: No /rtas node\n");
 	else {
-		ulong size = 0x1000;
-		while( size < (ulong)of_rtas_end - (ulong)of_rtas_start )
+		unsigned long size = 0x1000;
+		while( size < (unsigned long)of_rtas_end - (unsigned long)of_rtas_start )
 			size *= 2;
 		set_property( ph, "rtas-size", (char*)&size, sizeof(size) );
 	}

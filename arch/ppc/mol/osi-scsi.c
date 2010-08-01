@@ -52,7 +52,7 @@ scsi_cmd_( instance_data_t *sd, const char *cmd, int cmdlen, char *dest,
 
 	/* memset( dest, 0, len ); */
 
-	if( (uint)prelen > sizeof(prebuf) || (uint)postlen > sizeof(postbuf) ) {
+	if( (unsigned int)prelen > sizeof(prebuf) || (unsigned int)postlen > sizeof(postbuf) ) {
 		printk("bad pre/post len %d %d\n", prelen, postlen );
 		return 1;
 	}

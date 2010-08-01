@@ -741,7 +741,7 @@ int hfs_fstat(hfsfile *file, hfsdirent *ent)
  * NAME:	hfs->probe()
  * DESCRIPTION:	return whether a HFS filesystem is present at the given offset
  */
-int hfs_probe(int fd, llong offset)
+int hfs_probe(int fd, long long offset)
 {
   return v_probe(fd, offset);
 }

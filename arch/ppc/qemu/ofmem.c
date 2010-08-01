@@ -28,7 +28,7 @@
 /* called from assembly */
 extern void dsi_exception( void );
 extern void isi_exception( void );
-extern void setup_mmu( ulong code_base );
+extern void setup_mmu( unsigned long code_base );
 
 /*
  * From Apple's BootX source comments:
@@ -56,43 +56,43 @@ extern void setup_mmu( ulong code_base );
 #define	SEGR_USER		BIT(2)
 #define SEGR_BASE		0x0400
 
-static inline ulong
+static inline unsigned long
 get_hash_base( void )
 {
-	ulong sdr1;
+	unsigned long sdr1;
 
 	asm volatile("mfsdr1 %0" : "=r" (sdr1) );
 
 	return (sdr1 & 0xffff0000);
 }
 
-static inline ulong
+static inline unsigned long
 get_hash_size( void )
 {
-	ulong sdr1;
+	unsigned long sdr1;
 
 	asm volatile("mfsdr1 %0" : "=r" (sdr1) );
 
 	return ((sdr1 << 16) | 0x0000ffff) + 1;
 }
 
-static inline ulong
+static inline unsigned long
 get_rom_base( void )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	return ofmem->ramsize - 0x00100000;
 }
 
-ulong
+unsigned long
 get_ram_top( void )
 {
 	return get_rom_base() - HASH_SIZE - (32 + 32 + 64) * 1024;
 }
 
-ulong
+unsigned long
 get_ram_bottom( void )
 {
-        return (ulong)FREE_BASE;
+        return (unsigned long)FREE_BASE;
 }
 
 static ucell get_heap_top( void )
@@ -236,7 +236,7 @@ hash_page_64( ucell ea, ucell phys, ucell mode )
 	static int next_grab_slot=0;
 	uint64_t vsid_mask, page_mask, pgidx, hash;
 	uint64_t htab_mask, mask, avpn;
-	ulong pgaddr;
+	unsigned long pgaddr;
 	int i, found;
 	unsigned int vsid, vsid_sh, sdr, sdr_sh, sdr_mask;
 	mPTE_64_t *pp;
@@ -300,7 +300,7 @@ static void
 hash_page_32( ucell ea, ucell phys, ucell mode )
 {
 	static int next_grab_slot=0;
-	ulong *upte, cmp, hash1;
+	unsigned long *upte, cmp, hash1;
 	int i, vsid, found;
 	mPTE_t *pp;
 
@@ -312,7 +312,7 @@ hash_page_32( ucell ea, ucell phys, ucell mode )
 	hash1 &= (get_hash_size() - 1) >> 6;
 
 	pp = (mPTE_t*)(get_hash_base() + (hash1 << 6));
-	upte = (ulong*)pp;
+	upte = (unsigned long*)pp;
 
 	/* replace old translation */
 	for( found=0, i=0; !found && i<8; i++ )
@@ -344,7 +344,7 @@ static int is_ppc64(void)
 	return ((pvr >= 0x330000) && (pvr < 0x70330000));
 }
 
-static void hash_page( ulong ea, ulong phys, ucell mode )
+static void hash_page( unsigned long ea, unsigned long phys, ucell mode )
 {
 	if ( is_ppc64() )
 		hash_page_64(ea, phys, mode);
@@ -355,7 +355,7 @@ static void hash_page( ulong ea, ulong phys, ucell mode )
 void
 dsi_exception( void )
 {
-	ulong dar, dsisr;
+	unsigned long dar, dsisr;
 	ucell mode;
 	ucell phys;
 
@@ -369,7 +369,7 @@ dsi_exception( void )
 void
 isi_exception( void )
 {
-	ulong nip, srr1;
+	unsigned long nip, srr1;
 	ucell mode;
 	ucell phys;
 
@@ -386,12 +386,12 @@ isi_exception( void )
 /************************************************************************/
 
 void
-setup_mmu( ulong ramsize )
+setup_mmu( unsigned long ramsize )
 {
 	ofmem_t *ofmem = OFMEM;
-	ulong sdr1, sr_base, msr;
-	ulong hash_base;
-	ulong hash_mask = 0xffff0000;
+	unsigned long sdr1, sr_base, msr;
+	unsigned long hash_base;
+	unsigned long hash_mask = 0xffff0000;
 	int i;
 
 	memset(ofmem, 0, sizeof(ofmem_t));

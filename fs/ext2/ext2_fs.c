@@ -157,7 +157,7 @@ ext2_files_read( ext2_info_t *mi )
 static void
 ext2_files_seek( ext2_info_t *mi )
 {
-	llong pos = DPOP();
+	long long pos = DPOP();
 	int offs = (int)pos;
 	int whence = SEEK_SET;
 	int ret;
@@ -263,7 +263,7 @@ static void
 ext2_files_probe( ext2_info_t *dummy )
 {
 	ihandle_t ih = POP_ih();
-	llong offs = DPOP(); 
+	long long offs = DPOP();
 	int fd, ret = 0;
 
 	fd = open_ih(ih);

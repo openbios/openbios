@@ -312,7 +312,7 @@ GLOBL(__vectors_end):
 #define CACHE_LINE_SIZE         32
 #define LG_CACHE_LINE_SIZE      5
 
-/* flush_icache_range( ulong start, ulong stop) */
+/* flush_icache_range( unsigned long start, unsigned long stop) */
 GLOBL(flush_icache_range):
         li      r5,CACHE_LINE_SIZE-1
         andc    r3,r3,r5

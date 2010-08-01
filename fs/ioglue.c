@@ -47,8 +47,8 @@ get_hfs_vol_name( int fd, char *buf, int size )
 	return buf;
 }
 
-ulong
-os_read( int fd, void *buf, ulong len, int blksize_bits )
+unsigned long
+os_read( int fd, void *buf, unsigned long len, int blksize_bits )
 {
 	/* printk("os_read %d\n", (int)len); */
 
@@ -56,11 +56,11 @@ os_read( int fd, void *buf, ulong len, int blksize_bits )
 	return (cnt > 0)? (cnt >> blksize_bits) : cnt;
 }
 
-ulong
-os_seek( int fd, ulong blknum, int blksize_bits )
+unsigned long
+os_seek( int fd, unsigned long blknum, int blksize_bits )
 {
 	/* printk("os_seek %d\n", blknum ); */
-	llong offs = (llong)blknum << blksize_bits;
+	long long offs = (long long)blknum << blksize_bits;
 
 	/* offset == -1 means seek to EOF */
 	if( (int)blknum == -1 )
@@ -68,7 +68,7 @@ os_seek( int fd, ulong blknum, int blksize_bits )
 
 	if( seek_io(fd, offs) ) {
 		/* printk("os_seek failure\n"); */
-		return (ulong)-1;
+		return (unsigned long)-1;
 	}
 
 	if( (int)blknum == -1 ) {
@@ -80,7 +80,7 @@ os_seek( int fd, ulong blknum, int blksize_bits )
 }
 
 void
-os_seek_offset( int fd, llong offset )
+os_seek_offset( int fd, long long offset )
 {
 	seek_io(fd, offset);
 }

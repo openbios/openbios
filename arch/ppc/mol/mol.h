@@ -21,7 +21,7 @@
 extern void		init_video( void );
 extern int		video_get_res( int *w, int *h );
 extern void		draw_pixel( int x, int y, int colind );
-extern void		set_color( int index, ulong color );
+extern void		set_color( int index, unsigned long color );
 
 /* console.c */
 extern int		console_draw_str( const char *str );

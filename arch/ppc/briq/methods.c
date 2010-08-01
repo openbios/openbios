@@ -37,7 +37,7 @@ rtas_instantiate( void )
 {
 	int physbase = POP();
 	int s=0x1000, size = (int)of_rtas_end - (int)of_rtas_start;
-	ulong virt;
+	unsigned long virt;
 
 	while( s < size )
 		s += 0x1000;
@@ -137,10 +137,10 @@ DECLARE_NODE( ciface, 0, 0, "/packages/client-iface" );
 
 /* ( -- ) */
 static void
-ciface_quiesce( ulong args[], ulong ret[] )
+ciface_quiesce( unsigned long args[], unsigned long ret[] )
 {
 #if 0
-	ulong msr;
+	unsigned long msr;
 	/* This seems to be the correct thing to do - but I'm not sure */
 	asm volatile("mfmsr %0" : "=r" (msr) : );
 	msr &= ~(MSR_IR | MSR_DR);
@@ -151,11 +151,11 @@ ciface_quiesce( ulong args[], ulong ret[] )
 
 /* ( -- ms ) */
 static void
-ciface_milliseconds( ulong args[], ulong ret[] )
+ciface_milliseconds( unsigned long args[], unsigned long ret[] )
 {
 	extern unsigned long get_timer_freq();
-	static ulong mticks=0, usecs=0;
-	ulong t;
+	static unsigned long mticks=0, usecs=0;
+	unsigned long t;
 
 	asm volatile("mftb %0" : "=r" (t) : );
 	if( mticks )

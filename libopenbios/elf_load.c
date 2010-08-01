@@ -497,8 +497,8 @@ elf_init_program(void)
 #if DEBUG
 		debug("filesz: %08lX memsz: %08lX p_offset: %08lX "
                         "p_vaddr %08lX\n",
-			(ulong)phdr[i].p_filesz, (ulong)phdr[i].p_memsz,
-			(ulong)phdr[i].p_offset, (ulong)phdr[i].p_vaddr );
+			(unsigned long)phdr[i].p_filesz, (unsigned long)phdr[i].p_memsz,
+			(unsigned long)phdr[i].p_offset, (unsigned long)phdr[i].p_vaddr );
 #endif
 
 		size = MIN(phdr[i].p_filesz, phdr[i].p_memsz);

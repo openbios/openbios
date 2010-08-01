@@ -100,7 +100,7 @@ typedef struct {
 	const struct fsys_entry *fsys;
 	grubfile_t *fd;
 	int dev_fd;
-	llong offset;		/* Offset added onto each device read; should only ever be non-zero
+	long long offset;	/* Offset added onto each device read; should only ever be non-zero
 				when probing a partition for a filesystem */
 } grubfs_t;
 
@@ -123,7 +123,7 @@ int
 devread( unsigned long sector, unsigned long byte_offset,
 	 unsigned long byte_len, void *buf )
 {
-	llong offs = (llong)sector * 512 + byte_offset;
+	long long offs = (long long)sector * 512 + byte_offset;
 
 #ifdef CONFIG_DEBUG_FS
 	//printk("devread s=%x buf=%x, fd=%x\n",sector, buf, curfs->dev_fd);
@@ -260,7 +260,7 @@ grubfs_files_read( grubfs_info_t *mi )
 static void
 grubfs_files_seek( grubfs_info_t *mi )
 {
-	llong pos = DPOP();
+	long long pos = DPOP();
 	int offs = (int)pos;
 	int whence = SEEK_SET;
 
@@ -332,7 +332,7 @@ static void
 grubfs_files_probe( grubfs_info_t *dummy )
 {
 	ihandle_t ih = POP_ih();
-	llong offs = DPOP(); 
+	long long offs = DPOP();
 	int i;
 
 	curfs->dev_fd = open_ih(ih);

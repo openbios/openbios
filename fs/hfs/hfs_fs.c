@@ -55,7 +55,7 @@ DECLARE_NODE( hfs, 0, sizeof(hfs_info_t), "+/packages/hfs-files" );
 /************************************************************************/
 
 static int
-_find_file( hfsvol *vol, const char *path, ulong type, ulong creator )
+_find_file( hfsvol *vol, const char *path, unsigned long type, unsigned long creator )
 {
 	hfsdirent ent;
 	hfsdir *dir;
@@ -67,7 +67,7 @@ _find_file( hfsvol *vol, const char *path, ulong type, ulong creator )
 	while( ret && !hfs_readdir(dir, &ent) ) {
 		if( ent.flags & HFS_ISDIR )
 			continue;
-		ret = !(*(ulong*)ent.u.file.type == type && *(ulong*)ent.u.file.creator == creator );
+		ret = !(*(unsigned long*)ent.u.file.type == type && *(unsigned long*)ent.u.file.creator == creator );
 	}
 
 	hfs_closedir( dir );
@@ -96,7 +96,7 @@ _search( hfsvol *vol, const char *path, const char *sname, hfsfile **ret_fd )
 	/* printk("DIRECTORY: %s\n", path ); */
 
 	while( status && !hfs_readdir(dir, &ent) ) {
-		ulong type, creator;
+		unsigned long type, creator;
 
 		*p = 0;
 		topdir = 0;
@@ -112,8 +112,8 @@ _search( hfsvol *vol, const char *path, const char *sname, hfsfile **ret_fd )
 			continue;
 		}
 
-		type = *(ulong*)ent.u.file.type;
-		creator = *(ulong*)ent.u.file.creator;
+		type = *(unsigned long*)ent.u.file.type;
+		creator = *(unsigned long*)ent.u.file.creator;
 
 		/* look for Mac OS ROM, System and Finder in the same directory */
 		if( type == MAC_OS_ROM_TYPE && creator == MAC_OS_ROM_CREATOR ) {
@@ -372,7 +372,7 @@ hfs_files_read( hfs_info_t *mi )
 static void
 hfs_files_seek( hfs_info_t *mi )
 {
-	llong pos = DPOP();
+	long long pos = DPOP();
 	int offs = (int)pos;
 	int whence = SEEK_SET;
 	int ret;
@@ -437,7 +437,7 @@ hfs_files_get_path( hfs_info_t *mi )
 	hfsvol *vol = hfs_getvol( NULL );
 	hfsdirent ent;
 	int start, ns;
-	ulong id;
+	unsigned long id;
 
 	if (common->type != FILE)
 		RET( 0 );
@@ -542,7 +542,7 @@ static void
 hfs_files_probe( hfs_info_t *dummy )
 {
 	ihandle_t ih = POP_ih();
-	llong offs = DPOP(); 
+	long long offs = DPOP();
 	int fd, ret = 0;
 
 	fd = open_ih(ih);

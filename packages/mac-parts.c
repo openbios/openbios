@@ -35,7 +35,7 @@ typedef struct {
 	xt_t		seek_xt, read_xt;
 	ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
-	uint		blocksize;
+	unsigned int	blocksize;
 	phandle_t	filesystem_ph;
 } macparts_info_t;
 
@@ -144,10 +144,10 @@ macparts_open( macparts_info_t *di )
 
 	if (str == NULL || parnum == 0) {
 		/* According to the spec, partition 0 as well as no arguments means the whole disk */
-		offs = (llong)0;
-		size = (llong)__be32_to_cpu(dmap.sbBlkCount) * bs;	
+		offs = (long long)0;
+		size = (long long)__be32_to_cpu(dmap.sbBlkCount) * bs;
 
-		di->blocksize = (uint)bs;
+		di->blocksize = (unsigned int)bs;
 
 		di->offs_hi = offs >> BITS;
 		di->offs_lo = offs & (ucell) -1;
@@ -177,8 +177,8 @@ macparts_open( macparts_info_t *di )
 				if( (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
 				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
 				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
-					offs = (llong)__be32_to_cpu(par.pmPyPartStart) * bs;
-					size = (llong)__be32_to_cpu(par.pmPartBlkCnt) * bs;
+					offs = (long long)__be32_to_cpu(par.pmPyPartStart) * bs;
+					size = (long long)__be32_to_cpu(par.pmPartBlkCnt) * bs;
 	
 					goto found;
 				}
@@ -194,8 +194,8 @@ macparts_open( macparts_info_t *di )
 			    (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
 			    (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
 
-			offs = (llong)__be32_to_cpu(par.pmPyPartStart) * bs;
-			size = (llong)__be32_to_cpu(par.pmPartBlkCnt) * bs;
+			offs = (long long)__be32_to_cpu(par.pmPyPartStart) * bs;
+			size = (long long)__be32_to_cpu(par.pmPartBlkCnt) * bs;
 		}
 	}
 
@@ -209,12 +209,12 @@ found:
 
 	/* If the filename was set to %BOOT, we actually want the bootcode instead */
 	if (want_bootcode) {
-		offs += (llong)__be32_to_cpu(par.pmLgBootStart) * bs;
-		size = (llong)__be32_to_cpu(par.pmBootSize);
+		offs += (long long)__be32_to_cpu(par.pmLgBootStart) * bs;
+		size = (long long)__be32_to_cpu(par.pmBootSize);
 	}
 
 	ret = -1;
-	di->blocksize = (uint)bs;
+	di->blocksize = (unsigned int)bs;
 
 	di->offs_hi = offs >> BITS;
 	di->offs_lo = offs & (ucell) -1;
@@ -293,8 +293,8 @@ macparts_initialize( macparts_info_t *di )
 static void
 macparts_seek(macparts_info_t *di )
 {
-	llong pos = DPOP();
-	llong offs, size;
+	long long pos = DPOP();
+	long long offs, size;
 
 	DPRINTF("macparts_seek %llx:\n", pos);
 

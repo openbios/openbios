@@ -73,7 +73,7 @@ static inline btree* volume_get_extents_tree(volume* vol) {
 }
 
 /* Determine whether the volume is a HFS-plus volume */
-int volume_probe(int fd, llong offset);
+int volume_probe(int fd, long long offset);
 
 #ifdef DEBUG
     /* Print raw fork information to stdout */
