@@ -8,6 +8,16 @@
 	.text
 	.align	4
 
+#define STACKFRAME_SZ     0x60
+
+/* These are just handy. */
+#define _SV	save	%sp, -STACKFRAME_SZ, %sp
+#define _RS     restore
+
+#define FLUSH_ALL_KERNEL_WINDOWS \
+	_SV; _SV; _SV; _SV; _SV; _SV; _SV; \
+	_RS; _RS; _RS; _RS; _RS; _RS; _RS;
+
 /*
  * Switch execution context
  * This saves registers in the stack, then
@@ -18,45 +28,48 @@
  * this routine to get back to the original context.
  */
 
-/* XXX: totally bogus for sparc, need to save and restore all windows */
 __switch_context:
-	/* Save everything in current stack */
-	set	__context, %g1
-        st      %g2, [%g1 + 8]
-        st      %g3, [%g1 + 12]
-        st      %g4, [%g1 + 16]
-        st      %g5, [%g1 + 20]
-        st      %g6, [%g1 + 24]
-        st      %g7, [%g1 + 28]
+        FLUSH_ALL_KERNEL_WINDOWS
+	/* Save everything in stack */
+        st      %fp, [%fp + 120 -144]
+        add     %fp, -144, %fp
+        st      %g1, [%fp + 4]
+        st      %g2, [%fp + 8]
+        st      %g3, [%fp + 12]
+        st      %g4, [%fp + 16]
+        st      %g5, [%fp + 20]
+        st      %g6, [%fp + 24]
+        st      %g7, [%fp + 28]
 
-        st      %o0, [%g1 + 32]
-        st      %o1, [%g1 + 36]
-        st      %o2, [%g1 + 40]
-        st      %o3, [%g1 + 44]
-        st      %o4, [%g1 + 48]
-        st      %o5, [%g1 + 52]
-        st      %o6, [%g1 + 56]
-        st      %o7, [%g1 + 60]
+        st      %o0, [%fp + 32]
+        st      %o1, [%fp + 36]
+        st      %o2, [%fp + 40]
+        st      %o3, [%fp + 44]
+        st      %o4, [%fp + 48]
+        st      %o5, [%fp + 52]
+        st      %sp, [%fp + 56]
+        st      %o7, [%fp + 60]
 
-        st      %l0, [%g1 + 64]
-        st      %l1, [%g1 + 68]
-        st      %l2, [%g1 + 72]
-        st      %l3, [%g1 + 76]
-        st      %l4, [%g1 + 80]
-        st      %l5, [%g1 + 84]
-        st      %l6, [%g1 + 88]
-        st      %l7, [%g1 + 92]
+        st      %l0, [%fp + 64]
+        st      %l1, [%fp + 68]
+        st      %l2, [%fp + 72]
+        st      %l3, [%fp + 76]
+        st      %l4, [%fp + 80]
+        st      %l5, [%fp + 84]
+        st      %l6, [%fp + 88]
+        st      %l7, [%fp + 92]
 
-        st      %i0, [%g1 + 96]
-        st      %i1, [%g1 + 100]
-        st      %i2, [%g1 + 104]
-        st      %i3, [%g1 + 108]
-        st      %i4, [%g1 + 112]
-        st      %i5, [%g1 + 116]
-        st      %i6, [%g1 + 120]
-        st      %i7, [%g1 + 124]
+        st      %i0, [%fp + 96]
+        st      %i1, [%fp + 100]
+        st      %i2, [%fp + 104]
+        st      %i3, [%fp + 108]
+        st      %i4, [%fp + 112]
+        st      %i5, [%fp + 116]
+        st      %i7, [%fp + 124]
 
-__switch_context_nosave:
+        /* ctx->return_address:  Return to caller */
+        st      %o7, [%fp + 128]
+
 	/* Interrupts are not allowed... */
 
 	/* Turn on Supervisor, EnableFloating, and all the PIL bits.
@@ -67,49 +80,62 @@ __switch_context_nosave:
 	wr	%g2, 0x0, %psr
 #endif
 
-	/* Load all registers
-	 */
+__switch_context_nosave:
 	set	__context, %g1
-        ld      [%g1], %g1
-        ld      [%g1 + 8], %g2
-        ld      [%g1 + 12], %g3
-        ld      [%g1 + 16], %g4
-        ld      [%g1 + 20], %g5
-        ld      [%g1 + 24], %g6
-        ld      [%g1 + 28], %g7
+        /* Swap ctx pointer with %fp */
+        swap      [%g1], %fp
+	/* Load all registers */
+        /* offset 0: %g0, no need to load */
+        ld      [%fp + 4], %g1
+        ld      [%fp + 8], %g2
+        ld      [%fp + 12], %g3
+        ld      [%fp + 16], %g4
+        ld      [%fp + 20], %g5
+        ld      [%fp + 24], %g6
+        ld      [%fp + 28], %g7
 
-        ld      [%g1 + 32], %o0
-        ld      [%g1 + 36], %o1
-        ld      [%g1 + 40], %o2
-        ld      [%g1 + 44], %o3
-        ld      [%g1 + 48], %o4
-        ld      [%g1 + 52], %o5
-        ld      [%g1 + 56], %o6
-        ld      [%g1 + 60], %o7
+        /* offset 32: %o0, loaded from ctx->param */
+        ld      [%fp + 36], %o1
+        ld      [%fp + 40], %o2
+        ld      [%fp + 44], %o3
+        ld      [%fp + 48], %o4
+        ld      [%fp + 52], %o5
+        ld      [%fp + 56], %sp
+        /* offset 60: %o7, loaded from ctx->return_addr */
 
-        ld      [%g1 + 64], %l0
-        ld      [%g1 + 68], %l1
-        ld      [%g1 + 72], %l2
-        ld      [%g1 + 76], %l3
-        ld      [%g1 + 80], %l4
-        ld      [%g1 + 84], %l5
-        ld      [%g1 + 88], %l6
-        ld      [%g1 + 92], %l7
+        ld      [%fp + 64], %l0
+        ld      [%fp + 68], %l1
+        ld      [%fp + 72], %l2
+        ld      [%fp + 76], %l3
+        ld      [%fp + 80], %l4
+        ld      [%fp + 84], %l5
+        ld      [%fp + 88], %l6
+        ld      [%fp + 92], %l7
 
-        ld      [%g1 + 96], %i0
-        ld      [%g1 + 100], %i1
-        ld      [%g1 + 104], %i2
-        ld      [%g1 + 108], %i3
-        ld      [%g1 + 112], %i4
-        ld      [%g1 + 116], %i5
-        ld      [%g1 + 120], %i6
-        ld      [%g1 + 124], %i7
+        ld      [%fp + 96], %i0
+        ld      [%fp + 100], %i1
+        ld      [%fp + 104], %i2
+        ld      [%fp + 108], %i3
+        ld      [%fp + 112], %i4
+        ld      [%fp + 116], %i5
+        ld      [%fp + 124], %i7
 
-        ld      [%g1 + 128], %g1
-       	/* Finally, load new %pc */
+        /* ctx->return_addr */
+        ld      [%fp + 136], %o7
+
+        /* ctx->param */
+        ld      [%fp + 140], %o0
+
+        /* ctx->pc, save %g1 to %y and load to %g1 */
+        mov     %g1, %y
+        ld      [%fp + 128], %g1
+        /* %fp last */
+        ld      [%fp + 120], %fp
+        /* Finally, get the new %pc from %g1 and restore %g1*/
         jmp     %g1
-         clr    %g1
+         mov    %y, %g1
 
+        FLUSH_ALL_KERNEL_WINDOWS
 __exit_context:
 	/* Get back to the original context */
 	call	__switch_context

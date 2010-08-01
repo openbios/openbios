@@ -83,14 +83,24 @@ init_context(uint8_t *stack, uint32_t stack_size, int num_params)
 /* Switch to another context. */
 struct context *switch_to(struct context *ctx)
 {
-    struct context *save, *ret;
+    volatile struct context *save;
+    struct context *ret;
 
     debug("switching to new context:\n");
     save = __context;
     __context = ctx;
-    //asm ("pushl %cs; call __switch_context");
+    asm __volatile__ ("\n\tcall __switch_context"
+                      "\n\tnop" ::: "g1", "g2", "g3", "g4", "g5", "g6", "g7",
+                      "o0", "o1", "o2", "o3", "o4", "o5", "sp", "o7",
+                      "l0", "l1", "l2", "l3", "l4", "l5", "l6", "l7",
+                      "i0", "i1", "i2", "i3", "i4", "i5", "i7",
+                      "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9",
+                      "f10", "f11", "f12", "f13", "f14", "f15", "f16", "f17", "f18", "f19",
+                      "f20", "f21", "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29",
+                      "f30", "f31",
+                      "memory");
     ret = __context;
-    __context = save;
+    __context = (struct context *)save;
     return ret;
 }
 
@@ -102,10 +112,7 @@ unsigned int start_elf(unsigned long entry_point, unsigned long param)
     ctx = init_context(image_stack, sizeof image_stack, 1);
     ctx->pc = entry_point;
     ctx->param[0] = param;
-    //ctx->eax = 0xe1fb007;
-    //ctx->ebx = param;
 
     ctx = switch_to(ctx);
-    //return ctx->eax;
-    return 0;
+    return ctx->regs[REG_O0];
 }

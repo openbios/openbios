@@ -15,6 +15,7 @@
 #include "libopenbios/forth_load.h"
 #include "openprom.h"
 #include "boot.h"
+#include "context.h"
 
 uint32_t kernel_image;
 uint32_t kernel_size;
@@ -22,8 +23,6 @@ uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;
 static const void *romvec;
-static int (*entry)(const void *romvec_ptr, int p2, int p3, int p4, int p5);
-
 
 static int try_path(const char *path, char *param)
 {
@@ -107,22 +106,22 @@ void go(void)
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
-			entry = (void *) address;
-			image_retval = entry(romvec, 0, 0, 0, 0);
+			image_retval = start_elf((unsigned long)address,
+                                                 (unsigned long)romvec);
 
 			break;
 
 		case 0x1:
 			/* Start ELF image */
-			entry = (void *) address;
-			image_retval = entry(romvec, 0, 0, 0, 0);
+			image_retval = start_elf((unsigned long)address,
+                                                 (unsigned long)romvec);
 
 			break;
 
 		case 0x5:
 			/* Start a.out image */
-			entry = (void *) address;
-			image_retval = entry(romvec, 0, 0, 0, 0);
+			image_retval = start_elf((unsigned long)address,
+                                                 (unsigned long)romvec);
 
 			break;
 
@@ -211,8 +210,7 @@ void boot(void)
 
         if (kernel_size) {
             printk("[sparc] Kernel already loaded\n");
-            entry = (void *) kernel_image;
-            entry(romvec, 0, 0, 0, 0);
+            start_elf(kernel_image, (unsigned long)romvec);
         }
 
 	printk("[sparc] Booting file '%s' ", path);
