@@ -14,7 +14,6 @@
 #include "libopenbios/forth_load.h"
 #include "boot.h"
 
-struct sys_info sys_info;
 uint64_t kernel_image;
 uint64_t kernel_size;
 uint64_t qemu_cmdline;

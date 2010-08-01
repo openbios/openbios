@@ -52,7 +52,6 @@ arch_init( void )
 
 int openbios(void)
 {
-	extern struct sys_info sys_info;
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);

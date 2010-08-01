@@ -18,7 +18,6 @@
 #include "libopenbios/forth_load.h"
 #include "boot.h"
 
-struct sys_info sys_info;
 void *boot_notes = NULL;
 
 static int try_path(const char *path, char *param)

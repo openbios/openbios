@@ -16,7 +16,6 @@
 #include "openprom.h"
 #include "boot.h"
 
-struct sys_info sys_info;
 uint32_t kernel_image;
 uint32_t kernel_size;
 uint32_t qemu_cmdline;

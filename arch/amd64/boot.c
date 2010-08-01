@@ -14,8 +14,6 @@ int linux_load(struct sys_info *, const char *filename, const char *cmdline);
 
 void boot(void);
 
-struct sys_info sys_info;
-
 void boot(void)
 {
 	char *path=pop_fstr_copy(), *param;

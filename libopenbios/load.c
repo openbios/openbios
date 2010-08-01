@@ -33,6 +33,8 @@
 #endif
 
 
+struct sys_info sys_info;
+
 void load(ihandle_t dev)
 {
 	/* Invoke the loaders on the specified device */
