@@ -374,7 +374,6 @@ void arch_nvram_get(char *data)
 {
     uint32_t size = 0;
     const struct cpudef *cpu;
-    const char *bootpath;
     char buf[256];
     uint32_t temp;
     uint64_t ram_size;
@@ -492,33 +491,14 @@ void arch_nvram_get(char *data)
     push_str("boot-device");
     fword("property");
 
+    push_str(obio_cmdline);
+    fword("encode-string");
+    push_str("boot-file");
+    fword("property");
+
     /* Set up other properties */
     push_str("/chosen");
     fword("find-device");
-
-    if (boot_device == 'c')
-        bootpath = "disk:a";
-    else
-        bootpath = "cdrom:a";
-    push_str(bootpath);
-    fword("encode-string");
-    push_str("bootpath");
-    fword("property");
-
-    /* bootpath/bootargs should be set to NVRAM default */
-    fword("boot-device");
-    fword("encode-string");
-    push_str("bootpath");
-    fword("property");
-    fword("boot-args");
-    fword("encode-string");
-    push_str("bootargs");
-    fword("property");
-
-    push_str(obio_cmdline);
-    fword("encode-string");
-    push_str("bootargs");
-    fword("property");
 
     if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
         stdin_path = stdout_path = "ttya";

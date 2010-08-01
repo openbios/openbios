@@ -58,24 +58,55 @@ variable file-size
 : (encode-bootpath) ( "{params}<cr>" -- bootpath-str bootpath-len)
   \ Parse the current input buffer of a load/boot command and set both
   \ the bootargs and bootpath properties as appropriate.
-  bl parse dup if
-    2dup encode-string
-    " /chosen" (find-dev) if
-      " bootpath" rot (property)
-    then
-  then
-  linefeed parse dup if
-    encode-string
-    " /chosen" (find-dev) if
-      " bootargs" rot (property)
-    then
-  else
+  cr
+
+  \ bootpath
+  bl parse dup 0= if
+
+    \ None specified. As per IEEE-1275 specification, search through each value
+    \ in boot-device and use the first that returns a valid ihandle on open.
+    s" boot-device" $find drop execute 
+    bl left-split
+    begin 
+      dup 
+    while
+      2dup s" Trying " type type s" ..." type cr
+      2dup open-dev ?dup if
+        close-dev
+	2swap drop 0	\ Fake end of string so we exit loop
+      else
+        2drop
+        bl left-split
+      then
+    repeat
     2drop
+  else
+    0 0 2swap		\ Fake (empty) parse string
   then
+
+  \ Set the bootpath property
+  2dup encode-string
+  " /chosen" (find-dev) if
+    " bootpath" rot (property)
+  then
+
+  \ bootargs
+  linefeed parse dup 0= if
+    \ None specified, use default from nvram
+    2drop s" boot-file" $find drop execute
+  then
+
+  \ Set the bootargs property
+  encode-string
+  " /chosen" (find-dev) if
+    " bootargs" rot (property)
+  then
+
+  \ Remove the remaining string
+  2swap 2drop
 ;
 
-: load    ( "{params}<cr>" -- )
-  (encode-bootpath)
+: $load ( devstr len )
   open-dev ( ihandle )
   dup 0= if
     drop
@@ -88,6 +119,11 @@ variable file-size
   r> close-dev
   init-program
   ;
+
+: load    ( "{params}<cr>" -- )
+  (encode-bootpath)
+  $load
+;
 
 : dir ( "{paths}<cr>" -- )
   linefeed parse

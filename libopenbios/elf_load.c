@@ -368,7 +368,7 @@ elf_readhdrs(int offset, Elf_ehdr *ehdr)
 }
 
 int 
-elf_load(struct sys_info *info, const char *filename, const char *cmdline, void **boot_notes)
+elf_load(struct sys_info *info, ihandle_t dev, const char *cmdline, void **boot_notes)
 {
     Elf_ehdr ehdr;
     Elf_phdr *phdr = NULL;
@@ -382,7 +382,7 @@ elf_load(struct sys_info *info, const char *filename, const char *cmdline, void 
     /* Mark the saved-program-state as invalid */
     feval("0 state-valid !");
 
-    fd = open_io(filename);
+    fd = open_ih(dev);
     if (!fd)
 	goto out;
 

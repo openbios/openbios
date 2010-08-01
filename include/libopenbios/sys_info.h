@@ -22,6 +22,7 @@ struct sys_info {
     unsigned long *dict_end;
 };
 
+extern void *elf_boot_notes;
 extern struct sys_info sys_info;
 
 void collect_elfboot_info(struct sys_info *info);

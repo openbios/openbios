@@ -21,7 +21,7 @@
 #include "asm/elf.h"
 #include "libopenbios/sys_info.h"
 
-extern int 		elf_load(struct sys_info *info, const char *filename, const char *cmdline, void **boot_notes);
+extern int 		elf_load(struct sys_info *info, ihandle_t dev, const char *cmdline, void **boot_notes);
 extern void 		elf_init_program(void);
 extern int		is_elf(Elf_ehdr *ehdr);
 extern int		find_elf(Elf_ehdr *ehdr);

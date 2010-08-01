@@ -527,7 +527,7 @@ arch_of_init( void )
 	uint64_t ram_size;
         const struct cpudef *cpu;
         char buf[64], qemu_uuid[16];
-        const char *stdin_path, *stdout_path;
+        const char *stdin_path, *stdout_path, *boot_path;
         uint32_t temp = 0;
 
     ofmem_t *ofmem = ofmem_arch_get_private();
@@ -721,14 +721,17 @@ arch_of_init( void )
 	uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
 	switch (boot_device) {
 		case 'c':
-			push_str("hd:");
+			boot_path = "hd";
 			break;
 		default:
 		case 'd':
-			push_str("cd:");
+			boot_path = "cd";
 			break;
 	}
 
+	/* Setup default boot devices */
+	snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt", boot_path, boot_path);
+	push_str(buf);
 	fword("encode-string");
 	push_str("boot-device");
 	fword("property");
@@ -736,16 +739,6 @@ arch_of_init( void )
 	/* Set up other properties */
         push_str("/chosen");
         fword("find-device");
-
-	/* bootpath/bootargs should be set to NVRAM default */
-	fword("boot-device");
-	fword("encode-string");
-	push_str("bootpath");
-	fword("property");
-	fword("boot-args");
-	fword("encode-string");
-	push_str("bootargs");
-	fword("property");
 
         push_str(stdin_path);
         fword("open-dev");

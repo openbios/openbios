@@ -20,6 +20,10 @@
 #include "libopenbios/sys_info.h"
 #include "libopenbios/load.h"
 
+#ifdef CONFIG_LOADER_ELF
+#include "libopenbios/elf_load.h"
+#endif
+
 #ifdef CONFIG_LOADER_AOUT
 #include "libopenbios/aout_load.h"
 #endif
@@ -38,6 +42,21 @@ struct sys_info sys_info;
 void load(ihandle_t dev)
 {
 	/* Invoke the loaders on the specified device */
+	char *param;
+
+#ifdef CONFIG_LOADER_ELF
+
+	/* Grab the boot arguments */
+	push_str("bootargs");
+	push_str("/chosen");
+	fword("(find-dev)");
+	POP();
+	fword("get-package-property");
+	POP();
+	param = pop_fstr_copy();
+
+	elf_load(&sys_info, dev, param, &elf_boot_notes);
+#endif
 
 #ifdef CONFIG_LOADER_AOUT
 	aout_load(&sys_info, dev);

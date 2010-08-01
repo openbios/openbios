@@ -618,6 +618,12 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline)
 	return LOADER_NOT_SUPPORT;
     }
 
+    debug("[sparc64] Booting kernel '%s' ", file);
+    if (cmdline)
+        debug("with parameters '%s'\n", cmdline);
+    else
+        debug("without parameters.\n");
+
     params = phys_to_virt(LINUX_PARAM_LOC);
     init_linux_params(params, &hdr);
     set_memory_size(params, info);

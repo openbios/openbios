@@ -12,71 +12,9 @@
 #include "arch/common/nvram.h"
 #include "libc/diskio.h"
 #include "libopenbios/sys_info.h"
-#include "libopenbios/elf_load.h"
-#include "libopenbios/aout_load.h"
-#include "libopenbios/fcode_load.h"
-#include "libopenbios/forth_load.h"
 #include "boot.h"
 
-void *boot_notes = NULL;
-
-static int try_path(const char *path, char *param)
-{
-	ucell valid;
-	ihandle_t dev;
-
-	/* Open device used by this path */
-	dev = open_dev(path);
-
-#ifdef CONFIG_LOADER_ELF
-	/* ELF Boot loader */
-	elf_load(&sys_info, path, param, &boot_notes);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-	/* Linux loader (not using Forth) */
-	linux_load(&sys_info, path, param);
-
-#ifdef CONFIG_LOADER_AOUT
-	/* a.out loader */
-	aout_load(&sys_info, dev);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-#ifdef CONFIG_LOADER_FCODE
-	/* Fcode loader */
-	fcode_load(dev);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-#ifdef CONFIG_LOADER_FORTH
-	/* Forth loader */
-	forth_load(dev);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-	close_dev(dev);
-
-	return 0;
-
-
-start_image:
-	go();
-	return -1;
-}
-
+void *elf_boot_notes = NULL;
 
 void go(void)
 {
@@ -133,24 +71,6 @@ void go(void)
 
 void boot(void)
 {
-	char *path=pop_fstr_copy(), *param;
-
-	if(!path) {
-		printk("[x86] Booting default not supported.\n");
-		return;
-	}
-
-	param = strchr(path, ' ');
-	if(param) {
-		*param = '\0';
-		param++;
-	}
-
-	printk("[x86] Booting file '%s' with parameters '%s'\n",path, param);
-
-	try_path(path, param);
-
-	printk("Unsupported image format\n");
-
-	free(path);
+	/* No platform-specific boot code */
+	return;
 }

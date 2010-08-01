@@ -133,6 +133,9 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
+	static char cmdline[128];
+	int size;
+
 	openbios_init();
 	modules_init();
         ob_init_mmu();
@@ -151,23 +154,57 @@ arch_init( void )
 #endif
 	device_end();
 
+	kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
+	if (kernel_size)
+		kernel_image = fw_cfg_read_i32(FW_CFG_KERNEL_ADDR);
+
+	size = fw_cfg_read_i32(FW_CFG_CMDLINE_SIZE);
+	if (size) {
+		fw_cfg_read(FW_CFG_CMDLINE_DATA, cmdline, size);
+	}
+	cmdline[size] = '\0';
+	qemu_cmdline = (uint32_t)cmdline;
+
+	boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
+
+	/* Initialiase openprom romvec */
+        romvec = init_openprom();
+
+	/* Setup nvram variables */
+	push_str("/options");
+	fword("find-device");
+
+	switch (boot_device) {
+	case 'a':
+		push_str("floppy");
+		break;
+	case 'c':
+		push_str("disk");
+		break;
+	default:
+	case 'd':
+		push_str("cdrom");
+		break;
+	case 'n':
+		push_str("net");
+		break;
+	}
+
+	fword("encode-string");
+	push_str("boot-device");
+	fword("property");
+
+	push_str("");
+	fword("encode-string");
+	push_str("boot-file");
+	fword("property");
+
 	/* Set up other properties */
         push_str("/chosen");
         fword("find-device");
 
-	/* bootpath/bootargs should be set to NVRAM default */
-	fword("boot-device");
-	fword("encode-string");
-	push_str("bootpath");
-	fword("property");
-	fword("boot-args");
-	fword("encode-string");
-	push_str("bootargs");
-	fword("property");
-
-	boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
-
 	bind_func("platform-boot", boot );
+	bind_func("(go)", go );
 }
 
 int openbios(void)

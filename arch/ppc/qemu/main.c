@@ -39,16 +39,9 @@
 #define ELF_DPRINTF(fmt, args...) SUBSYS_DPRINTF("ELF", fmt, ##args)
 #define NEWWORLD_DPRINTF(fmt, args...) SUBSYS_DPRINTF("NEWWORLD", fmt, ##args)
 
-static void
-load(const char *path, const char *param)
-{
-	char buffer[1024];
-	if (param)
-		sprintf(buffer, "load %s %s", path, param);
-	else
-		sprintf(buffer, "load %s", path);
-	feval(buffer);
-}
+struct sys_info sys_info;
+void *elf_boot_notes = NULL;
+
 
 static char *
 get_device( const char *path )
@@ -115,6 +108,7 @@ get_filename( const char * path , char **dirname)
 	return filename;
 }
 
+
 static void
 encode_bootpath( const char *spec, const char *args )
 {
@@ -123,6 +117,9 @@ encode_bootpath( const char *spec, const char *args )
 	char *filename, *directory;
 	int partition;
 
+	if (spec)
+		return;
+	
 	filename = get_filename(spec, &directory);
 	partition = get_partition(spec);
 	if (partition == -1)
@@ -136,28 +133,6 @@ encode_bootpath( const char *spec, const char *args )
 	set_property( chosen_ph, "bootpath", path, strlen(path)+1 );
 	if (args)
 		set_property( chosen_ph, "bootargs", args, strlen(args)+1 );
-}
-
-/************************************************************************/
-/*	qemu booting							*/
-/************************************************************************/
-static void
-try_path(const char *device, const char* filename, const char *param)
-{
-    char path[1024];
-
-    if (filename)
-        snprintf(path, sizeof(path), "%s%s", device, filename);
-    else
-        snprintf(path, sizeof(path), "%s", device);
-
-    ELF_DPRINTF("Trying %s %s\n", path, param);
-
-    load(path, param);
-    update_nvram();
-    ELF_DPRINTF("Transfering control to %s %s\n",
-                path, param);
-    feval("go");
 }
 
 #define OLDWORLD_BOOTCODE_BASEADDR	(0x3f4000)
@@ -203,46 +178,6 @@ oldworld_boot( void )
         return;
 }
 
-static void
-newworld_boot( void )
-{
-        static const char * const chrp_path[] = { "\\\\:tbxi",
-						  "ppc\\bootinfo.txt",
-						  NULL
-						  };
-        char *path = pop_fstr_copy(), *param;
-	int i;
-
-	param = strchr(path, ' ');
-	if (param) {
-		*param = 0;
-		param++;
-	}
-
-        if (!path) {
-            NEWWORLD_DPRINTF("Entering boot, no path\n");
-
-            /* No path specified, so grab defaults from /chosen */
-            push_str("bootpath");
-	    push_str("/chosen");
-            fword("(find-dev)");
-            POP();
-            fword("get-package-property");
-            POP();
-            path = pop_fstr_copy();
-
-            for (i = 0; chrp_path[i]; i++)
-		try_path(path, chrp_path[i], param);
-
-        } else {
-            NEWWORLD_DPRINTF("Entering boot, path %s\n", path);
-	    try_path(path, NULL, param);
-            for (i = 0; chrp_path[i]; i++)
-	        try_path(path, chrp_path[i], param);
-        }
-	printk("*** Boot failure! No secondary bootloader specified ***\n");
-}
-
 static void check_preloaded_kernel(void)
 {
     unsigned long kernel_image, kernel_size;
@@ -281,8 +216,10 @@ boot( void )
 	if (boot_device == 'm') {
 	        check_preloaded_kernel();
 	}
+
 	if (boot_device == 'c') {
 		oldworld_boot();
 	}
-	newworld_boot();
+
+	update_nvram();
 }

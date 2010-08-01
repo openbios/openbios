@@ -30,6 +30,7 @@ void cls(void);
 
 // romvec.c
 extern struct linux_arguments_v0 obp_arg;
+extern const void *romvec;
 
 // openbios.c
 extern int qemu_machine_type;

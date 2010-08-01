@@ -8,10 +8,6 @@
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "libopenbios/sys_info.h"
-#include "libopenbios/elf_load.h"
-#include "libopenbios/aout_load.h"
-#include "libopenbios/fcode_load.h"
-#include "libopenbios/forth_load.h"
 #include "boot.h"
 
 uint64_t kernel_image;
@@ -19,66 +15,8 @@ uint64_t kernel_size;
 uint64_t qemu_cmdline;
 uint64_t cmdline_size;
 char boot_device;
-void *boot_notes = NULL;
+void *elf_boot_notes = NULL;
 extern int sparc64_of_client_interface( int *params );
-
-
-static int try_path(const char *path, char *param)
-{
-	ucell valid;
-	ihandle_t dev;
-
-	/* Open device used by this path */
-	dev = open_dev(path);
-
-#ifdef CONFIG_LOADER_ELF
-	/* ELF Boot loader */
-	elf_load(&sys_info, path, param, &boot_notes);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-	/* Linux loader (not using Forth) */
-	linux_load(&sys_info, path, param);
-
-#ifdef CONFIG_LOADER_AOUT
-	/* a.out loader */
-	aout_load(&sys_info, dev);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-#ifdef CONFIG_LOADER_FCODE
-	/* Fcode loader */
-	fcode_load(dev);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-#ifdef CONFIG_LOADER_FORTH
-	/* Forth loader */
-	forth_load(dev);
-	feval("state-valid @");
-	valid = POP();
-	if (valid)
-		goto start_image;
-#endif
-
-	close_dev(dev);
-
-	return 0;
-
-
-start_image:
-	go();
-	return -1;
-}
 
 
 void go(void)
@@ -99,7 +37,7 @@ void go(void)
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
-			image_retval = start_elf(address, (uint64_t)&boot_notes);
+			image_retval = start_elf(address, (uint64_t)&elf_boot_notes);
 			break;
 
 		case 0x1:
@@ -136,19 +74,23 @@ void go(void)
 
 void boot(void)
 {
-	char *path=pop_fstr_copy(), *param;
-        char altpath[256];
-	int result;
+	char *path, *param;
 
+	/* Copy the incoming path */
+	fword("2dup");
+	path = pop_fstr_copy();
+
+	/* Boot preloaded kernel */
         if (kernel_size) {
             void (*entry)(unsigned long p1, unsigned long p2, unsigned long p3,
-                          unsigned long p4, unsigned long p5);;
+                          unsigned long p4, unsigned long p5);
 
             printk("[sparc64] Kernel already loaded\n");
             entry = (void *) (unsigned long)kernel_image;
             entry(0, 0, 0, 0, (unsigned long)&sparc64_of_client_interface);
         }
 
+	/* Invoke Linux directly -- probably not supported */
 	if(!path) {
             /* No path specified, so grab defaults from /chosen */
             push_str("bootpath");
@@ -175,20 +117,9 @@ void boot(void)
             POP();
             param = pop_fstr_copy();
         }
-
-	printk("[sparc64] Booting file '%s' ", path);
-	if (param)
-		printk("with parameters '%s'\n", param);
-	else
-		printk("without parameters.\n");
-
-	result = try_path(path, param);
-	if (!result) {
-		snprintf(altpath, sizeof(altpath), "%s:f", path);
-		try_path(altpath, param);
-	}
-
-	printk("Unsupported image format\n");
+	
+	/* Invoke platform-specific Linux loader */
+	linux_load(&sys_info, path, param);
 
 	free(path);
 }
