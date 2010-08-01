@@ -15,7 +15,7 @@ uint64_t kernel_size;
 uint64_t qemu_cmdline;
 uint64_t cmdline_size;
 char boot_device;
-void *elf_boot_notes = NULL;
+
 extern int sparc64_of_client_interface( int *params );
 
 

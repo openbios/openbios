@@ -18,7 +18,6 @@ uint32_t kernel_size;
 uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;
-void *elf_boot_notes = NULL;
 const void *romvec;
 
 void go(void)

@@ -38,6 +38,7 @@
 
 
 struct sys_info sys_info;
+void *elf_boot_notes = NULL;
 
 void load(ihandle_t dev)
 {

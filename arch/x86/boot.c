@@ -14,8 +14,6 @@
 #include "libopenbios/sys_info.h"
 #include "boot.h"
 
-void *elf_boot_notes = NULL;
-
 void go(void)
 {
 	ucell address, type, size;

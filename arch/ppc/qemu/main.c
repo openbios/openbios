@@ -39,10 +39,6 @@
 #define ELF_DPRINTF(fmt, args...) SUBSYS_DPRINTF("ELF", fmt, ##args)
 #define NEWWORLD_DPRINTF(fmt, args...) SUBSYS_DPRINTF("NEWWORLD", fmt, ##args)
 
-struct sys_info sys_info;
-void *elf_boot_notes = NULL;
-
-
 static char *
 get_device( const char *path )
 {
