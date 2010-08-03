@@ -38,12 +38,6 @@
  */
 #define SUN4M_NCPU      4
 
-/* The kernel may want to examine the arguments, so hold a copy in OBP's
- * mapped memory.
- */
-#define OBIO_CMDLINE_MAX 256
-static char obio_cmdline[OBIO_CMDLINE_MAX];
-
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_obio, INSTALL_OPEN, sizeof(int) );
 
@@ -651,14 +645,12 @@ ob_nvram_init(uint64_t base, uint64_t offset)
     const char *stdin, *stdout;
     unsigned int i;
     char nographic;
-    uint32_t size = 0;
     uint16_t machine_id;
     const struct cpudef *cpu;
     const struct machdef *mach;
     char buf[256];
     uint32_t temp;
     phandle_t chosen;
-    const char *kernel_cmdline;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -690,21 +682,6 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         printk("Incompatible configuration device version, freezing\n");
         for(;;);
     }
-
-    kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
-    if (kernel_size)
-        kernel_image = fw_cfg_read_i32(FW_CFG_KERNEL_ADDR);
-    kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
-    if (kernel_cmdline) {
-        size = strlen(kernel_cmdline);
-        if (size > OBIO_CMDLINE_MAX - 1)
-            size = OBIO_CMDLINE_MAX - 1;
-        memcpy(&obio_cmdline, kernel_cmdline, size);
-    }
-    obio_cmdline[size] = '\0';
-    qemu_cmdline = (uint32_t) &obio_cmdline;
-    cmdline_size = size;
-    boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
 
     fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
     graphic_depth = fw_cfg_read_i16(FW_CFG_SUN4M_DEPTH);

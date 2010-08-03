@@ -20,6 +20,7 @@
 #include "libopenbios/sys_info.h"
 #include "openbios.h"
 #include "boot.h"
+#include "openprom.h"
 #include "packages/video.h"
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
@@ -134,7 +135,8 @@ static void
 arch_init( void )
 {
 	static char cmdline[128];
-	int size;
+        int size = 0;
+        const char *kernel_cmdline;
 
 	openbios_init();
 	modules_init();
@@ -154,25 +156,31 @@ arch_init( void )
 #endif
 	device_end();
 
+	/* Initialiase openprom romvec */
+        romvec = init_openprom();
+
 	kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
 	if (kernel_size)
 		kernel_image = fw_cfg_read_i32(FW_CFG_KERNEL_ADDR);
 
-	size = fw_cfg_read_i32(FW_CFG_CMDLINE_SIZE);
-	if (size) {
-		fw_cfg_read(FW_CFG_CMDLINE_DATA, cmdline, size);
-	}
+        kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
+        if (kernel_cmdline) {
+            size = strlen(kernel_cmdline);
+            memcpy(cmdline, kernel_cmdline, size);
+            obp_arg.argv[1] = cmdline;
+        }
 	cmdline[size] = '\0';
 	qemu_cmdline = (uint32_t)cmdline;
 
+        /* Setup nvram variables */
+        push_str("/options");
+        fword("find-device");
+        push_str(cmdline);
+        fword("encode-string");
+        push_str("boot-file");
+        fword("property");
+
 	boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
-
-	/* Initialiase openprom romvec */
-        romvec = init_openprom();
-
-	/* Setup nvram variables */
-	push_str("/options");
-	fword("find-device");
 
 	switch (boot_device) {
 	case 'a':
@@ -192,11 +200,6 @@ arch_init( void )
 
 	fword("encode-string");
 	push_str("boot-device");
-	fword("property");
-
-	push_str("");
-	fword("encode-string");
-	push_str("boot-file");
 	fword("property");
 
 	/* Set up other properties */
