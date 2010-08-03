@@ -48,9 +48,12 @@ void go(void)
 	strncpy(bootargsbuf, prop, proplen);	
 
 	/* Set bootpath pointer used in romvec table to the bootpath */
-	bootpath = bootpathbuf;
+        push_str(bootpathbuf);
+        fword("pathres-resolve-aliases");
+        bootpath = pop_fstr_copy();
+        printk("bootpath: %s\n", bootpath);
 
-	if (!strcmp(bootpathbuf, "cdrom") || !strcmp(bootpathbuf, "disk")) {
+        if (!strncmp(bootpathbuf, "cd", 2) || !strncmp(bootpathbuf, "disk", 4)) {
 
 		/* Controller currently always 0 */
 		obp_arg.boot_dev_ctrl = 0;
@@ -70,10 +73,11 @@ void go(void)
 		/* Generate the "oldpath"
 		   FIXME: hardcoding this looks almost definitely wrong.
 		   With sd(0,2,0):b we get to see the solaris kernel though */
-		if (!strcmp(bootpathbuf, "disk"))
+                if (!strncmp(bootpathbuf, "disk", 4)) {
 			bootid = 'd';
-		else
+                } else {
 			bootid = 'b';
+                }
 
 		snprintf(buf, sizeof(buf), "sd(0,%d,%d):%c", unit, part, bootid);
 
@@ -82,7 +86,7 @@ void go(void)
 		obp_arg.argv[0] = buf;
         	obp_arg.argv[1] = bootargsbuf;
 
-	} else if (!strcmp(bootpathbuf, "floppy")) {
+        } else if (!strncmp(bootpathbuf, "floppy", 6)) {
 		
 		obp_arg.boot_dev_ctrl = 0;
 		obp_arg.boot_dev_unit = 0;
@@ -95,7 +99,7 @@ void go(void)
 		obp_arg.argv[0] = buf;
         	obp_arg.argv[1] = bootargsbuf;
 
-	} else if (!strcmp(bootpathbuf, "net")) {
+        } else if (!strncmp(bootpathbuf, "net", 3)) {
 
 		obp_arg.boot_dev_ctrl = 0;
 		obp_arg.boot_dev_unit = 0;
