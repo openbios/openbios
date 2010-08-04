@@ -102,10 +102,8 @@ macparts_open( macparts_info_t *di )
 				parnum = atol(parstr);
 
 			/* Detect if we are looking for the bootcode */
-			if (strcmp(argstr, "%BOOT") == 0) {
+			if (strcmp(argstr, "%BOOT") == 0)
 				want_bootcode = 1;
-				argstr = strdup("");
-			}
 		}
 	}
 
@@ -158,11 +156,12 @@ macparts_open( macparts_info_t *di )
 		ret = -1;
 		goto out;
 
-	} else if (parnum == -1) {
+	} else if (parnum == -1 && strlen(argstr)) {
 
 		DPRINTF("mac-parts: counted %d partitions\n", __be32_to_cpu(par.pmMapBlkCnt));
 
-		/* No partition was explicitly requested, so find one */
+		/* No partition was explicitly requested, but an argstr was passed in.
+		   So let's find a suitable partition... */
 		for (parnum = 1; parnum <= __be32_to_cpu(par.pmMapBlkCnt); parnum++) {
 			SEEK( bs * parnum );
 			READ( &par, sizeof(par) );
@@ -172,15 +171,29 @@ macparts_open( macparts_info_t *di )
 
 			DPRINTF("found partition type: %s with status %x\n", par.pmPartType, __be32_to_cpu(par.pmPartStatus));
 
-			/* Ignore any partition maps when searching */
-			if (strcmp(par.pmPartType, "Apple_partition_map")) {
-				if( (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
-				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
-				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
-					offs = (long long)__be32_to_cpu(par.pmPyPartStart) * bs;
-					size = (long long)__be32_to_cpu(par.pmPartBlkCnt) * bs;
-	
+			/* If we have a valid, allocated and readable partition... */
+			if( (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
+			(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
+			(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
+				offs = (long long)__be32_to_cpu(par.pmPyPartStart) * bs;
+				size = (long long)__be32_to_cpu(par.pmPartBlkCnt) * bs;
+
+				/* If the filename was set to %BOOT, we actually want the bootcode */
+				if (want_bootcode && (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsBootValid)) {
+					offs += (long long)__be32_to_cpu(par.pmLgBootStart) * bs;
+					size = (long long)__be32_to_cpu(par.pmBootSize);
+
 					goto found;
+				} else {
+					/* Otherwise we were passed a filename and path. So let's
+					   choose the first partition with a valid filesystem */
+					DPUSH( offs );
+					PUSH_ih( my_parent() );
+					parword("find-filesystem");
+				
+					ph = POP_ph();
+					if (ph)
+						goto found;
 				}
 			}
 		}
@@ -207,12 +220,6 @@ macparts_open( macparts_info_t *di )
 
 found:
 
-	/* If the filename was set to %BOOT, we actually want the bootcode instead */
-	if (want_bootcode) {
-		offs += (long long)__be32_to_cpu(par.pmLgBootStart) * bs;
-		size = (long long)__be32_to_cpu(par.pmBootSize);
-	}
-
 	ret = -1;
 	di->blocksize = (unsigned int)bs;
 
@@ -233,6 +240,11 @@ found:
 	if( ph ) {
 		DPRINTF("mac-parts: filesystem found with ph " FMT_ucellx " and args %s\n", ph, argstr);
 		di->filesystem_ph = ph;
+
+		/* If the filename was %BOOT then it's not a real filename, so clear argstr before
+		   attempting interpose */
+		if (want_bootcode)
+			argstr = strdup("");
 
 		/* If we have been asked to open a particular file, interpose the filesystem package with 
 		   the passed filename as an argument */
