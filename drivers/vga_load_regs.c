@@ -490,6 +490,7 @@ vga_load_regs(void)
 {
     struct vga_par par;
 
-    vga_decode_var(&vga_settings, &par);
-    vga_set_regs(&par);
+    if (vga_decode_var(&vga_settings, &par) == 0) {
+        vga_set_regs(&par);
+    }
 }
