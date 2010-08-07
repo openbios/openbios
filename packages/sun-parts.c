@@ -46,10 +46,8 @@ struct sun_disklabel {
     uint8_t info[128];   /* Informative text string */
     uint8_t spare0[14];
     struct sun_info {
-        uint8_t spare1;
-        uint8_t id;
-        uint8_t spare2;
-        uint8_t flags;
+        uint16_t id;
+        uint16_t flags;
     } infos[8];
     uint8_t spare[246];  /* Boot information etc. */
     uint16_t rspeed;     /* Disk rotational speed */
@@ -172,8 +170,11 @@ sunparts_open( sunparts_info_t *di )
 	p = (struct sun_disklabel *)buf;
 
         for (i = 0; i < 8; i++) {
-	    DPRINTF("%c: %d + %d, id %x, flags %x\n", 'a' + i, p->partitions[i].start_cylinder,
-		   p->partitions[i].num_sectors, p->infos[i].id, p->infos[i].flags);
+            DPRINTF("%c: %d + %d, id %x, flags %x\n", 'a' + i,
+                    __be32_to_cpu(p->partitions[i].start_cylinder),
+                    __be32_to_cpu(p->partitions[i].num_sectors),
+                    __be16_to_cpu(p->infos[i].id),
+                    __be16_to_cpu(p->infos[i].flags));
             if (parnum < 0) {
                 if (p->partitions[i].num_sectors != 0 && p->infos[i].id != 0)
                     parnum = i;
@@ -193,7 +194,7 @@ sunparts_open( sunparts_info_t *di )
         size = (long long)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
         di->size_hi = size >> BITS;
         di->size_lo = size & (ucell) -1;
-        di->type = __be32_to_cpu(p->infos[parnum].id);
+        di->type = __be16_to_cpu(p->infos[parnum].id);
 
         DPRINTF("Found Sun partition, offs %lld size %lld\n",
                 (long long)offs, (long long)size);
