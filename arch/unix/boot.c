@@ -64,8 +64,12 @@ void
 void
 boot( void )
 {
-	char *path=pop_fstr_copy();
+	char *path;
 	void *entry;
+
+        /* Copy the incoming path */
+        fword("2dup");
+        path = pop_fstr_copy();
 
 	if(!path) {
 		printk("[unix] Booting default not supported.\n");
