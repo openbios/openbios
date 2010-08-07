@@ -18,6 +18,14 @@
 #include "libopenbios/bindings.h"
 #include "libc/diskio.h"
 
+//#define CONFIG_DEBUG_DISKIO
+#ifdef CONFIG_DEBUG_DISKIO
+#define DPRINTF(fmt, args...)                   \
+    do { printk(fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...)
+#endif
+
 typedef struct {
 	ihandle_t ih;
 	int	do_close;
@@ -73,6 +81,7 @@ open_ih( ihandle_t ih )
 	fdp->do_close = 0;
 
 	file_descriptors[fd]=fdp;
+        DPRINTF("%s(0x%lx) = %d\n", __func__, (unsigned long)ih, fd);
 	return fd;
 }
 
@@ -83,6 +92,7 @@ open_io( const char *spec )
 	ihandle_t ih = open_dev( spec );
 	priv_fd_t *fdp;
 
+        DPRINTF("%s(%s)\n", __func__, spec);
 	if( !ih )
 		return -1;
 
@@ -110,6 +120,7 @@ reopen( int fd, const char *filename )
 	call_package( fdp->reopen_xt, fdp->ih );
         ret = (POP() == (ucell)-1)? 0 : -1;
 
+        DPRINTF("%s(%d, %s) = %d\n", __func__, fd, filename, ret);
 	return ret;
 }
 
@@ -118,6 +129,7 @@ reopen_nwrom( int fd )
 {
 	priv_fd_t *fdp = file_descriptors[fd];
 
+        DPRINTF("%s(%d)\n", __func__, fd);
 	if( lookup_xt(fdp->ih, "open-nwrom", &fdp->open_nwrom_xt) )
 		return -1;
 	call_package( fdp->open_nwrom_xt, fdp->ih );
@@ -167,6 +179,7 @@ read_io( int fd, void *buf, size_t cnt )
 	priv_fd_t *fdp;
 	ucell ret;
 
+        DPRINTF("%s(%d, %p, %u)\n", __func__, fd, buf, cnt);
 	if (fd != -1) {
 		fdp = file_descriptors[fd];
 
@@ -189,6 +202,7 @@ seek_io( int fd, long long offs )
 {
 	priv_fd_t *fdp;
 
+        DPRINTF("%s(%d, %lld)\n", __func__, fd, offs);
 	if (fd != -1) {
 		fdp = file_descriptors[fd];
 		
@@ -210,6 +224,7 @@ tell( int fd )
 		return -1;
 	call_package( fdp->tell_xt, fdp->ih );
 	offs = DPOP();
+        DPRINTF("%s(%d) = %lld\n", __func__, fd, offs);
 	return offs;
 }
 
@@ -218,6 +233,7 @@ close_io( int fd )
 {
 	priv_fd_t *fdp;
 
+        DPRINTF("%s(%d)\n", __func__, fd);
 	if (fd != -1) {
 		fdp = file_descriptors[fd];
 
