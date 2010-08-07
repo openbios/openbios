@@ -33,8 +33,9 @@ int forth_load(ihandle_t dev)
     feval("0 state-valid !");
 
     fd = open_ih(dev);
-    if (!fd)
+    if (fd == -1) {
 	goto out;
+    }
 
     if (read_io(fd, magic, 2) != 2) {
 	debug("Can't read magic header\n");

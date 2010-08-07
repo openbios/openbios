@@ -383,8 +383,9 @@ elf_load(struct sys_info *info, ihandle_t dev, const char *cmdline, void **boot_
     feval("0 state-valid !");
 
     fd = open_ih(dev);
-    if (!fd)
+    if (fd == -1) {
 	goto out;
+    }
 
     offset = find_elf(&ehdr);
     if (!offset) {

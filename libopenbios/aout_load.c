@@ -81,8 +81,9 @@ aout_load(struct sys_info *info, ihandle_t dev)
     feval("0 state-valid !");
 
     fd = open_ih(dev);
-    if (!fd)
+    if (fd == -1) {
 	goto out;
+    }
 
     for (offset = 0; offset < 16 * 512; offset += 512) {
         seek_io(fd, offset);
