@@ -18,8 +18,8 @@
 #include "libopenbios/sys_info.h"
 #include "openbios.h"
 #include "relocate.h"
+#include "boot.h"
 
-void boot(void);
 void collect_sys_info(struct sys_info *info);
 
 #define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
@@ -71,6 +71,7 @@ arch_init( void )
 #endif
 	device_end();
 	bind_func("platform-boot", boot );
+	bind_func("(go)", go );
 }
 
 int openbios(void)
