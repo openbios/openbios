@@ -336,6 +336,9 @@ grubfs_files_probe( grubfs_info_t *dummy )
 	int i;
 
 	curfs->dev_fd = open_ih(ih);
+        if (curfs->dev_fd == -1) {
+                RET( -1 );
+        }
 	curfs->offset = offs;
 
 	for (i = 0; i < sizeof(fsys_table)/sizeof(fsys_table[0]); i++) {

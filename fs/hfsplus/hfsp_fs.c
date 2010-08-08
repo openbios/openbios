@@ -427,8 +427,12 @@ hfsp_files_volume_name( hfsp_info_t *mi )
 	char *volname = malloc(VOLNAME_SIZE);
 
 	fd = open_ih(my_self());
-	get_hfs_vol_name(fd, volname, VOLNAME_SIZE);
-	close_io(fd);
+        if (fd >= 0) {
+                get_hfs_vol_name(fd, volname, VOLNAME_SIZE);
+                close_io(fd);
+        } else {
+                volname[0] = '\0';
+        }
 
 	PUSH ((ucell)volname);
 }
@@ -452,10 +456,14 @@ hfsp_files_probe( hfsp_info_t *dummy )
 	int fd, ret = 0;
 
 	fd = open_ih(ih);
-	if (volume_probe(fd, offs))
-		ret = -1;
-
-	close_io(fd);
+        if (fd >= 0) {
+                if (volume_probe(fd, offs)) {
+                        ret = -1;
+                }
+                close_io(fd);
+        } else {
+                ret = -1;
+        }
 
 	RET (ret);
 }

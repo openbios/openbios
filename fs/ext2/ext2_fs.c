@@ -267,10 +267,14 @@ ext2_files_probe( ext2_info_t *dummy )
 	int fd, ret = 0;
 
 	fd = open_ih(ih);
-	if (ext2_probe(fd, offs))
-		ret = -1;
-
-	close_io(fd);
+        if (fd >= 0) {
+                if (ext2_probe(fd, offs)) {
+                        ret = -1;
+                }
+                close_io(fd);
+        } else {
+                ret = -1;
+        }
 
 	RET (ret);
 }

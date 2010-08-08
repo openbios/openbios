@@ -219,10 +219,14 @@ iso9660_files_probe( iso9660_info_t *dummy )
 	int fd, ret = 0;
 
 	fd = open_ih(ih);
-	if (iso9660_probe(fd, offs))
-		ret = -1;
-
-	close_io(fd);
+        if (fd >= 0) {
+                if (iso9660_probe(fd, offs)) {
+                        ret = -1;
+                }
+                close_io(fd);
+        } else {
+                ret = -1;
+        }
 
 	RET (ret);
 }
