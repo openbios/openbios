@@ -28,6 +28,7 @@
 #define MEMORY_SIZE     (128*1024)       /* 16K ram for hosted system */
 #define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
+#define FW_CFG_SUN4M_DEPTH   (FW_CFG_ARCH_LOCAL + 0x00)
 
 static ucell *memory;
 
@@ -40,6 +41,7 @@ struct hwdef {
     unsigned long aux1_offset, aux2_offset;
     uint64_t dma_base, esp_base, le_base;
     uint64_t tcx_base;
+    int mid_offset;
     int machine_id_low, machine_id_high;
 };
 
@@ -60,6 +62,7 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0x78400000,
         .esp_base     = 0x78800000,
         .le_base      = 0x78c00000,
+        .mid_offset   = 0,
         .machine_id_low = 32,
         .machine_id_high = 63,
     },
@@ -79,6 +82,7 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0xef0400000ULL,
         .esp_base     = 0xef0800000ULL,
         .le_base      = 0xef0c00000ULL,
+        .mid_offset   = 8,
         .machine_id_low = 64,
         .machine_id_high = 65,
     },
@@ -98,6 +102,7 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0xef0081000ULL,
         .esp_base     = 0xef0080000ULL,
         .le_base      = 0xef0060000ULL,
+        .mid_offset   = 8,
         .machine_id_low = 66,
         .machine_id_high = 66,
     },
@@ -115,6 +120,486 @@ void udelay(unsigned int usecs)
 
 void mdelay(unsigned int msecs)
 {
+}
+
+static void mb86904_init(void)
+{
+    PUSH(32);
+    fword("encode-int");
+    push_str("cache-line-size");
+    fword("property");
+
+    PUSH(512);
+    fword("encode-int");
+    push_str("cache-nlines");
+    fword("property");
+
+    PUSH(0x23);
+    fword("encode-int");
+    push_str("mask_rev");
+    fword("property");
+}
+
+static void tms390z55_init(void)
+{
+    push_str("");
+    fword("encode-string");
+    push_str("ecache-parity?");
+    fword("property");
+
+    push_str("");
+    fword("encode-string");
+    push_str("bfill?");
+    fword("property");
+
+    push_str("");
+    fword("encode-string");
+    push_str("bcopy?");
+    fword("property");
+
+    push_str("");
+    fword("encode-string");
+    push_str("cache-physical?");
+    fword("property");
+
+    PUSH(0xf);
+    fword("encode-int");
+    PUSH(0xf8fffffc);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(4);
+    fword("encode-int");
+    fword("encode+");
+
+    PUSH(0xf);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0xf8c00000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x1000);
+    fword("encode-int");
+    fword("encode+");
+
+    PUSH(0xf);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0xf8000000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x1000);
+    fword("encode-int");
+    fword("encode+");
+
+    PUSH(0xf);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0xf8800000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x1000);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+}
+
+static void rt625_init(void)
+{
+    PUSH(32);
+    fword("encode-int");
+    push_str("cache-line-size");
+    fword("property");
+
+    PUSH(512);
+    fword("encode-int");
+    push_str("cache-nlines");
+    fword("property");
+
+}
+
+static void bad_cpu_init(void)
+{
+    printk("This CPU is not supported yet, freezing.\n");
+    for(;;);
+}
+
+struct cpudef {
+    unsigned long iu_version;
+    const char *name;
+    int psr_impl, psr_vers, impl, vers;
+    int dcache_line_size, dcache_lines, dcache_assoc;
+    int icache_line_size, icache_lines, icache_assoc;
+    int ecache_line_size, ecache_lines, ecache_assoc;
+    int mmu_nctx;
+    void (*initfn)(void);
+};
+
+static const struct cpudef sparc_defs[] = {
+    {
+        .iu_version = 0x00 << 24, /* Impl 0, ver 0 */
+        .name = "FMI,MB86900",
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0x04 << 24, /* Impl 0, ver 4 */
+        .name = "FMI,MB86904",
+        .psr_impl = 0,
+        .psr_vers = 5,
+        .impl = 0,
+        .vers = 5,
+        .dcache_line_size = 0x10,
+        .dcache_lines = 0x200,
+        .dcache_assoc = 1,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x200,
+        .icache_assoc = 1,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x4000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x100,
+        .initfn = mb86904_init,
+    },
+    {
+        .iu_version = 0x05 << 24, /* Impl 0, ver 5 */
+        .name = "FMI,MB86907",
+        .psr_impl = 0,
+        .psr_vers = 5,
+        .impl = 0,
+        .vers = 5,
+        .dcache_line_size = 0x20,
+        .dcache_lines = 0x200,
+        .dcache_assoc = 1,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x200,
+        .icache_assoc = 1,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x4000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x100,
+        .initfn = mb86904_init,
+    },
+    {
+        .iu_version = 0x10 << 24, /* Impl 1, ver 0 */
+        .name = "LSI,L64811",
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0x11 << 24, /* Impl 1, ver 1 */
+        .name = "CY,CY7C601",
+        .psr_impl = 1,
+        .psr_vers = 1,
+        .impl = 1,
+        .vers = 1,
+        .mmu_nctx = 0x10,
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0x13 << 24, /* Impl 1, ver 3 */
+        .name = "CY,CY7C611",
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0x40000000,
+        .name = "TI,TMS390Z55",
+        .psr_impl = 4,
+        .psr_vers = 0,
+        .impl = 0,
+        .vers = 4,
+        .dcache_line_size = 0x20,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x40,
+        .icache_lines = 0x40,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = tms390z55_init,
+    },
+    {
+        .iu_version = 0x41000000,
+        .name = "TI,TMS390S10",
+        .psr_impl = 4,
+        .psr_vers = 1,
+        .impl = 4,
+        .vers = 1,
+        .dcache_line_size = 0x10,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x80,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = tms390z55_init,
+    },
+    {
+        .iu_version = 0x42000000,
+        .name = "TI,TMS390S10",
+        .psr_impl = 4,
+        .psr_vers = 2,
+        .impl = 4,
+        .vers = 2,
+        .dcache_line_size = 0x10,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x80,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = tms390z55_init,
+    },
+    {
+        .iu_version = 0x43000000,
+        .name = "TI,TMS390S10",
+        .psr_impl = 4,
+        .psr_vers = 3,
+        .impl = 4,
+        .vers = 3,
+        .dcache_line_size = 0x10,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x80,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = tms390z55_init,
+    },
+    {
+        .iu_version = 0x44000000,
+        .name = "TI,TMS390S10",
+        .psr_impl = 4,
+        .psr_vers = 4,
+        .impl = 4,
+        .vers = 4,
+        .dcache_line_size = 0x10,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x20,
+        .icache_lines = 0x80,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = tms390z55_init,
+    },
+    {
+        .iu_version = 0x1e000000,
+        .name = "Ross,RT625",
+        .psr_impl = 1,
+        .psr_vers = 14,
+        .impl = 1,
+        .vers = 7,
+        .dcache_line_size = 0x20,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x40,
+        .icache_lines = 0x40,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = rt625_init,
+    },
+    {
+        .iu_version = 0x1f000000,
+        .name = "Ross,RT620",
+        .psr_impl = 1,
+        .psr_vers = 15,
+        .impl = 1,
+        .vers = 7,
+        .dcache_line_size = 0x20,
+        .dcache_lines = 0x80,
+        .dcache_assoc = 4,
+        .icache_line_size = 0x40,
+        .icache_lines = 0x40,
+        .icache_assoc = 5,
+        .ecache_line_size = 0x20,
+        .ecache_lines = 0x8000,
+        .ecache_assoc = 1,
+        .mmu_nctx = 0x10000,
+        .initfn = rt625_init,
+    },
+    {
+        .iu_version = 0x20000000,
+        .name = "BIT,B5010",
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0x50000000,
+        .name = "MC,MN10501",
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0x90 << 24, /* Impl 9, ver 0 */
+        .name = "Weitek,W8601",
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0xf2000000,
+        .name = "GR,LEON2",
+        .initfn = bad_cpu_init,
+    },
+    {
+        .iu_version = 0xf3000000,
+        .name = "GR,LEON3",
+        .initfn = bad_cpu_init,
+    },
+};
+
+static const struct cpudef *
+id_cpu(void)
+{
+    unsigned long iu_version;
+    unsigned int i;
+
+    asm("rd %%psr, %0\n"
+        : "=r"(iu_version) :);
+    iu_version &= 0xff000000;
+
+    for (i = 0; i < sizeof(sparc_defs)/sizeof(struct cpudef); i++) {
+        if (iu_version == sparc_defs[i].iu_version)
+            return &sparc_defs[i];
+    }
+    printk("Unknown cpu (psr %lx), freezing!\n", iu_version);
+    for (;;);
+}
+
+static void setup_cpu(int mid_offset)
+{
+    uint32_t temp;
+    unsigned int i;
+    const struct cpudef *cpu;
+
+    // Add cpus
+    temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
+
+    printk("CPUs: %x", temp);
+    cpu = id_cpu();
+    printk(" x %s\n", cpu->name);
+    for (i = 0; i < temp; i++) {
+        push_str("/");
+        fword("find-device");
+
+        fword("new-device");
+
+        push_str(cpu->name);
+        fword("device-name");
+
+        push_str("cpu");
+        fword("device-type");
+
+        PUSH(cpu->psr_impl);
+        fword("encode-int");
+        push_str("psr-implementation");
+        fword("property");
+
+        PUSH(cpu->psr_vers);
+        fword("encode-int");
+        push_str("psr-version");
+        fword("property");
+
+        PUSH(cpu->impl);
+        fword("encode-int");
+        push_str("implementation");
+        fword("property");
+
+        PUSH(cpu->vers);
+        fword("encode-int");
+        push_str("version");
+        fword("property");
+
+        PUSH(4096);
+        fword("encode-int");
+        push_str("page-size");
+        fword("property");
+
+        PUSH(cpu->dcache_line_size);
+        fword("encode-int");
+        push_str("dcache-line-size");
+        fword("property");
+
+        PUSH(cpu->dcache_lines);
+        fword("encode-int");
+        push_str("dcache-nlines");
+        fword("property");
+
+        PUSH(cpu->dcache_assoc);
+        fword("encode-int");
+        push_str("dcache-associativity");
+        fword("property");
+
+        PUSH(cpu->icache_line_size);
+        fword("encode-int");
+        push_str("icache-line-size");
+        fword("property");
+
+        PUSH(cpu->icache_lines);
+        fword("encode-int");
+        push_str("icache-nlines");
+        fword("property");
+
+        PUSH(cpu->icache_assoc);
+        fword("encode-int");
+        push_str("icache-associativity");
+        fword("property");
+
+        PUSH(cpu->ecache_line_size);
+        fword("encode-int");
+        push_str("ecache-line-size");
+        fword("property");
+
+        PUSH(cpu->ecache_lines);
+        fword("encode-int");
+        push_str("ecache-nlines");
+        fword("property");
+
+        PUSH(cpu->ecache_assoc);
+        fword("encode-int");
+        push_str("ecache-associativity");
+        fword("property");
+
+        PUSH(2);
+        fword("encode-int");
+        push_str("ncaches");
+        fword("property");
+
+        PUSH(cpu->mmu_nctx);
+        fword("encode-int");
+        push_str("mmu-nctx");
+        fword("property");
+
+        PUSH(8);
+        fword("encode-int");
+        push_str("sparc-version");
+        fword("property");
+
+        push_str("");
+        fword("encode-string");
+        push_str("cache-coherence?");
+        fword("property");
+
+        PUSH(i + mid_offset);
+        fword("encode-int");
+        push_str("mid");
+        fword("property");
+
+        cpu->initfn();
+
+        fword("finish-device");
+    }
 }
 
 /* Add /uuid */
@@ -220,6 +705,28 @@ arch_init( void )
 	static char cmdline[128];
         int size = 0;
         const char *kernel_cmdline;
+        uint32_t temp;
+        uint16_t machine_id;
+        char buf[256];
+
+        fw_cfg_init();
+
+        fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
+        buf[4] = '\0';
+
+        printk("Configuration device id %s", buf);
+
+        temp = fw_cfg_read_i32(FW_CFG_ID);
+        machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
+
+        printk(" version %d machine id %d\n", temp, machine_id);
+
+        if (temp != 1) {
+            printk("Incompatible configuration device version, freezing\n");
+            for(;;);
+        }
+
+        graphic_depth = fw_cfg_read_i16(FW_CFG_SUN4M_DEPTH);
 
 	openbios_init();
 	modules_init();
@@ -238,6 +745,8 @@ arch_init( void )
 	ob_sbus_init(hwdef->iommu_base + 0x1000ULL, qemu_machine_type);
 #endif
 	device_end();
+
+        setup_cpu(hwdef->mid_offset);
 
         setup_stdio();
 	/* Initialiase openprom romvec */
