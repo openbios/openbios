@@ -27,6 +27,7 @@
 
 #define MEMORY_SIZE     (128*1024)       /* 16K ram for hosted system */
 #define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
+#define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
 static ucell *memory;
 
@@ -114,6 +115,29 @@ void udelay(unsigned int usecs)
 
 void mdelay(unsigned int msecs)
 {
+}
+
+/* Add /uuid */
+static void setup_uuid(void)
+{
+    static uint8_t qemu_uuid[16];
+
+    fw_cfg_read(FW_CFG_UUID, (char *)qemu_uuid, 16);
+
+    printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
+           qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
+           qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
+           qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
+           qemu_uuid[15]);
+
+    push_str("/");
+    fword("find-device");
+
+    PUSH((long)&qemu_uuid);
+    PUSH(16);
+    fword("encode-bytes");
+    push_str("uuid");
+    fword("property");
 }
 
 static void init_memory(void)
@@ -208,6 +232,8 @@ arch_init( void )
 
 	bind_func("platform-boot", boot );
 	bind_func("(go)", go );
+
+        setup_uuid();
 }
 
 int openbios(void)

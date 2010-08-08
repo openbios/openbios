@@ -24,8 +24,6 @@
 #include "arch/common/fw_cfg.h"
 #include "escc.h"
 
-#define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
-
 #define	PROMDEV_KBD	0		/* input from keyboard */
 #define	PROMDEV_SCREEN	0		/* output to screen */
 #define	PROMDEV_TTYA	1		/* in/out to ttya */
@@ -637,8 +635,6 @@ id_machine(uint16_t machine_id)
     for (;;);
 }
 
-static uint8_t qemu_uuid[16];
-
 static void
 ob_nvram_init(uint64_t base, uint64_t offset)
 {
@@ -685,24 +681,6 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 
     fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
     graphic_depth = fw_cfg_read_i16(FW_CFG_SUN4M_DEPTH);
-
-    // Add /uuid
-    fw_cfg_read(FW_CFG_UUID, (char *)qemu_uuid, 16);
-
-    printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
-           qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
-           qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
-           qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
-           qemu_uuid[15]);
-
-    push_str("/");
-    fword("find-device");
-
-    PUSH((long)&qemu_uuid);
-    PUSH(16);
-    fword("encode-bytes");
-    push_str("uuid");
-    fword("property");
 
     // Add /idprom
     push_str("/");
