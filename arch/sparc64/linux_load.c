@@ -461,7 +461,7 @@ static int load_initrd(struct linux_header *hdr, uint32_t kern_end,
     uint64_t forced;
 
     fd = open_io(initrd_file);
-    if (!fd) {
+    if (fd == -1) {
 	printf("Can't open initrd: %s\n", initrd_file);
 	return -1;
     }
@@ -609,7 +609,7 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline)
     char *initrd_file = NULL;
 
     fd = open_io(file);
-    if (!fd)
+    if (fd == -1)
 	return -1;
 
     kern_addr = load_linux_header(&hdr);
