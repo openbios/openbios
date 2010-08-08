@@ -140,6 +140,65 @@ static void setup_uuid(void)
     fword("property");
 }
 
+static void setup_stdio(void)
+{
+    char nographic;
+    const char *stdin, *stdout;
+    phandle_t chosen;
+
+    fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
+    if (nographic) {
+        obp_stdin = PROMDEV_TTYA;
+        obp_stdout = PROMDEV_TTYA;
+        stdin = "ttya";
+        stdout = "ttya";
+    } else {
+        obp_stdin = PROMDEV_KBD;
+        obp_stdout = PROMDEV_SCREEN;
+        stdin = "keyboard";
+        stdout = "screen";
+    }
+
+    push_str("/");
+    fword("find-device");
+
+    push_str(stdin);
+    fword("pathres-resolve-aliases");
+    fword("encode-string");
+    push_str("stdin-path");
+    fword("property");
+
+    push_str(stdout);
+    fword("pathres-resolve-aliases");
+    fword("encode-string");
+    push_str("stdout-path");
+    fword("property");
+
+    chosen = find_dev("/chosen");
+    push_str(stdin);
+    fword("open-dev");
+    set_int_property(chosen, "stdin", POP());
+
+    chosen = find_dev("/chosen");
+    push_str(stdout);
+    fword("open-dev");
+    set_int_property(chosen, "stdout", POP());
+
+    push_str(stdin);
+    push_str("input-device");
+    fword("$setenv");
+
+    push_str(stdout);
+    push_str("output-device");
+    fword("$setenv");
+
+    push_str(stdin);
+    fword("input");
+
+    obp_stdin_path = stdin;
+    obp_stdout_path = stdout;
+}
+
 static void init_memory(void)
 {
     memory = malloc(MEMORY_SIZE);
@@ -180,6 +239,7 @@ arch_init( void )
 #endif
 	device_end();
 
+        setup_stdio();
 	/* Initialiase openprom romvec */
         romvec = init_openprom();
 

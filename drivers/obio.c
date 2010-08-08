@@ -638,15 +638,12 @@ id_machine(uint16_t machine_id)
 static void
 ob_nvram_init(uint64_t base, uint64_t offset)
 {
-    const char *stdin, *stdout;
     unsigned int i;
-    char nographic;
     uint16_t machine_id;
     const struct cpudef *cpu;
     const struct machdef *mach;
     char buf[256];
     uint32_t temp;
-    phandle_t chosen;
 
     ob_new_obio_device("eeprom", NULL);
 
@@ -679,7 +676,6 @@ ob_nvram_init(uint64_t base, uint64_t offset)
         for(;;);
     }
 
-    fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
     graphic_depth = fw_cfg_read_i16(FW_CFG_SUN4M_DEPTH);
 
     // Add /idprom
@@ -829,57 +825,6 @@ ob_nvram_init(uint64_t base, uint64_t offset)
 
         fword("finish-device");
     }
-
-    if (nographic) {
-        obp_stdin = PROMDEV_TTYA;
-        obp_stdout = PROMDEV_TTYA;
-        stdin = "ttya";
-        stdout = "ttya";
-    } else {
-        obp_stdin = PROMDEV_KBD;
-        obp_stdout = PROMDEV_SCREEN;
-        stdin = "keyboard";
-        stdout = "screen";
-    }
-
-    push_str("/");
-    fword("find-device");
-
-    push_str(stdin);
-    fword("pathres-resolve-aliases");
-    fword("encode-string");
-    push_str("stdin-path");
-    fword("property");
-
-    push_str(stdout);
-    fword("pathres-resolve-aliases");
-    fword("encode-string");
-    push_str("stdout-path");
-    fword("property");
-
-    chosen = find_dev("/chosen");
-    push_str(stdin);
-    fword("open-dev");
-    set_int_property(chosen, "stdin", POP());
-
-    chosen = find_dev("/chosen");
-    push_str(stdout);
-    fword("open-dev");
-    set_int_property(chosen, "stdout", POP());
-
-    push_str(stdin);
-    push_str("input-device");
-    fword("$setenv");
-
-    push_str(stdout);
-    push_str("output-device");
-    fword("$setenv");
-
-    push_str(stdin);
-    fword("input");
-
-    obp_stdin_path = stdin;
-    obp_stdout_path = stdout;
 }
 
 static void

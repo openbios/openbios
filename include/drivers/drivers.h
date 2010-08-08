@@ -84,10 +84,6 @@ void ob_new_obio_device(const char *name, const char *type);
 unsigned long ob_reg(uint64_t base, uint64_t offset, unsigned long size, int map);
 void ob_intr(int intr);
 
-/* arch/sparc32/romvec.c */
-extern const char *obp_stdin_path, *obp_stdout_path;
-extern char obp_stdin, obp_stdout;
-
 /* arch/sparc32/boot.c */
 extern uint32_t kernel_image;
 extern uint32_t kernel_size;
