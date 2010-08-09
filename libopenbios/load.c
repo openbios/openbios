@@ -44,6 +44,7 @@ void load(ihandle_t dev)
 {
 	/* Invoke the loaders on the specified device */
 	char *param;
+        ucell valid;
 
 #ifdef CONFIG_LOADER_ELF
 
@@ -57,18 +58,38 @@ void load(ihandle_t dev)
 	param = pop_fstr_copy();
 
 	elf_load(&sys_info, dev, param, &elf_boot_notes);
+        feval("state-valid @");
+        valid = POP();
+        if (valid) {
+                return;
+        }
 #endif
 
 #ifdef CONFIG_LOADER_AOUT
 	aout_load(&sys_info, dev);
+        feval("state-valid @");
+        valid = POP();
+        if (valid) {
+                return;
+        }
 #endif
 
 #ifdef CONFIG_LOADER_FCODE
 	fcode_load(dev);
+        feval("state-valid @");
+        valid = POP();
+        if (valid) {
+                return;
+        }
 #endif
 
 #ifdef CONFIG_LOADER_FORTH
 	forth_load(dev);
+        feval("state-valid @");
+        valid = POP();
+        if (valid) {
+                return;
+        }
 #endif
 
 }
