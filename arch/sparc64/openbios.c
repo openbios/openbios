@@ -480,7 +480,7 @@ void arch_nvram_get(char *data)
             break;
         default:
         case 'd':
-            push_str("cdrom");
+            push_str("cdrom:f cdrom");
             break;
         case 'n':
             push_str("net");

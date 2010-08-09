@@ -175,10 +175,6 @@ sunparts_open( sunparts_info_t *di )
                     __be32_to_cpu(p->partitions[i].num_sectors),
                     __be16_to_cpu(p->infos[i].id),
                     __be16_to_cpu(p->infos[i].flags));
-            if (parnum < 0) {
-                if (p->partitions[i].num_sectors != 0 && p->infos[i].id != 0)
-                    parnum = i;
-            }
         }
 
         if (parnum < 0)
@@ -192,6 +188,10 @@ sunparts_open( sunparts_info_t *di )
         di->offs_hi = offs >> BITS;
         di->offs_lo = offs & (ucell) -1;
         size = (long long)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
+        if (size == 0) {
+                DPRINTF("Partition size is 0, exiting\n");
+                RET(0);
+        }
         di->size_hi = size >> BITS;
         di->size_lo = size & (ucell) -1;
         di->type = __be16_to_cpu(p->infos[parnum].id);

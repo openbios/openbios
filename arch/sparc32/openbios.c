@@ -784,7 +784,7 @@ arch_init( void )
 		break;
 	default:
 	case 'd':
-		push_str("cdrom");
+		push_str("cdrom:d cdrom");
 		break;
 	case 'n':
 		push_str("net");
