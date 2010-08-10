@@ -64,7 +64,8 @@ int ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
 /* drivers/obio.c */
 int ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
                  unsigned long counter_offset, unsigned long intr_offset,
-                 unsigned long aux1_offset, unsigned long aux2_offset);
+                 unsigned long aux1_offset, unsigned long aux2_offset,
+                 unsigned long mem_size);
 int start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context,
               int cpu);
 void ob_eccmemctl_init(uint64_t base);

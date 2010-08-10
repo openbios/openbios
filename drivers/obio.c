@@ -20,8 +20,6 @@
 #include "arch/common/nvram.h"
 #include "libopenbios/ofmem.h"
 #include "obio.h"
-#define NO_QEMU_PROTOS
-#include "arch/common/fw_cfg.h"
 #include "escc.h"
 
 #define	PROMDEV_KBD	0		/* input from keyboard */
@@ -402,12 +400,9 @@ start_cpu(unsigned int pc, unsigned int context_ptr, unsigned int context, int c
 }
 
 static void
-ob_smp_init(void)
+ob_smp_init(unsigned long mem_size)
 {
-    unsigned long mem_size;
-
     // See arch/sparc32/entry.S for memory layout
-    mem_size = fw_cfg_read_i32(FW_CFG_RAM_SIZE);
     smp_header = (struct smp_cfg *)map_io((uint64_t)(mem_size - 0x100),
                                           sizeof(struct smp_cfg));
 }
@@ -499,7 +494,8 @@ NODE_METHODS(ob_obio) = {
 int
 ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
              unsigned long counter_offset, unsigned long intr_offset,
-             unsigned long aux1_offset, unsigned long aux2_offset)
+             unsigned long aux1_offset, unsigned long aux2_offset,
+             unsigned long mem_size)
 {
 
     // All devices were integrated to NCR89C105, see
@@ -534,7 +530,7 @@ ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
 
     ob_interrupt_init(slavio_base, intr_offset);
 
-    ob_smp_init();
+    ob_smp_init(mem_size);
 
     return 0;
 }

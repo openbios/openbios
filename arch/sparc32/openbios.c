@@ -828,6 +828,7 @@ arch_init( void )
         uint32_t temp;
         uint16_t machine_id;
         char buf[256];
+        unsigned long mem_size;
 
         fw_cfg_init();
 
@@ -853,9 +854,11 @@ arch_init( void )
         ob_init_mmu();
         ob_init_iommu(hwdef->iommu_base);
 #ifdef CONFIG_DRIVER_OBIO
+        mem_size = fw_cfg_read_i32(FW_CFG_RAM_SIZE);
 	ob_obio_init(hwdef->slavio_base, hwdef->fd_offset,
                      hwdef->counter_offset, hwdef->intr_offset,
-                     hwdef->aux1_offset, hwdef->aux2_offset);
+                     hwdef->aux1_offset, hwdef->aux2_offset,
+                     mem_size);
 
         setup_machine(hwdef->slavio_base);
 
