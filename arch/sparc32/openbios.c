@@ -602,6 +602,126 @@ static void setup_cpu(int mid_offset)
     }
 }
 
+static void dummy_mach_init(uint64_t base)
+{
+}
+
+struct machdef {
+    uint16_t machine_id;
+    const char *banner_name;
+    const char *model;
+    const char *name;
+    void (*initfn)(uint64_t base);
+};
+
+static const struct machdef sun4m_defs[] = {
+    {
+        .machine_id = 32,
+        .banner_name = "SPARCstation 5",
+        .model = "SUNW,501-3059",
+        .name = "SUNW,SPARCstation-5",
+        .initfn = ss5_init,
+    },
+    {
+        .machine_id = 33,
+        .banner_name = "SPARCstation Voyager",
+        .model = "SUNW,501-2581",
+        .name = "SUNW,SPARCstation-Voyager",
+        .initfn = dummy_mach_init,
+    },
+    {
+        .machine_id = 34,
+        .banner_name = "SPARCstation LX",
+        .model = "SUNW,501-2031",
+        .name = "SUNW,SPARCstation-LX",
+        .initfn = dummy_mach_init,
+    },
+    {
+        .machine_id = 35,
+        .banner_name = "SPARCstation 4",
+        .model = "SUNW,501-2572",
+        .name = "SUNW,SPARCstation-4",
+        .initfn = ss5_init,
+    },
+    {
+        .machine_id = 36,
+        .banner_name = "SPARCstation Classic",
+        .model = "SUNW,501-2326",
+        .name = "SUNW,SPARCstation-Classic",
+        .initfn = dummy_mach_init,
+    },
+    {
+        .machine_id = 37,
+        .banner_name = "Tadpole S3 GX",
+        .model = "S3",
+        .name = "Tadpole_S3GX",
+        .initfn = ss5_init,
+    },
+    {
+        .machine_id = 64,
+        .banner_name = "SPARCstation 10 (1 X 390Z55)",
+        .model = "SUNW,S10,501-2365",
+        .name = "SUNW,SPARCstation-10",
+        .initfn = ob_eccmemctl_init,
+    },
+    {
+        .machine_id = 65,
+        .banner_name = "SPARCstation 20 (1 X 390Z55)",
+        .model = "SUNW,S20,501-2324",
+        .name = "SUNW,SPARCstation-20",
+        .initfn = ob_eccmemctl_init,
+    },
+    {
+        .machine_id = 66,
+        .banner_name = "SPARCsystem 600(1 X 390Z55)",
+        .model = NULL,
+        .name = "SUNW,SPARCsystem-600",
+        .initfn = ob_eccmemctl_init,
+    },
+};
+
+static const struct machdef *
+id_machine(uint16_t machine_id)
+{
+    unsigned int i;
+
+    for (i = 0; i < sizeof(sun4m_defs)/sizeof(struct machdef); i++) {
+        if (machine_id == sun4m_defs[i].machine_id)
+            return &sun4m_defs[i];
+    }
+    printk("Unknown machine (ID %d), freezing!\n", machine_id);
+    for (;;);
+}
+
+static void setup_machine(uint64_t base)
+{
+    uint16_t machine_id;
+    const struct machdef *mach;
+
+    machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
+    mach = id_machine(machine_id);
+
+    push_str("/");
+    fword("find-device");
+    push_str(mach->banner_name);
+    fword("encode-string");
+    push_str("banner-name");
+    fword("property");
+
+    if (mach->model) {
+        push_str(mach->model);
+        fword("encode-string");
+        push_str("model");
+        fword("property");
+    }
+    push_str(mach->name);
+    fword("encode-string");
+    push_str("name");
+    fword("property");
+
+    mach->initfn(base);
+}
+
 /* Add /uuid */
 static void setup_uuid(void)
 {
@@ -736,6 +856,9 @@ arch_init( void )
 	ob_obio_init(hwdef->slavio_base, hwdef->fd_offset,
                      hwdef->counter_offset, hwdef->intr_offset,
                      hwdef->aux1_offset, hwdef->aux2_offset);
+
+        setup_machine(hwdef->slavio_base);
+
         nvconf_init();
 #endif
 #ifdef CONFIG_DRIVER_SBUS
