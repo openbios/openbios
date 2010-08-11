@@ -279,24 +279,15 @@ static int obp_devopen(char *str)
 
 static int obp_devclose(int dev_desc)
 {
-    int ret = 1;
+    int ret;
 
     PUSH(dev_desc);
     fword("close-dev");
+    ret = POP();
 
     DPRINTF("obp_devclose(0x%x) = %d\n", dev_desc, ret);
 
     return ret;
-}
-
-static void obp_devclose_v2(int dev_desc)
-{
-    PUSH(dev_desc);
-    fword("close-dev");
-
-    DPRINTF("obp_devclose_v2(0x%x)\n", dev_desc);
-
-    return;
 }
 
 static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
@@ -468,7 +459,7 @@ init_openprom(void)
     romvec0.pv_v2devops.v2_dumb_mmap = obp_dumb_mmap;
     romvec0.pv_v2devops.v2_dumb_munmap = obp_dumb_munmap;
     romvec0.pv_v2devops.v2_dev_open = obp_devopen;
-    romvec0.pv_v2devops.v2_dev_close = obp_devclose_v2;
+    romvec0.pv_v2devops.v2_dev_close = (void (*)(int))obp_devclose;
     romvec0.pv_v2devops.v2_dev_read = obp_devread;
     romvec0.pv_v2devops.v2_dev_write = obp_devwrite;
     romvec0.pv_v2devops.v2_dev_seek = obp_devseek;
