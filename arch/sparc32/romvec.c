@@ -279,11 +279,10 @@ static int obp_devopen(char *str)
 
 static int obp_devclose(int dev_desc)
 {
-    int ret;
+    int ret = 1;
 
     PUSH(dev_desc);
     fword("close-dev");
-    ret = POP();
 
     DPRINTF("obp_devclose(0x%x) = %d\n", dev_desc, ret);
 
