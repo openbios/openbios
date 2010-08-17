@@ -518,6 +518,58 @@ go( void )
     call_elf( 0, 0, addr);
 }
 
+static void kvm_of_init(void)
+{
+	char hypercall[4 * 4];
+	uint32_t *hc32;
+
+	/* Don't expose /hypervisor when not in KVM */
+	if (!fw_cfg_read_i32(FW_CFG_PPC_IS_KVM))
+		return;
+
+	push_str("/hypervisor");
+	fword("find-device");
+
+	/* compatible */
+
+	push_str("linux,kvm");
+	fword("encode-string");
+	push_str("epapr,hypervisor-0.2");
+	fword("encode-string");
+	fword("encode+");
+	push_str("compatible");
+	fword("property");
+
+	/* Tell the guest about the hypercall instructions */
+	fw_cfg_read(FW_CFG_PPC_KVM_HC, hypercall, 4 * 4);
+	hc32 = (uint32_t*)hypercall;
+	PUSH(hc32[0]);
+	fword("encode-int");
+	PUSH(hc32[1]);
+	fword("encode-int");
+	fword("encode+");
+	PUSH(hc32[2]);
+	fword("encode-int");
+	fword("encode+");
+	PUSH(hc32[3]);
+	fword("encode-int");
+	fword("encode+");
+	push_str("hcall-instructions");
+	fword("property");
+
+	/* ePAPR requires us to provide a unique guest id */
+	PUSH(fw_cfg_read_i32(FW_CFG_PPC_KVM_PID));
+	fword("encode-int");
+	push_str("guest-id");
+	fword("property");
+
+	/* ePAPR requires us to provide a guest name */
+	push_str("KVM guest");
+	fword("encode-string");
+	push_str("guest-name");
+	fword("property");
+}
+
 void
 arch_of_init( void )
 {
@@ -713,6 +765,8 @@ arch_of_init( void )
                 stdin_path = "adb-keyboard";
                 stdout_path = "screen";
         }
+
+	kvm_of_init();
 
 	/* Setup nvram variables */
         push_str("/options");
