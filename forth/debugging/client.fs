@@ -55,16 +55,19 @@ variable file-size
   then
   ;
 
-: (encode-bootpath) ( "{params}<cr>" -- bootpath-str bootpath-len)
-  \ Parse the current input buffer of a load/boot command and set both
+: (encode-bootpath) ( param-str param-len -- bootpath-str bootpath-len)
+  \ Parse the <param> string from a load/boot command and set both
   \ the bootargs and bootpath properties as appropriate.
-  cr
 
   \ bootpath
-  bl parse dup 0= if
+  bl left-split 	\ argstr argstr-len bootdevstr bootdevstr-len
+  dup 0= if
 
     \ None specified. As per IEEE-1275 specification, search through each value
     \ in boot-device and use the first that returns a valid ihandle on open.
+
+    2drop		\ drop the empty device string as we're going to use our own
+
     s" boot-device" $find drop execute 
     bl left-split
     begin 
@@ -80,8 +83,6 @@ variable file-size
       then
     repeat
     2drop
-  else
-    0 0 2swap		\ Fake (empty) parse string
   then
 
   \ Set the bootpath property
@@ -91,7 +92,7 @@ variable file-size
   then
 
   \ bootargs
-  linefeed parse dup 0= if
+  2swap dup 0= if
     \ None specified, use default from nvram
     2drop s" boot-file" $find drop execute
   then
@@ -101,9 +102,6 @@ variable file-size
   " /chosen" (find-dev) if
     " bootargs" rot (property)
   then
-
-  \ Remove the remaining string
-  2swap 2drop
 ;
 
 : $load ( devstr len )
@@ -121,6 +119,7 @@ variable file-size
   ;
 
 : load    ( "{params}<cr>" -- )
+  linefeed parse
   (encode-bootpath)
   $load
 ;
