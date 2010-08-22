@@ -145,15 +145,12 @@ pc_serial_open(unsigned long *address)
     int len;
     phandle_t ph;
     unsigned long *prop;
-    char *args;
 
     fword("my-self");
     fword("ihandle>phandle");
     ph = (phandle_t)POP();
     prop = (unsigned long *)get_property(ph, "address", &len);
     *address = *prop;
-    fword("my-args");
-    args = pop_fstr_copy();
 
     RET ( -1 );
 }

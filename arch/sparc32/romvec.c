@@ -197,10 +197,9 @@ static const char *obp_nextprop(int node, const char *name)
 
         return "";
     } else {
-        int len;
         char *str;
 
-        len = POP();
+        POP(); /* len */
         str = (char *) POP();
 
         DPRINTF("obp_nextprop(0x%x, %s) = %s\n", node, name, str);
