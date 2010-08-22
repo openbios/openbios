@@ -220,6 +220,20 @@ sunparts_open( sunparts_info_t *di )
 		}
 	} else {
 		DPRINTF("sun-parts: no filesystem found; bypassing misc-files interpose\n");
+
+		/* Solaris Fcode boot blocks assume that the disk-label package will always
+		   automatically interpose the "ufs-file-system" package if it exists! We
+		   need to mimic this behaviour in order for the boot to work. */
+		push_str("ufs-file-system");
+		feval("find-package");
+		ph = POP_ph();
+
+		if (ph) {
+			ph = POP_ph();
+			push_str(argstr);
+			PUSH_ph(ph);
+			fword("interpose");
+		}
 	}
 
 	free( str );
