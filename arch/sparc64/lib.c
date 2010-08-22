@@ -417,6 +417,27 @@ mem_retain ( void )
     PUSH(phys >> 32);
 }
 
+/* ( virt size align -- baseaddr|-1 ) */
+static void
+ciface_claim( void )
+{
+	ucell align = POP();
+	ucell size = POP();
+	ucell virt = POP();
+	ucell ret = ofmem_claim( virt, size, align );
+
+	/* printk("ciface_claim: %08x %08x %x\n", virt, size, align ); */
+	PUSH( ret );
+}
+
+/* ( virt size -- ) */
+static void
+ciface_release( void )
+{
+	POP();
+	POP();
+}
+
 DECLARE_NODE(memory, INSTALL_OPEN, 0, "/memory");
 
 NODE_METHODS( memory ) = {
@@ -493,6 +514,6 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
 
     push_str("/openprom/client-services");
     fword("find-device");
-    bind_func("cif-claim", mmu_claim);
-    bind_func("cif-release", mmu_release);
+    bind_func("cif-claim", ciface_claim);
+    bind_func("cif-release", ciface_release);
 }
