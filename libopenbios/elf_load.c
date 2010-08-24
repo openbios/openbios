@@ -11,6 +11,7 @@
 #include "libopenbios/sys_info.h"
 #include "libopenbios/ipchecksum.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/ofmem.h"
 #define printf printk
 #define debug printk
 
@@ -505,10 +506,11 @@ elf_init_program(void)
 		size = MIN(phdr[i].p_filesz, phdr[i].p_memsz);
 		if (!size)
 			continue;
-#if 0
+#ifndef CONFIG_SPARC32
 		if( ofmem_claim( phdr[i].p_vaddr, phdr[i].p_memsz, 0 ) == -1 ) {
-                        printk("Claim failed!\n");
-			return;
+                        printk("Ignoring failed claim for va %lx memsz %lx!\n",
+                               (unsigned long)phdr[i].p_vaddr,
+                               (unsigned long)phdr[i].p_memsz);
 		}
 #endif
 		/* Workaround for archs where sizeof(int) != pointer size */
