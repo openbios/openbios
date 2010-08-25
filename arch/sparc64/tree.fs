@@ -31,19 +31,13 @@ new-device
   external
   : open true ;
   : close ;
-  \ claim ( phys size align -- base )
-\  : claim 2drop ;
-  \ release ( phys size -- )
+  \ see arch/sparc64/lib.c for methods
 finish-device
 
 new-device
   " virtual-memory" device-name
   external
-  : open true ;
-  : close ;
-  \ claim ( phys size align -- base )
-\  : claim 2drop ;
-  \ release ( phys size -- )
+  \ see arch/sparc64/lib.c for methods
 finish-device
 
 " /options" find-device

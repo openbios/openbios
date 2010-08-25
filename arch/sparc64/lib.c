@@ -446,7 +446,7 @@ NODE_METHODS( memory ) = {
     { "SUNW,retain",        mem_retain      },
 };
 
-DECLARE_UNNAMED_NODE(mmu, INSTALL_OPEN, 0);
+DECLARE_NODE(mmu, INSTALL_OPEN, 0, "/virtual-memory");
 
 NODE_METHODS(mmu) = {
     { "open",               mmu_open              },
@@ -462,33 +462,18 @@ NODE_METHODS(mmu) = {
 
 void ob_mmu_init(const char *cpuname, uint64_t ram_size)
 {
-    char nodebuff[256];
-
     /* memory node */
     REGISTER_NODE_METHODS(memory, "/memory");
 
     /* MMU node */
-    snprintf(nodebuff, sizeof(nodebuff), "/%s", cpuname);
-    push_str(nodebuff);
-    fword("find-device");
-
-    fword("new-device");
-
-    push_str("mmu");
-    fword("device-name");
-
-    fword("finish-device");
-
-    snprintf(nodebuff, sizeof(nodebuff), "/%s/mmu", cpuname);
-
-    REGISTER_NODE_METHODS(mmu, nodebuff);
+    REGISTER_NODE_METHODS(mmu, "/virtual-memory");
 
     ofmem_register(find_dev("/memory"), find_dev("/virtual-memory"));
 
     push_str("/chosen");
     fword("find-device");
 
-    push_str(nodebuff);
+    push_str("/virtual-memory");
     fword("open-dev");
     fword("encode-int");
     push_str("mmu");
