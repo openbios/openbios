@@ -50,8 +50,6 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
-	void setup_timers(void);
-
 	openbios_init();
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI

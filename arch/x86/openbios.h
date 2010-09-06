@@ -19,6 +19,9 @@
 
 int openbios(void);
 
+/* entry.S */
+void init_exceptions(void);
+
 /* console.c */
 extern void	cls(void);
 #ifdef CONFIG_DEBUG_CONSOLE

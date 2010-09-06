@@ -50,7 +50,6 @@ struct cpudef {
 static uint16_t machine_id = 0;
 
 extern void unexpected_excep( int vector );
-extern void setup_timers( void );
 
 void
 unexpected_excep( int vector )

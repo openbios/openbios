@@ -48,12 +48,14 @@
 #define	PPCB_SPKR	0x02	/* Bit 1 */
 #define	PPCB_T2GATE	0x01	/* Bit 0 */
 
-extern void setup_timers(void);
 extern void ndelay(unsigned int nsecs);
 extern void udelay(unsigned int usecs);
 extern void mdelay(unsigned int msecs);
 extern unsigned long currticks(void);
 extern unsigned long get_timer_freq(void);
+
+/* arch/ppc/timebase.S */
+void _wait_ticks(unsigned long nticks);
 
 #define TICKS_PER_SEC 1000
 

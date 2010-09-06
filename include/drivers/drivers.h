@@ -123,4 +123,8 @@ int keyboard_dataready(void);
 unsigned char keyboard_readdata(void);
 #endif
 #endif
+
+/* drivers/timer.c */
+void setup_timers(void);
+
 #endif /* OPENBIOS_DRIVERS_H */

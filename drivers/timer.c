@@ -10,6 +10,7 @@
  */
 
 #include "config.h"
+#include "drivers/drivers.h"
 #include "timer.h"
 #include "asm/io.h"
 
@@ -86,7 +87,6 @@ unsigned long get_timer_freq(void)
 
 void udelay(unsigned int usecs)
 {
-	extern void _wait_ticks(unsigned long);
 	unsigned long ticksperusec = get_timer_freq() / 1000000;
 	_wait_ticks(ticksperusec * usecs);
 }

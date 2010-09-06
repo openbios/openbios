@@ -12,6 +12,7 @@
 #include "context.h"
 #include "libopenbios/sys_info.h"
 #include "boot.h"
+#include "openbios.h"
 
 #define MAIN_STACK_SIZE 16384
 #define IMAGE_STACK_SIZE 4096
@@ -57,8 +58,6 @@ unsigned long __boot_ctx;
 static void start_main(void)
 {
     int retval;
-    extern int openbios(void);
-    extern void init_exceptions(void);
 
     /* Save startup context, so we can refer to it later.
      * We have to keep it in physical address since we will relocate. */
