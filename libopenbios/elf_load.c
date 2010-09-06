@@ -506,7 +506,7 @@ elf_init_program(void)
 		size = MIN(phdr[i].p_filesz, phdr[i].p_memsz);
 		if (!size)
 			continue;
-#ifndef CONFIG_SPARC32
+#if !defined(CONFIG_SPARC32) && !defined(CONFIG_X86)
 		if( ofmem_claim( phdr[i].p_vaddr, phdr[i].p_memsz, 0 ) == -1 ) {
                         printk("Ignoring failed claim for va %lx memsz %lx!\n",
                                (unsigned long)phdr[i].p_vaddr,
