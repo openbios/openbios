@@ -95,8 +95,8 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     // Set DMA length
     esp->ll->regs[ESP_TCLOW] = cmdlen & 0xff;
     esp->ll->regs[ESP_TCMED] = (cmdlen >> 8) & 0xff;
-    // Set DMA direction
-    esp->espdma.regs->cond_reg = 0;
+    // Set DMA direction and enable DMA
+    esp->espdma.regs->cond_reg = DMA_ENABLE;
     // Set ATN, issue command
     esp->ll->regs[ESP_CMD] = ESP_CMD_SELA | ESP_CMD_DMA;
     // Wait for DMA to complete. Can this fail?
@@ -121,7 +121,7 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     esp->ll->regs[ESP_TCLOW] = replylen & 0xff;
     esp->ll->regs[ESP_TCMED] = (replylen >> 8) & 0xff;
     // Set DMA direction
-    esp->espdma.regs->cond_reg = DMA_ST_WRITE;
+    esp->espdma.regs->cond_reg = DMA_ST_WRITE | DMA_ENABLE;
     // Transfer
     esp->ll->regs[ESP_CMD] = ESP_CMD_TI | ESP_CMD_DMA;
     // Wait for DMA to complete
