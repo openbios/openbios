@@ -55,7 +55,7 @@ static struct iso_directory_record * seek_name(iso9660_VOLUME *volume,
 	while ((idr = iso9660_readdir(dir)) != NULL)
 	{
 		iso9660_name(volume, idr, name_buf);
-		if (strcmp(name, name_buf) == 0)
+		if (strcasecmp(name, name_buf) == 0)
 		{
 			result = idr_new(idr);
 			iso9660_closedir(dir);
