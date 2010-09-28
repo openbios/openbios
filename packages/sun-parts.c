@@ -92,8 +92,8 @@ static void
 sunparts_open( sunparts_info_t *di )
 {
 	char *str = my_args_copy();
-	char *argstr = strdup("");
-	char *parstr = strdup("");
+        char *argstr = NULL;
+        char *parstr = NULL;
 	int parnum = -1;
 	unsigned char buf[512];
         struct sun_disklabel *p;
@@ -140,7 +140,7 @@ sunparts_open( sunparts_info_t *di )
 			}
 		
 			/* Convert the id to a partition number */
-			if (strlen(parstr)) {
+                        if (parstr && strlen(parstr)) {
 				if (parstr[0] >= 'a' && parstr[0] < ('a' + 8))
 					parnum = parstr[0] - 'a';
 				else
@@ -156,12 +156,15 @@ sunparts_open( sunparts_info_t *di )
 	di->seek_xt = find_parent_method("seek");
 
 	SEEK( 0 );
-	if( READ(buf, 512) != 512 )
+        if (READ(buf, 512) != 512) {
+                free(str);
 		RET(0);
+        }
 
 	/* Check Magic */
 	if (!has_sun_part_magic(buf)) {
 		DPRINTF("Sun partition magic not found.\n");
+                free(str);
 		RET(0);
 	}
 
@@ -190,6 +193,7 @@ sunparts_open( sunparts_info_t *di )
         size = (long long)__be32_to_cpu(p->partitions[parnum].num_sectors) * bs;
         if (size == 0) {
                 DPRINTF("Partition size is 0, exiting\n");
+                free(str);
                 RET(0);
         }
         di->size_hi = size >> BITS;
@@ -213,7 +217,7 @@ sunparts_open( sunparts_info_t *di )
 
 		/* If we have been asked to open a particular file, interpose the filesystem package with 
 		   the passed filename as an argument */
-		if (strlen(argstr)) {
+                if (argstr && strlen(argstr)) {
 			push_str( argstr );
 			PUSH_ph( ph );
 			fword("interpose");
@@ -228,7 +232,7 @@ sunparts_open( sunparts_info_t *di )
 		feval("find-package");
 		ph = POP_ph();
 
-		if (ph) {
+                if (argstr && ph) {
 			ph = POP_ph();
 			push_str(argstr);
 			PUSH_ph(ph);
