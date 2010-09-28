@@ -49,7 +49,7 @@ iso9660_files_open( iso9660_info_t *mi )
 	if ( mi->volume == NULL ) {
 		free( path );
 		close_io( fd );
-		RET( -1 );
+		RET( 0 );
 	}
 
 	mi->common->dir = iso9660_opendir( mi->volume, path );
@@ -59,11 +59,11 @@ iso9660_files_open( iso9660_info_t *mi )
 			iso9660_umount( mi->volume );
 			close_io( fd );
 			free( path );
-			RET( -1 );
+			RET( 0 );
 		}
 		mi->common->type = FILE;
 		free( path );
-		RET( 0 );
+		RET( -1 );
  	}
 	mi->common->type = DIR;
 	free( path );
