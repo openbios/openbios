@@ -64,9 +64,6 @@ dlabel_open( dlabel_info_t *di )
 	cell status;
 
 	path = my_args_copy();
-	if (!path) {
-		path = strdup("");
-	}
 
 	DPRINTF("dlabel-open '%s'\n", path );
 
@@ -122,14 +119,14 @@ dlabel_open( dlabel_info_t *di )
 			DPRINTF("Located filesystem with ph " FMT_ucellx "\n", ph);
 			DPRINTF("path: %s length: %d\n", path, strlen(path));
 
-			if (strlen(path)) {
+                        if (path && strlen(path)) {
 				DPRINTF("INTERPOSE!\n");
 
 				push_str( path );
 				PUSH_ph( ph );
 				fword("interpose");
 			}
-		} else if (*path && strcmp(path, "%BOOT") != 0) {
+                } else if (path && strcmp(path, "%BOOT") != 0) {
 			goto out;
 		}
 
