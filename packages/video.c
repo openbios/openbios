@@ -288,11 +288,10 @@ video_write(void)
     char *addr;
     int len;
 
-    len = GETTOS();
-    addr = pop_fstr_copy();
+    len = POP();
+    addr = (char *)POP();
 
-    console_draw_str(addr);
-    free(addr);
+    console_draw_fstr(addr, len);
     PUSH(len);
 }
 

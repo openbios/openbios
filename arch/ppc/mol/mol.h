@@ -24,7 +24,7 @@ extern void		draw_pixel( int x, int y, int colind );
 extern void		set_color( int index, unsigned long color );
 
 /* console.c */
-extern int		console_draw_str( const char *str );
+extern int		console_draw_fstr(const char *str, int len);
 extern void		console_close( void );
 
 /* pseudodisk.c */

@@ -85,14 +85,9 @@ stdout_write( void )
 {
 	int len = POP();
 	char *addr = (char*)POP();
-	char *s = malloc( len + 1 );
-
-	strncpy_nopad( s, addr, len );
-	s[len]=0;
 
 	/* printk( "%s", s ); */
-	console_draw_str( s );
-	free( s );
+        console_draw_fstr(addr, len);
 
 	PUSH( len );
 }

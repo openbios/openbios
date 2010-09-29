@@ -32,12 +32,11 @@ volatile uint32_t *dac;
 
 static void video_putchar(int c)
 {
-    char buf[2];
+    char buf;
 
-    buf[0] = c & 0xff;
-    buf[1] = 0;
+    buf = c & 0xff;
 
-    console_draw_str(buf);
+    console_draw_fstr(&buf, 1);
 }
 
 static void video_cls(void)

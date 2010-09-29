@@ -19,7 +19,7 @@
 extern int		vfd_draw_str( const char *str );
 extern void		vfd_close( void );
 
-extern int                console_draw_str( const char *str );
+extern int              console_draw_fstr(const char *str, int len);
 
 #include "kernel.h"
 

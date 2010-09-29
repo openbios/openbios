@@ -382,12 +382,12 @@ do_con_trol(unsigned char ch)
 }
 
 int
-console_draw_str( const char *str )
+console_draw_fstr(const char *str, int len)
 {
         unsigned int y, x;
         unsigned char ch;
 
-	if (!str) {
+        if (!str || len <= 0) {
 		return 0;
 	}
 
@@ -395,7 +395,7 @@ console_draw_str( const char *str )
 		return -1;
 
 	show_cursor(0);
-	while( (ch=*str++) ) {
+        while((ch = *str++) && len--) {
 		do_con_trol(ch);
 
 		if( cons.x >= cons.w ) {
