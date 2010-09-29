@@ -306,6 +306,10 @@ of_client_interface( int *params )
 		if( val == -1 )
 			printk("Unimplemented service %s ([%ld] -- [%ld])\n",
 			       pb->service, pb->nargs, pb->nret );
+#ifdef DEBUG_CIF
+		else
+			printk("ERROR!\n");
+#endif
 		return -1;
 	}
 
