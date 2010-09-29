@@ -346,7 +346,7 @@ do_con_trol(unsigned char ch)
                 draw_line(cons.y);
                 return;
             case 2: /* erase whole line */
-                for (i = 0; i <= cons.w; i++)
+                for (i = 0; i < cons.w; i++)
                     cons.buf[cons.y * cons.w + i] = ' ';
                 draw_line(cons.y);
                 return;
