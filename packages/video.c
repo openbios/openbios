@@ -142,7 +142,8 @@ fill_rect( int col_ind, int x, int y, int w, int h )
 	char *pp;
 	unsigned long col = get_color(col_ind);
 
-	if( !video.has_video || x < 0 || y < 0 || x+w > video.fb.w || y+h > video.fb.h )
+        if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
+            x + w > video.fb.w || y + h > video.fb.h)
 		return;
 
 	pp = (char*)video.fb.mphys + video.fb.rb * y;
@@ -203,6 +204,9 @@ video_scroll( int height )
 {
 	int i, offs, size, *dest, *src;
 
+        if (height <= 0 || height >= video.fb.h) {
+                return;
+        }
 	offs = video.fb.rb * height;
 	size = (video.fb.h * video.fb.rb - offs)/16;
 	dest = (int*)video.fb.mphys;
