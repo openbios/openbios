@@ -220,7 +220,7 @@ static void dump_return(prom_args_t *pb)
 	} else {
 		printk("of_client_interface return:");
 		for (i = 0; i < pb->nret; i++) {
-			printk("%lx ", pb->args[pb->nargs + i]);
+			printk(" %lx", pb->args[pb->nargs + i]);
 		}
 		printk("\n");
 	}
