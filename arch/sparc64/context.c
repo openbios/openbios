@@ -11,7 +11,7 @@
 #include "openbios.h"
 
 #define MAIN_STACK_SIZE 16384
-#define IMAGE_STACK_SIZE 4096*2
+#define IMAGE_STACK_SIZE 4096*4
 
 #define debug printk
 
