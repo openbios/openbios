@@ -274,7 +274,22 @@ tl1_resv1d0:	BTRAPS(0x1d0) BTRAPS(0x1d8)
 tl1_resv1e0:	BTRAPS(0x1e0) BTRAPS(0x1e8)
 tl1_resv1f0:	BTRAPS(0x1f0) BTRAPS(0x1f8)
 
+	.section ".data"
+	.align 8
+	.globl tlb_handler_stack_top, tlb_handler_stack_pointer
+
+	! Stack for the tlb MMU trap handlers
+tlb_handler_stack_bottom:
+	.skip 8192
+tlb_handler_stack_top:
+	.skip 8
+
+	! MMU trap handler stack pointer
+tlb_handler_stack_pointer:
+	.xword tlb_handler_stack_top
+
         .section ".text", "ax"
+
 spill_32bit:
         srl     %sp, 0, %sp
         stw     %l0, [%sp + 0x00]
@@ -317,83 +332,272 @@ fill_32bit:
         restored
         retry
 
-        .globl reload_DMMU_tlb, reload_IMMU_tlb
+/*
+ * SAVE_CPU_STATE and RESTORE_CPU_STATE are macros used to enable a context switch
+ * to C to occur within the MMU I/D TLB miss handlers.
+ *
+ * Because these handlers are called on a TLB miss, we cannot use flushw to store
+ * processor window state on the stack, as the memory areas used by each window's
+ * stack pointer may not be in the TLB, causing recursive TLB miss traps.
+ *
+ * For this reason, we save window state by manually rotating the window registers
+ * and saving their contents (along with other vital registers) into a special
+ * tlb_handler_stack defined above which is guaranteed to be locked in the TLB, and
+ * so won't cause issues with trap recursion.
+ *
+ * Once this process is complete, we remain in a TL=0, CWP=0 state (with IE=1 to allow
+ * window fill/spill traps if required), switch to our safe tlb_handler_stack and 
+ * invoke the miss handler.
+ */
+
+#define SAVE_CPU_STATE(type) \
+	/* Set up our exception stack pointer in %g1 */ \
+	setx	tlb_handler_stack_pointer, %g7, %g6; \
+	ldx	[%g6], %g1; \
+	add	%g1, -0x510, %g1; \
+	\
+	/* First save the various state registers */ \
+	rdpr	%cwp, %g7; \
+	stx	%g7, [%g1]; \
+	rdpr	%cansave, %g7; \
+	stx	%g7, [%g1 + 0x8]; \
+	rdpr	%canrestore, %g7; \
+	stx	%g7, [%g1 + 0x10]; \
+	rdpr	%otherwin, %g7; \
+	stx	%g7, [%g1 + 0x18]; \
+	rdpr	%wstate, %g7; \
+	stx	%g7, [%g1 + 0x20]; \
+	rdpr	%cleanwin, %g7; \
+	stx	%g7, [%g1 + 0x28]; \
+	rdpr	%pstate, %g7; \
+	stx	%g7, [%g1 + 0x30]; \
+	\
+	rd	%y, %g7; \
+	stx	%g7, [%g1 + 0x38]; \
+	rd	%fprs, %g7; \
+	stx	%g7, [%g1 + 0x40]; \
+	\
+	rdpr	%tl, %g7; \
+	stx	%g7, [%g1 + 0x48]; \
+	\
+	/* Trap state */ \
+	add	%g1, 0x50, %g5; \
+	mov	4, %g6; \
+	\
+save_trap_state_##type: \
+	deccc	%g6; \
+	wrpr	%g6, %tl; \
+	rdpr	%tpc, %g7; \
+	stx	%g7, [%g5]; \
+	rdpr	%tnpc, %g7; \
+	stx	%g7, [%g5 + 0x8]; \
+	rdpr	%tstate, %g7; \
+	stx	%g7, [%g5 + 0x10]; \
+	rdpr	%tt, %g7; \
+	stx	%g7, [%g5 + 0x18]; \
+	bne	save_trap_state_##type; \
+	 add	%g5, 0x20, %g5; \
+	\
+	/* For 4 trap levels with 4 registers, memory required is 
+	4*8*4 = 0x80 bytes */ \
+	\
+	/* Save the o registers */ \
+	stx	%o0, [%g1 + 0xd0]; \
+	stx	%o1, [%g1 + 0xd8]; \
+	stx	%o2, [%g1 + 0xe0]; \
+	stx	%o3, [%g1 + 0xe8]; \
+	stx	%o4, [%g1 + 0xf0]; \
+	stx	%o5, [%g1 + 0xf8]; \
+	stx	%o6, [%g1 + 0x100]; \
+	stx	%o7, [%g1 + 0x108]; \
+	\
+	/* Now iterate through all of the windows saving all l and i registers */ \
+	add	%g1, 0x110, %g5; \
+	\
+	/* Get the number of windows in %g6 */ \
+	rdpr	%ver, %g6; \
+	and	%g6, 0xf, %g6; \
+	inc	%g6; \
+	\
+save_cpu_window_##type: \
+	deccc	%g6; \
+	wrpr	%g6, %cwp; \
+	stx	%l0, [%g5]; \
+	stx	%l1, [%g5 + 0x8]; \
+	stx	%l2, [%g5 + 0x10]; \
+	stx	%l3, [%g5 + 0x18]; \
+	stx	%l4, [%g5 + 0x20]; \
+	stx	%l5, [%g5 + 0x28]; \
+	stx	%l6, [%g5 + 0x30]; \
+	stx	%l7, [%g5 + 0x38]; \
+	stx	%i0, [%g5 + 0x40]; \
+	stx	%i1, [%g5 + 0x48]; \
+	stx	%i2, [%g5 + 0x50]; \
+	stx	%i3, [%g5 + 0x58]; \
+	stx	%i4, [%g5 + 0x60]; \
+	stx	%i5, [%g5 + 0x68]; \
+	stx	%i6, [%g5 + 0x70]; \
+	stx	%i7, [%g5 + 0x78]; \
+	bne	save_cpu_window_##type; \
+	 add	%g5, 0x80, %g5; \
+	\
+	/* For 8 windows with 16 registers to save in the window, memory required
+	is 16*8*8 = 0x400 bytes */ \
+	\
+	/* Now we should be in window 0 so update the other window registers */ \
+	rdpr	%ver, %g6; \
+	and	%g6, 0xf, %g6; \
+	dec	%g6; \
+	wrpr	%g6, %cansave; \
+	\
+	wrpr	%g0, %cleanwin; \
+	wrpr	%g0, %canrestore; \
+	wrpr	%g0, %otherwin; \
+	\
+	/* Update our exception stack pointer */ \
+	setx	tlb_handler_stack_pointer, %g7, %g6; \
+	stx	%g1, [%g6];
+
+
+#define RESTORE_CPU_STATE(type) \
+	/* Set up our exception stack pointer in %g1 */ \
+	setx	tlb_handler_stack_pointer, %g7, %g6; \
+	ldx	[%g6], %g1; \
+	\
+	/* Get the number of windows in %g6 */ \
+	rdpr	%ver, %g6; \
+	and	%g6, 0xf, %g6; \
+	inc	%g6; \
+	\
+	/* Now iterate through all of the windows restoring all l and i registers */ \
+	add	%g1, 0x110, %g5; \
+	\
+restore_cpu_window_##type: \
+	deccc	%g6; \
+	wrpr	%g6, %cwp; \
+	ldx	[%g5], %l0; \
+	ldx	[%g5 + 0x8], %l1; \
+	ldx	[%g5 + 0x10], %l2; \
+	ldx	[%g5 + 0x18], %l3; \
+	ldx	[%g5 + 0x20], %l4; \
+	ldx	[%g5 + 0x28], %l5; \
+	ldx	[%g5 + 0x30], %l6; \
+	ldx	[%g5 + 0x38], %l7; \
+	ldx	[%g5 + 0x40], %i0; \
+	ldx	[%g5 + 0x48], %i1; \
+	ldx	[%g5 + 0x50], %i2; \
+	ldx	[%g5 + 0x58], %i3; \
+	ldx	[%g5 + 0x60], %i4; \
+	ldx	[%g5 + 0x68], %i5; \
+	ldx	[%g5 + 0x70], %i6; \
+	ldx	[%g5 + 0x78], %i7; \
+	bne	restore_cpu_window_##type; \
+	 add	%g5, 0x80, %g5; \
+	\
+	/* Restore the window registers to their original value */ \
+	ldx	[%g1], %g7; \
+	wrpr	%g7, %cwp; \
+	ldx	[%g1 + 0x8], %g7; \
+	wrpr	%g7, %cansave; \
+	ldx	[%g1 + 0x10], %g7; \
+	wrpr	%g7, %canrestore; \
+	ldx	[%g1 + 0x18], %g7; \
+	wrpr	%g7, %otherwin; \
+	ldx	[%g1 + 0x20], %g7; \
+	wrpr	%g7, %wstate; \
+	ldx	[%g1 + 0x28], %g7; \
+	wrpr	%g7, %cleanwin; \
+	ldx	[%g1 + 0x30], %g7; \
+	wrpr	%g7, %pstate; \
+	\
+	/* Restore the o registers */ \
+	ldx	[%g1 + 0xd0], %o0; \
+	ldx	[%g1 + 0xd8], %o1; \
+	ldx	[%g1 + 0xe0], %o2; \
+	ldx	[%g1 + 0xe8], %o3; \
+	ldx	[%g1 + 0xf0], %o4; \
+	ldx	[%g1 + 0xf8], %o5; \
+	ldx	[%g1 + 0x100], %o6; \
+	ldx	[%g1 + 0x108], %o7; \
+	\
+	/* Restore the trap state */ \
+	add	%g1, 0x50, %g5; \
+	mov	4, %g6; \
+	\
+restore_trap_state_##type: \
+	deccc	%g6; \
+	wrpr	%g6, %tl; \
+	ldx	[%g5], %g7; \
+	wrpr	%g7, %tpc; \
+	ldx	[%g5 + 0x8], %g7; \
+	wrpr	%g7, %tnpc; \
+	ldx	[%g5 + 0x10], %g7; \
+	wrpr	%g7, %tstate; \
+	ldx	[%g5 + 0x18], %g7; \
+	wrpr	%g7, %tt; \
+	bne	restore_trap_state_##type; \
+	 add	%g5, 0x20, %g5; \
+	\
+	ldx	[%g1 + 0x38], %g7; \
+	wr	%g7, 0, %y; \
+	ldx	[%g1 + 0x40], %g7; \
+	wr	%g7, 0, %fprs; \
+	ldx	[%g1 + 0x48], %g7; \
+	wrpr	%g7, %tl; \
+	\
+	/* Restore exception stack pointer to previous value */ \
+	setx	tlb_handler_stack_pointer, %g7, %g6; \
+	add	%g1, 0x510, %g1; \
+	stx	%g1, [%g6];
+
+
+        .globl reload_DMMU_tlb, reload_IMMU_tlb, bug
 
 reload_DMMU_tlb:
-        mov     6 << 3, %g2           ! va = fault virtual address
-        ldxa    [%g2] ASI_DMMU, %g1   ! from tag access register
 
-        srlx    %g1, 13, %g1          ! %g1 = va rounded to 8k page
-        sllx    %g1, 13, %g1          !
+	SAVE_CPU_STATE(dtlb)
 
-        setx    g_ofmem_translations, %g7, %g3
-        ldx     [%g3], %g3            ! translation_t* t = *g_ofmem_translations
-dmmu_next_trans:
-        ldx     [%g3], %g3
-        brz      %g3, bug             ! NULL pointer
-         nop
-        ldx     [%g3+0x08], %g4       ! t->virt
-        sub     %g1, %g4, %g7         ! %g7 offset = va - t->virt
-        brlz    %g7, dmmu_next_trans  ! va < t->virt ?
-         nop
-        ldx     [%g3+0x10], %g4       ! t->size
-        sub     %g7, %g4, %g4         ! va >= t->virt - t->size ?
-        brgez   %g4, dmmu_next_trans
-         nop
+	/* Switch to TLB locked stack space */
+	add 	%g1, -STACK_BIAS, %sp
 
-        ! install 8k tlb entry
+	/* Enable interrupts for window spill/fill traps */
+	rdpr	%pstate, %g7
+	or	%g7, PSTATE_IE, %g7
+	wrpr	%g7, %pstate	
 
-        ldx     [%g3+0x18], %g4       ! t->phys
-        add     %g4, %g7, %g4         ! %g4 page physical address = t->phys + offset
-        ldx     [%g3+0x20], %g5       ! t->mode
+	call	dtlb_miss_handler
+	 nop
 
-        set     0x80000000, %g2       ! valid tte, 8k size
-        sllx    %g2, 32, %g2
-        or      %g2, %g5, %g2         ! mix in translation mode
-        or      %g2, %g4, %g3         ! mix in phys addr mode
+	/* Disable interrupts */
+	rdpr	%pstate, %g7
+	andn	%g7, PSTATE_IE, %g7
+	wrpr	%g7, %pstate
 
-        mov     6 << 3, %g2           ! page virtual address
-        stxa    %g1, [%g2] ASI_DMMU   !
-        stxa    %g3, [%g0] ASI_DTLB_DATA_IN
+	RESTORE_CPU_STATE(dtlb)
 
         retry
 
 reload_IMMU_tlb:
-        mov     6 << 3, %g2           ! va = fault virtual address
-        ldxa    [%g2] ASI_IMMU, %g1   ! from tag access register
 
-        srlx    %g1, 13, %g1          ! %g1 = va rounded to 8k page
-        sllx    %g1, 13, %g1          !
+	SAVE_CPU_STATE(itlb)
 
-        setx    g_ofmem_translations, %g7, %g3
-        ldx     [%g3], %g3            ! translation_t* t = *g_ofmem_translations
-immu_next_trans:
-        ldx     [%g3], %g3
-        brz      %g3, bug             ! NULL pointer
-         nop
-        ldx     [%g3+0x08], %g4       ! t->virt
-        sub     %g1, %g4, %g7         ! %g7 offset = va - t->virt
-        brlz    %g7, immu_next_trans  ! va < t->virt ?
-         nop
-        ldx     [%g3+0x10], %g4       ! t->size
-        sub     %g7, %g4, %g4         ! va >= t->virt - t->size ?
-        brgez   %g4, immu_next_trans
-         nop
+	/* Switch to TLB locked stack space */
+	add 	%g1, -STACK_BIAS, %sp
 
-        ! install 8k tlb entry
+	/* Enable interrupts for window spill/fill traps */
+	rdpr	%pstate, %g7
+	or	%g7, PSTATE_IE, %g7
+	wrpr	%g7, %pstate	
 
-        ldx     [%g3+0x18], %g4       ! t->phys
-        add     %g4, %g7, %g4         ! %g4 page physical address = t->phys + offset
-        ldx     [%g3+0x20], %g5       ! t->mode
+	call	itlb_miss_handler
+	 nop
 
-        set     0x80000000, %g2       ! valid tte, 8k size
-        sllx    %g2, 32, %g2
-        or      %g2, %g5, %g2         ! mix in translation mode
-        or      %g2, %g4, %g3         ! mix in phys addr mode
+	/* Disable interrupts */
+	rdpr	%pstate, %g7
+	andn	%g7, PSTATE_IE, %g7
+	wrpr	%g7, %pstate
 
-        mov     6 << 3, %g2           ! page virtual address
-        stxa    %g1, [%g2] ASI_IMMU   !
-        stxa    %g3, [%g0] ASI_ITLB_DATA_IN
+	RESTORE_CPU_STATE(itlb)
 
         retry
 

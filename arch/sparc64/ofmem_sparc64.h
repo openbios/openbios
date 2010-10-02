@@ -25,4 +25,8 @@ extern void ofmem_walk_boot_map(translation_entry_cb cb);
 
 extern translation_t **g_ofmem_translations;
 
+extern void dtlb_miss_handler(void);
+extern void itlb_miss_handler(void);
+extern void bug(void);
+
 #endif   /* _H_OFMEM_SPARC64 */
