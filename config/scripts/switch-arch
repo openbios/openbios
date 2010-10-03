@@ -71,6 +71,8 @@ crosscflags()
 
     if test "$host" = "x86" -a "$targetlongbits" = "64"; then
         cflags="$cflags -DNEED_FAKE_INT128_T"
+    elif test "$host" = "ppc" -a "$targetlongbits" = "64" -a `uname -s` = "Darwin"; then
+        cflags="$cflags -DNEED_FAKE_INT128_T"
     fi
 
     CROSSCFLAGS=$cflags
