@@ -16,6 +16,8 @@
 
 #include "ofmem_sparc64.h"
 
+static ucell *va2ttedata = 0;
+
 /* Format a string and print it on the screen, just like the libc
  * function printf.
  */
@@ -228,10 +230,28 @@ dtlb_miss_handler(void)
 	faultva >>= 13;
 	faultva <<= 13;
 
-	/* Search the ofmem linked list for this virtual address */
-	PUSH(faultva);
-	pgmap_fetch();
-	tte_data = POP();
+	/* If a valid va>tte-data routine has been set, invoke that Forth xt instead */
+	if (va2ttedata && *va2ttedata != 0) {
+
+		/* va>tte-data ( addr cnum -- false | tte-data true ) */
+		PUSH(faultva);
+		PUSH(0);
+		enterforth(*va2ttedata);
+
+		/* Check the result first... */
+		tte_data = POP();
+		if (!tte_data) {
+			bug();
+		} else {
+			/* Grab the real data */
+			tte_data = POP();
+		}		
+	} else {
+		/* Search the ofmem linked list for this virtual address */
+		PUSH(faultva);
+		pgmap_fetch();
+		tte_data = POP();
+	}
 
 	if (tte_data) {
 		/* Update MMU */
@@ -240,6 +260,7 @@ dtlb_miss_handler(void)
 		/* If we got here, there was no translation so fail */
 		bug();
 	}
+
 }
 
 static void
@@ -298,10 +319,28 @@ itlb_miss_handler(void)
 	faultva >>= 13;
 	faultva <<= 13;
 
-	/* Search the ofmem linked list for this virtual address */
-	PUSH(faultva);
-	pgmap_fetch();
-	tte_data = POP();
+	/* If a valid va>tte-data routine has been set, invoke that Forth xt instead */
+	if (va2ttedata && *va2ttedata != 0) {
+
+		/* va>tte-data ( addr cnum -- false | tte-data true ) */
+		PUSH(faultva);
+		PUSH(0);
+		enterforth(*va2ttedata);
+
+		/* Check the result first... */
+		tte_data = POP();
+		if (!tte_data) {
+			bug();
+		} else {
+			/* Grab the real data */
+			tte_data = POP();
+		}		
+	} else {
+		/* Search the ofmem linked list for this virtual address */
+		PUSH(faultva);
+		pgmap_fetch();
+		tte_data = POP();
+	}
 
 	if (tte_data) {
 		/* Update MMU */
@@ -617,4 +656,8 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
     PUSH(0);
     fword("active-package!");
     bind_func("pgmap@", pgmap_fetch);
+
+    /* Find address of va2ttedata defer word contents for MMU miss handlers */
+    va2ttedata = (ucell *)findword("va>tte-data");
+    va2ttedata++;
 }

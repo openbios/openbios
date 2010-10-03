@@ -1,3 +1,10 @@
+\ va>tte-data defer MMU virtual to physical address hook for Solaris
+\ We need to make sure this is in the global wordlist
+active-package 0 active-package!
+defer va>tte-data
+0 to va>tte-data
+active-package!
+
 :noname
   ."   Type 'help' for detailed information" cr
   \ ."   boot secondary slave cdrom: " cr
