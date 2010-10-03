@@ -1043,6 +1043,13 @@ variable #instance
   then
   ; immediate
 
+: is ( xt "wordname<>" -- )
+  parse-word $find if
+    (to)
+  else
+    s" could not find " type type
+  then
+  ;
 
 \ 
 \ 7.3.4.2 Console Input
