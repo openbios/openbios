@@ -51,7 +51,7 @@ crosscflags()
 
 # target long bits test
     if test "$target" = "sparc64" -o "$target" = "ia64" \
-        -o "$target" = "amd64"  -o "target" = "x86_64" \
+        -o "$target" = "amd64"  -o "$target" = "x86_64" \
         -o "$target" = "alpha"; then
         targetlongbits="64"
     else
