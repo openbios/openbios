@@ -1,21 +1,5 @@
-<?xml version="1.0"?>
-<config>
-
-  <!-- generic -->
-  <option name="CONFIG_SPARC" type="boolean" value="true"/>
-  <option name="CONFIG_SPARC64" type="boolean" value="true"/>
-  <option name="CONFIG_QEMU" type="boolean" value="true"/>
-  <option name="CONFIG_BIG_ENDIAN" type="boolean" value="true"/>
-
   <!-- kernel binaries (SPARC64) -->
-  <option name="CONFIG_IMAGE_ELF" type="boolean" value="false"/>
-  <option name="CONFIG_IMAGE_ELF_EMBEDDED" type="boolean" value="true"/>
   <option name="CONFIG_IMAGE_ELF_MULTIBOOT" type="boolean" value="true"/>
-
-  <!-- Build hosted UNIX Binary -->
-  <option name="CONFIG_HOST_UNIX" type="boolean" value="true"/>
-  <option name="CONFIG_UNIX_QT" type="boolean" value="false"/>
-  <option name="CONFIG_PLUGINS" type="boolean" value="false"/>
 
   <!-- Kernel Debugging -->
   <option name="CONFIG_DEBUG" type="boolean" value="true"/>
@@ -88,4 +72,3 @@
   <option name="CONFIG_DRIVER_PC_SERIAL" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_FW_CFG" type="boolean" value="true"/>
   <option name="CONFIG_FW_CFG_ADDR" type="integer" value="0x510"/>
-</config>

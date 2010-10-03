@@ -1,19 +1,3 @@
-<?xml version="1.0"?>
-<config>
-
-  <!-- generic -->
-  <option name="CONFIG_PPC" type="boolean" value="true"/>
-  <option name="CONFIG_MOL" type="boolean" value="false"/>
-  <option name="CONFIG_BRIQ" type="boolean" value="false"/>
-  <option name="CONFIG_PEARPC" type="boolean" value="false"/>
-  <option name="CONFIG_QEMU" type="boolean" value="true"/>
-  <option name="CONFIG_BIG_ENDIAN" type="boolean" value="true"/>
-
-  <!-- Build hosted UNIX Binary -->
-  <option name="CONFIG_HOST_UNIX" type="boolean" value="false"/>
-  <option name="CONFIG_UNIX_QT" type="boolean" value="false"/>
-  <option name="CONFIG_PLUGINS" type="boolean" value="false"/>
-
   <!-- Kernel Debugging -->
   <option name="CONFIG_DEBUG" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_BOOT" type="boolean" value="false"/>
@@ -90,4 +74,3 @@
   <option name="CONFIG_DRIVER_ESCC" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_FW_CFG" type="boolean" value="true"/>
   <option name="CONFIG_FW_CFG_ADDR" type="integer" value="0xf0000510"/>
-</config>

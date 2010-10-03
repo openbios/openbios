@@ -1,19 +1,5 @@
-<?xml version="1.0"?>
-<config>
-
-  <!-- generic -->
-  <option name="CONFIG_AMD64" type="boolean" value="true"/>
-  <option name="CONFIG_LITTLE_ENDIAN" type="boolean" value="true"/>
-
   <!-- kernel binaries (AMD64) -->
-  <option name="CONFIG_IMAGE_ELF" type="boolean" value="true"/>
-  <option name="CONFIG_IMAGE_ELF_EMBEDDED" type="boolean" value="true"/>
   <option name="CONFIG_IMAGE_ELF_MULTIBOOT" type="boolean" value="true"/>
-
-  <!-- Build hosted UNIX Binary -->
-  <option name="CONFIG_HOST_UNIX" type="boolean" value="true"/>
-  <option name="CONFIG_UNIX_QT" type="boolean" value="false"/>
-  <option name="CONFIG_PLUGINS" type="boolean" value="false"/>
 
   <!-- Kernel Debugging -->
   <option name="CONFIG_DEBUG" type="boolean" value="true"/>
@@ -72,5 +58,3 @@
   <option name="CONFIG_DRIVER_IDE" type="boolean" value="true"/>
   <option name="CONFIG_IDE_NUM_CHANNELS" type="integer" value="4"/>
   <option name="CONFIG_DEBUG_IDE" type="boolean" value="false"/>
-
-</config>
