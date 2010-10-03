@@ -301,7 +301,7 @@ bucket *findbucket(bcache *cache, unsigned long bnum, bucket ***hslot)
 static
 int reuse(bcache *cache, bucket *b, unsigned long bnum)
 {
-  bucket *chain[HFS_BLOCKBUFSZ], *bptr;
+  bucket *bptr;
   int i;
 
 # ifdef DEBUG
@@ -317,7 +317,6 @@ int reuse(bcache *cache, bucket *b, unsigned long bnum)
 
       for (bptr = b, i = 0; i < HFS_BLOCKBUFSZ; ++i)
 	{
-	  chain[i] = bptr;
 	  bptr = bptr->cprev;
 	}
     }

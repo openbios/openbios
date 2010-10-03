@@ -15,7 +15,7 @@
 void iso9660_name(iso9660_VOLUME *volume, struct iso_directory_record *idr, char *buffer)
 {
 	int	j;
-	unsigned char	uh, ul, uc;
+        unsigned char ul, uc;
 
 	buffer[0] = 0;
 	if (idr->name_len[0] == 1 && idr->name[0] == 0)
@@ -32,7 +32,6 @@ void iso9660_name(iso9660_VOLUME *volume, struct iso_directory_record *idr, char
 			 */
 
 			for (j = 0; j < (int)idr->name_len[0] / 2; j++) {
-				uh = idr->name[j*2];
 				ul = idr->name[j*2+1];
 
 				/*
