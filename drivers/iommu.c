@@ -99,7 +99,9 @@ iommu_init(struct iommu *t, uint64_t base)
 {
     unsigned int *ptab;
     int ptsize;
+#ifdef CONFIG_DEBUG_IOMMU
     unsigned int impl, vers;
+#endif
     unsigned int tmp;
     struct iommu_regs *regs;
     int ret;
@@ -111,8 +113,10 @@ iommu_init(struct iommu *t, uint64_t base)
         for (;;) { }
     }
     t->regs = regs;
+#ifdef CONFIG_DEBUG_IOMMU
     impl = (regs->control & IOMMU_CTRL_IMPL) >> 28;
     vers = (regs->control & IOMMU_CTRL_VERS) >> 24;
+#endif
 
     tmp = regs->control;
     tmp &= ~(IOMMU_CTRL_RNGE);

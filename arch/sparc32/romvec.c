@@ -323,16 +323,21 @@ static int obp_devread(int dev_desc, char *buf, int nbytes)
 
 static int obp_devwrite(int dev_desc, char *buf, int nbytes)
 {
+#ifdef CONFIG_DEBUG_OBP_DEVWRITE /* disabled, makes too much noise */
     int ret;
+#endif
 
     PUSH((int)buf);
     PUSH(nbytes);
     push_str("write");
     PUSH(dev_desc);
     fword("$call-method");
+#ifdef CONFIG_DEBUG_OBP_DEVWRITE
     ret = POP();
-
-    //DPRINTF("obp_devwrite(fd 0x%x, buf %s, nbytes %d) = %d\n", dev_desc, buf, nbytes, ret);
+    DPRINTF("obp_devwrite(fd 0x%x, buf %s, nbytes %d) = %d\n", dev_desc, buf, nbytes, ret);
+#else
+    POP();
+#endif
 
     return nbytes;
 }
