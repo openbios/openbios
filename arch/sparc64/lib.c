@@ -135,6 +135,43 @@ mmu_translate(void)
     }
 }
 
+/*
+ * D5.3 pgmap@ ( va -- tte )
+ */
+static void
+pgmap_fetch(void)
+{
+	translation_t *t = *g_ofmem_translations;
+	unsigned long va, tte_data;
+
+	va = POP();
+
+	/* Search the ofmem linked list for this virtual address */
+	while (t != NULL) {
+		/* Find the correct range */
+		if (va >= t->virt && va < (t->virt + t->size)) {
+
+			/* valid tte, 8k size */
+			tte_data = 0x8000000000000000UL;
+
+			/* mix in phys address mode */
+			tte_data |= t->mode;
+
+			/* mix in page physical address = t->phys + offset */
+			tte_data |= t->phys + (va - t->virt);
+
+			/* return tte_data */
+			PUSH(tte_data);
+
+			return;
+		}
+		t = t->next;
+	}
+
+	/* If we get here, there was no entry */
+	PUSH(0);
+}
+
 static void
 dtlb_load2(unsigned long vaddr, unsigned long tte_data)
 {
@@ -185,7 +222,6 @@ void
 dtlb_miss_handler(void)
 {
 	unsigned long faultva, tte_data = 0;
-	translation_t *t = *g_ofmem_translations;
 
 	/* Grab fault address from MMU and round to nearest 8k page */
 	faultva = dtlb_faultva();
@@ -193,30 +229,17 @@ dtlb_miss_handler(void)
 	faultva <<= 13;
 
 	/* Search the ofmem linked list for this virtual address */
-	while (t != NULL) {
-		/* Find the correct range */
-		if (faultva >= t->virt && faultva < (t->virt + t->size)) {
+	PUSH(faultva);
+	pgmap_fetch();
+	tte_data = POP();
 
-			/* valid tte, 8k size */
-			tte_data = 0x8000000000000000UL;
-
-			/* mix in phys address mode */
-			tte_data |= t->mode;
-
-			/* mix in page physical address = t->phys + offset */
-			tte_data |= t->phys + (faultva - t->virt);
-
-			/* Update MMU */
-			dtlb_load2(faultva, tte_data);
-
-			return;
-		}
-
-		t = t->next;
+	if (tte_data) {
+		/* Update MMU */
+		dtlb_load2(faultva, tte_data);
+	} else {
+		/* If we got here, there was no translation so fail */
+		bug();
 	}
-
-	/* If we got here, there was no translation so fail */
-	bug();
 }
 
 static void
@@ -238,6 +261,20 @@ itlb_load3(unsigned long vaddr, unsigned long tte_data,
           "r" (tte_data), "r" (tte_index << 3), "i" (ASI_ITLB_DATA_ACCESS));
 }
 
+/*
+  ( index tte_data vaddr -- ? )
+*/
+static void
+itlb_load(void)
+{
+    unsigned long vaddr, tte_data, idx;
+
+    vaddr = POP();
+    tte_data = POP();
+    idx = POP();
+    itlb_load3(vaddr, tte_data, idx);
+}
+
 static unsigned long
 itlb_faultva(void)
 {
@@ -255,7 +292,6 @@ void
 itlb_miss_handler(void)
 {
 	unsigned long faultva, tte_data = 0;
-	translation_t *t = *g_ofmem_translations;
 
 	/* Grab fault address from MMU and round to nearest 8k page */
 	faultva = itlb_faultva();
@@ -263,45 +299,17 @@ itlb_miss_handler(void)
 	faultva <<= 13;
 
 	/* Search the ofmem linked list for this virtual address */
-	while (t != NULL) {
-		/* Find the correct range */
-		if (faultva >= t->virt && faultva < (t->virt + t->size)) {
+	PUSH(faultva);
+	pgmap_fetch();
+	tte_data = POP();
 
-			/* valid tte, 8k size */
-			tte_data = 0x8000000000000000UL;
-
-			/* mix in phys address mode */
-			tte_data |= t->mode;
-
-			/* mix in page physical address = t->phys + offset */
-			tte_data |= t->phys + (faultva - t->virt);
-
-			/* Update MMU */
-			itlb_load2(faultva, tte_data);
-
-			return;
-		}
-
-		t = t->next;
+	if (tte_data) {
+		/* Update MMU */
+		itlb_load2(faultva, tte_data);
+	} else {
+		/* If we got here, there was no translation so fail */
+		bug();
 	}
-
-	/* If we got here, there was no translation so fail */
-	bug();
-}
-
-
-/*
-  ( index tte_data vaddr -- ? )
-*/
-static void
-itlb_load(void)
-{
-    unsigned long vaddr, tte_data, idx;
-
-    vaddr = POP();
-    tte_data = POP();
-    idx = POP();
-    itlb_load3(vaddr, tte_data, idx);
 }
 
 static void
@@ -604,4 +612,9 @@ void ob_mmu_init(const char *cpuname, uint64_t ram_size)
     fword("find-device");
     bind_func("cif-claim", ciface_claim);
     bind_func("cif-release", ciface_release);
+
+    /* Other MMU functions */
+    PUSH(0);
+    fword("active-package!");
+    bind_func("pgmap@", pgmap_fetch);
 }
