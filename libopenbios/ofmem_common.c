@@ -477,7 +477,7 @@ ucell ofmem_claim( ucell addr, ucell size, ucell align )
 	ucell virt, phys;
 	ucell offs = addr & 0xfff;
 
-	/* printk("+ ofmem_claim %08lx %lx %ld\n", addr, size, align ); */
+	OFMEM_TRACE("ofmem_claim " FMT_ucellx " " FMT_ucellx " " FMT_ucellx "\n", addr, size, align );
 	virt = phys = 0;
 	if( !align ) {
 		if( is_free(addr, size, ofmem->virt_range) &&
