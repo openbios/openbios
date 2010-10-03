@@ -375,7 +375,10 @@ static unsigned char collect_interrupt(void)
 {
 	unsigned char pcn = 0xff;
 	unsigned char reply_buffer[MAX_REPLIES];
-	int nr, i, status;
+        int nr;
+#ifdef CONFIG_DEBUG_FLOPPY
+        int i, status;
+#endif
 	nr = result(reply_buffer, MAX_REPLIES);
 	if (nr != 0) {
 		printk_debug("SENSEI\n");
@@ -393,6 +396,7 @@ static unsigned char collect_interrupt(void)
 			}
                         max_sensei--;
 		}while(((reply_buffer[0] & 0x83) != FD_DRIVE) && (nr == 2) && max_sensei);
+#ifdef CONFIG_DEBUG_FLOPPY
                 status = fdc_state.fdc_inb(FD_STATUS);
 		printk_debug("status = %x, reply_buffer=", status);
 		for(i = 0; i < nr; i++) {
@@ -400,6 +404,9 @@ static unsigned char collect_interrupt(void)
 				reply_buffer[i]);
 		}
 		printk_debug("\n");
+#else
+                fdc_state.fdc_inb(FD_STATUS);
+#endif
 	}
 
 	return pcn;

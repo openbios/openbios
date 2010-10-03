@@ -180,10 +180,16 @@ static void
 dlabel_load( __attribute__((unused)) dlabel_info_t *di )
 {
 	/* Try the load method of the part package */
+#ifdef DEBUG_DISK_LABEL
 	char *buf;
+#endif
 	xt_t xt;
 
+#ifdef DEBUG_DISK_LABEL
 	buf = (char *)POP();
+#else
+        POP();
+#endif
 
 	DPRINTF("load invoked with address %p\n", buf);
 

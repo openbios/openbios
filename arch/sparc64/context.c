@@ -46,17 +46,12 @@ unsigned long __boot_ctx;
  */
 static void start_main(void)
 {
-    int retval;
-
     /* Save startup context, so we can refer to it later.
      * We have to keep it in physical address since we will relocate. */
     __boot_ctx = virt_to_phys(__context);
 
     /* Start the real fun */
-    retval = openbios();
-
-    /* Pass return value to startup context. Bootloader may see it. */
-    //boot_ctx->eax = retval;
+    openbios();
 
     /* Returning from here should jump to __exit_context */
     __context = boot_ctx;
