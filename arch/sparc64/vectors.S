@@ -557,8 +557,9 @@ reload_DMMU_tlb:
 
 	SAVE_CPU_STATE(dtlb)
 
-	/* Switch to TLB locked stack space */
-	add 	%g1, -STACK_BIAS, %sp
+	/* Switch to TLB locked stack space (note we add an additional 192 bytes required for
+	   gcc to save its arguments when building with -O0) */
+	add 	%g1, -STACK_BIAS - 192, %sp
 
 	/* Enable interrupts for window spill/fill traps */
 	rdpr	%pstate, %g7
@@ -581,8 +582,9 @@ reload_IMMU_tlb:
 
 	SAVE_CPU_STATE(itlb)
 
-	/* Switch to TLB locked stack space */
-	add 	%g1, -STACK_BIAS, %sp
+	/* Switch to TLB locked stack space (note we add an additional 192 bytes required for
+	   gcc to save its arguments when building with -O0) */
+	add 	%g1, -STACK_BIAS - 192, %sp
 
 	/* Enable interrupts for window spill/fill traps */
 	rdpr	%pstate, %g7
