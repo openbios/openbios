@@ -351,9 +351,9 @@ GLOBL(_entry):
 	 *
 	 * 	MSR = FP, ME + (DR|IR)
 	 *	r1 = stack (32 K + 32 bytes link area above)
-	 *	r5 = clint interface handler
+	 *	r5 = client interface handler
 	 *	r6 = address of client program arguments (unused)
-	 *	r7 = length of client program arguments (unsed)
+	 *	r7 = length of client program arguments (unused)
          *
          *      Yaboot and Linux use r3 and r4 for initrd address and size
 	 */
