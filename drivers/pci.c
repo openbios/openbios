@@ -297,7 +297,7 @@ ob_pci_encode_unit(int *idx)
 	case IO_SPACE:
 
 		/* [n]i[t]DD,F,RR,NNNNNNNN */
-        	snprintf(buf, sizeof(buf), "%si%s%x,%x,%x,%x",
+                snprintf(buf, sizeof(buf), "%si%s%x,%x,%x," FMT_ucellx,
 			 n ? "n" : "",	/* relocatable */
 			 t ? "t" : "",	/* aliased */
 			 dev, fn, reg, t ? lo & 0x03FF : lo);
@@ -306,7 +306,7 @@ ob_pci_encode_unit(int *idx)
 	case MEMORY_SPACE_32:
 
 		/* [n]m[t][p]DD,F,RR,NNNNNNNN */
-        	snprintf(buf, sizeof(buf), "%sm%s%s%x,%x,%x,%x",
+                snprintf(buf, sizeof(buf), "%sm%s%s%x,%x,%x," FMT_ucellx,
 			 n ? "n" : "",	/* relocatable */
 			 t ? "t" : "",	/* aliased */
 			 p ? "p" : "",	/* prefetchable */
@@ -319,7 +319,7 @@ ob_pci_encode_unit(int *idx)
         	snprintf(buf, sizeof(buf), "%sx%s%x,%x,%x,%llx",
 			 n ? "n" : "",	/* relocatable */
 			 p ? "p" : "",	/* prefetchable */
-			 dev, fn, reg, ((uint64_t)mid << 32) | (uint64_t)lo );
+                         dev, fn, reg, ((long long)mid << 32) | (long long)lo);
 		break;
 	}
 	push_str(buf);

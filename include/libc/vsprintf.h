@@ -20,11 +20,16 @@
 #include <stdarg.h>
 #include "config.h"
 
-extern int	vsprintf(char *buf, const char *fmt, va_list args );
-extern int	sprintf(char * buf, const char *fmt, ...);
-extern int vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
-extern int snprintf(char * buf, size_t size, const char *fmt, ...);
+int vsprintf(char *buf, const char *fmt, va_list args)
+    __attribute__((__format__(__printf__, 2, 0)));
+int sprintf(char * buf, const char *fmt, ...)
+    __attribute__((__format__(__printf__, 2, 3)));
+int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
+    __attribute__((__format__(__printf__, 3, 0)));
+int snprintf(char * buf, size_t size, const char *fmt, ...)
+    __attribute__((__format__(__printf__, 3, 4)));
 
-extern int forth_printf( const char *fmt, ... );
+int forth_printf(const char *fmt, ...)
+    __attribute__((__format__(__printf__, 1, 2)));
 
 #endif   /* _H_VSPRINTF */

@@ -524,7 +524,7 @@ hfs_files_dir( hfs_info_t *dummy )
 
 	forth_printf("\n");
 	while( !hfs_readdir(common->dir, &ent) ) {
-		forth_printf("% 10d ", ent.u.file.dsize);
+                forth_printf("% 10ld ", ent.u.file.dsize);
 		print_date(ent.mddate);
 		if( ent.flags & HFS_ISDIR )
 			forth_printf("%s\\\n", ent.name);
