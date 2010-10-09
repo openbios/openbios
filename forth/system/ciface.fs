@@ -97,8 +97,9 @@ external
   over cstrlen swap
   ?phandle get-package-property if 2drop -1 exit then
   ( buflen buf prop proplen )
-  >r swap rot r> min
-  dup >r move r>
+  >r swap rot r>
+  ( prop buf buflen proplen )
+  dup >r min move r>
 ;
 
 \ 1 OK, 0 no more prop, -1 prev invalid
