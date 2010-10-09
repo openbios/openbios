@@ -283,7 +283,7 @@
     dup r@ + c@
     ( len n ch )
 
-    pocket tohexstr type ."  "
+    pocket tohexstr dup 2 <> if ." 0" then type ."  "
     1+
   repeat 
   2drop r> drop 1
