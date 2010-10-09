@@ -314,10 +314,10 @@ external
 \ PowerPC Microprocessor CHRP binding
 \ 10.5.2. Client Interface
 
-( phandle cstring-method -- missing )
+( cstring-method phandle -- missing )
 
 : test-method
-	dup cstrlen rot
+	swap dup cstrlen rot
 	find-method 0= if -1 else drop 0 then
 ;
 [THEN]
