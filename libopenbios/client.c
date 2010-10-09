@@ -171,7 +171,8 @@ static void dump_return(prom_args_t *pb)
 		printk("0x%08lx\n", pb->args[pb->nargs]);
 	} else if (strcmp(pb->service, "getprop") == 0) {
 		printk("%ld\n", pb->args[pb->nargs]);
-		memdump((char*)pb->args[2], pb->args[3]);
+		if ((long)pb->args[pb->nargs] != -1)
+			memdump((char*)pb->args[2], MIN(pb->args[3], pb->args[pb->nargs]));
 	} else if (strcmp(pb->service, "nextprop") == 0) {
 		printk("%ld\n", pb->args[pb->nargs]);
 		memdump((char*)pb->args[2], pb->args[pb->nargs]);
