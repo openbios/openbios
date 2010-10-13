@@ -526,8 +526,16 @@ static void kvm_of_init(void)
 	if (!fw_cfg_read_i32(FW_CFG_PPC_IS_KVM))
 		return;
 
-	push_str("/hypervisor");
+	push_str("/");
 	fword("find-device");
+
+	fword("new-device");
+
+	push_str("hypervisor");
+	fword("device-name");
+
+	push_str("hypervisor");
+	fword("device-type");
 
 	/* compatible */
 
@@ -567,6 +575,8 @@ static void kvm_of_init(void)
 	fword("encode-string");
 	push_str("guest-name");
 	fword("property");
+
+	fword("finish-device");
 }
 
 void

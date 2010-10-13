@@ -39,11 +39,6 @@ new-device
 	: close ;
 finish-device
 
-new-device
-	" hypervisor" device-name
-	" hypervisor" device-type
-finish-device
-
 \ -------------------------------------------------------------
 \ /packages
 \ -------------------------------------------------------------
