@@ -86,7 +86,7 @@ get_rom_base( void )
 unsigned long
 get_ram_top( void )
 {
-	return get_rom_base() - HASH_SIZE - (32 + 32 + 64) * 1024;
+	return get_rom_base() - HASH_SIZE - (32 + 64 + 64) * 1024;
 }
 
 unsigned long
