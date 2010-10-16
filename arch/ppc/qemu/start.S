@@ -334,9 +334,13 @@ GLOBL(_entry):
 
 	addis	r1, r3, -16		/* ramsize - 1MB */
 
-	/* setup exception stack */
+	/* setup hash table */
 
 	addis	r1, r1, -1		/* - 64 kB */
+	clrrwi	r1, r1, 5*4		/* & ~0xfffff */
+
+	/* setup exception stack */
+
 	mtsprg0	r1
 
 	/* setup stack */
