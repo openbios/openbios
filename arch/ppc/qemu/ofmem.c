@@ -178,7 +178,7 @@ malloc( int size )
 void
 free( void *ptr )
 {
-	return ofmem_free(ptr);
+	ofmem_free(ptr);
 }
 
 void *
