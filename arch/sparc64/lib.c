@@ -154,7 +154,7 @@ pgmap_fetch(void)
 		if (va >= t->virt && va < (t->virt + t->size)) {
 
 			/* valid tte, 8k size */
-			tte_data = 0x8000000000000000UL;
+			tte_data = SPITFIRE_TTE_VALID;
 
 			/* mix in phys address mode */
 			tte_data |= t->mode;
