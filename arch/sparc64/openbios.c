@@ -476,7 +476,7 @@ void arch_nvram_get(char *data)
             push_str("/obio/SUNW,fdtwo");
             break;
         case 'c':
-            push_str("disk");
+            push_str("disk:a");
             break;
         default:
         case 'd':
