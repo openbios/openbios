@@ -415,7 +415,7 @@ setup_mmu( unsigned long ramsize )
 		asm volatile("mtsrin %0,%1" :: "r" (sr_base + i), "r" (j) );
 	}
 
-	memcpy((void *)get_rom_base(), (void *)0xfff00000, 0x00100000);
+	memcpy((void *)get_rom_base(), (void *)OF_CODE_START, 0x00100000);
 
 	/* Enable MMU */
 
