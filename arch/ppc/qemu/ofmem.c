@@ -389,13 +389,10 @@ setup_mmu( unsigned long ramsize )
 	ofmem_t *ofmem;
 	unsigned long sdr1, sr_base, msr;
 	unsigned long hash_base;
-	unsigned long hash_mask = 0xffff0000;
+	unsigned long hash_mask = 0xfff00000; /* alignment for ppc64 */
 	int i;
 
 	/* SDR1: Storage Description Register 1 */
-
-	if(is_ppc64())
-		hash_mask = 0xfff00000;
 
 	hash_base = (ramsize - 0x00100000 - HASH_SIZE) & hash_mask;
         memset((void *)hash_base, 0, HASH_SIZE);
