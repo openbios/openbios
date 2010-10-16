@@ -47,11 +47,9 @@ extern void setup_mmu( unsigned long code_base );
 #define FREE_BASE		0x00004000
 #define OF_CODE_START	0xfff00000UL
 #define IO_BASE			0x80000000
-#define OFMEM			((ofmem_t*)0x05400000)
-
-#define OF_MALLOC_BASE		((char*)OFMEM + ((sizeof(ofmem_t) + 3) & ~3))
 
 #define HASH_SIZE		(2 << 15)
+#define OFMEM_SIZE		(2 * 1024 * 1024)
 
 #define	SEGR_USER		BIT(2)
 #define SEGR_BASE		0x0400
@@ -86,7 +84,7 @@ get_rom_base( void )
 unsigned long
 get_ram_top( void )
 {
-	return get_hash_base() - (32 + 64 + 64) * 1024;
+	return get_hash_base() - (32 + 64 + 64) * 1024 - OFMEM_SIZE;
 }
 
 unsigned long
@@ -107,12 +105,12 @@ static inline size_t ALIGN_SIZE(size_t x, size_t a)
 
 ofmem_t* ofmem_arch_get_private(void)
 {
-	return OFMEM;
+	return (ofmem_t*)(get_heap_top() - OFMEM_SIZE);
 }
 
 void* ofmem_arch_get_malloc_base(void)
 {
-	return OF_MALLOC_BASE;
+	return (char*)ofmem_arch_get_private() + ALIGN_SIZE(sizeof(ofmem_t), 4);
 }
 
 ucell ofmem_arch_get_heap_top(void)
@@ -388,14 +386,11 @@ isi_exception( void )
 void
 setup_mmu( unsigned long ramsize )
 {
-	ofmem_t *ofmem = OFMEM;
+	ofmem_t *ofmem;
 	unsigned long sdr1, sr_base, msr;
 	unsigned long hash_base;
 	unsigned long hash_mask = 0xffff0000;
 	int i;
-
-	memset(ofmem, 0, sizeof(ofmem_t));
-	ofmem->ramsize = ramsize;
 
 	/* SDR1: Storage Description Register 1 */
 
@@ -414,6 +409,10 @@ setup_mmu( unsigned long ramsize )
 		int j = i << 28;
 		asm volatile("mtsrin %0,%1" :: "r" (sr_base + i), "r" (j) );
 	}
+
+	ofmem = ofmem_arch_get_private();
+	memset(ofmem, 0, sizeof(ofmem_t));
+	ofmem->ramsize = ramsize;
 
 	memcpy((void *)get_rom_base(), (void *)OF_CODE_START, 0x00100000);
 
