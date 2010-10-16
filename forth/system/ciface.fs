@@ -273,6 +273,10 @@ external
   ['] evaluate catch dup if
     \ this is not necessary an error...
     ." interpret: exception " dup . ." caught" cr
+
+    \ Force back to interpret state on error, otherwise the next call to
+    \ interpret gets confused if the error occurred in compile mode
+    0 state !
   then
   \ ." --- " cr
 ;
