@@ -379,7 +379,8 @@ GLOBL(call_elf):
 	addi	r8,r8,LO(saved_stack)		// save our stack pointer
 	stw	r1,0(r8)
 	mfsdr1	r1
-	addis	r1, r1, -96
+	addi	r1, r1, -32768		/* - 32 KiB exception stack */
+	addis	r1, r1, -1			/* - 64 KiB stack */
 	lis	r5,HA(of_client_callback)
 	addi	r5,r5,LO(of_client_callback)	// r5 = callback
 	li	r6,0			// r6 = address of client program arguments (unused)
