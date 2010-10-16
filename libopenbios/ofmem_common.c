@@ -1,5 +1,5 @@
 /*
- *	<ofmem_sparc64.c>
+ *	<ofmem_common.c>
  *
  *	OF Memory manager
  *
@@ -15,6 +15,9 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/ofmem.h"
+
+/* Default size of memory allocated for each of the MMU properties (in bytes) */
+#define OFMEM_DEFAULT_PROP_SIZE 2048
 
 /*
  * define OFMEM_FILL_RANGE to claim any unclaimed virtual and
@@ -166,6 +169,28 @@ void* ofmem_realloc( void *ptr, size_t size )
 /* "translations" and "available" property tracking                     */
 /************************************************************************/
 
+static int trans_prop_size = 0, phys_range_prop_size = 0, virt_range_prop_size = 0;
+static int trans_prop_used = 0, phys_range_prop_used = 0, virt_range_prop_used = 0;
+static ucell *trans_prop, *phys_range_prop, *virt_range_prop;
+
+static void
+ofmem_set_property( phandle_t ph, const char *name, const char *buf, int len )
+{
+	/* This is very similar to set_property() in libopenbios/bindings.c but allows
+	   us to set the property pointer directly, rather than having to copy it
+	   into the Forth dictonary every time we update the memory properties */
+	if( !ph ) {
+		printk("ofmem_set_property: NULL phandle\n");
+		return;
+	}
+	PUSH((ucell)buf);
+	PUSH(len);
+	PUSH((ucell)name);
+	PUSH(strlen(name));
+	PUSH_ph(ph);
+	fword("encode-property");
+}
+
 static phandle_t s_phandle_memory = 0;
 static phandle_t s_phandle_mmu = 0;
 
@@ -173,8 +198,7 @@ static void ofmem_update_mmu_translations( void )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	translation_t *t;
-	int ncells;
-	ucell *props;
+	int ncells, prop_used, prop_size;
 
 	if (s_phandle_mmu == 0)
 		return;
@@ -182,31 +206,49 @@ static void ofmem_update_mmu_translations( void )
 	for( t = ofmem->trans, ncells = 0; t ; t=t->next, ncells++ ) {
 	}
 
-	props = malloc(ncells * sizeof(ucell) * ofmem_arch_get_translation_entry_size());
+	/* Get the current number of bytes required for the MMU translation property */
+	prop_used = ncells * sizeof(ucell) * ofmem_arch_get_translation_entry_size();
 
-	if (props == NULL)
+	if (prop_used > trans_prop_size) {
+
+		/* The property doesn't fix within the existing space, so keep doubling it
+		   until it does */
+		prop_size = trans_prop_size;
+		while (prop_size < prop_used) {
+			prop_size *= 2;
+		} 
+
+		/* Allocate the new memory and copy all of the existing information across */
+		trans_prop = realloc(trans_prop, prop_size);
+		trans_prop_size = prop_size;
+		trans_prop_used = prop_used;
+	}
+
+	if (trans_prop == NULL) {
+		/* out of memory! */
+		printk("Unable to allocate memory for translations property!\n");
 		return;
+	}
 
 	/* Call architecture-specific routines to generate translation entries */
 	for( t = ofmem->trans, ncells = 0 ; t ; t=t->next ) {
-		ofmem_arch_create_translation_entry(&props[ncells], t);
+		ofmem_arch_create_translation_entry(&trans_prop[ncells], t);
 		ncells += ofmem_arch_get_translation_entry_size();
 	}
 
-	set_property(s_phandle_mmu, "translations",
-			(char*)props, ncells * sizeof(props[0]));
+	ofmem_set_property(s_phandle_mmu, "translations",
+			(char*)trans_prop, ncells * sizeof(trans_prop[0]));
 
-	free(props);
 }
 
+
 static void ofmem_update_memory_available( phandle_t ph, range_t *range,
-		u64 top_address )
+		ucell **mem_prop, int *mem_prop_size, int *mem_prop_used, u64 top_address )
 {
 	range_t *r;
-	int ncells;
-	ucell *props;
+	int ncells, prop_used, prop_size;
 
-	ucell start, size;
+	ucell start, size, *prop;
 
 	if (s_phandle_memory == 0)
 		return;
@@ -216,15 +258,32 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 	}
 
 	/* inverse of phys_range list could take 2 more cells for the tail */
-	props = malloc((ncells+1) * sizeof(ucell) * 2);
+	prop_used = (ncells+1) * sizeof(ucell) * 2;
 
-	if (props == NULL) {
+	if (prop_used > *mem_prop_size) {
+
+		/* The property doesn't fix within the existing space, so keep doubling it
+		   until it does */
+		prop_size = *mem_prop_size;
+		while (prop_size < prop_used) {
+			prop_size *= 2;
+		}
+
+		/* Allocate the new memory and copy all of the existing information across */
+		*mem_prop = realloc(*mem_prop, prop_size);
+		*mem_prop_size = prop_size;
+		*mem_prop_used = prop_used;
+	}
+
+	if (*mem_prop == NULL) {
 		/* out of memory! */
+		printk("Unable to allocate memory for memory range property!\n");
 		return;
 	}
 
 	start = 0;
 	ncells = 0;
+	prop = *mem_prop;
 
 	for (r = range; r; r=r->next) {
 		if (r->start >= top_address) {
@@ -233,32 +292,30 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 
 		size = r->start - start;
 		if (size) {
-			props[ncells++] = start;
-			props[ncells++] = size;
+			prop[ncells++] = start;
+			prop[ncells++] = size;
 		}
 		start = r->start + r->size;
 	}
 
 	/* tail */
 	if (start < top_address) {
-		props[ncells++] = start;
-		props[ncells++] = top_address - start;
+		prop[ncells++] = start;
+		prop[ncells++] = top_address - start;
 	}
 
-	set_property(ph, "available",
-			(char*)props, ncells * sizeof(props[0]));
-
-	free(props);
+	ofmem_set_property(ph, "available",
+			(char*)prop, ncells * sizeof(prop[0]));
 }
 
 static void ofmem_update_translations( void )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 
-	ofmem_update_memory_available(s_phandle_memory,
-			ofmem->phys_range, get_ram_size());
-	ofmem_update_memory_available(s_phandle_mmu,
-			ofmem->virt_range, -1ULL);
+	ofmem_update_memory_available(s_phandle_memory, ofmem->phys_range, 
+			&phys_range_prop, &phys_range_prop_size, &phys_range_prop_used, get_ram_size());
+	ofmem_update_memory_available(s_phandle_mmu, ofmem->virt_range, 
+			&virt_range_prop, &virt_range_prop_size, &virt_range_prop_used, -1ULL);
 	ofmem_update_mmu_translations();
 }
 
@@ -740,6 +797,12 @@ void ofmem_register( phandle_t ph_memory, phandle_t ph_mmu )
 {
 	s_phandle_memory = ph_memory;
 	s_phandle_mmu = ph_mmu;
+
+	/* Initialise some default property sizes  */
+	trans_prop_size = phys_range_prop_size = virt_range_prop_size = OFMEM_DEFAULT_PROP_SIZE;
+	trans_prop = malloc(trans_prop_size);
+	phys_range_prop = malloc(phys_range_prop_size);
+	virt_range_prop = malloc(virt_range_prop_size);
 
 	ofmem_update_translations();
 }
