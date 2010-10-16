@@ -30,7 +30,7 @@
 /*	RTAS (run-time abstraction services)				*/
 /************************************************************************/
 
-#ifdef USE_RTAS
+#ifdef CONFIG_RTAS
 DECLARE_NODE( rtas, INSTALL_OPEN, 0, "+/rtas" );
 
 /* ( physbase -- rtas_callback ) */
@@ -303,7 +303,7 @@ void
 node_methods_init( const char *cpuname )
 {
 	phandle_t chosen, ph;
-#ifdef USE_RTAS
+#ifdef CONFIG_RTAS
 	REGISTER_NODE( rtas );
 #endif
 	REGISTER_NODE( ciface );

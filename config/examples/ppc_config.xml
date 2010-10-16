@@ -58,6 +58,7 @@
 
   <!-- Miscellaneous -->
   <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>
+  <option name="CONFIG_RTAS" type="boolean" value="false"/>
 
   <!-- Drivers -->
   <option name="CONFIG_DRIVER_PCI" type="boolean" value="true"/>

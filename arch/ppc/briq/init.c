@@ -85,7 +85,7 @@ setenv( char *env, char *value )
 void
 arch_of_init( void )
 {
-#if USE_RTAS
+#if CONFIG_RTAS
 	phandle_t ph;
 #endif
 	int autoboot;
@@ -98,7 +98,7 @@ arch_of_init( void )
 	ob_pci_init();
 #endif
 
-#if USE_RTAS
+#if CONFIG_RTAS
 	if( !(ph=find_dev("/rtas")) )
 		printk("Warning: No /rtas node\n");
 	else {

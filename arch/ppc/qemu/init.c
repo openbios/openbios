@@ -582,7 +582,7 @@ static void kvm_of_init(void)
 void
 arch_of_init( void )
 {
-#ifdef USE_RTAS
+#ifdef CONFIG_RTAS
 	phandle_t ph;
 #endif
 	uint64_t ram_size;
@@ -740,7 +740,7 @@ arch_of_init( void )
 	ofmem_register(find_dev("/memory"), find_dev(buf));
 	node_methods_init(buf);
 
-#ifdef USE_RTAS
+#ifdef CONFIG_RTAS
 	if( !(ph=find_dev("/rtas")) )
 		printk("Warning: No /rtas node\n");
 	else {

@@ -28,7 +28,7 @@
 /*	RTAS (run-time abstraction services)				*/
 /************************************************************************/
 
-#ifdef USE_RTAS
+#ifdef CONFIG_RTAS
 DECLARE_NODE( rtas, INSTALL_OPEN, 0, "+/rtas" );
 
 /* ( physbase -- rtas_callback ) */
@@ -321,7 +321,7 @@ NODE_METHODS( mmu_ciface ) = {
 void
 node_methods_init( void )
 {
-#ifdef USE_RTAS
+#ifdef CONFIG_RTAS
 	REGISTER_NODE( rtas );
 #endif
 	REGISTER_NODE( vfd_stdout );
