@@ -97,7 +97,7 @@ get_ram_bottom( void )
 
 static ucell get_heap_top( void )
 {
-	return get_hash_base() - (32 + 64) * 1024;
+	return get_hash_base() - (32 + 64 + 64) * 1024;
 }
 
 static inline size_t ALIGN_SIZE(size_t x, size_t a)
