@@ -17,7 +17,7 @@
 
 /* misc.c */
 extern void		fatal_error( const char *str );
-extern void		exit( int status );
+extern void		exit( int status ) __attribute__ ((noreturn));
 
 /* start.S */
 extern void 		flush_icache_range( char *start, char *stop );

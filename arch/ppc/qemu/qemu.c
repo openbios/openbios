@@ -35,7 +35,7 @@ void
 exit( int status __attribute__ ((unused)))
 {
 	for (;;);
-} __attribute__ ((noreturn))
+}
 
 void
 fatal_error( const char *err )
