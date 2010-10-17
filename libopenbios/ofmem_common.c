@@ -211,7 +211,7 @@ static void ofmem_update_mmu_translations( void )
 
 	if (prop_used > trans_prop_size) {
 
-		/* The property doesn't fix within the existing space, so keep doubling it
+		/* The property doesn't fit within the existing space, so keep doubling it
 		   until it does */
 		prop_size = trans_prop_size;
 		while (prop_size < prop_used) {
@@ -262,7 +262,7 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 
 	if (prop_used > *mem_prop_size) {
 
-		/* The property doesn't fix within the existing space, so keep doubling it
+		/* The property doesn't fit within the existing space, so keep doubling it
 		   until it does */
 		prop_size = *mem_prop_size;
 		while (prop_size < prop_used) {
