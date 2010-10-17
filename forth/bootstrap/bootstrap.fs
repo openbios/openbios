@@ -411,9 +411,9 @@ variable leaves 0 leaves !
 \ Note: these words are not part of the official OF specification, however
 \ they are part of the ANSI DPANS94 core extensions (see section 6.2) and
 \ so this seems an appropriate place for them.
-: 2>r swap >r >r ;
-: 2r> r> r> swap ;
-: 2r@ r> r> 2dup >r >r swap ;
+: 2>r r> -rot swap >r >r >r ;
+: 2r> r> r> r> rot >r swap ;
+: 2r@ r> r> r> 2dup >r >r rot >r swap ;
 
 \ 
 \ 7.3.2.1 - single precision integer arithmetic (part 1)
