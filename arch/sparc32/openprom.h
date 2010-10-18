@@ -124,7 +124,7 @@ struct linux_romvec {
 	/* Evaluate a forth string, not different proto for V0 and V2->up. */
 	union {
 		void (*v0_eval)(int len, char *str);
-		void (*v2_eval)(char *str);
+		void (*v2_eval)(char *str, int arg0, int arg1, int arg2, int arg3, int arg4);
 	} pv_fortheval;
 
 	const struct linux_arguments_v0 * const *pv_v0bootargs;

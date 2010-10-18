@@ -412,15 +412,39 @@ static int obp_cpuresume(__attribute__((unused)) unsigned int whichcpu)
     return 0;
 }
 
-static void obp_fortheval_v2(char *str)
+static void obp_fortheval_v2(char *str, int arg0, int arg1, int arg2, int arg3, int arg4)
 {
-  // for now, move something to the stack so we
-  // don't get a stack underrun.
-  //
-  // FIXME: find out why solaris doesnt put its stuff on the stack
-  //
-  fword("0");
-  fword("0");
+  int pusharg = 0;
+
+  // It seems Solaris passes up to 5 arguments which should be pushed onto the Forth
+  // stack for execution. However the API doesn't provide for a way to pass the number
+  // of arguments actually passed. Hence we start at arg4 and then starting from the
+  // first non-zero argument, we push all subsequent arguments onto the stack down to
+  // arg0.
+
+  if (arg4) {
+    PUSH(arg4);
+    pusharg = 1;
+  }
+
+  if (arg3 || pusharg == 1 ) {
+    PUSH(arg3);
+    pusharg = 1;
+  }
+
+  if (arg2 || pusharg == 1) {
+    PUSH(arg2);
+    pusharg = 1;
+  }
+
+  if (arg1 || pusharg == 1 ) {
+    PUSH(arg1);
+    pusharg = 1;
+  }
+
+  if (arg0 || pusharg == 1) {
+    PUSH(arg0);
+  }
 
   DPRINTF("obp_fortheval_v2(%s)\n", str);
   push_str(str);
