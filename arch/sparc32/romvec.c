@@ -7,12 +7,15 @@
  * Public License version 2 or later
  */
 
+#include <stdarg.h>
+
 #include "openprom.h"
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "libopenbios/sys_info.h"
 #include "boot.h"
+#include "romvec.h"
 
 #ifdef CONFIG_DEBUG_OBP
 #define DPRINTF(fmt, args...)                   \
@@ -24,15 +27,6 @@
 char obp_stdin, obp_stdout;
 static int obp_fd_stdin, obp_fd_stdout;
 const char *obp_stdin_path, *obp_stdout_path;
-
-static int obp_nextnode(int node);
-static int obp_child(int node);
-static int obp_proplen(int node, const char *name);
-static int obp_getprop(int node, const char *name, char *val);
-static int obp_setprop(int node, const char *name, char *val, int len);
-static const char *obp_nextprop(int node, const char *name);
-static int obp_devread(int dev_desc, char *buf, int nbytes);
-static int obp_devseek(int dev_desc, int hi, int lo);
 
 struct linux_arguments_v0 obp_arg;
 const char *bootpath;
@@ -47,7 +41,7 @@ static void doublewalk(__attribute__((unused)) unsigned int ptab1,
 {
 }
 
-static int obp_nextnode(int node)
+int obp_nextnode(int node)
 {
     int peer;
 
@@ -59,7 +53,7 @@ static int obp_nextnode(int node)
     return peer;
 }
 
-static int obp_child(int node)
+int obp_child(int node)
 {
     int child;
 
@@ -71,7 +65,7 @@ static int obp_child(int node)
     return child;
 }
 
-static int obp_proplen(int node, const char *name)
+int obp_proplen(int node, const char *name)
 {
     int notfound;
 
@@ -115,7 +109,7 @@ static int looks_like_string(const char *str, int len)
 }
 #endif
 
-static int obp_getprop(int node, const char *name, char *value)
+int obp_getprop(int node, const char *name, char *value)
 {
     int notfound, found;
     int len;
@@ -178,7 +172,7 @@ static int obp_getprop(int node, const char *name, char *value)
     }
 }
 
-static const char *obp_nextprop(int node, const char *name)
+const char *obp_nextprop(int node, const char *name)
 {
     int found;
 
@@ -208,7 +202,7 @@ static const char *obp_nextprop(int node, const char *name)
     }
 }
 
-static int obp_setprop(__attribute__((unused)) int node,
+int obp_setprop(__attribute__((unused)) int node,
                        __attribute__((unused)) const char *name,
 		       __attribute__((unused)) char *value,
 		       __attribute__((unused)) int len)
@@ -219,28 +213,44 @@ static int obp_setprop(__attribute__((unused)) int node,
 }
 
 static const struct linux_nodeops nodeops0 = {
-    obp_nextnode,	/* int (*no_nextnode)(int node); */
-    obp_child,	        /* int (*no_child)(int node); */
-    obp_proplen,	/* int (*no_proplen)(int node, char *name); */
-    obp_getprop,	/* int (*no_getprop)(int node,char *name,char *val); */
-    obp_setprop,	/* int (*no_setprop)(int node, char *name,
-                           char *val, int len); */
-    obp_nextprop	/* char * (*no_nextprop)(int node, char *name); */
+    obp_nextnode_handler,	/* int (*no_nextnode)(int node); */
+    obp_child_handler,	        /* int (*no_child)(int node); */
+    obp_proplen_handler,	/* int (*no_proplen)(int node, char *name); */
+    obp_getprop_handler,	/* int (*no_getprop)(int node,char *name,char *val); */
+    obp_setprop_handler,	/* int (*no_setprop)(int node, char *name,
+                   	        char *val, int len); */
+    obp_nextprop_handler	/* char * (*no_nextprop)(int node, char *name); */
 };
 
-static int obp_nbgetchar(void)
+int obp_nbgetchar(void)
 {
     return getchar();
 }
 
-static int obp_nbputchar(int ch)
+int obp_nbputchar(int ch)
 {
     putchar(ch);
 
     return 0;
 }
 
-static void obp_reboot(char *str)
+void obp_putstr(char *str, int len)
+{
+    PUSH(pointer2cell(str));
+    PUSH(len);
+    fword("type");
+}
+
+void obp_printf(const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    printk(fmt, ap);
+    va_end(ap);
+}
+
+void obp_reboot(char *str)
 {
     printk("rebooting (%s)\n", str);
     *reset_reg = 1;
@@ -248,7 +258,7 @@ static void obp_reboot(char *str)
     for (;;) {}
 }
 
-static void obp_abort(void)
+void obp_abort(void)
 {
     printk("abort, power off\n");
     *power_reg = 1;
@@ -256,7 +266,7 @@ static void obp_abort(void)
     for (;;) {}
 }
 
-static void obp_halt(void)
+void obp_halt(void)
 {
     printk("halt, power off\n");
     *power_reg = 1;
@@ -264,7 +274,7 @@ static void obp_halt(void)
     for (;;) {}
 }
 
-static int obp_devopen(char *str)
+int obp_devopen(char *str)
 {
     int ret;
 
@@ -276,7 +286,7 @@ static int obp_devopen(char *str)
     return ret;
 }
 
-static int obp_devclose(int dev_desc)
+int obp_devclose(int dev_desc)
 {
     int ret = 1;
 
@@ -288,7 +298,7 @@ static int obp_devclose(int dev_desc)
     return ret;
 }
 
-static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
+int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
 {
     int ret, hi, lo, bs;
 
@@ -305,7 +315,7 @@ static int obp_rdblkdev(int dev_desc, int num_blks, int offset, char *buf)
     return ret;
 }
 
-static int obp_devread(int dev_desc, char *buf, int nbytes)
+int obp_devread(int dev_desc, char *buf, int nbytes)
 {
     int ret;
 
@@ -321,7 +331,7 @@ static int obp_devread(int dev_desc, char *buf, int nbytes)
     return ret;
 }
 
-static int obp_devwrite(int dev_desc, char *buf, int nbytes)
+int obp_devwrite(int dev_desc, char *buf, int nbytes)
 {
 #ifdef CONFIG_DEBUG_OBP_DEVWRITE /* disabled, makes too much noise */
     int ret;
@@ -342,7 +352,7 @@ static int obp_devwrite(int dev_desc, char *buf, int nbytes)
     return nbytes;
 }
 
-static int obp_devseek(int dev_desc, int hi, int lo)
+int obp_devseek(int dev_desc, int hi, int lo)
 {
     int ret;
 
@@ -358,7 +368,7 @@ static int obp_devseek(int dev_desc, int hi, int lo)
     return ret;
 }
 
-static int obp_inst2pkg(int dev_desc)
+int obp_inst2pkg(int dev_desc)
 {
     int ret;
 
@@ -371,7 +381,7 @@ static int obp_inst2pkg(int dev_desc)
     return ret;
 }
 
-static int obp_cpustart(__attribute__((unused))unsigned int whichcpu,
+int obp_cpustart(__attribute__((unused))unsigned int whichcpu,
                         __attribute__((unused))int ctxtbl_ptr,
                         __attribute__((unused))int thiscontext,
                         __attribute__((unused))char *prog_counter)
@@ -391,28 +401,28 @@ static int obp_cpustart(__attribute__((unused))unsigned int whichcpu,
               thiscontext, cpu);
 }
 
-static int obp_cpustop(__attribute__((unused)) unsigned int whichcpu)
+int obp_cpustop(__attribute__((unused)) unsigned int whichcpu)
 {
     DPRINTF("obp_cpustop: cpu %d\n", whichcpu);
 
     return 0;
 }
 
-static int obp_cpuidle(__attribute__((unused)) unsigned int whichcpu)
+int obp_cpuidle(__attribute__((unused)) unsigned int whichcpu)
 {
     DPRINTF("obp_cpuidle: cpu %d\n", whichcpu);
 
     return 0;
 }
 
-static int obp_cpuresume(__attribute__((unused)) unsigned int whichcpu)
+int obp_cpuresume(__attribute__((unused)) unsigned int whichcpu)
 {
     DPRINTF("obp_cpuresume: cpu %d\n", whichcpu);
 
     return 0;
 }
 
-static void obp_fortheval_v2(char *str, int arg0, int arg1, int arg2, int arg3, int arg4)
+void obp_fortheval_v2(char *str, int arg0, int arg1, int arg2, int arg3, int arg4)
 {
   int pusharg = 0;
 
@@ -454,6 +464,10 @@ static void obp_fortheval_v2(char *str, int arg0, int arg1, int arg2, int arg3, 
 void *
 init_openprom(void)
 {
+    /* Setup the openprom vector. Note that all functions should be invoked
+       via their handler (see call-romvec.S) which acts as a proxy to save
+       the globals and setup the stack correctly */
+
     // Linux wants a R/W romvec table
     romvec0.pv_magic_cookie = LINUX_OPPROM_MAGIC;
     romvec0.pv_romvers = 3;
@@ -464,32 +478,33 @@ init_openprom(void)
     romvec0.pv_v0mem.v0_available = &ptavail;
     romvec0.pv_nodeops = &nodeops0;
     romvec0.pv_bootstr = (void *)doublewalk;
-    romvec0.pv_v0devops.v0_devopen = &obp_devopen;
-    romvec0.pv_v0devops.v0_devclose = &obp_devclose;
-    romvec0.pv_v0devops.v0_rdblkdev = &obp_rdblkdev;
+    romvec0.pv_v0devops.v0_devopen = &obp_devopen_handler;
+    romvec0.pv_v0devops.v0_devclose = &obp_devclose_handler;
+    romvec0.pv_v0devops.v0_rdblkdev = &obp_rdblkdev_handler;
     romvec0.pv_stdin = &obp_stdin;
     romvec0.pv_stdout = &obp_stdout;
-    romvec0.pv_getchar = obp_nbgetchar;
-    romvec0.pv_putchar = (void (*)(int))obp_nbputchar;
-    romvec0.pv_nbgetchar = obp_nbgetchar;
-    romvec0.pv_nbputchar = obp_nbputchar;
-    romvec0.pv_reboot = obp_reboot;
-    romvec0.pv_printf = (void (*)(const char *fmt, ...))printk;
-    romvec0.pv_abort = obp_abort;
-    romvec0.pv_halt = obp_halt;
+    romvec0.pv_getchar = obp_nbgetchar_handler;
+    romvec0.pv_putchar = (void (*)(int))obp_nbputchar_handler;
+    romvec0.pv_nbgetchar = obp_nbgetchar_handler;
+    romvec0.pv_nbputchar = obp_nbputchar_handler;
+    romvec0.pv_putstr = obp_putstr_handler;
+    romvec0.pv_reboot = obp_reboot_handler;
+    romvec0.pv_printf = obp_printf_handler;
+    romvec0.pv_abort = obp_abort_handler;
+    romvec0.pv_halt = obp_halt_handler;
     romvec0.pv_synchook = &sync_hook;
     romvec0.pv_v0bootargs = &obp_argp;
-    romvec0.pv_fortheval.v2_eval = obp_fortheval_v2;
-    romvec0.pv_v2devops.v2_inst2pkg = obp_inst2pkg;
-    romvec0.pv_v2devops.v2_dumb_mem_alloc = obp_dumb_memalloc;
-    romvec0.pv_v2devops.v2_dumb_mem_free = obp_dumb_memfree;
-    romvec0.pv_v2devops.v2_dumb_mmap = obp_dumb_mmap;
-    romvec0.pv_v2devops.v2_dumb_munmap = obp_dumb_munmap;
-    romvec0.pv_v2devops.v2_dev_open = obp_devopen;
-    romvec0.pv_v2devops.v2_dev_close = (void (*)(int))obp_devclose;
-    romvec0.pv_v2devops.v2_dev_read = obp_devread;
-    romvec0.pv_v2devops.v2_dev_write = obp_devwrite;
-    romvec0.pv_v2devops.v2_dev_seek = obp_devseek;
+    romvec0.pv_fortheval.v2_eval = obp_fortheval_v2_handler;
+    romvec0.pv_v2devops.v2_inst2pkg = obp_inst2pkg_handler;
+    romvec0.pv_v2devops.v2_dumb_mem_alloc = obp_dumb_memalloc_handler;
+    romvec0.pv_v2devops.v2_dumb_mem_free = obp_dumb_memfree_handler;
+    romvec0.pv_v2devops.v2_dumb_mmap = obp_dumb_mmap_handler;
+    romvec0.pv_v2devops.v2_dumb_munmap = obp_dumb_munmap_handler;
+    romvec0.pv_v2devops.v2_dev_open = obp_devopen_handler;
+    romvec0.pv_v2devops.v2_dev_close = (void (*)(int))obp_devclose_handler;
+    romvec0.pv_v2devops.v2_dev_read = obp_devread_handler;
+    romvec0.pv_v2devops.v2_dev_write = obp_devwrite_handler;
+    romvec0.pv_v2devops.v2_dev_seek = obp_devseek_handler;
 
     romvec0.pv_v2bootargs.bootpath = &bootpath;
 
@@ -504,10 +519,10 @@ init_openprom(void)
     fword("open-dev");
     obp_fd_stdout = POP();
 
-    romvec0.v3_cpustart = obp_cpustart;
-    romvec0.v3_cpustop = obp_cpustop;
-    romvec0.v3_cpuidle = obp_cpuidle;
-    romvec0.v3_cpuresume = obp_cpuresume;
+    romvec0.v3_cpustart = obp_cpustart_handler;
+    romvec0.v3_cpustop = obp_cpustop_handler;
+    romvec0.v3_cpuidle = obp_cpuidle_handler;
+    romvec0.v3_cpuresume = obp_cpuresume_handler;
 
     return &romvec0;
 }

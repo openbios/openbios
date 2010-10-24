@@ -13,9 +13,6 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 extern struct context *__context;
 unsigned int start_elf(unsigned long entry_point, unsigned long param);
 
-// romvec.c
-void *init_openprom(void);
-
 // boot.c
 extern const char *bootpath;
 extern void boot(void);
@@ -45,10 +42,3 @@ extern struct linux_mlist_v0 *ptavail;
 
 void ob_init_mmu(void);
 void init_mmu_swift(void);
-char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
-                    unsigned int size);
-void obp_dumb_munmap(__attribute__((unused)) char *va,
-                     __attribute__((unused)) unsigned int size);
-char *obp_dumb_memalloc(char *va, unsigned int size);
-void obp_dumb_memfree(__attribute__((unused))char *va,
-                      __attribute__((unused))unsigned sz);

@@ -15,6 +15,7 @@
 #include "openprom.h"
 #include "libopenbios/sys_info.h"
 #include "boot.h"
+#include "romvec.h"
 
 #define NCTX_SWIFT  0x100
 #define LOWMEMSZ 32 * 1024 * 1024

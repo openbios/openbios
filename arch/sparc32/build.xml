@@ -16,6 +16,7 @@
   <object source="linux_load.c"/>
   <object source="sys_info.c"/>
   <object source="romvec.c"/>
+  <object source="call-romvec.S"/>
   <object source="entry.S"/>
   <object source="vectors.S"/>
  </library>

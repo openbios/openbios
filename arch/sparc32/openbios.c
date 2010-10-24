@@ -20,6 +20,7 @@
 #include "libopenbios/sys_info.h"
 #include "openbios.h"
 #include "boot.h"
+#include "romvec.h"
 #include "openprom.h"
 #include "packages/video.h"
 #define NO_QEMU_PROTOS
