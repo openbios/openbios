@@ -424,41 +424,30 @@ int obp_cpuresume(__attribute__((unused)) unsigned int whichcpu)
 
 void obp_fortheval_v2(char *str, int arg0, int arg1, int arg2, int arg3, int arg4)
 {
-  int pusharg = 0;
+  int dstacktmp = 0;
 
   // It seems Solaris passes up to 5 arguments which should be pushed onto the Forth
-  // stack for execution. However the API doesn't provide for a way to pass the number
-  // of arguments actually passed. Hence we start at arg4 and then starting from the
-  // first non-zero argument, we push all subsequent arguments onto the stack down to
-  // arg0.
+  // stack for execution. However the API doesn't provide for a way to specify the number
+  // of arguments actually being passed. Hence we preserve the state of the Forth stack 
+  // before, push all the arguments, execute the Forth, then restore the stack to its 
+  // previous state. This enables us to have a variable number of arguments and still 
+  // preserve stack state between subsequent calls.
 
-  if (arg4) {
-    PUSH(arg4);
-    pusharg = 1;
-  }
+  // Preserve stack state
+  dstacktmp = dstackcnt;
 
-  if (arg3 || pusharg == 1 ) {
-    PUSH(arg3);
-    pusharg = 1;
-  }
-
-  if (arg2 || pusharg == 1) {
-    PUSH(arg2);
-    pusharg = 1;
-  }
-
-  if (arg1 || pusharg == 1 ) {
-    PUSH(arg1);
-    pusharg = 1;
-  }
-
-  if (arg0 || pusharg == 1) {
-    PUSH(arg0);
-  }
+  PUSH(arg4);
+  PUSH(arg3);
+  PUSH(arg2);
+  PUSH(arg1);
+  PUSH(arg0);
 
   DPRINTF("obp_fortheval_v2(%s)\n", str);
   push_str(str);
   fword("eval");
+
+  // Restore stack state
+  dstackcnt = dstacktmp;
 }
 
 void *
