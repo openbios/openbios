@@ -30,6 +30,18 @@ typedef ucell phandle_t;
 
 
 
+#ifdef NATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH
+#define pointer2cell(x) ((ucell)(x))
+#define cell2pointer(x) ((u8 *)(x))
+#endif
+#ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
+#define pointer2cell(x) ((ucell)(((unsigned long)(x))-base_address))
+#define cell2pointer(x) ((u8 *)(((unsigned long)(x))+base_address))
+#endif
+#ifdef NATIVE_BITWIDTH_LARGER_THAN_HOST_BITWIDTH
+#define pointer2cell(x) ((ucell)(unsigned long)(x))
+#define cell2pointer(x) ((u8 *)((unsigned long)(x)&0xFFFFFFFFUL))
+#endif
 
 static inline void PUSH(ucell value) {
 	dstack[++dstackcnt] = (value);

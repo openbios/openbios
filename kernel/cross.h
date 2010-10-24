@@ -103,8 +103,6 @@
 /* bit width handling */
 
 #ifdef NATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH
-#define pointer2cell(x) ((ucell)(x))
-#define cell2pointer(x) ((u8 *)(x))
 #if BITS==32
 #define FMT_CELL_x "x"
 #define FMT_CELL_d "d"
@@ -116,15 +114,11 @@
 
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
 extern unsigned long base_address;
-#define pointer2cell(x) ((ucell)(((unsigned long)(x))-base_address))
-#define cell2pointer(x) ((u8 *)(((unsigned long)(x))+base_address))
 #define FMT_CELL_x "x"
 #define FMT_CELL_d "d"
 #endif
 
 #ifdef NATIVE_BITWIDTH_LARGER_THAN_HOST_BITWIDTH
-#define pointer2cell(x) ((ucell)(unsigned long)(x))
-#define cell2pointer(x) ((u8 *)((unsigned long)(x)&0xFFFFFFFFUL))
 #define FMT_CELL_x "llx"
 #define FMT_CELL_d "lld"
 #endif
