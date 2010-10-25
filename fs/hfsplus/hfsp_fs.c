@@ -264,7 +264,7 @@ static void
 hfsp_files_read( hfsp_info_t *mi )
 {
 	int count = POP();
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 
 	hfsp_file_t *t = mi->hfspfile;
 	volume *vol = t->rec.tree->vol;
@@ -350,7 +350,7 @@ hfsp_files_seek( hfsp_info_t *mi )
 static void
 hfsp_files_load( hfsp_info_t *mi )
 {
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 
 	hfsp_file_t *t = mi->hfspfile;
 	volume *vol = t->rec.tree->vol;
@@ -388,7 +388,7 @@ hfsp_files_load( hfsp_info_t *mi )
 static void
 hfsp_files_get_fstype( hfsp_info_t *mi )
 {
-	PUSH( (ucell)strdup("HFS+") );
+	PUSH( pointer2cell(strdup("HFS+")) );
 }
 
 /* ( -- cstr ) */
@@ -405,7 +405,7 @@ hfsp_files_get_path( hfsp_info_t *mi )
 	strncpy( buf, t->path, strlen(t->path) );
 	buf[strlen(t->path)] = 0;
 
-	PUSH ((ucell)buf);
+	PUSH(pointer2cell(buf));
 }
 
 /* ( -- success? ) */
@@ -434,7 +434,7 @@ hfsp_files_volume_name( hfsp_info_t *mi )
                 volname[0] = '\0';
         }
 
-	PUSH ((ucell)volname);
+	PUSH(pointer2cell(volname));
 }
 
 /* static method, ( pathstr len ihandle -- ) */

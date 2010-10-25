@@ -156,7 +156,7 @@ bootinfo_init_program(void)
 	filename = get_filename(bootpath, &directory);
 
 	feval("load-base");
-	base = (char*)POP();
+	base = (char*)cell2pointer(POP());
 
 	feval("load-size");
 	size = POP();

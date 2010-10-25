@@ -137,7 +137,7 @@ escc_read(unsigned long *address)
     int len;
 
     len = POP();
-    addr = (char *)POP();
+    addr = (char *)cell2pointer(POP());
 
     if (len < 1)
         printk("escc_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
@@ -158,7 +158,7 @@ escc_write(unsigned long *address)
     int i, len;
 
     len = POP();
-    addr = (unsigned char *)POP();
+    addr = (unsigned char *)cell2pointer(POP());
 
     for (i = 0; i < len; i++) {
         uart_putchar(*address, addr[i]);

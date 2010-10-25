@@ -244,7 +244,7 @@ video_set_colors( void )
 {
 	int count = POP();
 	int start = POP();
-	unsigned char *p = (unsigned char*)POP();
+	unsigned char *p = (unsigned char*)cell2pointer(POP());
 	int i;
 
 	for( i=0; i<count; i++, p+=3 ) {
@@ -289,7 +289,7 @@ video_write(void)
     int len;
 
     len = POP();
-    addr = (char *)POP();
+    addr = (char *)cell2pointer(POP());
 
     console_draw_fstr(addr, len);
     PUSH(len);

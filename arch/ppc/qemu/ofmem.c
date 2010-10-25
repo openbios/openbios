@@ -105,7 +105,7 @@ static inline size_t ALIGN_SIZE(size_t x, size_t a)
 
 ofmem_t* ofmem_arch_get_private(void)
 {
-	return (ofmem_t*)(get_heap_top() - OFMEM_SIZE);
+	return (ofmem_t*)cell2pointer(get_heap_top() - OFMEM_SIZE);
 }
 
 void* ofmem_arch_get_malloc_base(void)

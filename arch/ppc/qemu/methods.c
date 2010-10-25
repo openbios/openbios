@@ -71,7 +71,7 @@ static void
 tty_read( void )
 {
 	int ch, len = POP();
-	char *p = (char*)POP();
+	char *p = (char*)cell2pointer(POP());
 	int ret=0;
 
 	if( len > 0 ) {
@@ -91,7 +91,7 @@ static void
 tty_write( void )
 {
 	int i, len = POP();
-	char *p = (char*)POP();
+	char *p = (char*)cell2pointer(POP());
 	for( i=0; i<len; i++ )
 		putchar( *p++ );
 	RET( len );

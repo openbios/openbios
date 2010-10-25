@@ -90,7 +90,7 @@ static void
 iso9660_files_read( iso9660_info_t *mi )
 {
 	int count = POP();
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 	int ret;
  
 	if ( mi->common->type != FILE )
@@ -137,7 +137,7 @@ iso9660_files_offset( iso9660_info_t *mi )
 static void
 iso9660_files_load( iso9660_info_t *mi)
 {
-	char *buf = (char*)POP();
+	char *buf = (char*)cell2pointer(POP());
 	int ret, size;
  
 	if ( mi->common->type != FILE )

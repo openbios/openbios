@@ -556,7 +556,7 @@ static void keyboard_read(void)
 	char *addr;
 	int len, key, i;
 	len=POP();
-	addr=(char *)POP();
+	addr=(char *)cell2pointer(POP());
 
 	for (i = 0; i < len; i++) {
 		key = adb_kbd_read(my_adb_dev);

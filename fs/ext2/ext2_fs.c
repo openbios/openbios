@@ -144,7 +144,7 @@ static void
 ext2_files_read( ext2_info_t *mi )
 {
 	int count = POP();
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 
 	ext2_COMMON *common = mi->common;
 	if (common->type != FILE)
@@ -177,7 +177,7 @@ ext2_files_seek( ext2_info_t *mi )
 static void
 ext2_files_load( ext2_info_t *mi )
 {
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 	int count;
 
 	ext2_COMMON *common = mi->common;
@@ -201,14 +201,14 @@ ext2_files_get_path( ext2_info_t *mi )
 	if (common->type != FILE)
 		RET( 0 );
 
-	RET( (ucell) strdup(common->file->path) );
+	RET( pointer2cell(strdup(common->file->path)) );
 }
 
 /* ( -- cstr ) */
 static void
 ext2_files_get_fstype( ext2_info_t *mi )
 {
-	PUSH( (ucell)strdup("ext2") );
+	PUSH( pointer2cell(strdup("ext2")) );
 }
 
 /* static method, ( pathstr len ihandle -- ) */

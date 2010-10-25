@@ -238,7 +238,7 @@ static void
 grubfs_files_read( grubfs_info_t *mi )
 {
 	int count = POP();
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 
 	grubfile_t *file = mi->gfs->fd;
         int ret;
@@ -295,7 +295,7 @@ grubfs_files_seek( grubfs_info_t *mi )
 static void
 grubfs_files_load( grubfs_info_t *mi )
 {
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 	int count, ret;
 
 	grubfile_t *file = mi->gfs->fd;
@@ -314,7 +314,7 @@ grubfs_files_get_path( grubfs_info_t *mi )
 	grubfile_t *file = mi->gfs->fd;
 	const char *path = file->path;
 
-	RET( (ucell) strdup(path) );
+	RET( pointer2cell(strdup(path)) );
 }
 
 /* ( -- cstr ) */
@@ -323,7 +323,7 @@ grubfs_files_get_fstype( grubfs_info_t *mi )
 {
 	grubfs_t *gfs = mi->gfs;
 
-	PUSH( (ucell)strdup(gfs->fsys->name) );
+	PUSH( pointer2cell(strdup(gfs->fsys->name)) );
 }
 
 

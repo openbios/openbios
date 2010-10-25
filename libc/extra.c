@@ -39,7 +39,7 @@ int forth_printf( const char *fmt, ... )
 	i = vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	PUSH((ucell)buf);
+	PUSH(pointer2cell(buf));
 	PUSH(i);
 	fword("type");
 

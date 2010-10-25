@@ -80,7 +80,7 @@ dlabel_open( dlabel_info_t *di )
 	call_package(di->parent_seek_xt, my_parent());
 	POP();
 
-	PUSH((ucell)block0);
+	PUSH(pointer2cell(block0));
 	PUSH(sizeof(block0));
 	call_package(di->parent_read_xt, my_parent());
 	status = POP();
@@ -88,7 +88,7 @@ dlabel_open( dlabel_info_t *di )
 		goto out;
 
 	/* Find partition handler */
-	PUSH( (ucell)block0 );
+	PUSH( pointer2cell(block0) );
 	selfword("find-part-handler");
 	ph = POP_ph();
 	if( ph ) {

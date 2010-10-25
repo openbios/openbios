@@ -150,7 +150,7 @@ get_file_path( int fd )
 	if( lookup_xt(fdp->ih, "get-path", &fdp->get_path_xt) )
 		return NULL;
 	call_package( fdp->get_path_xt, fdp->ih );
-	return (char*)POP();
+	return (char*)cell2pointer(POP());
 }
 
 const char *
@@ -160,7 +160,7 @@ get_volume_name( int fd )
 	if( lookup_xt(fdp->ih, "volume-name", &fdp->volume_name_xt) )
 		return NULL;
 	call_package( fdp->volume_name_xt, fdp->ih );
-	return (char*)POP();
+	return (char*)cell2pointer(POP());
 }
 
 const char *
@@ -170,7 +170,7 @@ get_fstype( int fd )
 	if( lookup_xt(fdp->ih, "get-fstype", &fdp->get_fstype_xt) )
 		return NULL;
 	call_package( fdp->get_fstype_xt, fdp->ih );
-	return (char*)POP();
+	return (char*)cell2pointer(POP());
 }
 
 int
@@ -183,7 +183,7 @@ read_io( int fd, void *buf, size_t cnt )
 	if (fd != -1) {
 		fdp = file_descriptors[fd];
 
-		PUSH( (ucell)buf );
+		PUSH( pointer2cell(buf) );
 		PUSH( cnt );
 		call_package( fdp->read_xt, fdp->ih );
 		ret = POP();

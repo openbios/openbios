@@ -167,7 +167,7 @@ show_partitions( void )
 void
 update_nvram( void )
 {
-	PUSH( (ucell)nvram.config->data );
+	PUSH( pointer2cell(nvram.config->data) );
 	PUSH( nvram.config_size );
 	fword("nvram-store-configs");
 	arch_nvram_put( nvram.data );
@@ -202,7 +202,7 @@ nvconf_init( void )
 				nvram.config_size = nvpart_size(p) - 0x10;
 
 				if( !once++ ) {
-					PUSH( (ucell)p->data );
+					PUSH( pointer2cell(p->data) );
 					PUSH( nvram.config_size );
 					fword("nvram-load-configs");
 				}
@@ -256,7 +256,7 @@ static void
 nvram_read( nvram_ibuf_t *nd )
 {
 	int len = POP();
-	char *p = (char*)POP();
+	char *p = (char*)cell2pointer(POP());
 	int n=0;
 
 	while( nd->mark_lo < nvram.size && n < len ) {
@@ -272,7 +272,7 @@ static void
 nvram_write( nvram_ibuf_t *nd )
 {
 	int len = POP();
-	char *p = (char*)POP();
+	char *p = (char*)cell2pointer(POP());
 	int n=0;
 
 	while( nd->mark_lo < nvram.size && n < len ) {

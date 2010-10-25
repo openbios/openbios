@@ -110,7 +110,7 @@ void* ofmem_malloc( size_t size )
 
 	top = ofmem_arch_get_heap_top();
 
-	if( (ucell)ofmem->next_malloc + size > top ) {
+	if( pointer2cell(ofmem->next_malloc) + size > top ) {
 		printk("out of malloc memory (%x)!\n", size );
 		return NULL;
 	}
@@ -183,10 +183,9 @@ ofmem_set_property( phandle_t ph, const char *name, const char *buf, int len )
 		printk("ofmem_set_property: NULL phandle\n");
 		return;
 	}
-	PUSH((ucell)buf);
+	PUSH(pointer2cell(buf));
 	PUSH(len);
-	PUSH((ucell)name);
-	PUSH(strlen(name));
+	push_str(name);
 	PUSH_ph(ph);
 	fword("encode-property");
 }

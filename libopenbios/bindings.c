@@ -28,7 +28,7 @@
 void
 push_str( const char *str )
 {
-	PUSH( (ucell)str );
+	PUSH( pointer2cell(str) );
 	PUSH( str ? strlen(str) : 0 );
 }
 
@@ -101,7 +101,7 @@ _parword( const char *method, xt_t *cache_xt )
 void
 bind_func( const char *name, void (*func)(void) )
 {
-	PUSH( (ucell)func );
+	PUSH( pointer2cell(func) );
 	push_str( name );
 	fword("is-cfunc");
 }
@@ -111,7 +111,7 @@ bind_xtfunc( const char *name, xt_t xt, ucell arg, void (*func)(void) )
 {
 	PUSH_xt( xt );
 	PUSH( arg );
-	PUSH( (cell)func );
+	PUSH( pointer2cell(func) );
 	push_str( name );
 	fword("is-xt-cfunc");
 }
@@ -119,7 +119,7 @@ bind_xtfunc( const char *name, xt_t xt, ucell arg, void (*func)(void) )
 xt_t
 bind_noname_func( void (*func)(void) )
 {
-	PUSH( (ucell)func );
+	PUSH( pointer2cell(func) );
 	fword("is-noname-cfunc");
 	return POP_xt();
 }
@@ -249,7 +249,7 @@ char *
 pop_fstr_copy( void )
 {
 	int len = POP();
-	char *str, *p = (char*)POP();
+	char *str, *p = (char*)cell2pointer(POP());
 	if( !len )
 		return NULL;
 	str = malloc( len + 1 );
@@ -279,7 +279,7 @@ set_property( phandle_t ph, const char *name, const char *buf, int len )
 		printk("set_property: NULL phandle\n");
 		return;
 	}
-	PUSH((ucell)buf);
+	PUSH(pointer2cell(buf));
 	PUSH(len);
 	push_str( name );
 	PUSH_ph(ph);
@@ -309,7 +309,7 @@ get_property( phandle_t ph, const char *name, int *retlen )
 	len = POP();
 	if( retlen )
 		*retlen = len;
-	return (char*)POP();
+	return (char*)cell2pointer(POP());
 }
 
 u32
@@ -426,7 +426,7 @@ static void
 call1_func( void )
 {
 	void (*func)(cell v);
-	func = (void*)POP();
+	func = (void*)cell2pointer(POP());
 
 	(*func)( POP() );
 }
@@ -455,7 +455,7 @@ add_methods( int flags, int size, const method_t *methods, int nmet )
 			char *buf = NULL;
 			if( xt ) {
 				enterforth( xt );
-				buf = (char*)POP();
+				buf = (char*)cell2pointer(POP());
 			}
 			(*(initfunc)methods[i].func)( buf );
 			continue;
@@ -463,7 +463,7 @@ add_methods( int flags, int size, const method_t *methods, int nmet )
 		if( !size )
 			bind_func( methods[i].name, methods[i].func );
 		else
-			bind_xtfunc( methods[i].name, xt, (ucell)methods[i].func,
+			bind_xtfunc( methods[i].name, xt, pointer2cell(methods[i].func),
 				     &call1_func );
 	}
 

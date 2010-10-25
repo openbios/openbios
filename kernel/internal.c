@@ -208,7 +208,7 @@ static void call(void)
 	exit(1);
 #else
 	void (*funcptr) (void);
-	funcptr=(void *)POP();
+	funcptr=(void *)cell2pointer(POP());
 	dbg_interp_printk("call: %x", funcptr);
 	funcptr();
 #endif
@@ -329,7 +329,7 @@ static void doplusloop(void)
 #ifndef FCOMPILER
 static ucell get_myself(void)
 {
-        static ucell **myself = NULL;
+	static ucell **myself = NULL;
 	if( !myself )
 		myself = (ucell**)findword("my-self") + 1;
 	return (*myself && **myself) ? (ucell)**myself : 0;
@@ -337,35 +337,35 @@ static ucell get_myself(void)
 
 static void doivar(void)
 {
-	ucell r, *p = (ucell *)(*(ucell *) PC + sizeof(ucell));
+	ucell r, *p = (ucell *)(*(ucell *) cell2pointer(PC) + sizeof(ucell));
 	ucell ibase = get_myself();
 
 	dbg_interp_printk("ivar, offset: %d size: %d (ibase %d)\n", p[0], p[1], ibase );
 
-	r = ibase ? ibase + p[0] : (ucell)&p[2];
+	r = ibase ? ibase + p[0] : pointer2cell(&p[2]);
 	PUSH( r );
 }
 
 static void doival(void)
 {
-	ucell r, *p = (ucell *)(*(ucell *) PC + sizeof(ucell));
+	ucell r, *p = (ucell *)(*(ucell *) cell2pointer(PC) + sizeof(ucell));
 	ucell ibase = get_myself();
 
 	dbg_interp_printk("ivar, offset: %d size: %d\n", p[0], p[1] );
 
-	r = ibase ? ibase + p[0] : (ucell)&p[2];
-	PUSH( *(ucell *)r );
+	r = ibase ? ibase + p[0] : pointer2cell(&p[2]);
+	PUSH( *(ucell *)cell2pointer(r) );
 }
 
 static void doidefer(void)
 {
-	ucell *p = (ucell *)(*(ucell *) PC + sizeof(ucell));
+	ucell *p = (ucell *)(*(ucell *) cell2pointer(PC) + sizeof(ucell));
 	ucell ibase = get_myself();
 
 	dbg_interp_printk("doidefer, offset: %d size: %d\n", p[0], p[1] );
 
 	PUSHR(PC);
-	PC = ibase ? ibase + p[0] : (ucell)&p[2];
+	PC = ibase ? ibase + p[0] : pointer2cell(&p[2]);
 	PC -= sizeof(ucell);
 }
 #else

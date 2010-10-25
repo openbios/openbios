@@ -1190,7 +1190,7 @@ ob_ide_read_blocks(int *idx)
 {
 	cell n = POP(), cnt=n;
 	ucell blk = POP();
-        unsigned char *dest = (unsigned char *)POP();
+	unsigned char *dest = (unsigned char *)cell2pointer(POP());
 	struct ide_drive *drive = *(struct ide_drive **)idx;
 
         IDE_DPRINTF("ob_ide_read_blocks %lx block=%ld n=%ld\n",

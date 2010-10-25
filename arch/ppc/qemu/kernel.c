@@ -40,13 +40,13 @@ forth_segv_handler( char *segv_addr )
 {
 	ucell addr = 0xdeadbeef;
 
-	if( PC >= (ucell) dict && PC <= (ucell) dict + dicthead )
-		addr = *(ucell *) PC;
+	if( PC >= pointer2cell(dict) && PC <= pointer2cell(dict) + dicthead )
+		addr = *(ucell *)cell2pointer(PC);
 
-	printk("panic: segmentation violation at %x\n", (int)segv_addr);
-	printk("dict=0x%x here=0x%x(dict+0x%x) pc=0x%x(dict+0x%x)\n",
-	       (int)dict, (int)(dict + dicthead), dicthead,
-	       PC, PC - (ucell) dict);
+	printk("panic: segmentation violation at 0x%p\n", segv_addr);
+	printk("dict=0x%p here=0x%p(dict+0x%x) pc=0x%x(dict+0x%x)\n",
+	       dict, (char*)dict + dicthead, dicthead,
+	       PC, PC - pointer2cell(dict));
 	printk("dstackcnt=%d rstackcnt=%d instruction=%x\n",
 	       dstackcnt, rstackcnt, addr);
 
@@ -75,8 +75,8 @@ init_memory( void )
 	 * to initialize the memory allocator
 	 */
 
-	PUSH( (ucell)memory );
-	PUSH( (ucell)memory + MEMORY_SIZE );
+	PUSH( pointer2cell(memory) );
+	PUSH( pointer2cell(memory) + MEMORY_SIZE );
 }
 
 int

@@ -38,7 +38,7 @@ typedef struct {
 DECLARE_NODE( pcparts, INSTALL_OPEN, sizeof(pcparts_info_t), "+/packages/pc-parts" );
 
 #define SEEK( pos )		({ DPUSH(pos); call_parent(di->seek_xt); POP(); })
-#define READ( buf, size )	({ PUSH((ucell)buf); PUSH(size); call_parent(di->read_xt); POP(); })
+#define READ( buf, size )	({ PUSH(pointer2cell(buf)); PUSH(size); call_parent(di->read_xt); POP(); })
 
 /* three helper functions */
 
@@ -294,7 +294,7 @@ pcparts_open( pcparts_info_t *di )
 static void
 pcparts_probe( pcparts_info_t *dummy )
 {
-	unsigned char *buf = (unsigned char *)POP();
+	unsigned char *buf = (unsigned char *)cell2pointer(POP());
 
 	DPRINTF("probing for PC partitions\n");
 

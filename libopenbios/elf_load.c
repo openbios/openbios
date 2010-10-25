@@ -478,12 +478,12 @@ elf_init_program(void)
 	Elf_phdr *phdr;
 	size_t size, total_size = 0;
 	char *addr;
-	cell tmp;
+	uintptr_t tmp;
 
 	/* TODO: manage ELF notes section */
 	feval("0 state-valid !");
 	feval("load-base");
-	base = (char*)POP();
+	base = (char*)cell2pointer(POP());
 
 	ehdr = (Elf_ehdr *)base;
 

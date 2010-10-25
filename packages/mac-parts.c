@@ -42,7 +42,7 @@ typedef struct {
 DECLARE_NODE( macparts, INSTALL_OPEN, sizeof(macparts_info_t), "+/packages/mac-parts" );
 
 #define SEEK( pos )		({ DPUSH(pos); call_parent(di->seek_xt); POP(); })
-#define READ( buf, size )	({ PUSH((ucell)buf); PUSH(size); call_parent(di->read_xt); POP(); })
+#define READ( buf, size )	({ PUSH(pointer2cell(buf)); PUSH(size); call_parent(di->read_xt); POP(); })
 
 /* ( open -- flag ) */
 static void
@@ -267,7 +267,7 @@ out:
 static void
 macparts_probe( macparts_info_t *dummy )
 {
-	desc_map_t *dmap = (desc_map_t*)POP();
+	desc_map_t *dmap = (desc_map_t*)cell2pointer(POP());
 
 	DPRINTF("macparts_probe %x ?= %x\n", dmap->sbSig, DESC_MAP_SIGNATURE);
 	if( __be16_to_cpu(dmap->sbSig) != DESC_MAP_SIGNATURE )

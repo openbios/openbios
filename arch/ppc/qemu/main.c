@@ -183,7 +183,7 @@ static void check_preloaded_kernel(void)
     kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
     if (kernel_size) {
         kernel_image = fw_cfg_read_i32(FW_CFG_KERNEL_ADDR);
-        kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
+        kernel_cmdline = (const char *)(uintptr_t) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
         initrd_image = fw_cfg_read_i32(FW_CFG_INITRD_ADDR);
         initrd_size = fw_cfg_read_i32(FW_CFG_INITRD_SIZE);
         printk("[ppc] Kernel already loaded (0x%8.8lx + 0x%8.8lx) "

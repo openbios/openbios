@@ -64,7 +64,7 @@ xcoff_init_program(void)
 	feval("0 state-valid !");
 
 	feval("load-base");
-	base = (char*)POP();
+	base = (char*)cell2pointer(POP());
 
 	fhdr = (COFF_filehdr_t*)base;
 
@@ -111,22 +111,22 @@ xcoff_init_program(void)
 
 		if (strcmp(shdr->s_name, ".text") == 0) {
 
-			memcpy((char*)shdr->s_vaddr, base + shdr->s_scnptr,
+			memcpy((char*)(uintptr_t)shdr->s_vaddr, base + shdr->s_scnptr,
 			       shdr->s_size);
 			total_size += shdr->s_size;
 #ifdef CONFIG_PPC
-			flush_icache_range((char*)shdr->s_vaddr,
-					 (char*)(shdr->s_vaddr + shdr->s_size));
+			flush_icache_range((char*)(uintptr_t)shdr->s_vaddr,
+					 (char*)(uintptr_t)(shdr->s_vaddr + shdr->s_size));
 #endif
 		} else if (strcmp(shdr->s_name, ".data") == 0) {
 
-			memcpy((char*)shdr->s_vaddr, base + shdr->s_scnptr,
+			memcpy((char*)(uintptr_t)shdr->s_vaddr, base + shdr->s_scnptr,
 			       shdr->s_size);
 			total_size += shdr->s_size;
 
 		} else if (strcmp(shdr->s_name, ".bss") == 0) {
 
-			memset((void *)shdr->s_vaddr, 0, shdr->s_size);
+			memset((void *)(uintptr_t)shdr->s_vaddr, 0, shdr->s_size);
 			total_size += shdr->s_size;
 		} else {
 			DPRINTF("    Skip '%s' section\n", shdr->s_name);
@@ -137,7 +137,7 @@ xcoff_init_program(void)
 	DPRINTF("XCOFF entry point: %x\n", *(uint32_t*)ahdr->entry);
 
 	// Initialise saved-program-state
-	PUSH(*(uint32_t*)ahdr->entry);
+	PUSH(*(uint32_t*)(uintptr_t)ahdr->entry);
 	feval("saved-program-state >sps.entry !");
 	PUSH(total_size);
 	feval("saved-program-state >sps.file-size !");

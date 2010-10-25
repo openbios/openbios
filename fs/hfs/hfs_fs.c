@@ -359,7 +359,7 @@ static void
 hfs_files_read( hfs_info_t *mi )
 {
 	int count = POP();
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 
 	hfscommon *common = mi->common;
 	if (common->type != FILE)
@@ -402,7 +402,7 @@ hfs_files_seek( hfs_info_t *mi )
 static void
 hfs_files_load( hfs_info_t *mi )
 {
-	char *buf = (char *)POP();
+	char *buf = (char *)cell2pointer(POP());
 	int count;
 
 	hfscommon *common = mi->common;
@@ -461,14 +461,14 @@ hfs_files_get_path( hfs_info_t *mi )
 	if( strlen(buf) >= sizeof(buf) )
 		RET( 0 );
 
-	RET( (ucell) strdup(buf+start) );
+	RET( pointer2cell(strdup(buf+start)) );
 }
 
 /* ( -- cstr ) */
 static void
 hfs_files_get_fstype( hfs_info_t *mi )
 {
-	PUSH( (ucell)strdup("HFS") );
+	PUSH( pointer2cell(strdup("HFS")) );
 }
 
 /* ( -- cstr|0 ) */
@@ -486,7 +486,7 @@ hfs_files_volume_name( hfs_info_t *mi )
                 volname[0] = '\0';
         }
 
-	PUSH ((ucell)volname);
+	PUSH(pointer2cell(volname));
 }
 
 /* static method, ( pathstr len ihandle -- ) */

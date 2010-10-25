@@ -96,7 +96,7 @@ deblk_tell( deblk_info_t *di )
 
 
 #define DO_IO( xt, buf, blk, n )	\
-	({ PUSH3((ucell)(buf), blk, n); call_parent(xt); POP(); })
+	({ PUSH3(pointer2cell(buf), blk, n); call_parent(xt); POP(); })
 
 typedef struct {
 	/* block operation */
@@ -141,7 +141,7 @@ static int
 do_readwrite( deblk_info_t *di, int is_write, xt_t xt )
 {
 	int blk, i, n, len = POP();
-	char *dest = (char*)POP();
+	char *dest = (char*)cell2pointer(POP());
 	int last=0, retlen=0;
 	work_t w[3];
 	ducell mark = ((ducell)di->mark_hi << BITS) | di->mark_lo;
