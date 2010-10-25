@@ -132,10 +132,10 @@ static void dump_service(prom_args_t *pb)
 			pb->args[0], pb->args[1], pb->args[2]);
 #endif
 	} else if (strcmp(pb->service, "claim") == 0) {
-		printk("claim(0x8%lx, %ld, %ld) = ",
+		printk("claim(0x%08lx, %ld, %ld) = ",
 			pb->args[0], pb->args[1], pb->args[2]);
 	} else if (strcmp(pb->service, "release") == 0) {
-		printk("release(0x8%lx, %ld)\n",
+		printk("release(0x%08lx, %ld)\n",
 			pb->args[0], pb->args[1]);
 	} else if (strcmp(pb->service, "boot") == 0) {
 		printk("boot \"%s\"\n", (char*)pb->args[0]);
