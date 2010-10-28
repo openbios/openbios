@@ -451,9 +451,9 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
 
     size = (size + 7) & ~7;
     // XXX should use normal memory alloc
-    totmap[0].num_bytes -= size;
+    totavail[0].num_bytes -= size;
     DPRINTF("obp_dumb_memalloc va 0x%p size %x at 0x%x\n", va, size,
-            totmap[0].num_bytes);
+            totavail[0].num_bytes);
 
     // If va is null, the allocator is supposed to pick a "suitable" address.
     // (See OpenSolaric prom_alloc.c)  There's not any real guidance as
@@ -467,7 +467,7 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
         DPRINTF("obp_dumb_memalloc req null -> 0x%p\n", va);
     }
 
-    map_pages((unsigned long)va, totmap[0].num_bytes, 0, size);
+    map_pages((unsigned long)va, totavail[0].num_bytes, 0, size);
 
     return va;
 }
