@@ -1,7 +1,7 @@
 #include "adb_bus.h"
 
 struct cuda_t {
-	uint32_t base;
+	phys_addr_t base;
 	adb_bus_t *adb_bus;
 };
 typedef struct cuda_t cuda_t;
@@ -14,4 +14,4 @@ enum {
 	CHARDEV_LAST,
 };
 
-cuda_t *cuda_init (const char *path, uint32_t base);
+cuda_t *cuda_init (const char *path, phys_addr_t base);

@@ -43,7 +43,7 @@ arch_nvram_size( void )
                 return NW_IO_NVRAM_SIZE >> NW_IO_NVRAM_SHIFT;
 }
 
-void macio_nvram_init(const char *path, uint32_t addr)
+void macio_nvram_init(const char *path, phys_addr_t addr)
 {
 	phandle_t chosen, aliases;
 	phandle_t dnode;
@@ -145,7 +145,7 @@ arch_nvram_get( char *buf )
 }
 
 static void
-openpic_init(const char *path, uint32_t addr)
+openpic_init(const char *path, phys_addr_t addr)
 {
         phandle_t target_node;
         phandle_t dnode;
@@ -238,7 +238,7 @@ NODE_METHODS(ob_macio) = {
 };
 
 void
-ob_macio_heathrow_init(const char *path, uint32_t addr)
+ob_macio_heathrow_init(const char *path, phys_addr_t addr)
 {
         phandle_t aliases;
 
@@ -253,7 +253,7 @@ ob_macio_heathrow_init(const char *path, uint32_t addr)
 }
 
 void
-ob_macio_keylargo_init(const char *path, uint32_t addr)
+ob_macio_keylargo_init(const char *path, phys_addr_t addr)
 {
         phandle_t aliases;
 

@@ -4,6 +4,6 @@
 
 #define ZS_REGS         8
 
-void escc_init(const char *path, unsigned long addr);
-void ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave,
+void escc_init(const char *path, phys_addr_t addr);
+void ob_zs_init(phys_addr_t base, uint64_t offset, int intr, int slave,
                 int keyboard);

@@ -369,7 +369,7 @@ rtc_init(char *path)
 
 }
 
-cuda_t *cuda_init (const char *path, uint32_t base)
+cuda_t *cuda_init (const char *path, phys_addr_t base)
 {
 	cuda_t *cuda;
 	char buf[64];

@@ -22,15 +22,15 @@ extern uint32_t isa_io_base;
  * are arrays of bytes, and byte-swapping is not appropriate in
  * that case.  - paulus
  */
-#define insw(port, buf, ns)	_insw((uint16_t *)((port)+isa_io_base), (buf), (ns))
-#define outsw(port, buf, ns)	_outsw((uint16_t *)((port)+isa_io_base), (buf), (ns))
+#define insw(port, buf, ns)	_insw((uint16_t *)(uintptr_t)((port)+isa_io_base), (buf), (ns))
+#define outsw(port, buf, ns)	_outsw((uint16_t *)(uintptr_t)((port)+isa_io_base), (buf), (ns))
 
-#define inb(port)		in_8((uint8_t *)((port)+isa_io_base))
-#define outb(val, port)		out_8((uint8_t *)((port)+isa_io_base), (val))
-#define inw(port)		in_le16((uint16_t *)((port)+isa_io_base))
-#define outw(val, port)		out_le16((uint16_t *)((port)+isa_io_base), (val))
-#define inl(port)		in_le32((uint32_t *)((port)+isa_io_base))
-#define outl(val, port)		out_le32((uint32_t *)((port)+isa_io_base), (val))
+#define inb(port)		in_8((uint8_t *)(uintptr_t)((port)+isa_io_base))
+#define outb(val, port)		out_8((uint8_t *)(uintptr_t)((port)+isa_io_base), (val))
+#define inw(port)		in_le16((uint16_t *)(uintptr_t)((port)+isa_io_base))
+#define outw(val, port)		out_le16((uint16_t *)(uintptr_t)((port)+isa_io_base), (val))
+#define inl(port)		in_le32((uint32_t *)(uintptr_t)((port)+isa_io_base))
+#define outl(val, port)		out_le32((uint32_t *)(uintptr_t)((port)+isa_io_base), (val))
 
 /*
  * 8, 16 and 32 bit, big and little endian I/O operations, with barrier.

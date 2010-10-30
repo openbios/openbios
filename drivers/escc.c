@@ -13,11 +13,11 @@
 
 static volatile unsigned char *serial_dev;
 
-#define CTRL(addr) (*(volatile unsigned char *)(addr))
+#define CTRL(addr) (*(volatile unsigned char *)(uintptr_t)(addr))
 #ifdef CONFIG_DRIVER_ESCC_SUN
-#define DATA(addr) (*(volatile unsigned char *)(addr + 2))
+#define DATA(addr) (*(volatile unsigned char *)(uintptr_t)(addr + 2))
 #else
-#define DATA(addr) (*(volatile unsigned char *)(addr + 16))
+#define DATA(addr) (*(volatile unsigned char *)(uintptr_t)(addr + 16))
 #endif
 
 /* Conversion routines to/from brg time constants from/to bits
@@ -54,19 +54,19 @@ static volatile unsigned char *serial_dev;
 #define Rx_CH_AV        0x1     /* Rx Character Available */
 #define Tx_BUF_EMP      0x4     /* Tx Buffer empty */
 
-int uart_charav(int port)
+int uart_charav(uintptr_t port)
 {
     return (CTRL(port) & Rx_CH_AV) != 0;
 }
 
-char uart_getchar(int port)
+char uart_getchar(uintptr_t port)
 {
     while (!uart_charav(port))
         ;
     return DATA(port) & 0177;
 }
 
-static void uart_putchar(int port, unsigned char c)
+static void uart_putchar(uintptr_t port, unsigned char c)
 {
     if (!serial_dev)
         return;
@@ -102,13 +102,13 @@ static void uart_init_line(volatile unsigned char *port, unsigned long baud)
 
 }
 
-int uart_init(uint64_t port, unsigned long speed)
+int uart_init(phys_addr_t port, unsigned long speed)
 {
 #ifdef CONFIG_DRIVER_ESCC_SUN
     serial_dev = map_io(port & ~7ULL, ZS_REGS);
     serial_dev += port & 7ULL;
 #else
-    serial_dev = (unsigned char *)(unsigned long)port;
+    serial_dev = (unsigned char *)(uintptr_t)port;
 #endif
     uart_init_line(serial_dev, speed);
     return -1;
@@ -116,7 +116,7 @@ int uart_init(uint64_t port, unsigned long speed)
 
 void serial_putchar(int c)
 {
-    uart_putchar((int)serial_dev, (unsigned char) (c & 0xff));
+    uart_putchar((uintptr_t)serial_dev, (unsigned char) (c & 0xff));
 }
 
 void serial_cls(void)
@@ -131,7 +131,7 @@ void serial_cls(void)
 
 /* ( addr len -- actual ) */
 static void
-escc_read(unsigned long *address)
+escc_read(phys_addr_t *address)
 {
     char *addr;
     int len;
@@ -140,7 +140,7 @@ escc_read(unsigned long *address)
     addr = (char *)cell2pointer(POP());
 
     if (len < 1)
-        printk("escc_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
+        printk("escc_read: bad len, addr %p len %x\n", addr, len);
 
     if (uart_charav(*address)) {
         *addr = (char)uart_getchar(*address);
@@ -152,7 +152,7 @@ escc_read(unsigned long *address)
 
 /* ( addr len -- actual ) */
 static void
-escc_write(unsigned long *address)
+escc_write(phys_addr_t *address)
 {
     unsigned char *addr;
     int i, len;
@@ -172,7 +172,7 @@ escc_close(void)
 }
 
 static void
-escc_open(unsigned long *address)
+escc_open(phys_addr_t *address)
 {
 #ifdef CONFIG_DRIVER_ESCC_SUN
     int len;
@@ -199,7 +199,7 @@ escc_open(unsigned long *address)
     RET ( -1 );
 }
 
-DECLARE_UNNAMED_NODE(escc, INSTALL_OPEN, sizeof(unsigned long));
+DECLARE_UNNAMED_NODE(escc, INSTALL_OPEN, sizeof(phys_addr_t));
 
 NODE_METHODS(escc) = {
     { "open",               escc_open              },
@@ -211,7 +211,7 @@ NODE_METHODS(escc) = {
 #ifdef CONFIG_DRIVER_ESCC_SUN
 static volatile unsigned char *kbd_dev;
 
-void kbd_init(uint64_t base)
+void kbd_init(phys_addr_t base)
 {
     kbd_dev = map_io(base, 2 * 4);
     kbd_dev += 4;
@@ -295,7 +295,7 @@ escc_read_keyboard(void)
     addr = (unsigned char *)POP();
 
     if (len < 1)
-        printk("escc_read: bad len, addr %x len %x\n", (unsigned int)addr, len);
+        printk("escc_read: bad len, addr %p len %x\n", addr, len);
 
     if (keyboard_dataready()) {
         *addr = keyboard_readdata();
@@ -305,7 +305,7 @@ escc_read_keyboard(void)
     }
 }
 
-DECLARE_UNNAMED_NODE(escc_keyboard, INSTALL_OPEN, sizeof(unsigned long));
+DECLARE_UNNAMED_NODE(escc_keyboard, INSTALL_OPEN, sizeof(phys_addr_t));
 
 NODE_METHODS(escc_keyboard) = {
     { "open",               escc_open              },
@@ -314,7 +314,7 @@ NODE_METHODS(escc_keyboard) = {
 };
 
 void
-ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
+ob_zs_init(phys_addr_t base, uint64_t offset, int intr, int slave, int keyboard)
 {
     char nodebuff[256];
     phandle_t aliases;
@@ -369,7 +369,7 @@ ob_zs_init(uint64_t base, uint64_t offset, int intr, int slave, int keyboard)
 #else
 
 static void
-escc_add_channel(const char *path, const char *node, uint32_t addr,
+escc_add_channel(const char *path, const char *node, phys_addr_t addr,
                  uint32_t offset)
 {
     char buf[64], tty[32];
@@ -430,7 +430,7 @@ escc_add_channel(const char *path, const char *node, uint32_t addr,
 }
 
 void
-escc_init(const char *path, unsigned long addr)
+escc_init(const char *path, phys_addr_t addr)
 {
     char buf[64];
     int props[2];
