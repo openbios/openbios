@@ -329,10 +329,11 @@ static void doplusloop(void)
 #ifndef FCOMPILER
 static ucell get_myself(void)
 {
-	static ucell **myself = NULL;
-	if( !myself )
-		myself = (ucell**)findword("my-self") + 1;
-	return (*myself && **myself) ? (ucell)**myself : 0;
+	static ucell *myselfptr = NULL;
+	if (myselfptr == NULL)
+		myselfptr = (ucell*)cell2pointer(findword("my-self")) + 1;
+	ucell *myself = (ucell*)cell2pointer(*myselfptr);
+	return (myself != NULL) ? *myself : 0;
 }
 
 static void doivar(void)
