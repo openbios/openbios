@@ -32,7 +32,7 @@ struct adb_dev_t {
     adb_bus_t *bus;
     uint8_t addr;
     uint8_t type;
-    uint32_t state;
+    void *state;
 };
 
 #define ADB_BUF_SIZE 8

@@ -483,7 +483,7 @@ static int adb_kbd_read (void *private)
     int key;
     int ret;
 
-    kbd = (void *)dev->state;
+    kbd = dev->state;
 
     if (kbd->len > 0) {
         ret = kbd->sequence[kbd->len-- - 1];
@@ -531,7 +531,7 @@ void *adb_kbd_new (char *path, void *private)
 			ADB_kbd_us, ADB_sequences);
         kbd->next_key = -1;
         kbd->len = 0;
-	dev->state = (int32_t)kbd;
+	dev->state = kbd;
 	my_adb_dev = dev;
     }
 
