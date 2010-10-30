@@ -74,10 +74,14 @@ crosscflags()
         cflags="$cflags -DNATIVE_BITWIDTH_LARGER_THAN_HOST_BITWIDTH"
     fi
 
-    if test "$host" = "x86" -a "$targetlongbits" = "64"; then
-        cflags="$cflags -DNEED_FAKE_INT128_T"
-    elif test "$host" = "ppc" -a "$targetlongbits" = "64" -a `uname -s` = "Darwin"; then
-        cflags="$cflags -DNEED_FAKE_INT128_T"
+    if test "$target" = "sparc64" -o "$target" = "ia64" \
+         -o "$target" = "amd64" -o "$target" = "x86_64" \
+         -o "$target" = "alpha"; then
+        if test "$host" = "x86"; then
+            cflags="$cflags -DNEED_FAKE_INT128_T"
+        elif test "$host" = "ppc" -a `uname -s` = "Darwin"; then
+            cflags="$cflags -DNEED_FAKE_INT128_T"
+        fi
     fi
 
     CROSSCFLAGS=$cflags
