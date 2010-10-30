@@ -250,7 +250,7 @@ for ARCH in $arch_list; do
         AS_FLAGS="-Wa,-32"
         ;;
     esac
-    if [ "$ARCH" != "$HOSTARCH" ]; then
+    if [ "$ARCH" != "$HOSTARCH" -o `uname -s` = "Darwin" ]; then
         cross="yes"
     fi
     crosscflags $HOSTARCH $ARCH
