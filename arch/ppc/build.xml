@@ -178,7 +178,7 @@
 
  <executable name="openbios-qemu.elf" target="target" condition="QEMU">
   <rule>
-	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/ppc/qemu/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
+	$(call quiet-command,$(LD) --warn-common -N -T $(SRCDIR)/arch/$(ARCH)/qemu/ldscript -o $@.nostrip --whole-archive $^,"  LINK  $(TARGET_DIR)$@")
 	$(call quiet-command,$(NM) $@.nostrip | sort > $(ODIR)/openbios-qemu.syms,"  GEN   $(TARGET_DIR)$@.syms")
 	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
   <object source="qemu/start.S"/>
