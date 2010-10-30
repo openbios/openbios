@@ -30,6 +30,9 @@ typedef long            intptr_t;
 /* endianess */
 #include "autoconf.h"
 
+/* physical address: 36 bits */
+typedef uint64_t phys_addr_t;
+
 /* cell based types */
 
 typedef int32_t		cell;

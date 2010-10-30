@@ -30,6 +30,13 @@ typedef long            intptr_t;
 /* endianess */
 #include "autoconf.h"
 
+/* physical address */
+#if defined(__powerpc64__)
+typedef uint64_t phys_addr_t;
+#else
+typedef uint32_t phys_addr_t;
+#endif
+
 /* cell based types */
 
 typedef int32_t		cell;

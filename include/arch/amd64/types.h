@@ -16,6 +16,9 @@
 /* endianess */
 #include "autoconf.h"
 
+/* physical address */
+typedef uint64_t phys_addr_t;
+
 /* cell based types */
 
 typedef long long     cell;

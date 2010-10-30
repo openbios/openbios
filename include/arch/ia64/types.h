@@ -17,6 +17,9 @@
 
 #include <endian.h>
 
+/* physical address */
+typedef uint64_t phys_addr_t;
+
 /* cell based types */
 
 typedef int64_t       cell;

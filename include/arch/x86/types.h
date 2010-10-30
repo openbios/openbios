@@ -17,6 +17,9 @@
 
 #include "autoconf.h"
 
+/* physical address: XXX theoretically 36 bits for PAE */
+typedef uint32_t phys_addr_t;
+
 /* cell based types */
 
 typedef int32_t		cell;

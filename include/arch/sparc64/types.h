@@ -30,6 +30,9 @@ typedef long            intptr_t;
 /* endianess */
 #include "autoconf.h"
 
+/* physical address */
+typedef uint64_t phys_addr_t;
+
 /* cell based types */
 typedef long long          cell;
 typedef unsigned long long ucell;
