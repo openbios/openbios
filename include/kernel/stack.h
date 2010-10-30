@@ -31,8 +31,9 @@ typedef ucell phandle_t;
 
 
 #ifdef NATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH
-#define pointer2cell(x) ((ucell)(x))
-#define cell2pointer(x) ((u8 *)(x))
+// XXX Check whether we can take the larger-than code path for ppc64 instead.
+#define pointer2cell(x) ((ucell)(uintptr_t)(x))
+#define cell2pointer(x) ((u8 *)(uintptr_t)(x))
 #endif
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH
 #define pointer2cell(x) ((ucell)(((unsigned long)(x))-base_address))
