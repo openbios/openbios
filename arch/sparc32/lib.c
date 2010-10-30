@@ -61,6 +61,12 @@ unsigned int va_shift;
 static unsigned long *context_table;
 static unsigned long *l1;
 
+static phandle_t s_phandle_memory = 0;
+static phandle_t s_phandle_mmu = 0;
+static ucell *mem_reg = 0;
+static ucell *mem_avail = 0;
+static ucell *virt_avail = 0;
+
 static struct linux_mlist_v0 totphys[1];
 static struct linux_mlist_v0 totmap[1];
 static struct linux_mlist_v0 totavail[1];
@@ -407,6 +413,24 @@ ob_map_pages(void)
 }
 
 static void
+update_memory_properties(void)
+{
+    /* Update the device tree memory properties from the master
+       totphys, totmap and totavail romvec arrays */
+    mem_reg[0] = 0;
+    mem_reg[1] = pointer2cell(totphys[0].start_adr);
+    mem_reg[2] = totphys[0].num_bytes;
+
+    virt_avail[0] = 0;
+    virt_avail[1] = 0;
+    virt_avail[2] = pointer2cell(totmap[0].start_adr);
+
+    mem_avail[0] = 0;
+    mem_avail[1] = pointer2cell(totavail[0].start_adr);
+    mem_avail[2] = totavail[0].num_bytes;
+}
+
+static void
 init_romvec_mem(void)
 {
     ptphys = totphys;
@@ -428,6 +452,13 @@ init_romvec_mem(void)
     totmap[0].start_adr = &_start;
     totmap[0].num_bytes = (unsigned long) &_iomem -
         (unsigned long) &_start + PAGE_SIZE;
+
+    /* Pointers to device tree memory properties */
+    mem_reg = malloc(sizeof(ucell) * 3);
+    mem_avail = malloc(sizeof(ucell) * 3);
+    virt_avail = malloc(sizeof(ucell) * 3);
+
+    update_memory_properties();
 }
 
 char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
@@ -447,8 +478,6 @@ void obp_dumb_munmap(__attribute__((unused)) char *va,
 
 char *obp_dumb_memalloc(char *va, unsigned int size)
 {
-    static unsigned int next_free_address = 0xFFEDA000;
-
     size = (size + 7) & ~7;
     // XXX should use normal memory alloc
     totavail[0].num_bytes -= size;
@@ -461,13 +490,15 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
     // ROM.
 
     if (va == NULL) {
-        // XXX should register virtual memory allocation
-        va = (char *)(next_free_address - size);
-        next_free_address -= size;
+        va = (char *)(totmap[0].start_adr - size);
+        totmap[0].start_adr -= size;
+        totmap[0].num_bytes += size;
         DPRINTF("obp_dumb_memalloc req null -> 0x%p\n", va);
     }
 
     map_pages((unsigned long)va, totavail[0].num_bytes, 0, size);
+
+    update_memory_properties();
 
     return va;
 }
@@ -481,62 +512,51 @@ void obp_dumb_memfree(__attribute__((unused))char *va,
 void
 ob_init_mmu(void)
 {
+    init_romvec_mem();
+
+    /* Find the phandles for the /memory and /virtual-memory nodes */
     push_str("/memory");
-    fword("find-device");
-
-    PUSH(0);
-    fword("encode-int");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(qemu_mem_size);
-    fword("encode-int");
-    fword("encode+");
-    push_str("reg");
-    fword("property");
-
-    PUSH(0);
-    fword("encode-int");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(va2pa((unsigned long)&_start) - PAGE_SIZE);
-    fword("encode-int");
-    fword("encode+");
-    push_str("available");
-    fword("property");
+    fword("find-package");
+    POP();
+    s_phandle_memory = POP();
 
     push_str("/virtual-memory");
+    fword("find-package");
+    POP();
+    s_phandle_mmu = POP();
+
+    /* Setup /memory:reg (totphys) property */
+    push_str("/memory");
     fword("find-device");
+    PUSH(pointer2cell(mem_reg));
+    PUSH(3 * sizeof(ucell));
+    push_str("reg");
+    PUSH_ph(s_phandle_memory);
+    fword("encode-property");
 
-    PUSH(0);
-    fword("encode-int");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH((unsigned long)&_start - PAGE_SIZE);
-    fword("encode-int");
-    fword("encode+");
-
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(va2pa((unsigned long)&_iomem));
-    fword("encode-int");
-    fword("encode+");
-    PUSH(-va2pa((unsigned long)&_iomem));
-    fword("encode-int");
-    fword("encode+");
+    /* Setup /virtual-memory:avail (totmap) property */
+    push_str("/virtual-memory");
+    fword("find-device");
+    PUSH(pointer2cell(virt_avail));
+    PUSH(3 * sizeof(ucell));
     push_str("available");
-    fword("property");
+    PUSH_ph(s_phandle_mmu);
+    fword("encode-property");
+
+    /* Setup /memory:avail (totavail) property */
+    push_str("/memory");
+    fword("find-device");
+    PUSH(pointer2cell(mem_avail));
+    PUSH(3 * sizeof(ucell));
+    push_str("available");
+    PUSH_ph(s_phandle_memory);
+    fword("encode-property");
 
     PUSH(0);
     fword("active-package!");
     bind_func("pgmap@", pgmap_fetch);
     bind_func("pgmap!", pgmap_store);
     bind_func("map-pages", ob_map_pages);
-
-    init_romvec_mem();
 }
 
 /*
