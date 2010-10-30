@@ -12,7 +12,7 @@ if [ x"$1" = x -o "$1" = "-help" ]; then
   printf "Add \"unix-\" prefix to compile openbios-unix executable (native only)\n"
   printf "Add \"builtin-\" prefix to compile openbios-builtin executables\n\n"
   printf "Without prefixes, builtin and unix targets are selected\n\n"
-  printf "Special targets: mol-ppc briq-ppc pearpc-ppc qemu-ppc xbox-x86\n\n"
+  printf "Special targets: mol-ppc briq-ppc pearpc-ppc qemu-ppc qemu-ppc64 xbox-x86\n\n"
   printf "Example: $0 builtin-sparc32 unix-amd64 builtin-amd64\n"
   exit 0
 fi
@@ -41,6 +41,7 @@ crosscflags()
     fi
 
     if test "$target" = "powerpc" -o "$target" = "ppc" \
+        -o "$target" = "powerpc64" -o "$target" = "ppc64" \
         -o "$target" = "mips" -o "$target" = "s390" \
         -o "$target" = "sparc32" -o "$target" = "sparc64" \
         -o "$target" = "m68k" -o "$target" = "armv4b"; then
@@ -52,6 +53,7 @@ crosscflags()
 # target long bits test
     if test "$target" = "sparc64" -o "$target" = "ia64" \
         -o "$target" = "amd64"  -o "$target" = "x86_64" \
+        -o "$target" = "powerpc64" -o "$target" = "ppc64" \
         -o "$target" = "alpha"; then
         targetlongbits="64"
     else
@@ -132,7 +134,7 @@ echo "Configuring OpenBIOS on $HOSTARCH for $*"
 target_list=""
 for target in $*; do
     case $target in
-        unix-*|builtin-*|plain-*|mol-ppc|briq-ppc|pearpc-ppc|qemu-ppc|xbox-x86)
+        unix-*|builtin-*|plain-*|mol-ppc|briq-ppc|pearpc-ppc|qemu-ppc|qemu-ppc64|xbox-x86)
         target_list="$target_list $target"
         ;;
         cross-*)
@@ -189,7 +191,7 @@ for ARCH in $arch_list; do
             pearpc-ppc)
             pearpc="yes"
             ;;
-            builtin-ppc|qemu-ppc)
+            builtin-ppc|qemu-ppc|builtin-ppc64|qemu-ppc64)
             qemu="yes"
             ;;
             xbox-x86)
@@ -215,6 +217,7 @@ for ARCH in $arch_list; do
         esac
     done
 
+    BASEARCH=$ARCH
     case $ARCH in
         amd64)
         select_prefix x86_64
@@ -230,6 +233,13 @@ for ARCH in $arch_list; do
             CFLAGS="-fno-builtin"
         fi
         AS_FLAGS=
+        ;;
+
+        ppc64)
+        select_prefix powerpc64
+        CFLAGS="-Wa,-a64 -m64 -msoft-float -fno-builtin"
+        AS_FLAGS="-Wa,-a64"
+        BASEARCH=ppc
         ;;
 
         sparc32)
@@ -279,7 +289,7 @@ for ARCH in $arch_list; do
     mkdir -p $OBJDIR/host/include
     mkdir -p $OBJDIR/host/kernel
     mkdir -p $OBJDIR/forth
-    ln -s ../../../include/arch/$ARCH $OBJDIR/target/include/asm
+    ln -s ../../../include/arch/$BASEARCH $OBJDIR/target/include/asm
     #compile the host binary with target settings instead
     #ln -s ../../../include/arch/$HOSTARCH $OBJDIR/host/include/asm
     if [ "$mol" = "yes" ]; then
@@ -328,6 +338,9 @@ for ARCH in $arch_list; do
     echo "<?xml version=\"1.0\"?><config>" > $ODIR/config.xml
     # Generic
     config_set_boolean CONFIG_$ARCH >> $ODIR/config.xml
+    if [ "$BASEARCH" != "$ARCH" ]; then
+        config_set_boolean CONFIG_$BASEARCH >> $ODIR/config.xml
+    fi
     if [ "$mol" = "yes" ]; then
         config_set_boolean CONFIG_MOL >> $ODIR/config.xml
     fi
