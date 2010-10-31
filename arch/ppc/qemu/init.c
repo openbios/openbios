@@ -646,7 +646,7 @@ arch_of_init( void )
 	fword("find-device");
 
 	switch(machine_id) {
-	case ARCH_HEATHROW:	/* OldWord */
+	case ARCH_HEATHROW:	/* OldWorld */
 
 		/* model */
 
