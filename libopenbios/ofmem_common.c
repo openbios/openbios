@@ -770,13 +770,19 @@ ucell ofmem_translate( ucell virt, ucell *mode )
 	return -1;
 }
 
+static void remove_range( ucell ea, ucell size, range_t **r )
+{
+    OFMEM_TRACE("%s: not implemented\n", __func__);
+}
+
 /* release memory allocated by ofmem_claim_phys */
 void ofmem_release_phys( ucell phys, ucell size )
 {
     OFMEM_TRACE("ofmem_release_phys addr=" FMT_ucellx " size=" FMT_ucellx "\n",
                 phys, size);
 
-	OFMEM_TRACE("ofmem_release_phys not implemented");
+    ofmem_t *ofmem = ofmem_arch_get_private();
+    remove_range(phys, size, &ofmem->phys_range);
 }
 
 /* release memory allocated by ofmem_claim_virt */
@@ -785,7 +791,25 @@ void ofmem_release_virt( ucell virt, ucell size )
     OFMEM_TRACE("ofmem_release_virt addr=" FMT_ucellx " size=" FMT_ucellx "\n",
                 virt, size);
 
-	OFMEM_TRACE("ofmem_release_virt not implemented");
+    ofmem_t *ofmem = ofmem_arch_get_private();
+    remove_range(virt, size, &ofmem->virt_range);
+}
+
+/* release memory allocated by ofmem_claim - 6.3.2.4 */
+void ofmem_release( ucell virt, ucell size )
+{
+    OFMEM_TRACE("%s addr=" FMT_ucellx " size=" FMT_ucellx "\n",
+                __func__, virt, size);
+
+    ucell mode;
+    ucell phys = ofmem_translate(virt, &mode);
+    if (phys == (ucell)-1) {
+        OFMEM_TRACE("%s: no mapping\n", __func__);
+        return;
+    }
+    ofmem_unmap(virt, size);
+    ofmem_release_virt(virt, size);
+    ofmem_release_phys(phys, size);
 }
 
 /************************************************************************/

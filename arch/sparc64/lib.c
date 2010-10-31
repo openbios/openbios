@@ -584,8 +584,9 @@ ciface_claim( void )
 static void
 ciface_release( void )
 {
-	POP();
-	POP();
+	ucell size = POP();
+	ucell virt = POP();
+	ofmem_release(virt, size);
 }
 
 DECLARE_NODE(memory, INSTALL_OPEN, 0, "/memory");

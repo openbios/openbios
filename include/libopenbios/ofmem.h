@@ -101,6 +101,7 @@ extern ucell ofmem_retain( ucell phys, ucell size, ucell align );
 extern int   ofmem_map( ucell phys, ucell virt, ucell size, ucell mode );
 extern int   ofmem_unmap( ucell virt, ucell size );
 
+extern void  ofmem_release( ucell virt, ucell size );
 extern void  ofmem_release_phys( ucell phys, ucell size );
 extern void  ofmem_release_virt( ucell virt, ucell size );
 extern ucell ofmem_translate( ucell virt, ucell *ret_mode );
