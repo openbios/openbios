@@ -764,6 +764,7 @@ arch_of_init( void )
 			while (size < (unsigned long)of_rtas_end - (unsigned long)of_rtas_start)
 				size *= 2;
 			set_property(ph, "rtas-size", (char*)&size, sizeof(size));
+			set_int_property(ph, "rtas-version", is_apple() ? 0x41 : 1);
 		}
 		break;
 	}
