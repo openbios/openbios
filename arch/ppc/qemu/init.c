@@ -753,13 +753,19 @@ arch_of_init( void )
 	node_methods_init(buf);
 
 #ifdef CONFIG_RTAS
-	if( !(ph=find_dev("/rtas")) )
-		printk("Warning: No /rtas node\n");
-	else {
-		unsigned long size = 0x1000;
-		while( size < (unsigned long)of_rtas_end - (unsigned long)of_rtas_start )
-			size *= 2;
-		set_property( ph, "rtas-size", (char*)&size, sizeof(size) );
+	/* OldWorld Macs don't have an /rtas node. */
+	switch (machine_id) {
+	case ARCH_MAC99:
+	case ARCH_MAC99_U3:
+		if (!(ph = find_dev("/rtas"))) {
+			printk("Warning: No /rtas node\n");
+		} else {
+			unsigned long size = 0x1000;
+			while (size < (unsigned long)of_rtas_end - (unsigned long)of_rtas_start)
+				size *= 2;
+			set_property(ph, "rtas-size", (char*)&size, sizeof(size));
+		}
+		break;
 	}
 #endif
 

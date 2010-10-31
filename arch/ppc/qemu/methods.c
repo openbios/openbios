@@ -304,7 +304,9 @@ node_methods_init( const char *cpuname )
 {
 	phandle_t chosen, ph;
 #ifdef CONFIG_RTAS
-	REGISTER_NODE( rtas );
+	if (is_newworld()) {
+		REGISTER_NODE( rtas );
+	}
 #endif
 	REGISTER_NODE( ciface );
 	REGISTER_NODE( memory );
