@@ -21,7 +21,7 @@
 /*	Macros								*/
 /************************************************************************/
 
-#define ILLEGAL_VECTOR( v )	.org __vectors + v ; bl trap_error ;
+#define ILLEGAL_VECTOR( v )	.org __vectors + v ; vector__##v: bl trap_error ;
 #define VECTOR( v, dummystr )	.org __vectors + v ; vector__##v
 
 /* We're trying to use the same code for the ppc32 and ppc64 handlers here.
