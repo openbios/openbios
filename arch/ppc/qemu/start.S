@@ -202,16 +202,14 @@ ILLEGAL_VECTOR( 0x200 )
 
 VECTOR( 0x300, "DSI" ):
 	EXCEPTION_PREAMBLE
-	lis	r3,HA(dsi_exception)
-	addi	r3,r3,LO(dsi_exception)
+	LOAD_REG_IMMEDIATE(r3, dsi_exception)
 	mtctr	r3
 	bctrl
 	b	exception_return
 
 VECTOR( 0x400, "ISI" ):
 	EXCEPTION_PREAMBLE
-	lis	r3,HA(isi_exception)
-	addi	r3,r3,LO(isi_exception)
+	LOAD_REG_IMMEDIATE(r3, isi_exception)
 	mtctr	r3
 	bctrl
 	b	exception_return
@@ -247,16 +245,14 @@ ILLEGAL_VECTOR( 0x1700 )
 
 VECTOR( 0x2000, "DSI_64" ):
 	EXCEPTION_PREAMBLE_64
-	lis	r3,HA(dsi_exception)
-	addi	r3,r3,LO(dsi_exception)
+	LOAD_REG_IMMEDIATE(r3, dsi_exception)
 	mtctr	r3
 	bctrl
 	EXCEPTION_EPILOGUE_64
 
 VECTOR( 0x2200, "ISI_64" ):
 	EXCEPTION_PREAMBLE_64
-	lis	r3,HA(isi_exception)
-	addi	r3,r3,LO(isi_exception)
+	LOAD_REG_IMMEDIATE(r3, isi_exception)
 	mtctr	r3
 	bctrl
 	EXCEPTION_EPILOGUE_64
@@ -278,8 +274,7 @@ GLOBL(_entry):
 
 	/* copy exception vectors */
 
-	lis	r3,HA(__vectors)
-	addi	r3,r3,LO(__vectors)
+	LOAD_REG_IMMEDIATE(r3, __vectors)
 	li	r4,0
 	li	r5,__vectors_end - __vectors + 16
 	rlwinm	r5,r5,0,0,28
@@ -378,22 +373,19 @@ GLOBL(call_elf):
 	stwu	r1,-16(r1)
 	stw	r0,20(r1)
 	mtlr	r5
-	lis	r8,HA(saved_stack)
-	addi	r8,r8,LO(saved_stack)		// save our stack pointer
+	LOAD_REG_IMMEDIATE(r8, saved_stack)		// save our stack pointer
 	stw	r1,0(r8)
 	mfsdr1	r1
 	addi	r1, r1, -32768		/* - 32 KiB exception stack */
 	addis	r1, r1, -1			/* - 64 KiB stack */
-	lis	r5,HA(of_client_callback)
-	addi	r5,r5,LO(of_client_callback)	// r5 = callback
+	LOAD_REG_IMMEDIATE(r5, of_client_callback)	// r5 = callback
 	li	r6,0			// r6 = address of client program arguments (unused)
 	li	r7,0			// r7 = length of client program arguments (unused)
 	li	r0,MSR_FP | MSR_ME | MSR_DR | MSR_IR
 	mtmsr	r0
 	blrl
 
-	lis	r8,HA(saved_stack)
-	addi	r8,r8,LO(saved_stack)		// restore stack pointer
+	LOAD_REG_IMMEDIATE(r8, saved_stack)		// restore stack pointer
 	mr	r1,r8
 	lwz	r0,20(r1)
 	mtlr	r0
@@ -418,8 +410,7 @@ GLOBL(of_client_callback):
 
 	/* restore OF stack */
 
-	lis	r4,HA(saved_stack)
-	addi	r4,r4,LO(saved_stack)
+	LOAD_REG_IMMEDIATE(r4, saved_stack)
 	lwz	r4,0(r4)
 
 	stwu	r4,-SAVE_SPACE(r4)
@@ -564,12 +555,10 @@ GLOBL(flush_icache_range):
 #define FW_CFG_RAM_SIZE         0x03
 
 compute_ramsize:
-        lis     r9,HA(CFG_ADDR)
-        ori     r9,r9,LO(CFG_ADDR)
+        LOAD_REG_IMMEDIATE(r9, CFG_ADDR)
         li      r0,FW_CFG_RAM_SIZE
         sth     r0,0(r9)
-        lis     r9,HA(CFG_ADDR + 2)
-        ori     r9,r9,LO(CFG_ADDR + 2)
+        LOAD_REG_IMMEDIATE(r9, CFG_ADDR + 2)
         lbz     r1,0(r9)
         lbz     r0,0(r9)
         slwi    r0,r0,8

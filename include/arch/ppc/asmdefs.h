@@ -75,6 +75,19 @@
 /*	MISC								*/
 /************************************************************************/
 
+#ifdef __powerpc64__
+#define LOAD_REG_IMMEDIATE(D, x) \
+	lis  (D),      (x)@highest ; \
+	ori  (D), (D), (x)@higher ; \
+	sldi (D), (D), 32 ; \
+	oris (D), (D), (x)@h ; \
+	ori  (D), (D), (x)@l
+#else
+#define LOAD_REG_IMMEDIATE(D, x) \
+	lis  (D),      HA(x) ; \
+	addi (D), (D), LO(x)
+#endif
+
 #ifndef __darwin__
 #define GLOBL( name )		.globl name ; name
 #define EXTERN( name )		name
