@@ -206,7 +206,7 @@ VECTOR( 0x300, "DSI" ):
 	addi	r3,r3,LO(dsi_exception)
 	mtctr	r3
 	bctrl
-	ba	exception_return
+	b	exception_return
 
 VECTOR( 0x400, "ISI" ):
 	EXCEPTION_PREAMBLE
@@ -214,7 +214,7 @@ VECTOR( 0x400, "ISI" ):
 	addi	r3,r3,LO(isi_exception)
 	mtctr	r3
 	bctrl
-	ba	exception_return
+	b	exception_return
 
 	ILLEGAL_VECTOR( 0x500 )
 	ILLEGAL_VECTOR( 0x600 )
