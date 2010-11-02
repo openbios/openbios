@@ -268,10 +268,13 @@ GLOBL(__vectors_end):
 /************************************************************************/
 
 GLOBL(_entry):
+
+#ifndef __powerpc64__
 	/* clear MSR, disable MMU */
 
 	li	r0,0
 	mtmsr	r0
+#endif
 
 	/* copy exception vectors */
 
