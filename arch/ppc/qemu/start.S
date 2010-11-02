@@ -186,6 +186,18 @@ GLOBL(__vectors):
 1:	nop			//
 	b	1b
 
+call_dsi_exception:
+	LOAD_REG_IMMEDIATE(r3, dsi_exception)
+	mtctr	r3
+	bctrl
+	b	exception_return
+
+call_isi_exception:
+	LOAD_REG_IMMEDIATE(r3, isi_exception)
+	mtctr	r3
+	bctrl
+	b	exception_return
+
 exception_return:
 	EXCEPTION_EPILOGUE
 
@@ -202,17 +214,15 @@ ILLEGAL_VECTOR( 0x200 )
 
 VECTOR( 0x300, "DSI" ):
 	EXCEPTION_PREAMBLE
-	LOAD_REG_IMMEDIATE(r3, dsi_exception)
-	mtctr	r3
-	bctrl
-	b	exception_return
+	b	call_dsi_exception
+
+ILLEGAL_VECTOR( 0x380 )
 
 VECTOR( 0x400, "ISI" ):
 	EXCEPTION_PREAMBLE
-	LOAD_REG_IMMEDIATE(r3, isi_exception)
-	mtctr	r3
-	bctrl
-	b	exception_return
+	b	call_isi_exception
+
+ILLEGAL_VECTOR( 0x480 )
 
 	ILLEGAL_VECTOR( 0x500 )
 	ILLEGAL_VECTOR( 0x600 )
