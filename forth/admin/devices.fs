@@ -276,6 +276,11 @@
   .
 ;
 
+\ Print a number zero-padded
+: 0.r ( u minlen -- )
+  0 swap <# 1 ?do # loop #s #> type
+;
+
 : .p-bytes? ( data len -- 1 | data len 0 )
   ." -- " dup . ." : "
   swap >r 0
@@ -283,7 +288,7 @@
     dup r@ + c@
     ( len n ch )
 
-    pocket tohexstr dup 2 <> if ." 0" then type ."  "
+    2 0.r space
     1+
   repeat 
   2drop r> drop 1
