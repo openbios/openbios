@@ -730,15 +730,12 @@ arch_of_init( void )
 
 	/* all memory */
 
-	PUSH(ram_size >> 32);
-	fword("encode-int");
+	/* TODO Adjust this when #address-cells gets increased for ppc64. */
+	PUSH(0);
+	fword("encode-phys");
+	/* This needs adjusting if #size-cells gets increased.
+	   Alternatively use multiple (address, size) tuples. */
 	PUSH(ram_size & 0xffffffff);
-	fword("encode-int");
-	fword("encode+");
-	PUSH(0);
-	fword("encode-int");
-	fword("encode+");
-	PUSH(0);
 	fword("encode-int");
 	fword("encode+");
 	push_str("reg");
