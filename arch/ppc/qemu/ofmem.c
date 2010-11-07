@@ -395,7 +395,7 @@ setup_mmu( unsigned long ramsize )
 	/* SDR1: Storage Description Register 1 */
 
 	hash_base = (ramsize - 0x00100000 - HASH_SIZE) & hash_mask;
-        memset((void *)hash_base, 0, HASH_SIZE);
+	memset((void *)hash_base, 0, HASH_SIZE);
 	sdr1 = hash_base | ((HASH_SIZE-1) >> 16);
 	asm volatile("mtsdr1 %0" :: "r" (sdr1) );
 
