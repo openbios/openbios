@@ -25,6 +25,9 @@ typedef short           int16_t;
 typedef int             int32_t;
 typedef long long       int64_t;
 typedef long            intptr_t;
+
+#define PRIx32 "x"
+#define PRIx64 "llx"
 #endif
 
 /* endianess */
@@ -32,6 +35,8 @@ typedef long            intptr_t;
 
 /* physical address */
 typedef uint64_t phys_addr_t;
+
+#define FMT_plx "%016" PRIx64
 
 /* cell based types */
 typedef long long          cell;

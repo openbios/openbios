@@ -18,7 +18,10 @@
 #include "autoconf.h"
 
 /* physical address: XXX theoretically 36 bits for PAE */
+
 typedef uint32_t phys_addr_t;
+
+#define FMT_plx "%08" PRIx32
 
 /* cell based types */
 

@@ -18,7 +18,10 @@
 #include <endian.h>
 
 /* physical address */
+
 typedef uint64_t phys_addr_t;
+
+#define FMT_plx "%016" PRIx64
 
 /* cell based types */
 

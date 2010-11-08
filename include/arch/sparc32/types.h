@@ -25,13 +25,19 @@ typedef short           int16_t;
 typedef int             int32_t;
 typedef long long       int64_t;
 typedef long            intptr_t;
+
+#define PRIx32 "x"
+#define PRIx64 "llx"
 #endif
 
 /* endianess */
 #include "autoconf.h"
 
 /* physical address: 36 bits */
+
 typedef uint64_t phys_addr_t;
+
+#define FMT_plx "%09" PRIx64
 
 /* cell based types */
 
