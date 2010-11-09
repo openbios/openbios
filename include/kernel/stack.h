@@ -31,9 +31,17 @@ typedef ucell phandle_t;
 
 
 #ifdef NATIVE_BITWIDTH_EQUALS_HOST_BITWIDTH
-// XXX Check whether we can take the larger-than code path for ppc64 instead.
-#define pointer2cell(x) ((ucell)(uintptr_t)(x))
-#define cell2pointer(x) ((u8 *)(uintptr_t)(x))
+
+static inline ucell pointer2cell(const void* x)
+{
+    return (ucell)(uintptr_t)x;
+}
+
+static inline void* cell2pointer(ucell x)
+{
+    return (void*)(uintptr_t)x;
+}
+
 #endif
 
 static inline void PUSH(ucell value) {

@@ -645,7 +645,7 @@ do_source_dbg( struct debug_xt *debug_xt_item )
 			case 'F':
 				/* Start subordinate Forth interpreter */
 				PUSHR(PC - sizeof(cell));
-				PC = pointer2cell(findword("outer-interpreter")) + sizeof(ucell);
+				PC = findword("outer-interpreter") + sizeof(ucell);
 
 				/* Save rstack position for when we return */
 				dbgrstackcnt = rstackcnt;
