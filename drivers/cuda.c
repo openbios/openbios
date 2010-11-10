@@ -376,7 +376,7 @@ cuda_t *cuda_init (const char *path, phys_addr_t base)
 	phandle_t aliases;
 
 	base += IO_CUDA_OFFSET;
-	CUDA_DPRINTF(" base=%08x\n", base);
+	CUDA_DPRINTF(" base=" FMT_plx "\n", base);
 	cuda = malloc(sizeof(cuda_t));
 	if (cuda == NULL)
 	    return NULL;
