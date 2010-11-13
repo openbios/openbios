@@ -32,6 +32,8 @@ extern void		panic(const char *error) __attribute__ ((noreturn));
 
 extern xt_t		findword(const char *s1);
 extern void		modules_init( void );
+extern void		init_trampoline(ucell *t);
+extern void		forth_init(void);
 
 /* arch kernel hooks */
 extern void 		exception(cell no);

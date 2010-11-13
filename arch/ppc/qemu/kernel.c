@@ -86,6 +86,7 @@ initialize_forth( void )
 	dictlimit = DICTIONARY_SIZE;
 
 	load_dictionary( forth_dictionary, sizeof(forth_dictionary) );
+	forth_init();
 
 	PUSH_xt( bind_noname_func(arch_of_init) );
 	fword("PREPOST-initializer");

@@ -516,6 +516,7 @@ int main(int argc, char *argv[])
             printk("done.\n");
 
 	read_dictionary(argv[optind]);
+	forth_init();
 
 	PUSH_xt( bind_noname_func(arch_init) );
 	fword("PREPOST-initializer");

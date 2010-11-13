@@ -50,8 +50,13 @@ char xtname[MAXNFALEN];
 /* instead of pointing to an explicit 0 variable we
  * point behind the pointer.
  */
-static ucell t[] = { DOCOL, 0, (ucell)(t+3), 0 };
+static ucell t[] = { 0, 0, 0, 0 };
 static ucell *trampoline = t;
+
+void forth_init(void)
+{
+    init_trampoline(trampoline);
+}
 #endif
 
 #ifndef CONFIG_DEBUG_INTERPRETER
@@ -65,6 +70,15 @@ static ucell *trampoline = t;
 #else
 #define dbg_internal_printk( a... )	printk( a )
 #endif
+
+
+void init_trampoline(ucell *tramp)
+{
+    tramp[0] = DOCOL;
+    tramp[1] = 0;
+    tramp[2] = target_ucell(pointer2cell(tramp) + 3 * sizeof(ucell));
+    tramp[3] = 0;
+}
 
 
 static inline void processxt(ucell xt)

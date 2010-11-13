@@ -91,20 +91,6 @@ static const char *wordnames[] = {
 	"$include", "$encode-file", "(debug", "(debug-off)"
 };
 
-static void init_trampoline(void)
-{
-	if (!trampoline) {
-		/* We're using side effects which is to some extent nasty */
-		printf("WARNING: no trampoline!\n");
-		return;
-	}
-
-	trampoline[0]=DOCOL;
-	trampoline[1]=0;
-	trampoline[2]=target_ucell(pointer2cell(trampoline)+3*sizeof(ucell));
-	trampoline[3]=0;
-}
-
 /*
  * dictionary related functions.
  */
@@ -1180,7 +1166,12 @@ int main(int argc, char *argv[])
 			TRAMPOLINE_SIZE);
 #endif
 
-	init_trampoline();
+	if (trampoline == NULL) {
+		/* We're using side effects which is to some extent nasty */
+		printf("WARNING: no trampoline!\n");
+	} else {
+		init_trampoline(trampoline);
+	}
 
 	if (!segfault) {
 		if (verbose)
