@@ -234,7 +234,7 @@ VECTOR( 0x800, "FPU" ):
 	ori	r3,r3,0x2000
 	mtsrr1	r3
 	mfsprg1	r3
-	rfi
+	RFI
 
 ILLEGAL_VECTOR( 0x900 )
 ILLEGAL_VECTOR( 0xa00 )

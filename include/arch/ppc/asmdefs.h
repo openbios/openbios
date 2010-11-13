@@ -88,6 +88,12 @@
 	addi (D), (D), LO(x)
 #endif
 
+#ifdef __powerpc64__
+#define RFI rfid
+#else
+#define RFI rfi
+#endif
+
 #ifndef __darwin__
 #define GLOBL( name )		.globl name ; name
 #define EXTERN( name )		name
