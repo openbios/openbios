@@ -475,8 +475,7 @@ static FILE *fopen_include(const char *fil)
 #ifdef CONFIG_DEBUG_INTERPRETER
 			printk("Including '%s'\n", name );
 #endif
-			srcfilenames [ cursrc ] = malloc(strlen(fil) + 1);
-			strcpy(srcfilenames[ cursrc ], fil);
+                        srcfilenames[cursrc] = strdup(fil);
 			srclines [ cursrc ] = 1;
 			srcfiles [ cursrc++ ] = ret;
 
