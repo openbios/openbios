@@ -339,6 +339,16 @@
       2drop exit
     then
   then
+  " /chosen" find-dev if
+    " mmu" rot get-package-property 0= if
+      decode-int nip nip ihandle>phandle active-package = if
+        2over " available" strcmp 0= if
+          1 1 2swap .p-reg
+          2drop exit
+        then
+      then
+    then
+  then
 
   2swap 2drop ( data len )
   (.property)
