@@ -157,6 +157,18 @@
   then
 ;
 
+\ HELPER: get #size-cells value (from parent)
+: my-#scells ( -- #size-cells )
+  my-self ?dup if >in.device-node @ else active-package then
+  ?dup if >dn.parent @ then
+  ?dup if
+    " #size-cells" rot get-package-property if 1 exit then
+    decode-int nip nip
+  else
+    1
+  then
+;
+
 : decode-string ( prop-addr1 prop-len1 -- prop-addr2 prop-len2 str len )
   dup 0> if
     2dup bounds \ check property for 0 bytes

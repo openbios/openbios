@@ -304,8 +304,35 @@
   2drop ." <unimplemented type>"
 ;
 
+\ Print the value of a property in "reg" format
+: .p-reg ( #acells #scells data len -- )
+  2dup + -rot ( #acells #scells data+len data len )
+  >r >r -rot ( data+len #acells #scells  R: len data )
+  4 * swap 4 * dup r> r> ( data+len #sbytes #abytes #abytes data len )
+  bounds ( data+len #sbytes #abytes #abytes data+len data ) ?do
+    dup 0= if 2 spaces then			\ start of "size" part
+    2dup <> if						\ non-first byte in row
+      dup 3 and 0= if space then	\ make numbers more readable
+    then
+    i c@ 2 0.r						\ print byte
+    1- 3dup nip + 0= if				\ end of row
+      3 pick i 1+ > if				\ non-last byte
+        cr							\ start new line
+        d# 26 spaces				\ indentation
+      then
+      drop dup						\ update counter
+    then
+  loop
+  3drop drop
+;
+
 \ This function hardwires data formats to particular node properties
 : (.property-by-name) ( name-str name-len data len -- )
+  2over " reg" strcmp 0= if
+    my-#acells my-#scells 2swap .p-reg
+    2drop exit
+  then
+
   2swap 2drop ( data len )
   (.property)
 ;
