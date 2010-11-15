@@ -333,6 +333,13 @@
     2drop exit
   then
 
+  active-package get-nodename " memory" strcmp 0= if
+    2over " available" strcmp 0= if
+      my-#acells my-#scells 2swap .p-reg
+      2drop exit
+    then
+  then
+
   2swap 2drop ( data len )
   (.property)
 ;
