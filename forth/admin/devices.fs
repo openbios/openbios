@@ -304,6 +304,12 @@
   2drop ." <unimplemented type>"
 ;
 
+\ This function hardwires data formats to particular node properties
+: (.property-by-name) ( name-str name-len data len -- )
+  2swap 2drop ( data len )
+  (.property)
+;
+
 : .properties    ( -- )
   ?active-package dup >r if
     0 0
@@ -312,7 +318,10 @@
     while
       cr 2dup dup -rot type
       begin ."  " 1+ dup d# 26 >= until drop
-      2dup active-package get-package-property drop (.property)
+      2dup
+      2dup active-package get-package-property drop
+      ( name-str name-len data len )
+      (.property-by-name)
     repeat
   then
   r> drop
