@@ -57,6 +57,7 @@
   <option name="CONFIG_DEBUG_FS" type="boolean" value="false"/>
 
   <!-- Miscellaneous -->
+  <option name="CONFIG_PPC_64BITSUPPORT" type="boolean" value="true"/>
   <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>
   <option name="CONFIG_RTAS" type="boolean" value="false"/>
 

@@ -14,6 +14,7 @@
  *
  */
 
+#include "autoconf.h"
 #include "asm/asmdefs.h"
 #include "asm/processor.h"
 
@@ -23,6 +24,8 @@
 
 #define ILLEGAL_VECTOR( v )	.org __vectors + v ; vector__##v: bl trap_error ;
 #define VECTOR( v, dummystr )	.org __vectors + v ; vector__##v
+
+#ifdef CONFIG_PPC_64BITSUPPORT
 
 /* We're trying to use the same code for the ppc32 and ppc64 handlers here.
  * On ppc32 we only save/restore the registers, C considers volatile.
@@ -176,6 +179,87 @@
 #undef stl
 #undef ll
 
+#else /* !CONFIG_PPC_64BITSUPPORT */
+
+#ifdef __powerpc64__
+
+#define ULONG_SIZE 8
+#define STACKFRAME_MINSIZE 48
+#define stl std
+#define ll  ld
+
+#else
+
+#define ULONG_SIZE 4
+#define STACKFRAME_MINSIZE 16
+#define stl stw
+#define ll  lwz
+
+#endif
+
+.macro EXCEPTION_PREAMBLE
+    mtsprg1 r1 /* scratch */
+    mfsprg0 r1 /* exception stack in sprg0 */
+    addi    r1, r1, -(20 * ULONG_SIZE) /* push exception frame */
+
+    stl     r0,  ( 0 * ULONG_SIZE)(r1) /* save r0 */
+    mfsprg1 r0
+    stl     r0,  ( 1 * ULONG_SIZE)(r1) /* save r1 */
+    stl     r2,  ( 2 * ULONG_SIZE)(r1) /* save r2 */
+    stl     r3,  ( 3 * ULONG_SIZE)(r1) /* save r3 */
+    stl     r4,  ( 4 * ULONG_SIZE)(r1)
+    stl     r5,  ( 5 * ULONG_SIZE)(r1)
+    stl     r6,  ( 6 * ULONG_SIZE)(r1)
+    stl     r7,  ( 7 * ULONG_SIZE)(r1)
+    stl     r8,  ( 8 * ULONG_SIZE)(r1)
+    stl     r9,  ( 9 * ULONG_SIZE)(r1)
+    stl     r10, (10 * ULONG_SIZE)(r1)
+    stl     r11, (11 * ULONG_SIZE)(r1)
+    stl     r12, (12 * ULONG_SIZE)(r1)
+
+    mflr    r0
+    stl     r0,  (13 * ULONG_SIZE)(r1)
+    mfcr    r0
+    stl     r0,  (14 * ULONG_SIZE)(r1)
+    mfctr   r0
+    stl     r0,  (15 * ULONG_SIZE)(r1)
+    mfxer   r0
+    stl     r0,  (16 * ULONG_SIZE)(r1)
+
+    addi r1, r1, -STACKFRAME_MINSIZE /* C ABI saves LR and SP */
+.endm
+
+.macro EXCEPTION_EPILOGUE
+    addi r1, r1,  STACKFRAME_MINSIZE /* pop ABI frame */
+
+    ll    r0,  (13 * ULONG_SIZE)(r1)
+    mtlr  r0
+    ll    r0,  (14 * ULONG_SIZE)(r1)
+    mtcr  r0
+    ll    r0,  (15 * ULONG_SIZE)(r1)
+    mtctr r0
+    ll    r0,  (16 * ULONG_SIZE)(r1)
+    mtxer r0
+
+    ll    r0,  ( 0 * ULONG_SIZE)(r1)
+    ll    r2,  ( 2 * ULONG_SIZE)(r1)
+    ll    r3,  ( 3 * ULONG_SIZE)(r1)
+    ll    r4,  ( 4 * ULONG_SIZE)(r1)
+    ll    r5,  ( 5 * ULONG_SIZE)(r1)
+    ll    r6,  ( 6 * ULONG_SIZE)(r1)
+    ll    r7,  ( 7 * ULONG_SIZE)(r1)
+    ll    r8,  ( 8 * ULONG_SIZE)(r1)
+    ll    r9,  ( 9 * ULONG_SIZE)(r1)
+    ll    r10, (10 * ULONG_SIZE)(r1)
+    ll    r11, (11 * ULONG_SIZE)(r1)
+    ll    r12, (12 * ULONG_SIZE)(r1)
+
+    ll    r1,  ( 1 * ULONG_SIZE)(r1) /* restore stack at last */
+    RFI
+.endm
+
+#endif /* !CONFIG_PPC_64BITSUPPORT */
+
 /************************************************************************/
 /*	vectors								*/
 /************************************************************************/
@@ -253,6 +337,8 @@ ILLEGAL_VECTOR( 0x1500 )
 ILLEGAL_VECTOR( 0x1600 )
 ILLEGAL_VECTOR( 0x1700 )
 
+#ifdef CONFIG_PPC_64BITSUPPORT
+
 VECTOR( 0x2000, "DSI_64" ):
 	EXCEPTION_PREAMBLE_64
 	LOAD_REG_IMMEDIATE(r3, dsi_exception)
@@ -267,6 +353,8 @@ VECTOR( 0x2200, "ISI_64" ):
 	bctrl
 	EXCEPTION_EPILOGUE_64
 
+#endif
+
 GLOBL(__vectors_end):
 
 /************************************************************************/
@@ -275,7 +363,7 @@ GLOBL(__vectors_end):
 
 GLOBL(_entry):
 
-#ifndef __powerpc64__
+#ifdef CONFIG_PPC_64BITSUPPORT
 	/* clear MSR, disable MMU */
 
 	li	r0,0

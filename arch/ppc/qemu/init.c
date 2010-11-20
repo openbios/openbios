@@ -303,6 +303,7 @@ cpu_g4_init(const struct cpudef *cpu)
     fword("finish-device");
 }
 
+#ifdef CONFIG_PPC_64BITSUPPORT
 /* In order to get 64 bit aware handlers that rescue all our
    GPRs from getting truncated to 32 bits, we need to patch the
    existing handlers so they jump to our 64 bit aware ones. */
@@ -322,6 +323,7 @@ ppc64_patch_handlers(void)
     asm ( "icbi 0, %0" : : "r"(dsi) );
     asm ( "icbi 0, %0" : : "r"(isi) );
 }
+#endif
 
 static void
 cpu_970_init(const struct cpudef *cpu)
@@ -341,10 +343,12 @@ cpu_970_init(const struct cpudef *cpu)
 
     fword("finish-device");
 
+#ifdef CONFIG_PPC_64BITSUPPORT
     /* The 970 is a PPC64 CPU, so we need to activate
      * 64bit aware interrupt handlers */
 
     ppc64_patch_handlers();
+#endif
 
     /* The 970 also implements the HIOR which we need to set to 0 */
 
