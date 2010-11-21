@@ -336,9 +336,7 @@ hash_page_32( ucell ea, ucell phys, ucell mode )
 
 static int is_ppc64(void)
 {
-	unsigned int pvr;
-	asm volatile("mfspr %0, 0x11f" : "=r" (pvr) );
-
+	unsigned int pvr = mfpvr();
 	return ((pvr >= 0x330000) && (pvr < 0x70330000));
 }
 
@@ -387,7 +385,10 @@ void
 setup_mmu( unsigned long ramsize )
 {
 	ofmem_t *ofmem;
-	unsigned long sdr1, sr_base;
+	unsigned long sdr1;
+#ifndef __powerpc64__
+	unsigned long sr_base;
+#endif
 	unsigned long hash_base;
 	unsigned long hash_mask = 0xfff00000; /* alignment for ppc64 */
 	int i;
@@ -399,6 +400,19 @@ setup_mmu( unsigned long ramsize )
 	sdr1 = hash_base | ((HASH_SIZE-1) >> 16);
 	asm volatile("mtsdr1 %0" :: "r" (sdr1) );
 
+#ifdef __powerpc64__
+
+	/* Segment Lookaside Buffer */
+
+	slbia(); /* Invalidate all SLBs except SLB 0 */
+	for (i = 0; i < 16; i++) {
+		unsigned long rs = ((0x400 + i) << 12) | (0x10 << 7);
+		unsigned long rb = ((unsigned long)i << 28) | (1 << 27) | i;
+		slbmte(rs, rb);
+	}
+
+#else
+
 	/* Segment Register */
 
 	sr_base = SEGR_USER | SEGR_BASE ;
@@ -406,6 +420,8 @@ setup_mmu( unsigned long ramsize )
 		int j = i << 28;
 		asm volatile("mtsrin %0,%1" :: "r" (sr_base + i), "r" (j) );
 	}
+
+#endif
 
 	ofmem = ofmem_arch_get_private();
 	memset(ofmem, 0, sizeof(ofmem_t));

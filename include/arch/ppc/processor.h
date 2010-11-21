@@ -425,6 +425,23 @@ static inline void mtmsr(unsigned long msr)
 #endif
 }
 
+static inline unsigned int mfpvr(void)
+{
+    unsigned int pvr;
+    asm volatile("mfspr %0, 0x11f" : "=r" (pvr) );
+    return pvr;
+}
+
+static inline void slbia(void)
+{
+    asm volatile("slbia" ::: "memory");
+}
+
+static inline void slbmte(unsigned long rs, unsigned long rb)
+{
+    asm volatile("slbmte %0,%1 ; isync" :: "r" (rs), "r" (rb) : "memory");
+}
+
 #endif /* !__ASSEMBLER__ */
 
 #endif   /* _H_PROCESSOR */
