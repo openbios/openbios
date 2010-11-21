@@ -387,7 +387,7 @@ void
 setup_mmu( unsigned long ramsize )
 {
 	ofmem_t *ofmem;
-	unsigned long sdr1, sr_base, msr;
+	unsigned long sdr1, sr_base;
 	unsigned long hash_base;
 	unsigned long hash_mask = 0xfff00000; /* alignment for ppc64 */
 	int i;
@@ -415,9 +415,7 @@ setup_mmu( unsigned long ramsize )
 
 	/* Enable MMU */
 
-	asm volatile("mfmsr %0" : "=r" (msr) : );
-	msr |= MSR_IR | MSR_DR;
-	asm volatile("mtmsr %0" :: "r" (msr) );
+	mtmsr(mfmsr() | MSR_IR | MSR_DR);
 }
 
 void

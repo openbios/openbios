@@ -403,8 +403,28 @@
 
 /* C helpers */
 
+#ifndef __ASSEMBLER__
+
 #define __stringify_1(x)	#x
 #define __stringify(x)		__stringify_1(x)
 #define mtspr(rn, v)		asm volatile("mtspr " __stringify(rn) ",%0" : : "r" (v))
+
+static inline unsigned long mfmsr(void)
+{
+    unsigned long msr;
+    asm volatile("mfmsr %0" : "=r" (msr));
+    return msr;
+}
+
+static inline void mtmsr(unsigned long msr)
+{
+#ifdef __powerpc64__
+    asm volatile("mtmsrd %0" :: "r" (msr));
+#else
+    asm volatile("mtmsr  %0" :: "r" (msr));
+#endif
+}
+
+#endif /* !__ASSEMBLER__ */
 
 #endif   /* _H_PROCESSOR */

@@ -90,8 +90,10 @@
 
 #ifdef __powerpc64__
 #define RFI rfid
+#define MTMSRD(r) mtmsrd r
 #else
 #define RFI rfi
+#define MTMSRD(r) mtmsr  r
 #endif
 
 #ifndef __darwin__
