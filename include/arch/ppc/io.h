@@ -14,7 +14,7 @@ extern unsigned long virt_offset;
 
 #ifndef BOOTSTRAP
 
-extern uint32_t isa_io_base;
+extern unsigned long isa_io_base;
 
 /*
  * The insw/outsw/insl/outsl macros don't do byte-swapping.

@@ -56,7 +56,7 @@ unexpected_excep( int vector )
 		;
 }
 
-uint32_t isa_io_base;
+unsigned long isa_io_base;
 
 void
 entry( void )

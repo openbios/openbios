@@ -152,7 +152,7 @@ static const pci_arch_t known_arch[] = {
         .irqs = { 21, 22, 23, 24 }
     },
 };
-uint32_t isa_io_base;
+unsigned long isa_io_base;
 
 void
 entry( void )

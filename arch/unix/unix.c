@@ -63,9 +63,7 @@ static int diskemu;
 static int segfault = 0;
 static int verbose = 0;
 
-#ifdef CONFIG_PPC
-uint32_t isa_io_base;
-#elif defined(CONFIG_SPARC64)
+#if defined(CONFIG_PPC) || defined(CONFIG_SPARC64)
 unsigned long isa_io_base;
 #endif
 
