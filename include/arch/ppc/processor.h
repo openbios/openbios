@@ -425,6 +425,24 @@ static inline void mtmsr(unsigned long msr)
 #endif
 }
 
+#ifdef __powerpc64__
+#define SDR1_HTABORG_MASK 0x3FFFFFFFFFFC0000UL
+#else
+#define SDR1_HTABORG_MASK 0xffff0000
+#endif
+
+static inline unsigned long mfsdr1(void)
+{
+    unsigned long sdr1;
+    asm volatile("mfsdr1 %0" : "=r" (sdr1));
+    return sdr1;
+}
+
+static inline void mtsdr1(unsigned long sdr1)
+{
+    asm volatile("mtsdr1 %0" :: "r" (sdr1));
+}
+
 static inline unsigned int mfpvr(void)
 {
     unsigned int pvr;

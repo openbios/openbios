@@ -48,7 +48,12 @@ extern void setup_mmu( unsigned long code_base );
 #define OF_CODE_START	0xfff00000UL
 #define IO_BASE			0x80000000
 
-#define HASH_SIZE		(2 << 15)
+#ifdef __powerpc64__
+#define HASH_BITS		18
+#else
+#define HASH_BITS		15
+#endif
+#define HASH_SIZE		(2 << HASH_BITS)
 #define OFMEM_SIZE		(2 * 1024 * 1024)
 
 #define	SEGR_USER		BIT(2)
@@ -57,21 +62,7 @@ extern void setup_mmu( unsigned long code_base );
 static inline unsigned long
 get_hash_base( void )
 {
-	unsigned long sdr1;
-
-	asm volatile("mfsdr1 %0" : "=r" (sdr1) );
-
-	return (sdr1 & 0xffff0000);
-}
-
-static inline unsigned long
-get_hash_size( void )
-{
-	unsigned long sdr1;
-
-	asm volatile("mfsdr1 %0" : "=r" (sdr1) );
-
-	return ((sdr1 << 16) | 0x0000ffff) + 1;
+    return (mfsdr1() & SDR1_HTABORG_MASK);
 }
 
 static inline unsigned long
@@ -242,7 +233,7 @@ hash_page_64( ucell ea, ucell phys, ucell mode )
 	vsid = (ea >> 28) + SEGR_BASE;
 	vsid_sh = 7;
 	vsid_mask = 0x00003FFFFFFFFF80ULL;
-	asm ( "mfsdr1 %0" : "=r" (sdr) );
+	sdr = mfsdr1();
 	sdr_sh = 18;
 	sdr_mask = 0x3FF80;
 	page_mask = 0x0FFFFFFF; // XXX correct?
@@ -297,6 +288,7 @@ hash_page_64( ucell ea, ucell phys, ucell mode )
 static void
 hash_page_32( ucell ea, ucell phys, ucell mode )
 {
+#ifndef __powerpc64__
 	static int next_grab_slot=0;
 	unsigned long *upte, cmp, hash1;
 	int i, vsid, found;
@@ -307,7 +299,7 @@ hash_page_32( ucell ea, ucell phys, ucell mode )
 
 	hash1 = vsid;
 	hash1 ^= (ea >> 12) & 0xffff;
-	hash1 &= (get_hash_size() - 1) >> 6;
+	hash1 &= (((mfsdr1() & 0x1ff) << 16) | 0xffff) >> 6;
 
 	pp = (mPTE_t*)(get_hash_base() + (hash1 << 6));
 	upte = (unsigned long*)pp;
@@ -332,14 +324,22 @@ hash_page_32( ucell ea, ucell phys, ucell mode )
 	upte[i*2+1] = (phys & ~0xfff) | mode;
 
 	asm volatile( "tlbie %0"  :: "r"(ea) );
+#endif
 }
 
 static int is_ppc64(void)
 {
+#ifdef __powerpc64__
+	return 1;
+#elif defined(CONFIG_PPC_64BITSUPPORT)
 	unsigned int pvr = mfpvr();
 	return ((pvr >= 0x330000) && (pvr < 0x70330000));
+#else
+	return 0;
+#endif
 }
 
+/* XXX Remove these ugly constructs when legacy 64-bit support is dropped. */
 static void hash_page( unsigned long ea, unsigned long phys, ucell mode )
 {
 	if ( is_ppc64() )
@@ -385,20 +385,21 @@ void
 setup_mmu( unsigned long ramsize )
 {
 	ofmem_t *ofmem;
-	unsigned long sdr1;
 #ifndef __powerpc64__
 	unsigned long sr_base;
 #endif
 	unsigned long hash_base;
-	unsigned long hash_mask = 0xfff00000; /* alignment for ppc64 */
+	unsigned long hash_mask = ~0x000fffffUL; /* alignment for ppc64 */
 	int i;
 
 	/* SDR1: Storage Description Register 1 */
 
 	hash_base = (ramsize - 0x00100000 - HASH_SIZE) & hash_mask;
 	memset((void *)hash_base, 0, HASH_SIZE);
-	sdr1 = hash_base | ((HASH_SIZE-1) >> 16);
-	asm volatile("mtsdr1 %0" :: "r" (sdr1) );
+	if (is_ppc64())
+		mtsdr1(hash_base | MAX(HASH_BITS - 18, 0));
+	else
+		mtsdr1(hash_base | ((HASH_SIZE - 1) >> 16));
 
 #ifdef __powerpc64__
 
