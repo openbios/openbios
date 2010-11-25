@@ -445,6 +445,13 @@ GLOBL(_entry):
 
 	/* save memory size in stack */
 
+#ifdef __powerpc64__
+	/* set up TOC pointer */
+
+	LOAD_REG_IMMEDIATE(r2, setup_mmu)
+	ld r2, 8(r2)
+#endif
+
 	bl	BRANCH_LABEL(setup_mmu)
 	bl	BRANCH_LABEL(entry)
 1:	nop

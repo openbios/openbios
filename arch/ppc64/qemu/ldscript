@@ -41,7 +41,17 @@ SECTIONS
         _data = .;
         *(.data)
         *(.data.*)
+        *(.toc1)
+        *(.branch_lt)
 	_edata = .;
+    }
+    .opd : {
+        *(.opd)
+    }
+    .got : {
+        __toc_start = .;
+        *(.got)
+        *(.toc)
     }
 
     .bss ALIGN(4096): {
