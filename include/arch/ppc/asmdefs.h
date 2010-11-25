@@ -76,24 +76,37 @@
 /************************************************************************/
 
 #ifdef __powerpc64__
+
 #define LOAD_REG_IMMEDIATE(D, x) \
 	lis  (D),      (x)@highest ; \
 	ori  (D), (D), (x)@higher ; \
 	sldi (D), (D), 32 ; \
 	oris (D), (D), (x)@h ; \
 	ori  (D), (D), (x)@l
+
+#define LOAD_REG_FUNC(D, x) \
+    LOAD_REG_IMMEDIATE((D), (x)) ; \
+    ld (D), 0(D)
+
 #else
+
 #define LOAD_REG_IMMEDIATE(D, x) \
 	lis  (D),      HA(x) ; \
 	addi (D), (D), LO(x)
+
+#define LOAD_REG_FUNC(D, x) \
+    LOAD_REG_IMMEDIATE((D), (x))
+
 #endif
 
 #ifdef __powerpc64__
 #define RFI rfid
 #define MTMSRD(r) mtmsrd r
+#define BRANCH_LABEL(name) . ## name
 #else
 #define RFI rfi
 #define MTMSRD(r) mtmsr  r
+#define BRANCH_LABEL(name) name
 #endif
 
 #ifndef __darwin__

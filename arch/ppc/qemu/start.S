@@ -271,13 +271,13 @@ GLOBL(__vectors):
 	b	1b
 
 call_dsi_exception:
-	LOAD_REG_IMMEDIATE(r3, dsi_exception)
+	LOAD_REG_FUNC(r3, dsi_exception)
 	mtctr	r3
 	bctrl
 	b	exception_return
 
 call_isi_exception:
-	LOAD_REG_IMMEDIATE(r3, isi_exception)
+	LOAD_REG_FUNC(r3, isi_exception)
 	mtctr	r3
 	bctrl
 	b	exception_return
@@ -289,7 +289,7 @@ exception_return:
 __divide_error:
 trap_error:
 	mflr	r3
-	b	unexpected_excep
+	b	BRANCH_LABEL(unexpected_excep)
 
 VECTOR( 0x100, "SRE" ):
         b       _entry
@@ -445,8 +445,8 @@ GLOBL(_entry):
 
 	/* save memory size in stack */
 
-	bl	setup_mmu
-	bl	entry
+	bl	BRANCH_LABEL(setup_mmu)
+	bl	BRANCH_LABEL(entry)
 1:	nop
 	b	1b
 
