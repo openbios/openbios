@@ -46,6 +46,7 @@ extern void setup_mmu(unsigned long code_base);
 
 #define FREE_BASE		0x00004000
 #define OF_CODE_START	0xfff00000UL
+#define OF_CODE_SIZE    0x00100000
 #define IO_BASE			0x80000000
 
 #ifdef __powerpc64__
@@ -69,7 +70,7 @@ static inline unsigned long
 get_rom_base(void)
 {
     ofmem_t *ofmem = ofmem_arch_get_private();
-    return ofmem->ramsize - 0x00100000;
+    return ofmem->ramsize - OF_CODE_SIZE;
 }
 
 unsigned long
@@ -394,7 +395,7 @@ setup_mmu(unsigned long ramsize)
 
     /* SDR1: Storage Description Register 1 */
 
-    hash_base = (ramsize - 0x00100000 - HASH_SIZE) & hash_mask;
+    hash_base = (ramsize - OF_CODE_SIZE - HASH_SIZE) & hash_mask;
     memset((void *)hash_base, 0, HASH_SIZE);
     if (is_ppc64())
         mtsdr1(hash_base | MAX(HASH_BITS - 18, 0));
@@ -428,7 +429,7 @@ setup_mmu(unsigned long ramsize)
     memset(ofmem, 0, sizeof(ofmem_t));
     ofmem->ramsize = ramsize;
 
-    memcpy((void *)get_rom_base(), (void *)OF_CODE_START, 0x00100000);
+    memcpy((void *)get_rom_base(), (void *)OF_CODE_START, OF_CODE_SIZE);
 
     /* Enable MMU */
 
