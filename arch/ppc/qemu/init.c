@@ -68,17 +68,17 @@ enum {
 
 int is_apple(void)
 {
-	return 1;
+    return 1;
 }
 
 int is_oldworld(void)
 {
-	return machine_id == ARCH_HEATHROW;
+    return machine_id == ARCH_HEATHROW;
 }
 
 int is_newworld(void)
 {
-	return (machine_id == ARCH_MAC99) ||
+    return (machine_id == ARCH_MAC99) ||
            (machine_id == ARCH_MAC99_U3);
 }
 
