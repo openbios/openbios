@@ -5,13 +5,15 @@
 \   as published by the Free Software Foundation
 \
 
+include config.fs
+
 \ -------------------------------------------------------------
 \ device-tree
 \ -------------------------------------------------------------
 
 " /" find-device
 
-1 encode-int " #address-cells" property
+[IFDEF] CONFIG_PPC64 2 [ELSE] 1 [THEN] encode-int " #address-cells" property
 1 encode-int " #size-cells" property
 h# 05f5e100 encode-int " clock-frequency" property
 

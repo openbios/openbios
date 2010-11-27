@@ -191,6 +191,16 @@ entry(void)
     }
 }
 
+/* -- phys.lo ... phys.hi */
+static void
+push_physaddr(phys_addr_t value)
+{
+    PUSH(value);
+#ifdef CONFIG_PPC64
+    PUSH(value >> 32);
+#endif
+}
+
 static void
 cpu_generic_init(const struct cpudef *cpu)
 {
@@ -730,8 +740,7 @@ arch_of_init(void)
 
     /* all memory */
 
-    /* TODO Adjust this when #address-cells gets increased for ppc64. */
-    PUSH(0);
+    push_physaddr(0);
     fword("encode-phys");
     /* This needs adjusting if #size-cells gets increased.
        Alternatively use multiple (address, size) tuples. */
