@@ -49,14 +49,14 @@ struct cpudef {
 
 static uint16_t machine_id = 0;
 
-extern void unexpected_excep( int vector );
+extern void unexpected_excep(int vector);
 
 void
-unexpected_excep( int vector )
+unexpected_excep(int vector)
 {
-	printk("openbios panic: Unexpected exception %x\n", vector );
-	for( ;; )
-		;
+    printk("openbios panic: Unexpected exception %x\n", vector);
+    for (;;) {
+    }
 }
 
 enum {
@@ -79,7 +79,7 @@ int is_oldworld(void)
 int is_newworld(void)
 {
 	return (machine_id == ARCH_MAC99) ||
-               (machine_id == ARCH_MAC99_U3);
+           (machine_id == ARCH_MAC99_U3);
 }
 
 static const pci_arch_t known_arch[] = {
@@ -155,39 +155,40 @@ static const pci_arch_t known_arch[] = {
 unsigned long isa_io_base;
 
 void
-entry( void )
+entry(void)
 {
-        uint32_t temp = 0;
-        char buf[5];
+    uint32_t temp = 0;
+    char buf[5];
 
-        arch = &known_arch[ARCH_HEATHROW];
+    arch = &known_arch[ARCH_HEATHROW];
 
-        fw_cfg_init();
+    fw_cfg_init();
 
-        fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
-        buf[4] = '\0';
-        if (strncmp(buf, "QEMU", 4) == 0) {
-            temp = fw_cfg_read_i32(FW_CFG_ID);
-            if (temp == 1) {
-                machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
-                arch = &known_arch[machine_id];
-            }
+    fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
+    buf[4] = '\0';
+    if (strncmp(buf, "QEMU", 4) == 0) {
+        temp = fw_cfg_read_i32(FW_CFG_ID);
+        if (temp == 1) {
+            machine_id = fw_cfg_read_i16(FW_CFG_MACHINE_ID);
+            arch = &known_arch[machine_id];
         }
+    }
 
-	isa_io_base = arch->io_base;
+    isa_io_base = arch->io_base;
 
-        if (temp != 1) {
-            printk("Incompatible configuration device version, freezing\n");
-            for(;;);
+    if (temp != 1) {
+        printk("Incompatible configuration device version, freezing\n");
+        for (;;) {
         }
+    }
 
-	ofmem_init();
-	initialize_forth();
-	/* won't return */
+    ofmem_init();
+    initialize_forth();
+    /* won't return */
 
-	printk("of_startup returned!\n");
-	for( ;; )
-		;
+    printk("of_startup returned!\n");
+    for (;;) {
+    }
 }
 
 static void
@@ -316,8 +317,8 @@ ppc64_patch_handlers(void)
     *isi = 0x48002202;
 
     // Invalidate the cache lines
-    asm ( "icbi 0, %0" : : "r"(dsi) );
-    asm ( "icbi 0, %0" : : "r"(isi) );
+    asm ("icbi 0, %0" : : "r"(dsi));
+    asm ("icbi 0, %0" : : "r"(isi));
 }
 #endif
 
@@ -508,352 +509,355 @@ id_cpu(void)
         : "=r"(iu_version) :);
     iu_version &= 0xffff0000;
 
-    for (i = 0; i < sizeof(ppc_defs)/sizeof(struct cpudef); i++) {
+    for (i = 0; i < sizeof(ppc_defs) / sizeof(struct cpudef); i++) {
         if (iu_version == ppc_defs[i].iu_version)
             return &ppc_defs[i];
     }
     printk("Unknown cpu (pvr %lx), freezing!\n", iu_version);
-    for (;;);
+    for (;;) {
+    }
 }
 
-static void go( void );
+static void go(void);
 
 static void
-go( void )
+go(void)
 {
     ucell addr;
 
     feval("saved-program-state >sps.entry @");
     addr = POP();
 
-    call_elf( 0, 0, addr);
+    call_elf(0, 0, addr);
 }
 
 static void kvm_of_init(void)
 {
-	char hypercall[4 * 4];
-	uint32_t *hc32;
+    char hypercall[4 * 4];
+    uint32_t *hc32;
 
-	/* Don't expose /hypervisor when not in KVM */
-	if (!fw_cfg_read_i32(FW_CFG_PPC_IS_KVM))
-		return;
+    /* Don't expose /hypervisor when not in KVM */
+    if (!fw_cfg_read_i32(FW_CFG_PPC_IS_KVM))
+        return;
 
-	push_str("/");
-	fword("find-device");
+    push_str("/");
+    fword("find-device");
 
-	fword("new-device");
+    fword("new-device");
 
-	push_str("hypervisor");
-	fword("device-name");
+    push_str("hypervisor");
+    fword("device-name");
 
-	push_str("hypervisor");
-	fword("device-type");
+    push_str("hypervisor");
+    fword("device-type");
 
-	/* compatible */
+    /* compatible */
 
-	push_str("linux,kvm");
-	fword("encode-string");
-	push_str("epapr,hypervisor-0.2");
-	fword("encode-string");
-	fword("encode+");
-	push_str("compatible");
-	fword("property");
+    push_str("linux,kvm");
+    fword("encode-string");
+    push_str("epapr,hypervisor-0.2");
+    fword("encode-string");
+    fword("encode+");
+    push_str("compatible");
+    fword("property");
 
-	/* Tell the guest about the hypercall instructions */
-	fw_cfg_read(FW_CFG_PPC_KVM_HC, hypercall, 4 * 4);
-	hc32 = (uint32_t*)hypercall;
-	PUSH(hc32[0]);
-	fword("encode-int");
-	PUSH(hc32[1]);
-	fword("encode-int");
-	fword("encode+");
-	PUSH(hc32[2]);
-	fword("encode-int");
-	fword("encode+");
-	PUSH(hc32[3]);
-	fword("encode-int");
-	fword("encode+");
-	push_str("hcall-instructions");
-	fword("property");
+    /* Tell the guest about the hypercall instructions */
+    fw_cfg_read(FW_CFG_PPC_KVM_HC, hypercall, 4 * 4);
+    hc32 = (uint32_t*)hypercall;
+    PUSH(hc32[0]);
+    fword("encode-int");
+    PUSH(hc32[1]);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(hc32[2]);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(hc32[3]);
+    fword("encode-int");
+    fword("encode+");
+    push_str("hcall-instructions");
+    fword("property");
 
-	/* ePAPR requires us to provide a unique guest id */
-	PUSH(fw_cfg_read_i32(FW_CFG_PPC_KVM_PID));
-	fword("encode-int");
-	push_str("guest-id");
-	fword("property");
+    /* ePAPR requires us to provide a unique guest id */
+    PUSH(fw_cfg_read_i32(FW_CFG_PPC_KVM_PID));
+    fword("encode-int");
+    push_str("guest-id");
+    fword("property");
 
-	/* ePAPR requires us to provide a guest name */
-	push_str("KVM guest");
-	fword("encode-string");
-	push_str("guest-name");
-	fword("property");
+    /* ePAPR requires us to provide a guest name */
+    push_str("KVM guest");
+    fword("encode-string");
+    push_str("guest-name");
+    fword("property");
 
-	fword("finish-device");
+    fword("finish-device");
 }
 
 void
-arch_of_init( void )
+arch_of_init(void)
 {
 #ifdef CONFIG_RTAS
-	phandle_t ph;
+    phandle_t ph;
 #endif
-	uint64_t ram_size;
-        const struct cpudef *cpu;
-        char buf[64], qemu_uuid[16];
-        const char *stdin_path, *stdout_path, *boot_path;
-        uint32_t temp = 0;
+    uint64_t ram_size;
+    const struct cpudef *cpu;
+    char buf[64], qemu_uuid[16];
+    const char *stdin_path, *stdout_path, *boot_path;
+    uint32_t temp = 0;
 
     ofmem_t *ofmem = ofmem_arch_get_private();
 
-	openbios_init();
-        modules_init();
-        setup_timers();
+    openbios_init();
+    modules_init();
+    setup_timers();
 #ifdef CONFIG_DRIVER_PCI
-        ob_pci_init();
+    ob_pci_init();
 #endif
 
-        printk("\n");
-        printk("=============================================================\n");
-        printk(PROGRAM_NAME " " OPENBIOS_VERSION_STR " [%s]\n",
-               OPENBIOS_BUILD_DATE);
+    printk("\n");
+    printk("=============================================================\n");
+    printk(PROGRAM_NAME " " OPENBIOS_VERSION_STR " [%s]\n",
+           OPENBIOS_BUILD_DATE);
 
-        fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
-        buf[4] = '\0';
-        printk("Configuration device id %s", buf);
+    fw_cfg_read(FW_CFG_SIGNATURE, buf, 4);
+    buf[4] = '\0';
+    printk("Configuration device id %s", buf);
 
-        temp = fw_cfg_read_i32(FW_CFG_ID);
-        printk(" version %d machine id %d\n", temp, machine_id);
+    temp = fw_cfg_read_i32(FW_CFG_ID);
+    printk(" version %d machine id %d\n", temp, machine_id);
 
-        temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
+    temp = fw_cfg_read_i32(FW_CFG_NB_CPUS);
 
-        printk("CPUs: %x\n", temp);
+    printk("CPUs: %x\n", temp);
 
-        ram_size = ofmem->ramsize;
+    ram_size = ofmem->ramsize;
 
-        printk("Memory: %lldM\n", ram_size / 1024 / 1024);
+    printk("Memory: %lldM\n", ram_size / 1024 / 1024);
 
-        fw_cfg_read(FW_CFG_UUID, qemu_uuid, 16);
+    fw_cfg_read(FW_CFG_UUID, qemu_uuid, 16);
 
-        printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
-               qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
-               qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
-               qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
-               qemu_uuid[15]);
+    printk("UUID: " UUID_FMT "\n", qemu_uuid[0], qemu_uuid[1], qemu_uuid[2],
+           qemu_uuid[3], qemu_uuid[4], qemu_uuid[5], qemu_uuid[6],
+           qemu_uuid[7], qemu_uuid[8], qemu_uuid[9], qemu_uuid[10],
+           qemu_uuid[11], qemu_uuid[12], qemu_uuid[13], qemu_uuid[14],
+           qemu_uuid[15]);
 
-	/* set device tree root info */
+    /* set device tree root info */
 
-	push_str("/");
-	fword("find-device");
+    push_str("/");
+    fword("find-device");
 
-	switch(machine_id) {
-	case ARCH_HEATHROW:	/* OldWorld */
+    switch(machine_id) {
+    case ARCH_HEATHROW:	/* OldWorld */
 
-		/* model */
+        /* model */
 
-		push_str("Power Macintosh");
-		fword("model");
+        push_str("Power Macintosh");
+        fword("model");
 
-		/* compatible */
+        /* compatible */
 
-		push_str("AAPL,PowerMac G3");
-		fword("encode-string");
-		push_str("MacRISC");
-		fword("encode-string");
-		fword("encode+");
-		push_str("compatible");
-		fword("property");
+        push_str("AAPL,PowerMac G3");
+        fword("encode-string");
+        push_str("MacRISC");
+        fword("encode-string");
+        fword("encode+");
+        push_str("compatible");
+        fword("property");
 
-		/* misc */
+        /* misc */
 
-		push_str("device-tree");
-		fword("encode-string");
-		push_str("AAPL,original-name");
-		fword("property");
+        push_str("device-tree");
+        fword("encode-string");
+        push_str("AAPL,original-name");
+        fword("property");
 
-		PUSH(0);
-		fword("encode-int");
-		push_str("AAPL,cpu-id");
-		fword("property");
+        PUSH(0);
+        fword("encode-int");
+        push_str("AAPL,cpu-id");
+        fword("property");
 
-		PUSH(66 * 1000 * 1000);
-		fword("encode-int");
-		push_str("clock-frequency");
-		fword("property");
-		break;
+        PUSH(66 * 1000 * 1000);
+        fword("encode-int");
+        push_str("clock-frequency");
+        fword("property");
+        break;
 
-	case ARCH_MAC99:
-	case ARCH_MAC99_U3:
-	case ARCH_PREP:
-	default:
+    case ARCH_MAC99:
+    case ARCH_MAC99_U3:
+    case ARCH_PREP:
+    default:
 
-		/* model */
+        /* model */
 
-		push_str("PowerMac2,1");
-		fword("model");
+        push_str("PowerMac2,1");
+        fword("model");
 
-		/* compatible */
+        /* compatible */
 
-		push_str("PowerMac2,1");
-		fword("encode-string");
-		push_str("MacRISC");
-		fword("encode-string");
-		fword("encode+");
-		push_str("Power Macintosh");
-		fword("encode-string");
-		fword("encode+");
-		push_str("compatible");
-		fword("property");
+        push_str("PowerMac2,1");
+        fword("encode-string");
+        push_str("MacRISC");
+        fword("encode-string");
+        fword("encode+");
+        push_str("Power Macintosh");
+        fword("encode-string");
+        fword("encode+");
+        push_str("compatible");
+        fword("property");
 
-		/* misc */
+        /* misc */
 
-		push_str("bootrom");
-		fword("device-type");
+        push_str("bootrom");
+        fword("device-type");
 
-		PUSH(100 * 1000 * 1000);
-		fword("encode-int");
-		push_str("clock-frequency");
-		fword("property");
-		break;
-	}
+        PUSH(100 * 1000 * 1000);
+        fword("encode-int");
+        push_str("clock-frequency");
+        fword("property");
+        break;
+    }
 
-	/* Perhaps we can store UUID here ? */
+    /* Perhaps we can store UUID here ? */
 
-	push_str("0000000000000");
-	fword("encode-string");
-	push_str("system-id");
-	fword("property");
+    push_str("0000000000000");
+    fword("encode-string");
+    push_str("system-id");
+    fword("property");
 
-	/* memory info */
+    /* memory info */
 
-	push_str("/memory");
-	fword("find-device");
+    push_str("/memory");
+    fword("find-device");
 
-	/* all memory */
+    /* all memory */
 
-	/* TODO Adjust this when #address-cells gets increased for ppc64. */
-	PUSH(0);
-	fword("encode-phys");
-	/* This needs adjusting if #size-cells gets increased.
-	   Alternatively use multiple (address, size) tuples. */
-	PUSH(ram_size & 0xffffffff);
-	fword("encode-int");
-	fword("encode+");
-	push_str("reg");
-	fword("property");
+    /* TODO Adjust this when #address-cells gets increased for ppc64. */
+    PUSH(0);
+    fword("encode-phys");
+    /* This needs adjusting if #size-cells gets increased.
+       Alternatively use multiple (address, size) tuples. */
+    PUSH(ram_size & 0xffffffff);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
 
-        cpu = id_cpu();
-        cpu->initfn(cpu);
-        printk("CPU type %s\n", cpu->name);
+    cpu = id_cpu();
+    cpu->initfn(cpu);
+    printk("CPU type %s\n", cpu->name);
 
-	snprintf(buf, sizeof(buf), "/cpus/%s", cpu->name);
-	ofmem_register(find_dev("/memory"), find_dev(buf));
-	node_methods_init(buf);
+    snprintf(buf, sizeof(buf), "/cpus/%s", cpu->name);
+    ofmem_register(find_dev("/memory"), find_dev(buf));
+    node_methods_init(buf);
 
 #ifdef CONFIG_RTAS
-	/* OldWorld Macs don't have an /rtas node. */
-	switch (machine_id) {
-	case ARCH_MAC99:
-	case ARCH_MAC99_U3:
-		if (!(ph = find_dev("/rtas"))) {
-			printk("Warning: No /rtas node\n");
-		} else {
-			unsigned long size = 0x1000;
-			while (size < (unsigned long)of_rtas_end - (unsigned long)of_rtas_start)
-				size *= 2;
-			set_property(ph, "rtas-size", (char*)&size, sizeof(size));
-			set_int_property(ph, "rtas-version", is_apple() ? 0x41 : 1);
-		}
-		break;
-	}
+    /* OldWorld Macs don't have an /rtas node. */
+    switch (machine_id) {
+    case ARCH_MAC99:
+    case ARCH_MAC99_U3:
+        if (!(ph = find_dev("/rtas"))) {
+            printk("Warning: No /rtas node\n");
+        } else {
+            unsigned long size = 0x1000;
+            while (size < (unsigned long)of_rtas_end - (unsigned long)of_rtas_start)
+                size *= 2;
+            set_property(ph, "rtas-size", (char*)&size, sizeof(size));
+            set_int_property(ph, "rtas-version", is_apple() ? 0x41 : 1);
+        }
+        break;
+    }
 #endif
 
-        if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
-                if (CONFIG_SERIAL_PORT) {
-                       stdin_path = "scca";
-                       stdout_path = "scca";
-                } else {
-                       stdin_path = "sccb";
-                       stdout_path = "sccb";
-                }
-
-		/* Some bootloaders force the output to the screen device, so
-		   let's create a screen alias for the serial device too */
-        	push_str("/aliases");
-		fword("find-device");
-
-		push_str(stdout_path);
-		fword("pathres-resolve-aliases");
-		fword("encode-string");
-		push_str("screen");
-		fword("property");
+    if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
+        if (CONFIG_SERIAL_PORT) {
+           stdin_path = "scca";
+           stdout_path = "scca";
         } else {
-                stdin_path = "adb-keyboard";
-                stdout_path = "screen";
+           stdin_path = "sccb";
+           stdout_path = "sccb";
         }
 
-	kvm_of_init();
+        /* Some bootloaders force the output to the screen device, so
+           let's create a screen alias for the serial device too */
 
-	/* Setup nvram variables */
-        push_str("/options");
+        push_str("/aliases");
         fword("find-device");
-
-	uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
-	switch (boot_device) {
-		case 'c':
-			boot_path = "hd";
-			break;
-		default:
-		case 'd':
-			boot_path = "cd";
-			break;
-	}
-
-	/* Setup default boot devices */
-	snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt", boot_path, boot_path);
-	push_str(buf);
-	fword("encode-string");
-	push_str("boot-device");
-	fword("property");
-
-	/* Set up other properties */
-        push_str("/chosen");
-        fword("find-device");
-
-        push_str(stdin_path);
-        fword("open-dev");
-        fword("encode-int");
-        push_str("stdin");
-        fword("property");
-
-        push_str(stdout_path);
-        fword("open-dev");
-        fword("encode-int");
-        push_str("stdout");
-        fword("property");
-
-        push_str(stdin_path);
-        fword("pathres-resolve-aliases");
-        push_str("input-device");
-        fword("$setenv");
 
         push_str(stdout_path);
         fword("pathres-resolve-aliases");
-        push_str("output-device");
-        fword("$setenv");
+        fword("encode-string");
+        push_str("screen");
+        fword("property");
+    } else {
+        stdin_path = "adb-keyboard";
+        stdout_path = "screen";
+    }
 
-        push_str(stdin_path);
-        fword("input");
+    kvm_of_init();
 
-        push_str(stdout_path);
-        fword("output");
+    /* Setup nvram variables */
+    push_str("/options");
+    fword("find-device");
+
+    uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
+    switch (boot_device) {
+        case 'c':
+            boot_path = "hd";
+            break;
+        default:
+        case 'd':
+            boot_path = "cd";
+            break;
+    }
+
+    /* Setup default boot devices */
+    snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt", boot_path, boot_path);
+    push_str(buf);
+    fword("encode-string");
+    push_str("boot-device");
+    fword("property");
+
+    /* Set up other properties */
+
+    push_str("/chosen");
+    fword("find-device");
+
+    push_str(stdin_path);
+    fword("open-dev");
+    fword("encode-int");
+    push_str("stdin");
+    fword("property");
+
+    push_str(stdout_path);
+    fword("open-dev");
+    fword("encode-int");
+    push_str("stdout");
+    fword("property");
+
+    push_str(stdin_path);
+    fword("pathres-resolve-aliases");
+    push_str("input-device");
+    fword("$setenv");
+
+    push_str(stdout_path);
+    fword("pathres-resolve-aliases");
+    push_str("output-device");
+    fword("$setenv");
+
+    push_str(stdin_path);
+    fword("input");
+
+    push_str(stdout_path);
+    fword("output");
 
 #if 0
-	if( getbool("tty-interface?") == 1 )
+    if(getbool("tty-interface?") == 1)
 #endif
-		fword("activate-tty-interface");
+        fword("activate-tty-interface");
 
-	device_end();
+    device_end();
 
-	bind_func("platform-boot", boot );
-	bind_func("(go)", go);
+    bind_func("platform-boot", boot);
+    bind_func("(go)", go);
 }
