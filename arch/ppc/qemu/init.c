@@ -38,7 +38,7 @@
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
 struct cpudef {
-    unsigned long iu_version;
+    unsigned int iu_version;
     const char *name;
     int icache_size, dcache_size;
     int icache_sets, dcache_sets;
@@ -502,18 +502,16 @@ static const struct cpudef ppc_defs[] = {
 static const struct cpudef *
 id_cpu(void)
 {
-    unsigned long iu_version;
+    unsigned int iu_version;
     unsigned int i;
 
-    asm("mfpvr %0\n"
-        : "=r"(iu_version) :);
-    iu_version &= 0xffff0000;
+    iu_version = mfpvr() & 0xffff0000;
 
     for (i = 0; i < sizeof(ppc_defs) / sizeof(struct cpudef); i++) {
         if (iu_version == ppc_defs[i].iu_version)
             return &ppc_defs[i];
     }
-    printk("Unknown cpu (pvr %lx), freezing!\n", iu_version);
+    printk("Unknown cpu (pvr %x), freezing!\n", iu_version);
     for (;;) {
     }
 }
