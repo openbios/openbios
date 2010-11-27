@@ -193,8 +193,6 @@ entry( void )
 static void
 cpu_generic_init(const struct cpudef *cpu)
 {
-    unsigned long iu_version;
-
     push_str("/cpus");
     fword("find-device");
 
@@ -206,9 +204,7 @@ cpu_generic_init(const struct cpudef *cpu)
     push_str("cpu");
     fword("device-type");
 
-    asm("mfpvr %0\n"
-        : "=r"(iu_version) :);
-    PUSH(iu_version);
+    PUSH(mfpvr());
     fword("encode-int");
     push_str("cpu-version");
     fword("property");
