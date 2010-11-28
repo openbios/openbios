@@ -287,7 +287,7 @@ void* btree_key_by_index(btree* bt, node_buf* buf, UInt16 index)
     UInt16  node_size	    = bt->head.node_size;
 	// The offsets are found at the end of the node ...
     UInt16  off_pos	    = node_size - (index +1) * sizeof(btree_record_offset);
- 	// position of offset at end of node
+	// position of offset at end of node
     btree_record_offset* offset =
 	(btree_record_offset*) (buf->node + off_pos);
 

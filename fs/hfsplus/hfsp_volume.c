@@ -180,7 +180,7 @@ volume_read_wrapper(volume * vol, hfsp_vh* vh)
 		UInt32  drAlBlkSiz;			/* size (in bytes) of allocation blocks */
 		UInt32	sect_per_block;			/* how may block build an hfs sector */
 		UInt16  drAlBlSt;			/* first allocation block in volume */
-  		UInt16	embeds, embedl;			/* Start/lenght of embedded area in blocks */
+		UInt16	embeds, embedl;			/* Start/lenght of embedded area in blocks */
 
 		p += 0x12;			/* skip unneded HFS vol fields */
 		drAlBlkSiz = bswabU32_inc(p);		/* offset 0x14 */
@@ -303,7 +303,7 @@ volume_probe(int fd, long long offset)
 
 	if (__be16_to_cpu(vol[0]) == HFS_VOLHEAD_SIG &&
 		__be16_to_cpu(vol[0x7c]) == HFSP_VOLHEAD_SIG) {
-		ret = -1;	
+		ret = -1;
 	} else if (__be16_to_cpu(vol[0]) == HFSP_VOLHEAD_SIG) {
 		ret = -1;
 	}
