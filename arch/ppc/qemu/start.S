@@ -285,8 +285,7 @@ call_isi_exception:
 exception_return:
 	EXCEPTION_EPILOGUE
 
-	.globl	__divide_error
-__divide_error:
+_GLOBAL(__divide_error):
 trap_error:
 	mflr	r3
 	b	BRANCH_LABEL(unexpected_excep)
@@ -473,7 +472,7 @@ saved_stack:
 	.long	0
         .previous
 	/* void call_elf( arg1, arg2, entry ) */
-GLOBL(call_elf):
+_GLOBAL(call_elf):
 	mflr	r0
 	stwu	r1,-16(r1)
 	stw	r0,20(r1)
@@ -633,7 +632,7 @@ GLOBL(of_rtas_end):
 #define LG_CACHE_LINE_SIZE      5
 
 /* flush_icache_range( unsigned long start, unsigned long stop) */
-GLOBL(flush_icache_range):
+_GLOBAL(flush_icache_range):
         li      r5,CACHE_LINE_SIZE-1
         andc    r3,r3,r5
         subf    r4,r3,r4

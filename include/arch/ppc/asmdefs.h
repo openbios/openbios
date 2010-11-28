@@ -118,6 +118,24 @@
 #define EXTERN( name )		_##name
 #endif
 
+#if defined(__powerpc64__) && !defined(__darwin__)
+#define _GLOBAL(name) \
+        .align 2 ; \
+        .section ".opd", "aw" ; \
+        .globl name ; \
+        .globl .##name ; \
+    name: \
+        .quad .##name ; \
+        .quad .TOC.@tocbase ; \
+        .quad 0 ; \
+        .previous ; \
+        .type .##name, @function ; \
+    .##name
+#else
+#define _GLOBAL(name) \
+    GLOBL(name)
+#endif
+
 #define	BIT(n)		(1<<(31-(n)))
 
 #endif   /* _H_ASMDEFS */
