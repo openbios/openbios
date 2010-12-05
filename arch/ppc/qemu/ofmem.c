@@ -44,7 +44,7 @@ extern void setup_mmu(unsigned long code_base);
  *
  */
 
-#define FREE_BASE		0x00004000
+#define FREE_BASE		0x00004000UL
 #define OF_CODE_START	0xfff00000UL
 #define OF_CODE_SIZE    0x00100000
 #define IO_BASE			0x80000000
@@ -82,7 +82,7 @@ get_ram_top(void)
 unsigned long
 get_ram_bottom(void)
 {
-    return (unsigned long)FREE_BASE;
+    return FREE_BASE;
 }
 
 static ucell get_heap_top(void)
