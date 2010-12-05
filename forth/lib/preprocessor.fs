@@ -19,6 +19,7 @@
     repeat
 
     2dup " [IF]" strcmp 0= if 1 throw then
+    2dup " [IFDEF]" strcmp 0= if 1 throw then
     2dup " [ELSE]" strcmp 0= if 2 throw then
     2dup " [THEN]" strcmp 0= if 3 throw then
     " \\" strcmp 0= if linefeed parse 2drop then
