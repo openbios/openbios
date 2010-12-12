@@ -47,7 +47,7 @@ extern void setup_mmu(unsigned long code_base);
 #define FREE_BASE		0x00004000UL
 #define OF_CODE_START	0xfff00000UL
 #define OF_CODE_SIZE    0x00100000
-#define IO_BASE			0x80000000
+#define IO_BASE			0x80000000UL
 
 #ifdef __powerpc64__
 #define HASH_BITS		18
@@ -85,7 +85,7 @@ get_ram_bottom(void)
     return FREE_BASE;
 }
 
-static ucell get_heap_top(void)
+static unsigned long get_heap_top(void)
 {
     return get_hash_base() - (32 + 64 + 64) * 1024;
 }
@@ -217,11 +217,11 @@ ucell ofmem_arch_default_translation_mode(phys_addr_t phys)
 /************************************************************************/
 
 static phys_addr_t
-ea_to_phys(ucell ea, ucell *mode)
+ea_to_phys(unsigned long ea, ucell *mode)
 {
     phys_addr_t phys;
 
-    if (ea >= OF_CODE_START) {
+    if (ea >= OF_CODE_START && ea <= 0xffffffffUL) {
         /* ROM into RAM */
         ea -= OF_CODE_START;
         phys = get_rom_base() + ea;
@@ -242,7 +242,7 @@ ea_to_phys(ucell ea, ucell *mode)
 }
 
 static void
-hash_page_64(ucell ea, phys_addr_t phys, ucell mode)
+hash_page_64(unsigned long ea, phys_addr_t phys, ucell mode)
 {
     static int next_grab_slot = 0;
     uint64_t vsid_mask, page_mask, pgidx, hash;
@@ -308,7 +308,7 @@ hash_page_64(ucell ea, phys_addr_t phys, ucell mode)
 }
 
 static void
-hash_page_32(ucell ea, phys_addr_t phys, ucell mode)
+hash_page_32(unsigned long ea, phys_addr_t phys, ucell mode)
 {
 #ifndef __powerpc64__
     static int next_grab_slot = 0;
