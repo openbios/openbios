@@ -26,7 +26,7 @@ typedef struct alloc_desc {
 
 typedef struct mem_range {
 	struct mem_range	*next;
-	ucell			start;
+	phys_addr_t		start;			/* sizeof(phys) >= sizeof(virt), e.g SPARC32 */
 	ucell			size;
 } range_t;
 
@@ -34,7 +34,7 @@ typedef struct trans {
 	struct trans		*next;
 	ucell			virt;			/* chain is sorted by virt */
 	ucell			size;
-	ucell			phys;
+	phys_addr_t		phys;
 	ucell			mode;
 } translation_t;
 
@@ -63,14 +63,16 @@ extern void*    	ofmem_arch_get_malloc_base(void);
 extern ucell    	ofmem_arch_get_heap_top(void);
 extern ucell    	ofmem_arch_get_virt_top(void);
 extern retain_t*	ofmem_arch_get_retained(void);
+extern int			ofmem_arch_get_physaddr_cellsize(void);
+extern int			ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value);
 extern int 		ofmem_arch_get_translation_entry_size(void);
 extern void 		ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t);
-extern ucell    	ofmem_arch_default_translation_mode( ucell phys );
-extern void     	ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size,
+extern ucell    	ofmem_arch_default_translation_mode( phys_addr_t phys );
+extern void     	ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size,
                                            ucell mode);
 extern void     	ofmem_arch_unmap_pages(ucell virt, ucell size);
 /* sparc64 uses this method */
-extern int      	ofmem_map_page_range( ucell phys, ucell virt, ucell size,
+extern int      	ofmem_map_page_range( phys_addr_t phys, ucell virt, ucell size,
                                       ucell mode );
 
 /* malloc interface */
@@ -93,18 +95,18 @@ extern void	ofmem_init( void );
 extern void ofmem_register( phandle_t ph_memory, phandle_t ph_mmu );
 
 extern ucell ofmem_claim( ucell addr, ucell size, ucell align );
-extern ucell ofmem_claim_phys( ucell mphys, ucell size, ucell align );
+extern phys_addr_t ofmem_claim_phys( phys_addr_t mphys, ucell size, ucell align );
 extern ucell ofmem_claim_virt( ucell mvirt, ucell size, ucell align );
 
-extern ucell ofmem_retain( ucell phys, ucell size, ucell align );
+extern phys_addr_t ofmem_retain( phys_addr_t phys, ucell size, ucell align );
 
-extern int   ofmem_map( ucell phys, ucell virt, ucell size, ucell mode );
+extern int   ofmem_map( phys_addr_t phys, ucell virt, ucell size, ucell mode );
 extern int   ofmem_unmap( ucell virt, ucell size );
 
 extern void  ofmem_release( ucell virt, ucell size );
-extern void  ofmem_release_phys( ucell phys, ucell size );
+extern void  ofmem_release_phys( phys_addr_t phys, ucell size );
 extern void  ofmem_release_virt( ucell virt, ucell size );
-extern ucell ofmem_translate( ucell virt, ucell *ret_mode );
+extern phys_addr_t ofmem_translate( ucell virt, ucell *ret_mode );
 
 #ifdef CONFIG_PPC
 #define PAGE_SHIFT   12

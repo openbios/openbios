@@ -95,7 +95,18 @@ void ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t)
 /* misc                                                                 */
 /************************************************************************/
 
-ucell ofmem_arch_default_translation_mode( ucell phys )
+int ofmem_arch_get_physaddr_cellsize(void)
+{
+    return 1;
+}
+
+int ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value)
+{
+    p[0] = value;
+    return 1;
+}
+
+ucell ofmem_arch_default_translation_mode( phys_addr_t phys )
 {
 	/* Writable, cacheable */
 	/* not privileged and not locked */
@@ -109,7 +120,7 @@ ucell ofmem_arch_default_translation_mode( ucell phys )
 /* init / cleanup                                                       */
 /************************************************************************/
 
-static int remap_page_range( ucell phys, ucell virt, ucell size, ucell mode )
+static int remap_page_range( phys_addr_t phys, ucell virt, ucell size, ucell mode )
 {
 	ofmem_claim_phys(phys, size, 0);
 	ofmem_claim_virt(virt, size, 0);

@@ -120,7 +120,7 @@ void ofmem_arch_unmap_pages(ucell virt, ucell size)
     /* kill page mappings in provided range */
 }
 
-void ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
+void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
 {
     /* none yet */
 }
@@ -131,10 +131,29 @@ retain_t *ofmem_arch_get_retained(void)
     return NULL;
 }
 
+int ofmem_arch_get_physaddr_cellsize(void)
+{
+#ifdef CONFIG_PPC64
+    return 2;
+#else
+    return 1;
+#endif
+}
+
+int ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value)
+{
+    int n = 0;
+#ifdef CONFIG_PPC64
+    p[n++] = value >> 32;
+#endif
+    p[n++] = value;
+    return n;
+}
+
 /* Return size of a single MMU package translation property entry in cells */
 int ofmem_arch_get_translation_entry_size(void)
 {
-    return 4;
+    return 3 + ofmem_arch_get_physaddr_cellsize();
 }
 
 /* Generate translation property entry for PPC.
@@ -149,10 +168,12 @@ int ofmem_arch_get_translation_entry_size(void)
  */
 void ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t)
 {
-    transentry[0] = t->virt;
-    transentry[1] = t->size;
-    transentry[2] = t->phys;
-    transentry[3] = t->mode;
+    int i = 0;
+
+    transentry[i++] = t->virt;
+    transentry[i++] = t->size;
+    i += ofmem_arch_encode_physaddr(&transentry[i], t->phys);
+    transentry[i++] = t->mode;
 }
 
 /************************************************************************/
@@ -182,7 +203,7 @@ realloc(void *ptr, size_t size)
 /*	misc								*/
 /************************************************************************/
 
-ucell ofmem_arch_default_translation_mode(ucell phys)
+ucell ofmem_arch_default_translation_mode(phys_addr_t phys)
 {
     /* XXX: Guard bit not set as it should! */
     if (phys < IO_BASE)
@@ -195,10 +216,10 @@ ucell ofmem_arch_default_translation_mode(ucell phys)
 /*	page fault handler						*/
 /************************************************************************/
 
-static ucell
+static phys_addr_t
 ea_to_phys(ucell ea, ucell *mode)
 {
-    ucell phys;
+    phys_addr_t phys;
 
     if (ea >= OF_CODE_START) {
         /* ROM into RAM */
@@ -221,7 +242,7 @@ ea_to_phys(ucell ea, ucell *mode)
 }
 
 static void
-hash_page_64(ucell ea, ucell phys, ucell mode)
+hash_page_64(ucell ea, phys_addr_t phys, ucell mode)
 {
     static int next_grab_slot = 0;
     uint64_t vsid_mask, page_mask, pgidx, hash;
@@ -270,7 +291,7 @@ hash_page_64(ucell ea, ucell phys, ucell mode)
         .h = 0,
         .v = 1,
 
-        .rpn = (phys & ~0xfff) >> 12,
+        .rpn = (phys & ~0xfffUL) >> 12,
         .r = mode & (1 << 8) ? 1 : 0,
         .c = mode & (1 << 7) ? 1 : 0,
         .w = mode & (1 << 6) ? 1 : 0,
@@ -287,7 +308,7 @@ hash_page_64(ucell ea, ucell phys, ucell mode)
 }
 
 static void
-hash_page_32(ucell ea, ucell phys, ucell mode)
+hash_page_32(ucell ea, phys_addr_t phys, ucell mode)
 {
 #ifndef __powerpc64__
     static int next_grab_slot = 0;
@@ -341,7 +362,7 @@ static int is_ppc64(void)
 }
 
 /* XXX Remove these ugly constructs when legacy 64-bit support is dropped. */
-static void hash_page(unsigned long ea, unsigned long phys, ucell mode)
+static void hash_page(unsigned long ea, phys_addr_t phys, ucell mode)
 {
     if (is_ppc64())
         hash_page_64(ea, phys, mode);
@@ -354,7 +375,7 @@ dsi_exception(void)
 {
     unsigned long dar, dsisr;
     ucell mode;
-    ucell phys;
+    phys_addr_t phys;
 
     asm volatile("mfdar %0" : "=r" (dar) : );
     asm volatile("mfdsisr %0" : "=r" (dsisr) : );
@@ -368,7 +389,7 @@ isi_exception(void)
 {
     unsigned long nip, srr1;
     ucell mode;
-    ucell phys;
+    phys_addr_t phys;
 
     asm volatile("mfsrr0 %0" : "=r" (nip) : );
     asm volatile("mfsrr1 %0" : "=r" (srr1) : );

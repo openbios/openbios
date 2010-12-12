@@ -49,7 +49,7 @@ print_range( range_t *r, char *str )
 {
 	printk("--- Range %s ---\n", str );
 	for( ; r; r=r->next )
-		printk("%08lx - %08lx\n", r->start, r->start + r->size -1 );
+		printk(FMT_plx " - " FMT_plx "\n", r->start, r->start + r->size - 1);
 	printk("\n");
 }
 
@@ -72,7 +72,7 @@ print_trans( void )
 
 	printk("--- Translations ---\n");
 	for( ; t; t=t->next )
-		printk("%08lx -> %08lx [size %lx]\n", t->virt, t->phys, t->size );
+		printk("%08lx -> " FMT_plx " [size %lx]\n", t->virt, t->phys, t->size);
 	printk("\n");
 }
 #endif
@@ -246,8 +246,8 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 {
 	range_t *r;
 	int ncells, prop_used, prop_size;
-
-	ucell start, size, *prop;
+	phys_addr_t start;
+	ucell size, *prop;
 
 	if (s_phandle_memory == 0)
 		return;
@@ -256,8 +256,10 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 	for( r = range, ncells = 0; r ; r=r->next, ncells++ ) {
 	}
 
-	/* inverse of phys_range list could take 2 more cells for the tail */
-	prop_used = (ncells+1) * sizeof(ucell) * 2;
+	/* inverse of phys_range list could take 2 or more additional cells for the tail
+	   For /memory, physical addresses may be wider than one ucell. */
+	prop_used = (ncells + 1) * sizeof(ucell) *
+		(((ph == s_phandle_memory) ? ofmem_arch_get_physaddr_cellsize() : 1) + 1);
 
 	if (prop_used > *mem_prop_size) {
 
@@ -291,7 +293,13 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 
 		size = r->start - start;
 		if (size) {
-			prop[ncells++] = start;
+			if (ph == s_phandle_memory) {
+				/* physical address for /memory */
+				ncells += ofmem_arch_encode_physaddr(&prop[ncells], start);
+			} else {
+				/* virtual address for MMU */
+				prop[ncells++] = start;
+			}
 			prop[ncells++] = size;
 		}
 		start = r->start + r->size;
@@ -299,7 +307,13 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 
 	/* tail */
 	if (start < top_address) {
-		prop[ncells++] = start;
+		if (ph == s_phandle_memory) {
+			/* physical address for /memory */
+			ncells += ofmem_arch_encode_physaddr(&prop[ncells], start);
+		} else {
+			/* virtual address for MMU */
+			prop[ncells++] = start;
+		}
 		prop[ncells++] = top_address - start;
 	}
 
@@ -323,7 +337,7 @@ static void ofmem_update_translations( void )
 /* client interface                                                     */
 /************************************************************************/
 
-static int is_free( ucell ea, ucell size, range_t *r )
+static int is_free( phys_addr_t ea, ucell size, range_t *r )
 {
 	if( size == 0 )
 		return 1;
@@ -336,7 +350,7 @@ static int is_free( ucell ea, ucell size, range_t *r )
 	return 1;
 }
 
-static void add_entry_( ucell ea, ucell size, range_t **r )
+static void add_entry_( phys_addr_t ea, ucell size, range_t **r )
 {
 	range_t *nr;
 
@@ -350,7 +364,7 @@ static void add_entry_( ucell ea, ucell size, range_t **r )
 	*r = nr;
 }
 
-static int add_entry( ucell ea, ucell size, range_t **r )
+static int add_entry( phys_addr_t ea, ucell size, range_t **r )
 {
 	if( !is_free( ea, size, *r ) ) {
 		OFMEM_TRACE("add_entry: range not free!\n");
@@ -380,7 +394,7 @@ static void join_ranges( range_t **rr )
 	}
 }
 
-static void fill_range( ucell ea, ucell size, range_t **rr )
+static void fill_range( phys_addr_t ea, ucell size, range_t **rr )
 {
 	add_entry_( ea, size, rr );
 	join_ranges( rr );
@@ -388,9 +402,9 @@ static void fill_range( ucell ea, ucell size, range_t **rr )
 #endif
 
 static ucell find_area( ucell align, ucell size, range_t *r,
-		ucell min, ucell max, int reverse )
+		phys_addr_t min, phys_addr_t max, int reverse )
 {
-	ucell base = min;
+	phys_addr_t base = min;
 	range_t *r2;
 
 	if( (align & (align-1)) ) {
@@ -438,7 +452,7 @@ static ucell find_area( ucell align, ucell size, range_t *r,
 	return -1;
 }
 
-static ucell ofmem_claim_phys_( ucell phys, ucell size, ucell align,
+static phys_addr_t ofmem_claim_phys_( phys_addr_t phys, ucell size, ucell align,
 		ucell min, ucell max, int reverse )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
@@ -463,9 +477,9 @@ static ucell ofmem_claim_phys_( ucell phys, ucell size, ucell align,
 }
 
 /* if align != 0, phys is ignored. Returns -1 on error */
-ucell ofmem_claim_phys( ucell phys, ucell size, ucell align )
+phys_addr_t ofmem_claim_phys( phys_addr_t phys, ucell size, ucell align )
 {
-    OFMEM_TRACE("ofmem_claim phys=" FMT_ucellx " size=" FMT_ucellx
+    OFMEM_TRACE("ofmem_claim phys=" FMT_plx " size=" FMT_ucellx
                 " align=" FMT_ucellx "\n",
                 phys, size, align);
 
@@ -506,12 +520,12 @@ ucell ofmem_claim_virt( ucell virt, ucell size, ucell align )
 }
 
 /* if align != 0, phys is ignored. Returns -1 on error */
-ucell ofmem_retain( ucell phys, ucell size, ucell align )
+phys_addr_t ofmem_retain( phys_addr_t phys, ucell size, ucell align )
 {
     retain_t *retained = ofmem_arch_get_retained();
-    ucell retain_phys;
+    phys_addr_t retain_phys;
 
-    OFMEM_TRACE("ofmem_retain phys=" FMT_ucellx " size=" FMT_ucellx
+    OFMEM_TRACE("ofmem_retain phys=" FMT_plx " size=" FMT_ucellx
                 " align=" FMT_ucellx "\n",
                 phys, size, align);
 
@@ -530,7 +544,8 @@ ucell ofmem_retain( ucell phys, ucell size, ucell align )
 ucell ofmem_claim( ucell addr, ucell size, ucell align )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
-	ucell virt, phys;
+	ucell virt;
+	phys_addr_t phys;
 	ucell offs = addr & 0xfff;
 
 	OFMEM_TRACE("ofmem_claim " FMT_ucellx " " FMT_ucellx " " FMT_ucellx "\n", addr, size, align );
@@ -595,13 +610,13 @@ static void split_trans( ucell virt )
 	}
 }
 
-int ofmem_map_page_range( ucell phys, ucell virt, ucell size, ucell mode )
+int ofmem_map_page_range( phys_addr_t phys, ucell virt, ucell size, ucell mode )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	translation_t *t, **tt;
 
 	OFMEM_TRACE("ofmem_map_page_range " FMT_ucellx
-			" -> " FMT_ucellx " " FMT_ucellx " mode " FMT_ucellx "\n",
+			" -> " FMT_plx " " FMT_ucellx " mode " FMT_ucellx "\n",
 			virt, phys, size, mode );
 
 	split_trans( virt );
@@ -677,7 +692,7 @@ static int unmap_page_range( ucell virt, ucell size )
 			*plinkentry = t->next;
 
 			OFMEM_TRACE("unmap_page_range found "
-					FMT_ucellx " -> " FMT_ucellx " " FMT_ucellx
+					FMT_ucellx " -> " FMT_plx " " FMT_ucellx
 					" mode " FMT_ucellx "\n",
 					t->virt, t->phys, t->size, t->mode );
 
@@ -693,7 +708,7 @@ static int unmap_page_range( ucell virt, ucell size )
 	return 0;
 }
 
-int ofmem_map( ucell phys, ucell virt, ucell size, ucell mode )
+int ofmem_map( phys_addr_t phys, ucell virt, ucell size, ucell mode )
 {
 	/* printk("+ofmem_map: %08lX --> %08lX (size %08lX, mode 0x%02X)\n",
 	   virt, phys, size, mode ); */
@@ -701,7 +716,7 @@ int ofmem_map( ucell phys, ucell virt, ucell size, ucell mode )
 	if( (phys & 0xfff) || (virt & 0xfff) || (size & 0xfff) ) {
 
 		OFMEM_TRACE("ofmem_map: Bad parameters ("
-				FMT_ucellX " " FMT_ucellX " " FMT_ucellX ")\n",
+				FMT_plx " " FMT_ucellX " " FMT_ucellX ")\n",
 				phys, virt, size );
 
 		phys &= ~0xfff;
@@ -751,7 +766,7 @@ int ofmem_unmap( ucell virt, ucell size )
 }
 
 /* virtual -> physical. */
-ucell ofmem_translate( ucell virt, ucell *mode )
+phys_addr_t ofmem_translate( ucell virt, ucell *mode )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	translation_t *t;
@@ -776,9 +791,9 @@ static void remove_range( ucell ea, ucell size, range_t **r )
 }
 
 /* release memory allocated by ofmem_claim_phys */
-void ofmem_release_phys( ucell phys, ucell size )
+void ofmem_release_phys( phys_addr_t phys, ucell size )
 {
-    OFMEM_TRACE("ofmem_release_phys addr=" FMT_ucellx " size=" FMT_ucellx "\n",
+    OFMEM_TRACE("ofmem_release_phys addr=" FMT_plx " size=" FMT_ucellx "\n",
                 phys, size);
 
     ofmem_t *ofmem = ofmem_arch_get_private();
@@ -802,8 +817,8 @@ void ofmem_release( ucell virt, ucell size )
                 __func__, virt, size);
 
     ucell mode;
-    ucell phys = ofmem_translate(virt, &mode);
-    if (phys == (ucell)-1) {
+    phys_addr_t phys = ofmem_translate(virt, &mode);
+    if (phys == (phys_addr_t)-1) {
         OFMEM_TRACE("%s: no mapping\n", __func__);
         return;
     }

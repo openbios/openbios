@@ -120,7 +120,8 @@ void ofmem_walk_boot_map(translation_entry_cb cb)
 static void
 mmu_translate(void)
 {
-    ucell virt, phys, mode;
+    ucell virt, mode;
+    phys_addr_t phys;
 
     virt = POP();
 
@@ -352,7 +353,7 @@ itlb_miss_handler(void)
 }
 
 static void
-map_pages(unsigned long phys, unsigned long virt,
+map_pages(phys_addr_t phys, unsigned long virt,
 		  unsigned long size, unsigned long mode)
 {
 	unsigned long tte_data, currsize;
@@ -393,7 +394,7 @@ map_pages(unsigned long phys, unsigned long virt,
     }
 }
 
-void ofmem_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
+void ofmem_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
 {
 	return map_pages(phys, virt, size, mode);
 }
@@ -405,7 +406,8 @@ void ofmem_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
 static void
 mmu_map(void)
 {
-    ucell virt, size, mode, phys;
+    ucell virt, size, mode;
+    phys_addr_t phys;
 
     mode = POP();
     size = POP();
@@ -453,7 +455,7 @@ void ofmem_arch_unmap_pages(ucell virt, ucell size)
 	unmap_pages(virt, size);
 }
 
-void ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
+void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
 {
 	if (mode & SPITFIRE_TTE_LOCKED) {
 		// install locked tlb entries now
@@ -514,7 +516,8 @@ mmu_release(void)
 static void
 mem_claim( void )
 {
-    ucell phys=-1UL, size, align;
+    ucell size, align;
+    phys_addr_t phys=-1UL;
 
     align = POP();
     size = POP();
@@ -534,7 +537,8 @@ mem_claim( void )
 static void
 mem_release( void )
 {
-    ucell phys, size;
+    phys_addr_t phys;
+    ucell size;
 
     size = POP();
     phys = POP();
@@ -548,7 +552,8 @@ mem_release( void )
 static void
 mem_retain ( void )
 {
-    ucell phys=-1UL, size, align;
+    ucell size, align;
+    phys_addr_t phys=-1UL;
 
     align = POP();
     size = POP();
