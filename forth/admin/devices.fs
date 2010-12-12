@@ -326,6 +326,71 @@
   3drop drop
 ;
 
+\ Return the number of cells per physical address
+: .p-translations-#pacells ( -- #cells )
+  " /" find-package if
+    " #address-cells" rot get-package-property if
+      1
+    else
+      decode-int nip nip 1 max
+    then
+  else
+    1
+  then
+;
+
+\ Return the number of cells per translation entry
+: .p-translations-#cells ( -- #cells )
+  [IFDEF] CONFIG_PPC
+    my-#acells 3 *
+    .p-translations-#pacells +
+  [ELSE]
+    my-#acells 3 *
+  [THEN]
+;
+
+\ Set up column offsets
+: .p-translations-cols ( -- col1 ... coln #cols )
+  .p-translations-#cells 4 *
+  [IFDEF] CONFIG_PPC
+    4 -
+    dup 4 -
+    dup .p-translations-#pacells 4 * -
+    3
+  [ELSE]
+    my-#acells 4 * -
+    dup my-#scells 4 * -
+    2
+  [THEN]
+;
+
+\ Print the value of the MMU translations property
+: .p-translations ( data len -- )
+  >r >r .p-translations-cols r> r> ( col1 ... coln #cols data len )
+  2dup + -rot ( col1 ... coln #cols data+len data len )
+  >r >r .p-translations-#cells 4 * dup r> r>
+  ( col1 ... coln #cols data+len #bytes #bytes len data )
+  bounds ( col1 ... coln #cols data+len #bytes #bytes data+len data ) ?do
+    3 pick 4 + 4 ?do				\ check all defined columns
+      i pick over = if
+        2 spaces					\ start new column
+      then
+    loop
+    2dup <> if						\ non-first byte in row
+      dup 3 and 0= if space then	\ make numbers more readable
+    then
+    i c@ 2 0.r						\ print byte
+    1- dup 0= if					\ end of row
+      2 pick i 1+ > if				\ non-last byte
+        cr							\ start new line
+        d# 26 spaces				\ indentation
+      then
+      drop dup						\ update counter
+    then
+  loop
+  2drop drop 0 ?do drop loop
+;
+
 \ This function hardwires data formats to particular node properties
 : (.property-by-name) ( name-str name-len data len -- )
   2over " reg" strcmp 0= if
@@ -344,6 +409,10 @@
       decode-int nip nip ihandle>phandle active-package = if
         2over " available" strcmp 0= if
           1 1 2swap .p-reg
+          2drop exit
+        then
+        2over " translations" strcmp 0= if
+          .p-translations
           2drop exit
         then
       then
