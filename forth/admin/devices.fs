@@ -408,7 +408,7 @@
     " mmu" rot get-package-property 0= if
       decode-int nip nip ihandle>phandle active-package = if
         2over " available" strcmp 0= if
-          1 1 2swap .p-reg
+          my-#acells my-#scells 1 max 2swap .p-reg
           2drop exit
         then
         2over " translations" strcmp 0= if
