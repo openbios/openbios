@@ -288,7 +288,9 @@ exception_return:
 _GLOBAL(__divide_error):
 trap_error:
 	mflr	r3
-	b	BRANCH_LABEL(unexpected_excep)
+	LOAD_REG_FUNC(r4, unexpected_excep)
+	mtctr r4
+	bctr
 
 VECTOR( 0x100, "SRE" ):
         b       _entry
