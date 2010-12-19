@@ -100,13 +100,21 @@
 #endif
 
 #ifdef __powerpc64__
+#define PPC_LL   ld
+#define PPC_STL  std
+#define PPC_STLU stdu
 #define RFI rfid
 #define MTMSRD(r) mtmsrd r
 #define BRANCH_LABEL(name) . ## name
+#define PPC_LR_STKOFF 16
 #else
+#define PPC_LL   lwz
+#define PPC_STL  stw
+#define PPC_STLU stwu
 #define RFI rfi
 #define MTMSRD(r) mtmsr  r
 #define BRANCH_LABEL(name) name
+#define PPC_LR_STKOFF 4
 #endif
 
 #ifndef __darwin__
