@@ -578,6 +578,10 @@ GLOBL(of_client_callback):
     PPC_STL r30, (STKOFF + 31 * ULONG_SIZE)(r1)
     PPC_STL r31, (STKOFF + 32 * ULONG_SIZE)(r1)
 
+#ifdef CONFIG_PPC64
+    LOAD_REG_IMMEDIATE(r2, of_client_interface)
+    ld  r2, 8(r2)
+#endif
     bl	BRANCH_LABEL(of_client_interface)
 
 	/* restore r5 - r31 */
