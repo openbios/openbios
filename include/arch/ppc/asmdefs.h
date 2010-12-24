@@ -105,6 +105,7 @@
 #define PPC_STLU stdu
 #define RFI rfid
 #define MTMSRD(r) mtmsrd r
+#define DATA_LONG(x) .quad x
 #define BRANCH_LABEL(name) . ## name
 #define PPC_LR_STKOFF 16
 #else
@@ -113,6 +114,7 @@
 #define PPC_STLU stwu
 #define RFI rfi
 #define MTMSRD(r) mtmsr  r
+#define DATA_LONG(x) .long x
 #define BRANCH_LABEL(name) name
 #define PPC_LR_STKOFF 4
 #endif

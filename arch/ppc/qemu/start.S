@@ -179,6 +179,9 @@
 #undef stl
 #undef ll
 
+#define ULONG_SIZE 4
+#define STACKFRAME_MINSIZE 16
+
 #else /* !CONFIG_PPC_64BITSUPPORT */
 
 #ifdef __powerpc64__
@@ -471,16 +474,16 @@ GLOBL(_entry):
 	 */
         .data
 saved_stack:
-	.long	0
+    DATA_LONG(0)
         .previous
 	/* void call_elf( arg1, arg2, entry ) */
 _GLOBAL(call_elf):
 	mflr	r0
-	stwu	r1,-16(r1)
-	stw	r0,20(r1)
+	PPC_STLU r1, -STACKFRAME_MINSIZE(r1)
+	PPC_STL  r0, (STACKFRAME_MINSIZE + PPC_LR_STKOFF)(r1)
 	mtlr	r5
 	LOAD_REG_IMMEDIATE(r8, saved_stack)		// save our stack pointer
-	stw	r1,0(r8)
+	PPC_STL r1,0(r8)
 	mfsdr1	r1
 	addi	r1, r1, -32768		/* - 32 KiB exception stack */
 	addis	r1, r1, -1			/* - 64 KiB stack */
@@ -488,137 +491,147 @@ _GLOBAL(call_elf):
 	li	r6,0			// r6 = address of client program arguments (unused)
 	li	r7,0			// r7 = length of client program arguments (unused)
 	li	r0,MSR_FP | MSR_ME | MSR_DR | MSR_IR
-	mtmsr	r0
+	MTMSRD(r0)
 	blrl
 
 	LOAD_REG_IMMEDIATE(r8, saved_stack)		// restore stack pointer
 	mr	r1,r8
-	lwz	r0,20(r1)
+	PPC_LL r0, (STACKFRAME_MINSIZE + PPC_LR_STKOFF)(r1)
 	mtlr	r0
-	addi	r1,r1,16
+	addi	r1, r1, STACKFRAME_MINSIZE
 	// XXX: should restore r12-r31 etc..
 	// we should not really come here though
 	blr
 
-#define SAVE_SPACE 140
+#ifdef __powerpc64__
+#define STKOFF STACKFRAME_MINSIZE
+#define SAVE_SPACE 320
+#else
+#define STKOFF 8
+#define SAVE_SPACE 144
+#endif
 GLOBL(of_client_callback):
 
-	stwu	r1, -12(r1)
+#ifdef CONFIG_PPC64
+    PPC_STLU r1, -(STACKFRAME_MINSIZE + 16)(r1)
+#else
+    PPC_STLU r1, -STACKFRAME_MINSIZE(r1) /* fits within alignment */
+#endif
 
 	/* save r4 */
 
-	stw	r4, 8(r1)
+    PPC_STL r4, STKOFF(r1)
 
 	/* save lr */
 
 	mflr	r4
-	stw	r4, 4(r1)
+    PPC_STL r4, PPC_LR_STKOFF(r1)
 
 	/* restore OF stack */
 
 	LOAD_REG_IMMEDIATE(r4, saved_stack)
-	lwz	r4,0(r4)
+    PPC_LL  r4, 0(r4)
 
-	stwu	r4,-SAVE_SPACE(r4)
-	stw	r1,8(r4)		// save caller stack
+	PPC_STLU r4,-SAVE_SPACE(r4)
+	PPC_STL r1,(STKOFF)(r4)		// save caller stack
 	mr	r1,r4
 
-	stw	r2,12(r1)
-	stw	r0,16(r1)
+    PPC_STL r2,  (STKOFF +  1 * ULONG_SIZE)(r1)
+    PPC_STL r0,  (STKOFF +  2 * ULONG_SIZE)(r1)
 
 	/* save ctr, cr and xer */
 
 	mfctr	r2
-	stw	r2,20(r1)
+    PPC_STL r2,  (STKOFF +  3 * ULONG_SIZE)(r1)
 	mfcr	r2
-	stw	r2,24(r1)
+    PPC_STL r2,  (STKOFF +  4 * ULONG_SIZE)(r1)
 	mfxer	r2
-	stw	r2,28(r1)
+    PPC_STL r2,  (STKOFF +  5 * ULONG_SIZE)(r1)
 
 	/* save r5 - r31 */
 
-	stw	r5, 32(r1)
-	stw	r6,36(r1)
-	stw	r7,40(r1)
-	stw	r8,44(r1)
-	stw	r9,48(r1)
-	stw	r10,52(r1)
-	stw	r11,56(r1)
-	stw	r12,60(r1)
-	stw	r13,64(r1)
-	stw	r14,68(r1)
-	stw	r15,72(r1)
-	stw	r16,76(r1)
-	stw	r17,80(r1)
-	stw	r18,84(r1)
-	stw	r19,88(r1)
-	stw	r20,92(r1)
-	stw	r21,96(r1)
-	stw	r22,100(r1)
-	stw	r23,104(r1)
-	stw	r24,108(r1)
-	stw	r25,112(r1)
-	stw	r26,116(r1)
-	stw	r27,120(r1)
-	stw	r28,124(r1)
-	stw	r29,128(r1)
-	stw	r30,132(r1)
-	stw	r31,136(r1)
+    PPC_STL r5,  (STKOFF +  6 * ULONG_SIZE)(r1)
+    PPC_STL r6,  (STKOFF +  7 * ULONG_SIZE)(r1)
+    PPC_STL r7,  (STKOFF +  8 * ULONG_SIZE)(r1)
+    PPC_STL r8,  (STKOFF +  9 * ULONG_SIZE)(r1)
+    PPC_STL r9,  (STKOFF + 10 * ULONG_SIZE)(r1)
+    PPC_STL r10, (STKOFF + 11 * ULONG_SIZE)(r1)
+    PPC_STL r11, (STKOFF + 12 * ULONG_SIZE)(r1)
+    PPC_STL r12, (STKOFF + 13 * ULONG_SIZE)(r1)
+    PPC_STL r13, (STKOFF + 14 * ULONG_SIZE)(r1)
+    PPC_STL r14, (STKOFF + 15 * ULONG_SIZE)(r1)
+    PPC_STL r15, (STKOFF + 16 * ULONG_SIZE)(r1)
+    PPC_STL r16, (STKOFF + 17 * ULONG_SIZE)(r1)
+    PPC_STL r17, (STKOFF + 18 * ULONG_SIZE)(r1)
+    PPC_STL r18, (STKOFF + 19 * ULONG_SIZE)(r1)
+    PPC_STL r19, (STKOFF + 20 * ULONG_SIZE)(r1)
+    PPC_STL r20, (STKOFF + 21 * ULONG_SIZE)(r1)
+    PPC_STL r21, (STKOFF + 22 * ULONG_SIZE)(r1)
+    PPC_STL r22, (STKOFF + 23 * ULONG_SIZE)(r1)
+    PPC_STL r23, (STKOFF + 24 * ULONG_SIZE)(r1)
+    PPC_STL r24, (STKOFF + 25 * ULONG_SIZE)(r1)
+    PPC_STL r25, (STKOFF + 26 * ULONG_SIZE)(r1)
+    PPC_STL r26, (STKOFF + 27 * ULONG_SIZE)(r1)
+    PPC_STL r27, (STKOFF + 28 * ULONG_SIZE)(r1)
+    PPC_STL r28, (STKOFF + 29 * ULONG_SIZE)(r1)
+    PPC_STL r29, (STKOFF + 30 * ULONG_SIZE)(r1)
+    PPC_STL r30, (STKOFF + 31 * ULONG_SIZE)(r1)
+    PPC_STL r31, (STKOFF + 32 * ULONG_SIZE)(r1)
 
-	bl	of_client_interface
+    bl	BRANCH_LABEL(of_client_interface)
 
 	/* restore r5 - r31 */
 
-	lwz	r5,32(r1)
-	lwz	r6,36(r1)
-	lwz	r7,40(r1)
-	lwz	r8,44(r1)
-	lwz	r9,48(r1)
-	lwz	r10,52(r1)
-	lwz	r11,56(r1)
-	lwz	r12,60(r1)
-	lwz	r13,64(r1)
-	lwz	r14,68(r1)
-	lwz	r15,72(r1)
-	lwz	r16,76(r1)
-	lwz	r17,80(r1)
-	lwz	r18,84(r1)
-	lwz	r19,88(r1)
-	lwz	r20,92(r1)
-	lwz	r21,96(r1)
-	lwz	r22,100(r1)
-	lwz	r23,104(r1)
-	lwz	r24,108(r1)
-	lwz	r25,112(r1)
-	lwz	r26,116(r1)
-	lwz	r27,120(r1)
-	lwz	r28,124(r1)
-	lwz	r29,128(r1)
-	lwz	r30,132(r1)
-	lwz	r31,136(r1)
+    PPC_LL  r5,  (STKOFF +  6 * ULONG_SIZE)(r1)
+    PPC_LL  r6,  (STKOFF +  7 * ULONG_SIZE)(r1)
+    PPC_LL  r7,  (STKOFF +  8 * ULONG_SIZE)(r1)
+    PPC_LL  r8,  (STKOFF +  9 * ULONG_SIZE)(r1)
+    PPC_LL  r9,  (STKOFF + 10 * ULONG_SIZE)(r1)
+    PPC_LL  r10, (STKOFF + 11 * ULONG_SIZE)(r1)
+    PPC_LL  r11, (STKOFF + 12 * ULONG_SIZE)(r1)
+    PPC_LL  r12, (STKOFF + 13 * ULONG_SIZE)(r1)
+    PPC_LL  r13, (STKOFF + 14 * ULONG_SIZE)(r1)
+    PPC_LL  r14, (STKOFF + 15 * ULONG_SIZE)(r1)
+    PPC_LL  r15, (STKOFF + 16 * ULONG_SIZE)(r1)
+    PPC_LL  r16, (STKOFF + 17 * ULONG_SIZE)(r1)
+    PPC_LL  r17, (STKOFF + 18 * ULONG_SIZE)(r1)
+    PPC_LL  r18, (STKOFF + 19 * ULONG_SIZE)(r1)
+    PPC_LL  r19, (STKOFF + 20 * ULONG_SIZE)(r1)
+    PPC_LL  r20, (STKOFF + 21 * ULONG_SIZE)(r1)
+    PPC_LL  r21, (STKOFF + 22 * ULONG_SIZE)(r1)
+    PPC_LL  r22, (STKOFF + 23 * ULONG_SIZE)(r1)
+    PPC_LL  r23, (STKOFF + 24 * ULONG_SIZE)(r1)
+    PPC_LL  r24, (STKOFF + 25 * ULONG_SIZE)(r1)
+    PPC_LL  r25, (STKOFF + 26 * ULONG_SIZE)(r1)
+    PPC_LL  r26, (STKOFF + 27 * ULONG_SIZE)(r1)
+    PPC_LL  r27, (STKOFF + 28 * ULONG_SIZE)(r1)
+    PPC_LL  r28, (STKOFF + 29 * ULONG_SIZE)(r1)
+    PPC_LL  r29, (STKOFF + 30 * ULONG_SIZE)(r1)
+    PPC_LL  r30, (STKOFF + 31 * ULONG_SIZE)(r1)
+    PPC_LL  r31, (STKOFF + 32 * ULONG_SIZE)(r1)
 
 	/* restore ctr, cr and xer */
 
-	lwz	r2,20(r1)
+    PPC_LL  r2,  (STKOFF +  3 * ULONG_SIZE)(r1)
 	mtctr	r2
-	lwz	r2,24(r1)
+    PPC_LL  r2,  (STKOFF +  4 * ULONG_SIZE)(r1)
 	mtcr	r2
-	lwz	r2,28(r1)
+    PPC_LL  r2,  (STKOFF +  5 * ULONG_SIZE)(r1)
 	mtxer	r2
 
 	/* restore r0 and r2 */
 
-	lwz	r2,12(r1)
-	lwz	r0,16(r1)
+    PPC_LL  r2,  (STKOFF +  1 * ULONG_SIZE)(r1)
+    PPC_LL  r0,  (STKOFF +  2 * ULONG_SIZE)(r1)
 
 	/* restore caller stack */
 
-	lwz	r1,8(r1)
+    PPC_LL  r1,  (STKOFF)(r1)
 
-	lwz	r4, 4(r1)
+    PPC_LL  r4, PPC_LR_STKOFF(r1)
 	mtlr	r4
-	lwz	r4, 8(r1)
-	lwz	r1, 0(r1)
+    PPC_LL  r4, STKOFF(r1)
+    PPC_LL  r1, 0(r1)
 
 	blr
 
