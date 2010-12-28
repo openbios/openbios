@@ -11,26 +11,6 @@ extern unsigned long va_shift; // Set in entry.S
 // Defined in ldscript
 extern char _start, _data, _stack, _estack, _end, _vmem, _evmem, _iomem;
 
-static inline unsigned long
-va2pa(unsigned long va)
-{
-    if ((va >= (unsigned long)&_data) &&
-        (va < (unsigned long)&_end))
-        return va - va_shift;
-    else
-        return va;
-}
-
-static inline unsigned long
-pa2va(unsigned long pa)
-{
-    if ((pa + va_shift >= (unsigned long)&_data) &&
-        (pa + va_shift< (unsigned long)&_end))
-        return pa + va_shift;
-    else
-        return pa;
-}
-
 // XXX check use and merge
 #define phys_to_virt(phys) ((void *) ((unsigned long) (phys)))
 #define virt_to_phys(virt) ((unsigned long) (virt))

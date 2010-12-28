@@ -36,6 +36,27 @@ int printk( const char *fmt, ... )
 	return i;
 }
 
+/* Private functions for mapping between physical/virtual addresses */ 
+inline phys_addr_t
+va2pa(unsigned long va)
+{
+    if ((va >= (unsigned long)&_start) &&
+        (va < (unsigned long)&_end))
+        return va - va_shift;
+    else
+        return va;
+}
+
+inline unsigned long
+pa2va(phys_addr_t pa)
+{
+    if ((pa + va_shift >= (unsigned long)&_start) &&
+        (pa + va_shift < (unsigned long)&_end))
+        return pa + va_shift;
+    else
+        return pa;
+}
+
 void *malloc(int size)
 {
 	return ofmem_malloc(size);
