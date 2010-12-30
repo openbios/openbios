@@ -108,7 +108,11 @@ int ofmem_posix_memalign( void **memptr, size_t alignment, size_t size )
 
 	/* waste at most 4K by taking an entry from the freelist */
 	if( *pp && (**pp).size < size + 0x1000 ) {
-		ret = (void *)((uintptr_t)*pp + sizeof(alloc_desc_t));
+		/* Alignment should be on physical not virtual address */
+		pa = va2pa((uintptr_t)*pp + sizeof(alloc_desc_t));
+		pa = align_ptr(pa, alignment);
+		ret = (void *)pa2va(pa);
+
 		memset( ret, 0, (**pp).size - sizeof(alloc_desc_t) );
 		*pp = (**pp).next;
 
