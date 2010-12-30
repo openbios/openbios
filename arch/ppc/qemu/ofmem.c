@@ -180,6 +180,27 @@ void ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t)
 /*	OF private allocations						*/
 /************************************************************************/
 
+/* Private functions for mapping between physical/virtual addresses */
+phys_addr_t
+va2pa(unsigned long va)
+{
+    if (va >= OF_CODE_START && va < OF_CODE_START + OF_CODE_SIZE) {
+        return (phys_addr_t)get_rom_base() - OF_CODE_START + va;
+    } else {
+        return (phys_addr_t)va;
+    }
+}
+
+unsigned long
+pa2va(phys_addr_t pa)
+{
+    if ((pa - get_rom_base() + OF_CODE_START >= OF_CODE_START) &&
+        (pa - get_rom_base() + OF_CODE_START < OF_CODE_START + OF_CODE_SIZE))
+        return (unsigned long)pa - get_rom_base() + OF_CODE_START;
+    else
+        return (unsigned long)pa;
+}
+
 void *
 malloc(int size)
 {
