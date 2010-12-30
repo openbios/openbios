@@ -33,9 +33,9 @@ static inline size_t align_size(size_t x, size_t a)
     return (x + a - 1) & ~(a - 1);
 }
 
-static inline void * align_ptr(uintptr_t x, size_t a)
+static inline phys_addr_t align_ptr(uintptr_t x, size_t a)
 {
-    return (void *)((x + a - 1) & ~(a - 1));
+    return (x + a - 1) & ~(a - 1);
 }
 
 static ucell get_ram_size( void )
@@ -92,6 +92,7 @@ int ofmem_posix_memalign( void **memptr, size_t alignment, size_t size )
 	alloc_desc_t *d, **pp;
 	void *ret;
 	ucell top;
+	phys_addr_t pa;
 
 	if( !size )
 		return ENOMEM;
@@ -117,7 +118,11 @@ int ofmem_posix_memalign( void **memptr, size_t alignment, size_t size )
 
 	top = ofmem_arch_get_heap_top();
 
-	ret = align_ptr((uintptr_t)ofmem->next_malloc + sizeof(alloc_desc_t), alignment);
+	/* Alignment should be on physical not virtual address */
+	pa = va2pa((uintptr_t)ofmem->next_malloc + sizeof(alloc_desc_t));
+	pa = align_ptr(pa, alignment);
+	ret = (void *)pa2va(pa);
+
 	if( pointer2cell(ret) + size > top ) {
 		printk("out of malloc memory (%x)!\n", size );
 		return ENOMEM;
