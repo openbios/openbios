@@ -354,7 +354,7 @@ static void ofmem_update_translations( void )
 	ofmem_t *ofmem = ofmem_arch_get_private();
 
 	ofmem_update_memory_available(s_phandle_memory, ofmem->phys_range, 
-			&phys_range_prop, &phys_range_prop_size, &phys_range_prop_used, get_ram_size());
+			&phys_range_prop, &phys_range_prop_size, &phys_range_prop_used, ofmem_arch_get_phys_top());
 	ofmem_update_memory_available(s_phandle_mmu, ofmem->virt_range, 
 			&virt_range_prop, &virt_range_prop_size, &virt_range_prop_used, -1ULL);
 	ofmem_update_mmu_translations();
@@ -481,7 +481,7 @@ static ucell find_area( ucell align, ucell size, range_t *r,
 }
 
 static phys_addr_t ofmem_claim_phys_( phys_addr_t phys, ucell size, ucell align,
-		ucell min, ucell max, int reverse )
+		phys_addr_t min, phys_addr_t max, int reverse )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	if( !align ) {
@@ -511,7 +511,7 @@ phys_addr_t ofmem_claim_phys( phys_addr_t phys, ucell size, ucell align )
                 " align=" FMT_ucellx "\n",
                 phys, size, align);
 
-	return ofmem_claim_phys_( phys, size, align, 0, get_ram_size(), 0 );
+	return ofmem_claim_phys_( phys, size, align, 0, ofmem_arch_get_phys_top(), 0 );
 }
 
 static ucell ofmem_claim_virt_( ucell virt, ucell size, ucell align,
@@ -591,7 +591,7 @@ ucell ofmem_claim( ucell addr, ucell size, ucell align )
 	} else {
 		if( align < 0x1000 )
 			align = 0x1000;
-		phys = ofmem_claim_phys_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
+		phys = ofmem_claim_phys_( addr, size, align, 0, ofmem_arch_get_phys_top(), 1 /* reverse */ );
 		virt = ofmem_claim_virt_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
 		if( phys == -1 || virt == -1 ) {
 			OFMEM_TRACE("ofmem_claim failed\n");

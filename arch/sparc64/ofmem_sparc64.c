@@ -63,6 +63,13 @@ ucell ofmem_arch_get_virt_top(void)
 	return (ucell)TOP_OF_RAM;
 }
 
+phys_addr_t ofmem_arch_get_phys_top(void)
+{
+	ofmem_t *ofmem = ofmem_arch_get_private();
+
+	return ofmem->ramsize;
+}
+
 retain_t *ofmem_arch_get_retained(void)
 {
 	/* Retained area is at the top of physical RAM */
