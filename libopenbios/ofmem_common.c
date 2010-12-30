@@ -28,9 +28,14 @@
 //#define OFMEM_FILL_RANGE
 
 
-static inline size_t ALIGN_SIZE(size_t x, size_t a)
+static inline size_t align_size(size_t x, size_t a)
 {
-    return (x + a - 1) & ~(a-1);
+    return (x + a - 1) & ~(a - 1);
+}
+
+static inline void * align_ptr(uintptr_t x, size_t a)
+{
+    return (void *)((x + a - 1) & ~(a - 1));
 }
 
 static ucell get_ram_size( void )
@@ -85,7 +90,7 @@ void* ofmem_malloc( size_t size )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	alloc_desc_t *d, **pp;
-	char *ret;
+	void *ret;
 	ucell top;
 
 	if( !size )
@@ -94,7 +99,7 @@ void* ofmem_malloc( size_t size )
 	if( !ofmem->next_malloc )
 		ofmem->next_malloc = (char*)ofmem_arch_get_malloc_base();
 
-	size = ALIGN_SIZE(size + sizeof(alloc_desc_t), CONFIG_OFMEM_MALLOC_ALIGN);
+	size = align_size(size + sizeof(alloc_desc_t), CONFIG_OFMEM_MALLOC_ALIGN);
 
 	/* look in the freelist */
 	for( pp=&ofmem->mfree; *pp && (**pp).size < size; pp = &(**pp).next ) {
@@ -102,7 +107,7 @@ void* ofmem_malloc( size_t size )
 
 	/* waste at most 4K by taking an entry from the freelist */
 	if( *pp && (**pp).size < size + 0x1000 ) {
-		ret = (char*)*pp + sizeof(alloc_desc_t);
+		ret = (void *)((uintptr_t)*pp + sizeof(alloc_desc_t));
 		memset( ret, 0, (**pp).size - sizeof(alloc_desc_t) );
 		*pp = (**pp).next;
 		return ret;
@@ -110,18 +115,18 @@ void* ofmem_malloc( size_t size )
 
 	top = ofmem_arch_get_heap_top();
 
-	if( pointer2cell(ofmem->next_malloc) + size > top ) {
+	ret = align_ptr((uintptr_t)ofmem->next_malloc + sizeof(alloc_desc_t), CONFIG_OFMEM_MALLOC_ALIGN);
+	if( pointer2cell(ret) + size > top ) {
 		printk("out of malloc memory (%x)!\n", size );
 		return NULL;
 	}
 
-	d = (alloc_desc_t*) ofmem->next_malloc;
+	d = (alloc_desc_t*)((uintptr_t)ret - sizeof(alloc_desc_t));
 	ofmem->next_malloc += size;
 
 	d->next = NULL;
 	d->size = size;
 
-	ret = (char*)d + sizeof(alloc_desc_t);
 	memset( ret, 0, size - sizeof(alloc_desc_t) );
 
 	return ret;
