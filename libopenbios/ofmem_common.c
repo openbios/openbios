@@ -86,7 +86,7 @@ print_trans( void )
 /* OF private allocations                                               */
 /************************************************************************/
 
-void* ofmem_malloc( size_t size )
+int ofmem_posix_memalign( void **memptr, size_t alignment, size_t size )
 {
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	alloc_desc_t *d, **pp;
@@ -94,12 +94,12 @@ void* ofmem_malloc( size_t size )
 	ucell top;
 
 	if( !size )
-		return NULL;
+		return ENOMEM;
 
 	if( !ofmem->next_malloc )
 		ofmem->next_malloc = (char*)ofmem_arch_get_malloc_base();
 
-	size = align_size(size + sizeof(alloc_desc_t), CONFIG_OFMEM_MALLOC_ALIGN);
+	size = align_size(size + sizeof(alloc_desc_t), alignment);
 
 	/* look in the freelist */
 	for( pp=&ofmem->mfree; *pp && (**pp).size < size; pp = &(**pp).next ) {
@@ -110,15 +110,17 @@ void* ofmem_malloc( size_t size )
 		ret = (void *)((uintptr_t)*pp + sizeof(alloc_desc_t));
 		memset( ret, 0, (**pp).size - sizeof(alloc_desc_t) );
 		*pp = (**pp).next;
-		return ret;
+
+		*memptr = ret;
+		return 0;
 	}
 
 	top = ofmem_arch_get_heap_top();
 
-	ret = align_ptr((uintptr_t)ofmem->next_malloc + sizeof(alloc_desc_t), CONFIG_OFMEM_MALLOC_ALIGN);
+	ret = align_ptr((uintptr_t)ofmem->next_malloc + sizeof(alloc_desc_t), alignment);
 	if( pointer2cell(ret) + size > top ) {
 		printk("out of malloc memory (%x)!\n", size );
-		return NULL;
+		return ENOMEM;
 	}
 
 	d = (alloc_desc_t*)((uintptr_t)ret - sizeof(alloc_desc_t));
@@ -129,7 +131,23 @@ void* ofmem_malloc( size_t size )
 
 	memset( ret, 0, size - sizeof(alloc_desc_t) );
 
-	return ret;
+	*memptr = ret;
+	return 0;
+}
+
+void* ofmem_malloc( size_t size )
+{
+	void *memptr;
+	int res;
+	
+	res = ofmem_posix_memalign( &memptr, CONFIG_OFMEM_MALLOC_ALIGN, size );
+	if (!res) {
+		/* Success */
+		return memptr;
+	} else {
+		/* Failure */
+		return NULL;
+	}
 }
 
 void ofmem_free( void *ptr )

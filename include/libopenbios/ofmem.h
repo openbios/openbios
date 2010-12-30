@@ -80,6 +80,7 @@ extern phys_addr_t va2pa(unsigned long va);
 extern unsigned long pa2va(phys_addr_t pa);
 				      
 /* malloc interface */
+extern int ofmem_posix_memalign( void **memptr, size_t alignment, size_t size );
 extern void* ofmem_malloc( size_t size );
 extern void  ofmem_free( void *ptr );
 extern void* ofmem_realloc( void *ptr, size_t size );
