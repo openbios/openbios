@@ -511,7 +511,7 @@ phys_addr_t ofmem_claim_phys( phys_addr_t phys, ucell size, ucell align )
                 " align=" FMT_ucellx "\n",
                 phys, size, align);
 
-	return ofmem_claim_phys_( phys, size, align, 0, ofmem_arch_get_phys_top(), 0 );
+	return ofmem_claim_phys_( phys, size, align, 0, ofmem_arch_get_phys_top(), 1 );
 }
 
 static ucell ofmem_claim_virt_( ucell virt, ucell size, ucell align,
@@ -544,7 +544,7 @@ ucell ofmem_claim_virt( ucell virt, ucell size, ucell align )
 
 	/* printk("+ ofmem_claim virt %08lx %lx %ld\n", virt, size, align ); */
 	return ofmem_claim_virt_( virt, size, align,
-			get_ram_size(), ofmem_arch_get_virt_top(), 0 );
+			get_ram_size(), ofmem_arch_get_virt_top(), 1 );
 }
 
 /* if align != 0, phys is ignored. Returns -1 on error */
