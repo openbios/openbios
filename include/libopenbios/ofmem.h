@@ -76,8 +76,8 @@ extern int      	ofmem_map_page_range( phys_addr_t phys, ucell virt, ucell size,
                                       ucell mode );
 
 /* Private functions for mapping between physical/virtual addresses */ 
-extern inline phys_addr_t va2pa(unsigned long va);
-extern inline unsigned long pa2va(phys_addr_t pa);
+extern phys_addr_t va2pa(unsigned long va);
+extern unsigned long pa2va(phys_addr_t pa);
 				      
 /* malloc interface */
 extern void* ofmem_malloc( size_t size );

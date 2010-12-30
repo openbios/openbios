@@ -37,7 +37,7 @@ int printk( const char *fmt, ... )
 }
 
 /* Private functions for mapping between physical/virtual addresses */ 
-inline phys_addr_t
+phys_addr_t
 va2pa(unsigned long va)
 {
     if ((va >= (unsigned long)&_start) &&
@@ -47,7 +47,7 @@ va2pa(unsigned long va)
         return va;
 }
 
-inline unsigned long
+unsigned long
 pa2va(phys_addr_t pa)
 {
     if ((pa + va_shift >= (unsigned long)&_start) &&
