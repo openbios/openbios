@@ -273,7 +273,7 @@ find_pte(unsigned long va, int alloc)
     pte = l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)];
     if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
         if (alloc) {
-            ret = posix_memalign(&p, SRMMU_PTRS_PER_PMD * sizeof(int),
+            ret = ofmem_posix_memalign(&p, SRMMU_PTRS_PER_PMD * sizeof(int),
                                  SRMMU_PTRS_PER_PMD * sizeof(int));
             if (ret != 0)
                 return ret;
@@ -290,7 +290,7 @@ find_pte(unsigned long va, int alloc)
     pte = *(uint32_t *)pa2va(pa);
     if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
         if (alloc) {
-            ret = posix_memalign(&p, SRMMU_PTRS_PER_PTE * sizeof(void *),
+            ret = ofmem_posix_memalign(&p, SRMMU_PTRS_PER_PTE * sizeof(void *),
                                  SRMMU_PTRS_PER_PTE * sizeof(void *));
             if (ret != 0)
                 return ret;
@@ -602,9 +602,9 @@ init_mmu_swift(void)
     mem_init(&cmem, (char *) &_vmem, (char *)&_evmem);
     mem_init(&cio, (char *)&_end, (char *)&_iomem);
 
-    posix_memalign((void *)&context_table, NCTX_SWIFT * sizeof(int),
+    ofmem_posix_memalign((void *)&context_table, NCTX_SWIFT * sizeof(int),
                    NCTX_SWIFT * sizeof(int));
-    posix_memalign((void *)&l1, 256 * sizeof(int), 256 * sizeof(int));
+    ofmem_posix_memalign((void *)&l1, 256 * sizeof(int), 256 * sizeof(int));
 
     context_table[0] = (((unsigned long)va2pa((unsigned long)l1)) >> 4) |
         SRMMU_ET_PTD;

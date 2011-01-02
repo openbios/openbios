@@ -21,8 +21,7 @@
 
 #define OF_MALLOC_BASE		((char*)OFMEM + ALIGN_SIZE(sizeof(ofmem_t), 8))
 
-/* Temporarily very small */
-#define MEMSIZE (1 * 1024)
+#define MEMSIZE (256 * 1024)
 static union {
 	char memory[MEMSIZE];
 	ofmem_t ofmem;
