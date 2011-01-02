@@ -53,7 +53,7 @@ dvma_alloc(int size, unsigned int *pphys)
     int ret;
 
     npages = (size + (PAGE_SIZE-1)) / PAGE_SIZE;
-    ret = posix_memalign(&va, npages * PAGE_SIZE, PAGE_SIZE);
+    ret = ofmem_posix_memalign(&va, npages * PAGE_SIZE, PAGE_SIZE);
     if (ret != 0)
         return NULL;
 
@@ -132,7 +132,7 @@ iommu_init(struct iommu *t, uint64_t base)
     /* Allocate IOMMU page table */
     /* Tremendous alignment causes great waste... */
     ptsize = (vasize / PAGE_SIZE) * sizeof(int);
-    ret = posix_memalign((void *)&ptab, ptsize, ptsize);
+    ret = ofmem_posix_memalign((void *)&ptab, ptsize, ptsize);
     if (ret != 0) {
         DPRINTF("Cannot allocate IOMMU table [0x%x]\n", ptsize);
         for (;;) { }

@@ -19,7 +19,6 @@
 extern void	*malloc( int size );
 extern void	free( void *ptr );
 extern void	*realloc( void *ptr, size_t size );
-extern int      posix_memalign(void **memptr, size_t alignment, size_t size);
 
 /* should perhaps go somewhere else... */
 extern void	qsort( void *base, size_t nmemb, size_t size, int (*compar)(const void*, const void*));

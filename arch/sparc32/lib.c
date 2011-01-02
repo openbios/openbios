@@ -216,21 +216,6 @@ realloc( void *ptr, size_t size )
 	return p;
 }
 
-// XXX should be removed
-int
-posix_memalign(void **memptr, size_t alignment, size_t size)
-{
-    void *block;
-
-    block = mem_alloc(&cmem, size, alignment);
-
-    if (!block)
-        return -1;
-
-    *memptr = block;
-    return 0;
-}
-
 /*
  * Allocate memory. This is reusable.
  */
