@@ -25,6 +25,7 @@
 #include "packages/video.h"
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
+#include "libopenbios/ofmem.h"
 
 #define MEMORY_SIZE     (16*1024)       /* 16K ram for hosted system */
 #define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
@@ -945,6 +946,9 @@ int openbios(void)
         }
         if (!hwdef)
             for(;;); // Internal inconsistency, hang
+
+        /* Make sure we setup OFMEM before the MMU as we need malloc() to setup page tables */
+        ofmem_init();
 
 #ifdef CONFIG_DRIVER_SBUS
         init_mmu_swift();
