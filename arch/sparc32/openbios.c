@@ -26,7 +26,7 @@
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
 
-#define MEMORY_SIZE     (128*1024)       /* 16K ram for hosted system */
+#define MEMORY_SIZE     (16*1024)       /* 16K ram for hosted system */
 #define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 #define FW_CFG_SUN4M_DEPTH   (FW_CFG_ARCH_LOCAL + 0x00)

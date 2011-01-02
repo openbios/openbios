@@ -12,8 +12,8 @@ BASE_ADDR = 0xffd00000;
 
 /* 16KB stack */
 STACK_SIZE = 16384;
-/* 256k general alloc + 256k Forth dictionary + 128k Forth memory */
-VMEM_SIZE = (256 + 256 + 128) * 1024;
+/* 256k general alloc + 256k Forth dictionary + 16k Forth memory */
+VMEM_SIZE = (256 + 256 + 16) * 1024;
 IOMEM_SIZE = 256 * 1024 + 768 * 1024;
 
 SECTIONS
