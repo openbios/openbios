@@ -26,6 +26,8 @@ typedef int             int32_t;
 typedef long long       int64_t;
 typedef long            intptr_t;
 
+#define PRId32 "d"
+#define PRIu32 "u"
 #define PRIx32 "x"
 #define PRIx64 "llx"
 #endif
@@ -46,8 +48,8 @@ typedef uint32_t	ucell;
 typedef long long       dcell;
 typedef unsigned long long ducell;
 
-#define FMT_cell    "%ld"
-#define FMT_ucell   "%lu"
+#define FMT_cell    "%" PRId32
+#define FMT_ucell   "%" PRIu32
 #define FMT_ucellx  "%08x"
 #define FMT_ucellX  "%08X"
 
