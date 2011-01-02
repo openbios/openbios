@@ -126,6 +126,7 @@
      <xsl:text> -I$(ODIR)/forth</xsl:text>
      
      <xsl:text> -D $@</xsl:text>
+     <xsl:text> -M $@.d</xsl:text>
      <xsl:if test="$init!=''">
       <xsl:text> -d $(ODIR)/</xsl:text><xsl:value-of select="$init"/><xsl:text>.dict</xsl:text>
      </xsl:if>

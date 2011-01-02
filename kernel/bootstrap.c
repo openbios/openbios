@@ -69,6 +69,7 @@ struct include_path {
 };
 
 static include includes = { ".", NULL };
+static FILE *depfile;
 
 static ucell * relocation_address=NULL;
 static int     relocation_length=0;
@@ -464,6 +465,10 @@ static FILE *fopen_include(const char *fil)
                         srcfilenames[cursrc] = strdup(fil);
 			srclines [ cursrc ] = 1;
 			srcfiles [ cursrc++ ] = ret;
+
+                        if (depfile) {
+                                fprintf(depfile, " %s", fullpath);
+                        }
 
 			return ret;
 		}
@@ -1025,7 +1030,9 @@ static void new_dictionary(const char *source)
 		"			write to output.dict\n"		\
 		"   -c|--console output.log\n"		\
 		"			write kernel console output to log file\n"	\
-		"   -s|--segfault	install segfault handler\n\n"
+		"   -s|--segfault	install segfault handler\n"     \
+                "   -M|--dependency-dump file\n"                         \
+                "                       dump dependencies in Makefile format\n\n"
 #else
 #define USAGE   "Usage: %s [options] [dictionary file|source file]\n\n" \
 		"   -h		show this help\n"		\
@@ -1039,7 +1046,7 @@ static void new_dictionary(const char *source)
 		"   -c output.log\n"		\
 		"		write kernel console output to log file\n"	\
 		"   -s		install segfault handler\n\n"
-
+                "   -M file     dump dependencies in Makefile format\n\n"
 #endif
 
 int main(int argc, char *argv[])
@@ -1050,11 +1057,12 @@ int main(int argc, char *argv[])
 	char *dictname = NULL;
 	char *basedict = NULL;
 	char *consolefile = NULL;
+        char *depfilename = NULL;
 
 	unsigned char *bootstrapdict[2];
 	int c, cnt;
 
-	const char *optstring = "VvhsI:d:D:c:?";
+        const char *optstring = "VvhsI:d:D:c:M:?";
 
 	while (1) {
 #ifdef __GLIBC__
@@ -1068,6 +1076,7 @@ int main(int argc, char *argv[])
 			{"source-dictionary", 1, NULL, 'd'},
 			{"target-dictionary", 1, NULL, 'D'},
 			{"console", 1, NULL, 'c'},
+                        {"dependency-dump", 1, NULL, 'M'},
 		};
 
 		/*
@@ -1118,6 +1127,11 @@ int main(int argc, char *argv[])
 				consolefile = optarg;
 			}
 			break;
+                case 'M':
+                        if (!depfilename) {
+                                depfilename = optarg;
+                        }
+                        break;
 		default:
 			return 1;
 		}
@@ -1127,6 +1141,7 @@ int main(int argc, char *argv[])
                 printk(BANNER);
                 printk("Using source dictionary '%s'\n", basedict);
                 printk("Dumping final dictionary to '%s'\n", dictname);
+                printk("Dumping dependencies to '%s'\n", depfilename);
         }
 
 	if (argc < optind + 1) {
@@ -1134,6 +1149,15 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+        if (depfilename) {
+            depfile = fopen(depfilename, "w");
+            if (!depfile) {
+                printk("panic: can't write to dependency file '%s'.\n",
+                       depfilename);
+                exit(1);
+            }
+            fprintf(depfile, "%s:", dictname);
+        }
 
 	/*
 	 * Get all required resources
@@ -1203,6 +1227,11 @@ int main(int argc, char *argv[])
 
 			run_dictionary(basedict, consolefile);
 		}
+                if (depfile) {
+                        fprintf(depfile, "\n");
+                        fclose(depfile);
+                        depfile = NULL;
+                }
 		if(errors)
 			break;
 	}

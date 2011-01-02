@@ -77,4 +77,4 @@ build: all
 include rules.mak
 
 # Include automatically generated dependency files
--include $(wildcard $(ODIR)/host/kernel/*.d $(ODIR)/target/*/*.d $(ODIR)/target/*/*/*.d $(ODIR)/target/*/*/*/*.d)
+-include $(wildcard $(ODIR)/*.d $(ODIR)/host/kernel/*.d $(ODIR)/target/*/*.d $(ODIR)/target/*/*/*.d $(ODIR)/target/*/*/*/*.d)
