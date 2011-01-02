@@ -190,49 +190,41 @@ find_pte(unsigned long va, int alloc)
     return pa2va(pa);
 }
 
-/*
- * Create a memory mapping from va to epa.
- */
-int
-map_page(unsigned long va, uint64_t epa, int type)
+void
+map_pages(phys_addr_t phys, unsigned long virt,
+		  unsigned long size, unsigned long mode)
 {
+    unsigned long npages, off;
     uint32_t pte;
     unsigned long pa;
 
-    pa = find_pte(va, 1);
+    DPRINTF("map_pages: va 0x%lx, pa 0x%llx, size 0x%lx\n", virt, phys, size);
 
-    pte = SRMMU_ET_PTE | ((epa & PAGE_MASK) >> 4);
-    if (type) {         /* I/O */
-        pte |= SRMMU_REF;
-        /* SRMMU cannot make Supervisor-only, but not exectutable */
-        pte |= SRMMU_PRIV;
-    } else {            /* memory */
-        pte |= SRMMU_REF | SRMMU_CACHE;
-        pte |= SRMMU_PRIV; /* Supervisor only access */
-    }
-    *(uint32_t *)pa = pte;
-    DPRINTF("map_page: va 0x%lx pa 0x%llx pte 0x%x\n", va, epa, pte);
-
-    return 0;
-}
-
-static void map_pages(unsigned long va, uint64_t pa, int type,
-                      unsigned long size)
-{
-    unsigned long npages, off;
-
-    DPRINTF("map_pages: va 0x%lx, pa 0x%llx, size 0x%lx\n", va, pa, size);
-
-    off = pa & (PAGE_SIZE - 1);
+    off = phys & (PAGE_SIZE - 1);
     npages = (off + (size - 1) + (PAGE_SIZE - 1)) / PAGE_SIZE;
-    pa &= ~(uint64_t)(PAGE_SIZE - 1);
+    phys &= ~(uint64_t)(PAGE_SIZE - 1);
 
     while (npages-- != 0) {
-        map_page(va, pa, type);
-        va += PAGE_SIZE;
-        pa += PAGE_SIZE;
+        pa = find_pte(virt, 1);
+
+        pte = SRMMU_ET_PTE | ((phys & PAGE_MASK) >> 4);
+
+	if (mode) {         /* I/O */
+            pte |= SRMMU_REF;
+            /* SRMMU cannot make Supervisor-only, but not exectutable */
+            pte |= SRMMU_PRIV;
+        } else {            /* memory */
+            pte |= SRMMU_REF | SRMMU_CACHE;
+            pte |= SRMMU_PRIV; /* Supervisor only access */
+        }
+
+        *(uint32_t *)pa = pte;
+
+        virt += PAGE_SIZE;
+        phys += PAGE_SIZE;
     }
 }
+
 /*
  * Create an I/O mapping to pa[size].
  * Returns va of the mapping or 0 if unsuccessful.
@@ -252,7 +244,7 @@ map_io(uint64_t pa, int size)
     if (va == 0)
         return NULL;
 
-    map_pages(va, pa, 1, npages * PAGE_SIZE);
+    map_pages(pa, va, npages * PAGE_SIZE, 1);
     return (void *)(va + off);
 }
 
@@ -312,7 +304,7 @@ ob_map_pages(void)
     pa <<= 32;
     pa |= POP() & 0xffffffff;
 
-    map_pages(va, pa, 0, size);
+    map_pages(pa, va, size, 0);
     DPRINTF("map-page: va 0x%lx pa 0x%llx size 0x%x\n", va, pa, size);
 }
 
@@ -370,7 +362,7 @@ char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
 {
     uint64_t mpa = ((uint64_t)which_io << 32) | (uint64_t)pa;
 
-    map_pages((unsigned long)va, mpa, 0, size);
+    map_pages(mpa, (unsigned long)va, size, 0);
     return va;
 }
 
@@ -410,7 +402,7 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
         DPRINTF("obp_dumb_memalloc req null -> 0x%p\n", va);
     }
 
-    map_pages((unsigned long)va, totavail[0].num_bytes, 0, size);
+    map_pages(totavail[0].num_bytes, (unsigned long)va, size, 0);
 
     update_memory_properties();
 
@@ -481,6 +473,7 @@ init_mmu_swift(void)
 {
     unsigned int addr, i;
     unsigned long pa, va;
+    int size;
 
     mem_init(&cmem, (char *) &_vmem, (char *)&_evmem);
     mem_init(&cio, (char *)&_end, (char *)&_iomem);
@@ -501,16 +494,12 @@ init_mmu_swift(void)
 
     // text, rodata, data, and bss mapped to end of RAM
     va = (unsigned long)&_start;
-    for (; va < (unsigned long)&_end; va += PAGE_SIZE) {
-        pa = va2pa(va);
-        map_page(va, pa, 0);
-    }
+    size = (unsigned long)&_end - (unsigned long)&_start;
+    pa = va2pa(va);
+    map_pages(pa, va, size, 0);
 
     // 1:1 mapping for RAM
-    pa = va = 0;
-    for (; va < LOWMEMSZ; va += PAGE_SIZE, pa += PAGE_SIZE) {
-        map_page(va, pa, 0);
-    }
+    map_pages(0, 0, LOWMEMSZ, 0);
 
     /*
      * Flush cache

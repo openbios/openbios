@@ -68,11 +68,7 @@ dvma_alloc(int size, unsigned int *pphys)
      */
     mva = (unsigned int) va;
     mpa = (unsigned int) pa;
-    for (i = 0; i < npages; i++) {
-        map_page(mva, mpa, 1);
-        mva += PAGE_SIZE;
-        mpa += PAGE_SIZE;
-    }
+    map_pages(mpa, mva, npages * PAGE_SIZE, 1);
 
     /*
      * Map into IOMMU page table.
