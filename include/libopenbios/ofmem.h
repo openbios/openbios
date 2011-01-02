@@ -46,6 +46,7 @@ typedef struct {
 
 	range_t			*phys_range;
 	range_t			*virt_range;
+	range_t			*io_range;
 
 	translation_t	*trans;		/* this is really a translation_t */
 } ofmem_t;
@@ -63,6 +64,8 @@ extern void*    	ofmem_arch_get_malloc_base(void);
 extern ucell    	ofmem_arch_get_heap_top(void);
 extern ucell    	ofmem_arch_get_virt_top(void);
 extern phys_addr_t 	ofmem_arch_get_phys_top(void);
+extern ucell		ofmem_arch_get_iomem_base(void);
+extern ucell		ofmem_arch_get_iomem_top(void);
 extern retain_t*	ofmem_arch_get_retained(void);
 extern int			ofmem_arch_get_physaddr_cellsize(void);
 extern int			ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value);
@@ -104,25 +107,27 @@ extern void ofmem_register( phandle_t ph_memory, phandle_t ph_mmu );
 extern ucell ofmem_claim( ucell addr, ucell size, ucell align );
 extern phys_addr_t ofmem_claim_phys( phys_addr_t mphys, ucell size, ucell align );
 extern ucell ofmem_claim_virt( ucell mvirt, ucell size, ucell align );
+extern ucell ofmem_claim_io( ucell virt, ucell size, ucell align );
 
 extern phys_addr_t ofmem_retain( phys_addr_t phys, ucell size, ucell align );
 
 extern int   ofmem_map( phys_addr_t phys, ucell virt, ucell size, ucell mode );
 extern int   ofmem_unmap( ucell virt, ucell size );
+extern ucell ofmem_map_io( phys_addr_t phys, ucell size );
 
 extern void  ofmem_release( ucell virt, ucell size );
 extern void  ofmem_release_phys( phys_addr_t phys, ucell size );
 extern void  ofmem_release_virt( ucell virt, ucell size );
 extern phys_addr_t ofmem_translate( ucell virt, ucell *ret_mode );
 
-#ifdef CONFIG_PPC
+/* Currently the same for all architectures */
 #define PAGE_SHIFT   12
 
+#ifdef CONFIG_PPC
 unsigned long get_ram_top( void );
 unsigned long get_ram_bottom( void );
 
 #elif defined(CONFIG_SPARC32)
-#define PAGE_SHIFT   12
 
 /* arch/sparc32/lib.c */
 struct mem;

@@ -132,6 +132,18 @@ void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell 
     /* none yet */
 }
 
+ucell ofmem_arch_get_iomem_base(void)
+{
+    /* Currently unused */
+    return 0;
+}
+
+ucell ofmem_arch_get_iomem_top(void)
+{
+    /* Currently unused */
+    return 0;
+}
+
 retain_t *ofmem_arch_get_retained(void)
 {
     /* not implemented */

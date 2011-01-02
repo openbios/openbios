@@ -70,6 +70,18 @@ phys_addr_t ofmem_arch_get_phys_top(void)
 	return ofmem->ramsize;
 }
 
+ucell ofmem_arch_get_iomem_base(void)
+{
+	/* Currently unused */
+	return 0;
+}
+
+ucell ofmem_arch_get_iomem_top(void)
+{
+	/* Currently unused */
+	return 0;
+}
+
 retain_t *ofmem_arch_get_retained(void)
 {
 	/* Retained area is at the top of physical RAM */

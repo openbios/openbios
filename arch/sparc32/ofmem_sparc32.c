@@ -71,6 +71,16 @@ phys_addr_t ofmem_arch_get_phys_top(void)
 	return (uintptr_t)ofmem->ramsize - 0x1000000;
 }
 
+ucell ofmem_arch_get_iomem_base(void)
+{
+	return pointer2cell(&_end);
+}
+
+ucell ofmem_arch_get_iomem_top(void)
+{
+	return pointer2cell(&_iomem);
+}
+
 retain_t *ofmem_arch_get_retained(void)
 {
 	/* Not used */

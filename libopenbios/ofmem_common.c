@@ -551,6 +551,35 @@ ucell ofmem_claim_virt( ucell virt, ucell size, ucell align )
 			get_ram_size(), ofmem_arch_get_virt_top(), 1 );
 }
 
+static ucell ofmem_claim_io_( ucell virt, ucell size, ucell align,
+		ucell min, ucell max, int reverse )
+{
+	ofmem_t *ofmem = ofmem_arch_get_private();
+	if( !align ) {
+		if( !is_free( virt, size, ofmem->io_range ) ) {
+			OFMEM_TRACE("Non-free I/O memory claimed!\n");
+			return -1;
+		}
+		add_entry( virt, size, &ofmem->io_range );
+		return virt;
+	}
+
+	virt = find_area( align, size, ofmem->io_range, min, max, reverse );
+	if( virt == -1 ) {
+		printk("ofmem_claim_io - out of space (failed request for " FMT_ucellx " bytes)\n", size);
+		return -1;
+	}
+	add_entry( virt, size, &ofmem->io_range );
+	return virt;
+}
+
+ucell ofmem_claim_io( ucell virt, ucell size, ucell align )
+{
+	/* Claim a section of memory from the I/O range */
+	return ofmem_claim_io_( virt, size, align,
+			ofmem_arch_get_iomem_base(), ofmem_arch_get_iomem_top(), 0 );
+}
+
 /* if align != 0, phys is ignored. Returns -1 on error */
 phys_addr_t ofmem_retain( phys_addr_t phys, ucell size, ucell align )
 {
@@ -795,6 +824,29 @@ int ofmem_unmap( ucell virt, ucell size )
 	unmap_page_range(virt, size);
 
 	return 0;
+}
+
+ucell ofmem_map_io( phys_addr_t phys, ucell size )
+{
+	/* Claim virtual memory from the I/O range and map the page-aligned
+	   physical address phys to it, returning the newly allocated
+	   virtual address */
+	ucell virt, mode;
+	phys_addr_t off;
+	int npages;
+
+	off = phys & (PAGE_SIZE - 1);
+	npages = (off + size - 1) / PAGE_SIZE + 1;
+	phys &= ~(PAGE_SIZE - 1);
+
+	virt = ofmem_claim_io(-1, npages * PAGE_SIZE, PAGE_SIZE);
+
+	mode = ofmem_arch_io_translation_mode(off);
+
+	ofmem_map_page_range(phys, virt, npages * PAGE_SIZE, mode);
+	ofmem_arch_early_map_pages(phys, virt, npages * PAGE_SIZE, mode);
+
+	return (virt + off);
 }
 
 /* virtual -> physical. */
