@@ -71,7 +71,7 @@ map_reg(uint64_t base, uint64_t offset, unsigned long size, int map,
     if (map) {
         unsigned long addr;
 
-        addr = (unsigned long)map_io(base + offset, size);
+        addr = (unsigned long)ofmem_map_io(base + offset, size);
 
         PUSH(addr);
         fword("encode-int");
@@ -251,7 +251,7 @@ ob_aux2_reset_init(uint64_t base, uint64_t offset, int intr)
     power_reg = (void *)ob_reg(base, offset, AUXIO2_REGS, 1);
 
     // Not in device tree
-    reset_reg = map_io(base + (uint64_t)SLAVIO_RESET, RESET_REGS);
+    reset_reg = (unsigned int *)ofmem_map_io(base + (uint64_t)SLAVIO_RESET, RESET_REGS);
 
     bind_func("sparc32-reset-all", sparc32_reset_all);
     push_str("' sparc32-reset-all to reset-all");
@@ -297,7 +297,7 @@ ob_counter_init(uint64_t base, unsigned long offset)
     fword("property");
 
 
-    counter_regs = map_io(base + (uint64_t)offset, sizeof(*counter_regs));
+    counter_regs = (struct sun4m_timer_regs *)ofmem_map_io(base + (uint64_t)offset, sizeof(*counter_regs));
     counter_regs->cfg = 0xffffffff;
     counter_regs->l10_timer_limit = (((1000000/100) + 1) << 10);
     counter_regs->cpu_timers[0].l14_timer_limit = 0;
@@ -352,7 +352,7 @@ ob_interrupt_init(uint64_t base, unsigned long offset)
     push_str("reg");
     fword("property");
 
-    intregs = map_io(base | (uint64_t)offset, sizeof(*intregs));
+    intregs = (struct sun4m_intregs *)ofmem_map_io(base | (uint64_t)offset, sizeof(*intregs));
     intregs->clear = ~SUN4M_INT_MASKALL;
     intregs->cpu_intregs[0].clear = ~0x17fff;
 
@@ -403,7 +403,7 @@ static void
 ob_smp_init(unsigned long mem_size)
 {
     // See arch/sparc32/entry.S for memory layout
-    smp_header = (struct smp_cfg *)map_io((uint64_t)(mem_size - 0x100),
+    smp_header = (struct smp_cfg *)ofmem_map_io((uint64_t)(mem_size - 0x100),
                                           sizeof(struct smp_cfg));
 }
 

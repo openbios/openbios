@@ -105,7 +105,7 @@ static void uart_init_line(volatile unsigned char *port, unsigned long baud)
 int uart_init(phys_addr_t port, unsigned long speed)
 {
 #ifdef CONFIG_DRIVER_ESCC_SUN
-    serial_dev = map_io(port & ~7ULL, ZS_REGS);
+    serial_dev = (unsigned char *)ofmem_map_io(port & ~7ULL, ZS_REGS);
     serial_dev += port & 7ULL;
 #else
     serial_dev = (unsigned char *)(uintptr_t)port;
@@ -213,7 +213,7 @@ static volatile unsigned char *kbd_dev;
 
 void kbd_init(phys_addr_t base)
 {
-    kbd_dev = map_io(base, 2 * 4);
+    kbd_dev = (unsigned char *)ofmem_map_io(base, 2 * 4);
     kbd_dev += 4;
 }
 

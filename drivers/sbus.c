@@ -49,7 +49,7 @@ ob_sbus_node_init(uint64_t base)
     push_str("reg");
     fword("property");
 
-    regs = map_io(base, SBUS_REGS);
+    regs = (void *)ofmem_map_io(base, SBUS_REGS);
     PUSH((unsigned long)regs);
     fword("encode-int");
     push_str("address");

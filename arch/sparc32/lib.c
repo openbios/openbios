@@ -218,29 +218,6 @@ map_pages(phys_addr_t phys, unsigned long virt,
 }
 
 /*
- * Create an I/O mapping to pa[size].
- * Returns va of the mapping or 0 if unsuccessful.
- */
-void *
-map_io(uint64_t pa, int size)
-{
-    unsigned long va;
-    unsigned int npages;
-    unsigned int off;
-
-    off = pa & (PAGE_SIZE - 1);
-    npages = (off + size - 1) / PAGE_SIZE + 1;
-    pa &= ~(PAGE_SIZE - 1);
-
-    va = (unsigned long)mem_alloc(&cio, npages * PAGE_SIZE, PAGE_SIZE);
-    if (va == 0)
-        return NULL;
-
-    map_pages(pa, va, npages * PAGE_SIZE, ofmem_arch_io_translation_mode(pa));
-    return (void *)(va + off);
-}
-
-/*
  * D5.3 pgmap@ ( va -- pte )
  */
 static void
@@ -371,7 +348,7 @@ void ofmem_arch_unmap_pages(ucell virt, ucell size)
 
 void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
 {
-    /* Currently do nothing */
+    map_pages(phys, virt, size, mode);
 }
 
 char *obp_dumb_memalloc(char *va, unsigned int size)

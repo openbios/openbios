@@ -103,7 +103,7 @@ iommu_init(struct iommu *t, uint64_t base)
     int ret;
     unsigned long vasize;
 
-    regs = map_io(base, IOMMU_REGS);
+    regs = (struct iommu_regs *)ofmem_map_io(base, IOMMU_REGS);
     if (regs == NULL) {
         DPRINTF("Cannot map IOMMU\n");
         for (;;) { }

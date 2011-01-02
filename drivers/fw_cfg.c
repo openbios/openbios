@@ -65,7 +65,7 @@ void
 fw_cfg_init(void)
 {
 #if defined(CONFIG_SPARC32)
-    fw_cfg_cmd = (void *)map_io(CONFIG_FW_CFG_ADDR, 2);
+    fw_cfg_cmd = (void *)ofmem_map_io(CONFIG_FW_CFG_ADDR, 2);
     fw_cfg_data = (uint8_t *)fw_cfg_cmd + 2;
 #elif defined(CONFIG_SPARC64)
     // Nothing for the port version

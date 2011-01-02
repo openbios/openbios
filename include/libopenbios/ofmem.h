@@ -136,7 +136,6 @@ extern struct mem cdvmem;
 void mem_init(struct mem *t, char *begin, char *limit);
 void *mem_alloc(struct mem *t, int size, int align);
 void map_pages(phys_addr_t phys, unsigned long virt, unsigned long size, unsigned long mode);
-void *map_io(uint64_t pa, int size);
 #endif
 
 #ifdef PAGE_SHIFT

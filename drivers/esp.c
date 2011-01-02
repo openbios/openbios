@@ -311,7 +311,7 @@ static int
 espdma_init(unsigned int slot, uint64_t base, unsigned long offset,
             struct esp_dma *espdma)
 {
-    espdma->regs = (void *)map_io(base + (uint64_t)offset, 0x10);
+    espdma->regs = (void *)ofmem_map_io(base + (uint64_t)offset, 0x10);
 
     if (espdma->regs == NULL) {
         DPRINTF("espdma_init: cannot map registers\n");
@@ -445,7 +445,7 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
         return -1;
     }
     /* Get the IO region */
-    esp->ll = (void *)map_io(base + (uint64_t)espoffset,
+    esp->ll = (void *)ofmem_map_io(base + (uint64_t)espoffset,
                              sizeof(struct esp_regs));
     if (esp->ll == NULL) {
         DPRINTF("Can't map ESP registers\n");
