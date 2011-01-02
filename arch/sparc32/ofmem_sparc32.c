@@ -123,6 +123,11 @@ ucell ofmem_arch_default_translation_mode( phys_addr_t phys )
 	return SRMMU_REF | SRMMU_CACHE | SRMMU_PRIV;
 }
 
+ucell ofmem_arch_io_translation_mode( phys_addr_t phys )
+{
+	return SRMMU_REF | SRMMU_PRIV;
+}
+
 /************************************************************************/
 /* init / cleanup                                                       */
 /************************************************************************/

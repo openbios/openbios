@@ -239,6 +239,10 @@ ucell ofmem_arch_default_translation_mode(phys_addr_t phys)
     return 0x6a;		/* WIm GxPp, I/O */
 }
 
+ucell ofmem_arch_io_translation_mode(phys_addr_t phys)
+{
+    return 0x6a;		/* WIm GxPp, I/O */
+}
 
 /************************************************************************/
 /*	page fault handler						*/

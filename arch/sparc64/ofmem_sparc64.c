@@ -120,8 +120,11 @@ ucell ofmem_arch_default_translation_mode( phys_addr_t phys )
 	return SPITFIRE_TTE_CP | SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE;
 }
 
-
-
+ucell ofmem_arch_io_translation_mode( phys_addr_t phys )
+{
+	/* Writable, not privileged and not locked */
+	return SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE;
+}
 
 /************************************************************************/
 /* init / cleanup                                                       */

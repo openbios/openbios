@@ -208,15 +208,7 @@ map_pages(phys_addr_t phys, unsigned long virt,
         pa = find_pte(virt, 1);
 
         pte = SRMMU_ET_PTE | ((phys & PAGE_MASK) >> 4);
-
-	if (mode) {         /* I/O */
-            pte |= SRMMU_REF;
-            /* SRMMU cannot make Supervisor-only, but not exectutable */
-            pte |= SRMMU_PRIV;
-        } else {            /* memory */
-            pte |= SRMMU_REF | SRMMU_CACHE;
-            pte |= SRMMU_PRIV; /* Supervisor only access */
-        }
+	pte |= mode;
 
         *(uint32_t *)pa = pte;
 
@@ -244,7 +236,7 @@ map_io(uint64_t pa, int size)
     if (va == 0)
         return NULL;
 
-    map_pages(pa, va, npages * PAGE_SIZE, 1);
+    map_pages(pa, va, npages * PAGE_SIZE, ofmem_arch_io_translation_mode(pa));
     return (void *)(va + off);
 }
 
@@ -304,7 +296,7 @@ ob_map_pages(void)
     pa <<= 32;
     pa |= POP() & 0xffffffff;
 
-    map_pages(pa, va, size, 0);
+    map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
     DPRINTF("map-page: va 0x%lx pa 0x%llx size 0x%x\n", va, pa, size);
 }
 
@@ -362,7 +354,7 @@ char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
 {
     uint64_t mpa = ((uint64_t)which_io << 32) | (uint64_t)pa;
 
-    map_pages(mpa, (unsigned long)va, size, 0);
+    map_pages(mpa, (unsigned long)va, size, ofmem_arch_default_translation_mode(mpa));
     return va;
 }
 
@@ -402,7 +394,7 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
         DPRINTF("obp_dumb_memalloc req null -> 0x%p\n", va);
     }
 
-    map_pages(totavail[0].num_bytes, (unsigned long)va, size, 0);
+    map_pages(totavail[0].num_bytes, (unsigned long)va, size, ofmem_arch_default_translation_mode(totavail[0].num_bytes));
 
     update_memory_properties();
 
@@ -496,10 +488,10 @@ init_mmu_swift(void)
     va = (unsigned long)&_start;
     size = (unsigned long)&_end - (unsigned long)&_start;
     pa = va2pa(va);
-    map_pages(pa, va, size, 0);
+    map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
 
     // 1:1 mapping for RAM
-    map_pages(0, 0, LOWMEMSZ, 0);
+    map_pages(0, 0, LOWMEMSZ, ofmem_arch_default_translation_mode(0));
 
     /*
      * Flush cache

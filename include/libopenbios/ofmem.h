@@ -69,6 +69,7 @@ extern int			ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value);
 extern int 		ofmem_arch_get_translation_entry_size(void);
 extern void 		ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t);
 extern ucell    	ofmem_arch_default_translation_mode( phys_addr_t phys );
+extern ucell    	ofmem_arch_io_translation_mode( phys_addr_t phys );
 extern void     	ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size,
                                            ucell mode);
 extern void     	ofmem_arch_unmap_pages(ucell virt, ucell size);
