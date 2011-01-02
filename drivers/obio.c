@@ -75,9 +75,6 @@ map_reg(uint64_t base, uint64_t offset, unsigned long size, int map,
 
         PUSH(addr);
         fword("encode-int");
-        PUSH(4);
-        fword("encode-int");
-        fword("encode+");
         push_str("address");
         fword("property");
         return addr;
@@ -228,7 +225,7 @@ ob_auxio_init(uint64_t base, uint64_t offset)
 {
     ob_new_obio_device("auxio", NULL);
 
-    ob_reg(base, offset, AUXIO_REGS, 0);
+    ob_reg(base, offset, AUXIO_REGS, 1);
 
     fword("finish-device");
 }
