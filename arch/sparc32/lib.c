@@ -497,6 +497,16 @@ void obp_dumb_munmap(__attribute__((unused)) char *va,
     DPRINTF("obp_dumb_munmap: virta 0x%x, sz %d\n", (unsigned int)va, size);
 }
 
+void ofmem_arch_unmap_pages(ucell virt, ucell size)
+{
+    /* Currently do nothing */
+}
+
+void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
+{
+    /* Currently do nothing */
+}
+
 char *obp_dumb_memalloc(char *va, unsigned int size)
 {
     size = (size + 7) & ~7;
