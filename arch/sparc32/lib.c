@@ -53,8 +53,6 @@ struct mem {
     char *curp;
 };
 
-static struct mem cmem;         /* Current memory, virtual */
-static struct mem cio;          /* Current I/O space */
 struct mem cdvmem;              /* Current device virtual memory space */
 
 unsigned int va_shift;
@@ -190,7 +188,7 @@ find_pte(unsigned long va, int alloc)
     return pa2va(pa);
 }
 
-void
+static void
 map_pages(phys_addr_t phys, unsigned long virt,
 		  unsigned long size, unsigned long mode)
 {
@@ -353,29 +351,19 @@ void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell 
 
 char *obp_dumb_memalloc(char *va, unsigned int size)
 {
-    size = (size + 7) & ~7;
-    // XXX should use normal memory alloc
-    totavail[0].num_bytes -= size;
-    DPRINTF("obp_dumb_memalloc va 0x%p size %x at 0x%x\n", va, size,
-            totavail[0].num_bytes);
+    phys_addr_t phys;
+    ucell virt;
 
-    // If va is null, the allocator is supposed to pick a "suitable" address.
-    // (See OpenSolaric prom_alloc.c)  There's not any real guidance as
-    // to what might be "suitable".  So we mimic the behavior of a Sun boot
-    // ROM.
+    /* Claim physical memory */
+    phys = ofmem_claim_phys(-1, size, CONFIG_OFMEM_MALLOC_ALIGN);
 
-    if (va == NULL) {
-        va = (char *)(totmap[0].start_adr - size);
-        totmap[0].start_adr -= size;
-        totmap[0].num_bytes += size;
-        DPRINTF("obp_dumb_memalloc req null -> 0x%p\n", va);
-    }
+    /* Claim virtual memory */
+    virt = ofmem_claim_virt(pointer2cell(va), size, 0);
 
-    map_pages(totavail[0].num_bytes, (unsigned long)va, size, ofmem_arch_default_translation_mode(totavail[0].num_bytes));
+    /* Map the memory */
+    ofmem_map(phys, virt, size, ofmem_arch_default_translation_mode(phys));
 
-    update_memory_properties();
-
-    return va;
+    return cell2pointer(virt);
 }
 
 void obp_dumb_memfree(__attribute__((unused))char *va,
@@ -387,6 +375,8 @@ void obp_dumb_memfree(__attribute__((unused))char *va,
 void
 ob_init_mmu(void)
 {
+    ucell *reg;
+
     init_romvec_mem();
 
     /* Find the phandles for the /memory and /virtual-memory nodes */
@@ -400,30 +390,18 @@ ob_init_mmu(void)
     POP();
     s_phandle_mmu = POP();
 
+    ofmem_register(s_phandle_memory, s_phandle_mmu);
+
     /* Setup /memory:reg (totphys) property */
+    reg = malloc(3 * sizeof(ucell));
+    ofmem_arch_encode_physaddr(reg, 0); /* physical base */
+    reg[2] = (ucell)ofmem_arch_get_phys_top(); /* size */
+
     push_str("/memory");
     fword("find-device");
-    PUSH(pointer2cell(mem_reg));
+    PUSH(pointer2cell(reg));
     PUSH(3 * sizeof(ucell));
     push_str("reg");
-    PUSH_ph(s_phandle_memory);
-    fword("encode-property");
-
-    /* Setup /virtual-memory:avail (totmap) property */
-    push_str("/virtual-memory");
-    fword("find-device");
-    PUSH(pointer2cell(virt_avail));
-    PUSH(3 * sizeof(ucell));
-    push_str("available");
-    PUSH_ph(s_phandle_mmu);
-    fword("encode-property");
-
-    /* Setup /memory:avail (totavail) property */
-    push_str("/memory");
-    fword("find-device");
-    PUSH(pointer2cell(mem_avail));
-    PUSH(3 * sizeof(ucell));
-    push_str("available");
     PUSH_ph(s_phandle_memory);
     fword("encode-property");
 
@@ -443,9 +421,6 @@ init_mmu_swift(void)
     unsigned int addr, i;
     unsigned long pa, va;
     int size;
-
-    mem_init(&cmem, (char *) &_vmem, (char *)&_evmem);
-    mem_init(&cio, (char *)&_end, (char *)&_iomem);
 
     ofmem_posix_memalign((void *)&context_table, NCTX_SWIFT * sizeof(int),
                    NCTX_SWIFT * sizeof(int));
