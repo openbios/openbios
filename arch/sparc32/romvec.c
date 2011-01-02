@@ -442,7 +442,7 @@ void obp_fortheval_v2(char *str, int arg0, int arg1, int arg2, int arg3, int arg
   PUSH(arg1);
   PUSH(arg0);
 
-  DPRINTF("obp_fortheval_v2(%s)\n", str);
+  DPRINTF("obp_fortheval_v2(%x %x %x %x %x %s)\n", arg4, arg3, arg2, arg1, arg0, str);
   push_str(str);
   fword("eval");
 
