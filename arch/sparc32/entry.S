@@ -38,15 +38,15 @@
 	 *
 	 * Top +-------------------------+
 	 *     | SMP CPU table           |
-	 *     | s + 0xf00 ... 0xf0f     |
-	 *     | s + 0xf0c valid         |
-	 *     | s + 0xf08 entry         |
-	 *     | s + 0xf04 ctxtbl        |
-	 *     | s + 0xf00 ctx           |
+	 *     | s + 0x1f00 ... 0x1f0f   |
+	 *     | s + 0x1f0c valid        |
+	 *     | s + 0x1f08 entry        |
+	 *     | s + 0x1f04 ctxtbl       |
+	 *     | s + 0x1f00 ctx          |
 	 *     +-------------------------+
 	 *     | Bootstrap               |
-	 *     | MMU L3 tables 5 * 0x100 |
-	 *     | s + 0xa00 ... 0xeff     |
+	 *     | MMU L3 tables 8 * 0x100 |
+	 *     | s + 0xa00 ... 0x11ff    |
 	 *     +-------------------------+
 	 *     | Bootstrap               |
 	 *     | MMU L2 tables 2 * 0x100 |
@@ -123,11 +123,12 @@ entry:
 
 
         ! Start of private memory in %g6
-        set     0x1000, %g3
+        set     0x2000, %g3
         sub     %g1, %g3, %g6
 
         ! Calculate SMP table location
-        add     %g6, 0xf0c, %g2                 ! valid?
+	set	0x1f0c, %g2
+        add     %g6, %g2, %g2                 ! valid?
         lda     [%g2] ASI_M_BYPASS, %g7
         sta     %g0, [%g2] ASI_M_BYPASS
 
@@ -168,17 +169,20 @@ entry:
 
 load_ctx:
         ! SMP init, jump to user specified address
-        add     %g6, 0xf04, %g5                 ! ctxtbl
+	set	0x1f04, %g5
+        add     %g6, %g5, %g5                 ! ctxtbl
         lda     [%g5] ASI_M_BYPASS, %g2
         sta     %g0, [%g5] ASI_M_BYPASS
         set     AC_M_CTPR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
-        add     %g6, 0xf00, %g5                 ! ctx
+	set	0x1f00, %g5
+        add     %g6, %g5, %g5                 ! ctx
         lda     [%g5] ASI_M_BYPASS, %g2
         sta     %g0, [%g5] ASI_M_BYPASS
         set     AC_M_CXR, %g1
         sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
-        add     %g6, 0xf08, %g5                 ! entry
+	set	0x1f08, %g5
+        add     %g6, %g5, %g5                 ! entry
         lda     [%g5] ASI_M_BYPASS, %g2
         sta     %g0, [%g5] ASI_M_BYPASS
         set     1, %g1
@@ -217,7 +221,7 @@ first_cpu:
         /* Create temporary page tables and map the ROM area to end of
 	RAM. This will be done properly in iommu.c later. */
         ! Calculate start of page tables etc. to %g6
-        set     0x1000, %g4
+        set     0x2000, %g4
         sub     %g1, %g4, %g6                   ! start of private memory
 
         mov     %g6, %g2                        ! ctx table at s+0x0
@@ -273,7 +277,22 @@ first_cpu:
         srl	%g3, 0x4, %g3
         or	%g3, 0x1, %g3
         sta	%g3, [%g2] ASI_M_BYPASS
-        add	%g2, 0xa00-0x9e0, %g2			! s+0xa00
+        add	%g2, 4, %g2			! s+0x9e4
+        add	%g2, 0xf00 - 0x9e4, %g3		! 6th l3 table for rom at s+0xf00
+        srl	%g3, 0x4, %g3
+        or	%g3, 0x1, %g3
+        sta	%g3, [%g2] ASI_M_BYPASS
+        add	%g2, 4, %g2			! s+0x9e8
+        add	%g2, 0x1000 - 0x9e8, %g3	! 7th l3 table for rom at s+0x1000
+        srl	%g3, 0x4, %g3
+        or	%g3, 0x1, %g3
+        sta	%g3, [%g2] ASI_M_BYPASS
+        add	%g2, 4, %g2			! s+0x9ec
+        add	%g2, 0x1100 - 0x9ec, %g3	! 8th l3 table for rom at s+0x1100
+        srl	%g3, 0x4, %g3
+        or	%g3, 0x1, %g3
+        sta	%g3, [%g2] ASI_M_BYPASS
+      add	%g2, 0xa00-0x9ec, %g2		! s+0xa00
 
         /* Use end of ram for code, rodata, data, and bss
 	sections. SunOS wants to write to trap table... */
@@ -282,6 +301,7 @@ first_cpu:
         sub     %g6, %g4, %g6
         sub     %g1, %g6, %g3
         set	0x1000, %g5
+        sub     %g3, %g5, %g3
         sub     %g3, %g5, %g3                   ! start of ROM copy
         mov     %g3, %g7                        ! save in %g7
         srl     %g6, 12, %g6                    ! # of all pages
@@ -311,7 +331,7 @@ first_cpu:
         bl      1b
          add    %g4, 0x4, %g4
 
-        set     0x1000, %g3
+        set     0x2000, %g3
         sub     %g6, %g3, %g7                   ! ctx table at s+0x0
         set     AC_M_CTPR, %g2
         srl     %g7, 4, %g7
@@ -360,7 +380,7 @@ highmem:
         set     _start, %o2
         sub     %o0, %o2, %o0
         sub     %g6, %o0, %o0
-        set     0x1000, %o1
+        set     0x2000, %o1
         sub     %o0, %o1, %o0                   ! start of ROM copy
         sub     %o2, %o0, %o0                   ! start of ROM copy
         set     va_shift, %g1
