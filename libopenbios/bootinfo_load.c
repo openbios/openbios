@@ -169,6 +169,7 @@ bootinfo_init_program(void)
 
 	if (!is_bootinfo(base)) {
 		DPRINTF("Not a valid bootinfo memory image\n");
+                free(bootscript);
 		return;
 	}
 

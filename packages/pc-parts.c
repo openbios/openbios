@@ -131,6 +131,7 @@ pcparts_open( pcparts_info_t *di )
 	}
 
 	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
+        free(parstr);
 
 	if( parnum < 0 )
 		parnum = 0;
