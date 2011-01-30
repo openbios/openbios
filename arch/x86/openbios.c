@@ -22,9 +22,6 @@
 
 void collect_sys_info(struct sys_info *info);
 
-#define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
-static unsigned char intdict[DICTIONARY_SIZE];
-
 #ifdef CONFIG_DRIVER_PCI
 static const pci_arch_t default_pci_host = {
     .name = "Intel,i440FX",
@@ -84,12 +81,11 @@ int openbios(void)
 
         collect_sys_info(&sys_info);
 
-	dict=intdict;
-	dictlimit = DICTIONARY_SIZE;
+        dict = (unsigned char *)sys_info.dict_start;
+        dicthead = (cell)sys_info.dict_end;
+        last = sys_info.dict_last;
+        dictlimit = sys_info.dict_limit;
 
-	load_dictionary((char *)sys_info.dict_start,
-			(unsigned long)sys_info.dict_end -
-			(unsigned long)sys_info.dict_start);
 	forth_init();
 
 	relocate(&sys_info);

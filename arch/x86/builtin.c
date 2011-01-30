@@ -13,12 +13,20 @@
  * wrap an array around the hex'ed dictionary file
  */
 
+/* 256K for the dictionary */
+#define DICTIONARY_SIZE (256 * 1024 / sizeof(ucell))
+#define DICTIONARY_BASE ((ucell)((char *)&forth_dictionary))
+
+static ucell forth_dictionary[DICTIONARY_SIZE] = {
 #include "static-dict.h"
+};
 
 void collect_multiboot_info(struct sys_info *info);
 void collect_multiboot_info(struct sys_info *info)
 {
 	info->dict_start=(unsigned long *)forth_dictionary;
-	info->dict_end=(unsigned long *)((ucell)forth_dictionary +
-			sizeof(forth_dictionary));
+        info->dict_end = (unsigned long *)FORTH_DICTIONARY_END;
+        info->dict_last = (ucell *)((unsigned char *)forth_dictionary +
+                                            FORTH_DICTIONARY_LAST);
+        info->dict_limit = sizeof(forth_dictionary);
 }
