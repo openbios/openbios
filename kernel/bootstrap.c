@@ -96,6 +96,11 @@ static const char *wordnames[] = {
  * dictionary related functions.
  */
 
+/*
+ * Compare two dictionaries constructed at different addresses. When
+ * the cells don't match, a need for relocation is detected and the
+ * corresponding bit in reloc_table bitmap is set.
+ */
 static void relocation_table(unsigned char * dict_one, unsigned char *dict_two, int length)
 {
 	ucell *d1=(ucell *)dict_one, *d2=(ucell *)dict_two;
@@ -234,6 +239,54 @@ static void write_dictionary(const char *filename)
 
 #ifdef CONFIG_DEBUG_DICTIONARY
 	printk("wrote dictionary to file %s.\n", filename);
+#endif
+}
+
+/*
+ * Write dictionary as a list of ucell hex values to filename. Array
+ * header and end lines are not generated.
+ *
+ * Cells with relocations are output using the expression
+ * DICTIONARY_BASE + value.
+ *
+ * Define some helpful constants.
+ */
+static void write_dictionary_hex(const char *filename)
+{
+    FILE *f;
+    ucell *walk;
+
+    f = fopen(filename, "w");
+    if (!f) {
+        printk("panic: can't write to dictionary '%s'.\n", filename);
+        exit(1);
+    }
+
+    for (walk = (ucell *)dict; walk < (ucell *)(dict + dicthead); walk++) {
+        int pos, bit, l;
+        ucell val;
+
+        l = (walk - (ucell *)dict);
+        pos = l / BITS;
+        bit = l & ~(-BITS);
+
+        val = read_ucell(walk);
+        if (relocation_address[pos] & target_ucell((ucell)1ULL << bit)) {
+            fprintf(f, "DICTIONARY_BASE + 0x%" FMT_CELL_x
+                    ",\n", val);
+        } else {
+            fprintf(f, "0x%" FMT_CELL_x",\n", val);
+        }
+    }
+
+    fprintf(f, "#define FORTH_DICTIONARY_LAST 0x%" FMT_CELL_x"\n",
+            (ucell)((unsigned long)last - (unsigned long)dict));
+    fprintf(f, "#define FORTH_DICTIONARY_END 0x%" FMT_CELL_x"\n",
+            (ucell)dicthead);
+    fclose(f);
+
+#ifdef CONFIG_DEBUG_DICTIONARY
+    printk("wrote dictionary to file %s.\n", filename);
 #endif
 }
 
@@ -1032,7 +1085,8 @@ static void new_dictionary(const char *source)
 		"			write kernel console output to log file\n"	\
 		"   -s|--segfault	install segfault handler\n"     \
                 "   -M|--dependency-dump file\n"                         \
-                "                       dump dependencies in Makefile format\n\n"
+                "                       dump dependencies in Makefile format\n\n" \
+                "   -x|--hexdump        output format is C language hex dump\n"
 #else
 #define USAGE   "Usage: %s [options] [dictionary file|source file]\n\n" \
 		"   -h		show this help\n"		\
@@ -1045,8 +1099,9 @@ static void new_dictionary(const char *source)
 		"		write to output.dict\n"		\
 		"   -c output.log\n"		\
 		"		write kernel console output to log file\n"	\
-		"   -s		install segfault handler\n\n"
-                "   -M file     dump dependencies in Makefile format\n\n"
+		"   -s		install segfault handler\n\n"   \
+                "   -M file     dump dependencies in Makefile format\n\n" \
+                "   -x          output format is C language hex dump\n"
 #endif
 
 int main(int argc, char *argv[])
@@ -1054,15 +1109,15 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 
 	unsigned char *ressources=NULL; /* All memory used by us */
-	char *dictname = NULL;
+        const char *dictname = NULL;
 	char *basedict = NULL;
 	char *consolefile = NULL;
         char *depfilename = NULL;
 
 	unsigned char *bootstrapdict[2];
-	int c, cnt;
+        int c, cnt, hexdump = 0;
 
-        const char *optstring = "VvhsI:d:D:c:M:?";
+        const char *optstring = "VvhsI:d:D:c:M:x?";
 
 	while (1) {
 #ifdef __GLIBC__
@@ -1077,6 +1132,7 @@ int main(int argc, char *argv[])
 			{"target-dictionary", 1, NULL, 'D'},
 			{"console", 1, NULL, 'c'},
                         {"dependency-dump", 1, NULL, 'M'},
+                        {"hexdump", 0, NULL, 'x'},
 		};
 
 		/*
@@ -1132,11 +1188,17 @@ int main(int argc, char *argv[])
                                 depfilename = optarg;
                         }
                         break;
+                case 'x':
+                        hexdump = 1;
+                        break;
 		default:
 			return 1;
 		}
 	}
 
+        if (!dictname) {
+            dictname = "bootstrap.dict";
+        }
         if (verbose) {
                 printk(BANNER);
                 printk("Using source dictionary '%s'\n", basedict);
@@ -1144,7 +1206,7 @@ int main(int argc, char *argv[])
                 printk("Dumping dependencies to '%s'\n", depfilename);
         }
 
-	if (argc < optind + 1) {
+        if (argc < optind) {
 		printk(USAGE, argv[0]);
 		return 1;
 	}
@@ -1243,7 +1305,11 @@ int main(int argc, char *argv[])
 #endif
 	{
 		relocation_table( bootstrapdict[0], bootstrapdict[1], dicthead);
-		write_dictionary( dictname ? dictname : "bootstrap.dict");
+                if (hexdump) {
+                    write_dictionary_hex(dictname);
+                } else {
+                    write_dictionary(dictname);
+                }
 	}
 
 	free(ressources);

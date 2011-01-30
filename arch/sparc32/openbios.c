@@ -28,7 +28,6 @@
 #include "libopenbios/ofmem.h"
 
 #define MEMORY_SIZE     (16*1024)       /* 16K ram for hosted system */
-#define DICTIONARY_SIZE (256*1024)      /* 256K for the dictionary   */
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 #define FW_CFG_SUN4M_DEPTH   (FW_CFG_ARCH_LOCAL + 0x00)
 
@@ -968,12 +967,11 @@ int openbios(void)
 
         collect_sys_info(&sys_info);
 
-        dict = malloc(DICTIONARY_SIZE);
-	dictlimit = DICTIONARY_SIZE;
+        dict = (unsigned char *)sys_info.dict_start;
+        dicthead = (cell)sys_info.dict_end;
+        last = sys_info.dict_last;
+        dictlimit = sys_info.dict_limit;
 
-	load_dictionary((char *)sys_info.dict_start,
-			(unsigned long)sys_info.dict_end
-                        - (unsigned long)sys_info.dict_start);
 	forth_init();
 
 #ifdef CONFIG_DEBUG_BOOT

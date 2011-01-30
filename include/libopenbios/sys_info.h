@@ -20,6 +20,8 @@ struct sys_info {
     } *memrange;
     unsigned long *dict_start;
     unsigned long *dict_end;
+    cell dict_limit;
+    ucell *dict_last;
 };
 
 extern void *elf_boot_notes;
