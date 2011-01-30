@@ -33,7 +33,6 @@
 #define APB_MEM_BASE         0x1ff00000000ULL
 
 #define MEMORY_SIZE     (512*1024)      /* 512K ram for hosted system */
-#define DICTIONARY_SIZE (512*1024)      /* 512K for the dictionary   */
 
 static ucell *memory;
 
@@ -617,12 +616,11 @@ int openbios(void)
 
         collect_sys_info(&sys_info);
 
-        dict = malloc(DICTIONARY_SIZE);
-        dictlimit = DICTIONARY_SIZE;
+        dict = (unsigned char *)sys_info.dict_start;
+        dicthead = (cell)sys_info.dict_end;
+        last = sys_info.dict_last;
+        dictlimit = sys_info.dict_limit;
 
-	load_dictionary((char *)sys_info.dict_start,
-			(unsigned long)sys_info.dict_end
-                        - (unsigned long)sys_info.dict_start);
 	forth_init();
 
 #ifdef CONFIG_DEBUG_BOOT

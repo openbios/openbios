@@ -40,11 +40,7 @@
 
  <executable name="target/include/static-dict.h" target="target" condition="IMAGE_ELF_EMBEDDED">
   <rule><![CDATA[
-	$(call quiet-command,true, "  GEN   $(TARGET_DIR)$@")
-	@echo "static const char forth_dictionary[] = {" > $@
-	@cat $< | hexdump -ve '1/0 "\t" 8/1 "0x%02x, " 1/0 "\n"' \
-					| sed 's/0x  ,//g' >> $@
-	@echo "};" >> $@]]></rule>
+	$(call quiet-command,$(ODIR)/forthstrap -x -D $@ -d $< </dev/null, "  GEN   $(TARGET_DIR)$@")]]></rule>
   <external-object source="openbios-sparc64.dict"/>
  </executable>
 
