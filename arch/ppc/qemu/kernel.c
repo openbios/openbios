@@ -17,7 +17,6 @@
  *
  */
 
-#include "qemu-dict.h"
 #include "config.h"
 #include "dict.h"
 #include "libopenbios/bindings.h"
@@ -27,7 +26,19 @@
 #include "kernel.h"
 
 #define MEMORY_SIZE	(256*1024)	/* 256K ram for hosted system */
-#define DICTIONARY_SIZE	(512*1024)	/* 512K for the dictionary   */
+/* 512K for the dictionary  */
+#define DICTIONARY_SIZE (512 * 1024 / sizeof(ucell))
+#ifdef __powerpc64__
+#define DICTIONARY_BASE 0xfff08000 /* this must match the value in ldscript! */
+#define DICTIONARY_SECTION __attribute__((section(".data.dict")))
+#else
+#define DICTIONARY_BASE ((ucell)((char *)&forth_dictionary))
+#define DICTIONARY_SECTION
+#endif
+
+static ucell forth_dictionary[DICTIONARY_SIZE] DICTIONARY_SECTION = {
+#include "qemu-dict.h"
+};
 
 static ucell 		*memory;
 
@@ -82,10 +93,12 @@ init_memory( void )
 int
 initialize_forth( void )
 {
-	dict = malloc(DICTIONARY_SIZE);
-	dictlimit = DICTIONARY_SIZE;
+        dict = (unsigned char *)forth_dictionary;
+        dicthead = (ucell)FORTH_DICTIONARY_END;
+        last = (ucell *)((unsigned char *)forth_dictionary +
+                         FORTH_DICTIONARY_LAST);
+        dictlimit = sizeof(forth_dictionary);
 
-	load_dictionary( forth_dictionary, sizeof(forth_dictionary) );
 	forth_init();
 
 	PUSH_xt( bind_noname_func(arch_of_init) );

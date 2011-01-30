@@ -55,7 +55,7 @@ extern void setup_mmu(unsigned long code_base);
 #define HASH_BITS		15
 #endif
 #define HASH_SIZE		(2 << HASH_BITS)
-#define OFMEM_SIZE		(2 * 1024 * 1024)
+#define OFMEM_SIZE		(1 * 1024 * 1024 + 512 * 1024)
 
 #define	SEGR_USER		BIT(2)
 #define SEGR_BASE		0x0400

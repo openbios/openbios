@@ -6,6 +6,7 @@ OUTPUT_ARCH(powerpc:common64)
 BASE_ADDR = 0xfff00000;
 
 /* As NVRAM is at 0xfff04000, the .text needs to be after that
+ * The value in arch/ppc/qemu/kernel.c must match this value!
  */
 TEXT_ADDR = 0xfff08000;
 
@@ -26,6 +27,12 @@ SECTIONS
 
     . = TEXT_ADDR;
     /* Normal sections */
+    .data.dict ALIGN(4096): {
+        _dict_start = .;
+        *(.data.dict)
+        _dict_end = .;
+    }
+
     .text ALIGN(4096): {
         *(.text)
         *(.text.*)
