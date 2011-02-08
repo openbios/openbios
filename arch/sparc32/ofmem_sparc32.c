@@ -161,4 +161,10 @@ void ofmem_init( void )
 {
 	memset(&s_ofmem_data, 0, sizeof(s_ofmem_data));
 	s_ofmem_data.ofmem.ramsize = qemu_mem_size;
+	
+	/* Claim reserved physical addresses at top of RAM */
+	ofmem_claim_phys(ofmem_arch_get_phys_top(), s_ofmem_data.ofmem.ramsize - ofmem_arch_get_phys_top(), 0);
+	
+	/* Claim OpenBIOS reserved space */
+	ofmem_claim_virt(0xffd00000, 0x300000, 0);
 }
