@@ -110,6 +110,30 @@ void ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t)
 	transentry[2] = t->mode;
 }
 
+/* Return the size of a memory available entry given the phandle in cells */
+int ofmem_arch_get_available_entry_size(phandle_t ph)
+{
+	if (ph == s_phandle_memory) {
+		return 1 + ofmem_arch_get_physaddr_cellsize();
+	} else {
+		return 1 + 1;
+	}
+}
+
+/* Generate memory available property entry for Sparc64 */
+void ofmem_arch_create_available_entry(phandle_t ph, ucell *availentry, phys_addr_t start, ucell size)
+{
+	int i = 0;
+
+	if (ph == s_phandle_memory) {
+		i += ofmem_arch_encode_physaddr(availentry, start);
+	} else {
+		availentry[i++] = start;
+	}
+    
+	availentry[i] = size;
+}
+
 /************************************************************************/
 /* misc                                                                 */
 /************************************************************************/

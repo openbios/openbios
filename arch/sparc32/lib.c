@@ -59,8 +59,6 @@ unsigned int va_shift;
 static unsigned long *context_table;
 static unsigned long *l1;
 
-static phandle_t s_phandle_memory = 0;
-static phandle_t s_phandle_mmu = 0;
 static ucell *mem_reg = 0;
 static ucell *mem_avail = 0;
 static ucell *virt_avail = 0;

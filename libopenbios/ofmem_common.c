@@ -222,8 +222,8 @@ ofmem_set_property( phandle_t ph, const char *name, const char *buf, int len )
 	fword("encode-property");
 }
 
-static phandle_t s_phandle_memory = 0;
-static phandle_t s_phandle_mmu = 0;
+phandle_t s_phandle_memory = 0;
+phandle_t s_phandle_mmu = 0;
 
 static void ofmem_update_mmu_translations( void )
 {
@@ -290,8 +290,7 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 
 	/* inverse of phys_range list could take 2 or more additional cells for the tail
 	   For /memory, physical addresses may be wider than one ucell. */
-	prop_used = (ncells + 1) * sizeof(ucell) *
-		(((ph == s_phandle_memory) ? ofmem_arch_get_physaddr_cellsize() : 1) + 1);
+	prop_used = (ncells + 1) * sizeof(ucell) * ofmem_arch_get_available_entry_size(ph) + 1;
 
 	if (prop_used > *mem_prop_size) {
 
@@ -325,28 +324,16 @@ static void ofmem_update_memory_available( phandle_t ph, range_t *range,
 
 		size = r->start - start;
 		if (size) {
-			if (ph == s_phandle_memory) {
-				/* physical address for /memory */
-				ncells += ofmem_arch_encode_physaddr(&prop[ncells], start);
-			} else {
-				/* virtual address for MMU */
-				prop[ncells++] = start;
-			}
-			prop[ncells++] = size;
+			ofmem_arch_create_available_entry(ph, &prop[ncells], start, size);
+			ncells += ofmem_arch_get_available_entry_size(ph);
 		}
 		start = r->start + r->size;
 	}
 
 	/* tail */
 	if (start < top_address) {
-		if (ph == s_phandle_memory) {
-			/* physical address for /memory */
-			ncells += ofmem_arch_encode_physaddr(&prop[ncells], start);
-		} else {
-			/* virtual address for MMU */
-			prop[ncells++] = start;
-		}
-		prop[ncells++] = top_address - start;
+		ofmem_arch_create_available_entry(ph, &prop[ncells], start, top_address - start);
+		ncells += ofmem_arch_get_available_entry_size(ph);
 	}
 
 	ofmem_set_property(ph, "available",

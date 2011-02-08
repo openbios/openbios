@@ -69,6 +69,8 @@ extern ucell		ofmem_arch_get_iomem_top(void);
 extern retain_t*	ofmem_arch_get_retained(void);
 extern int			ofmem_arch_get_physaddr_cellsize(void);
 extern int			ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value);
+extern int		ofmem_arch_get_available_entry_size(phandle_t ph);
+extern void 		ofmem_arch_create_available_entry(phandle_t ph, ucell *availentry, phys_addr_t start, ucell size);
 extern int 		ofmem_arch_get_translation_entry_size(void);
 extern void 		ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t);
 extern ucell    	ofmem_arch_default_translation_mode( phys_addr_t phys );
@@ -119,6 +121,10 @@ extern void  ofmem_release( ucell virt, ucell size );
 extern void  ofmem_release_phys( phys_addr_t phys, ucell size );
 extern void  ofmem_release_virt( ucell virt, ucell size );
 extern phys_addr_t ofmem_translate( ucell virt, ucell *ret_mode );
+
+/* memory and virtual-memory nodes */
+extern phandle_t s_phandle_memory;
+extern phandle_t s_phandle_mmu;
 
 /* Currently the same for all architectures */
 #define PAGE_SHIFT   12
