@@ -373,7 +373,10 @@ void obp_dumb_memfree(__attribute__((unused))char *va,
 void
 ob_init_mmu(void)
 {
-    ucell *reg;
+    ucell *memreg;
+    ucell *virtreg;
+    phys_addr_t virtregsize;
+    ofmem_t *ofmem = ofmem_arch_get_private();
 
     init_romvec_mem();
 
@@ -391,18 +394,35 @@ ob_init_mmu(void)
     ofmem_register(s_phandle_memory, s_phandle_mmu);
 
     /* Setup /memory:reg (totphys) property */
-    reg = malloc(3 * sizeof(ucell));
-    ofmem_arch_encode_physaddr(reg, 0); /* physical base */
-    reg[2] = (ucell)ofmem_arch_get_phys_top(); /* size */
+    memreg = malloc(3 * sizeof(ucell));
+    ofmem_arch_encode_physaddr(memreg, 0); /* physical base */
+    memreg[2] = (ucell)ofmem->ramsize; /* size */
 
     push_str("/memory");
     fword("find-device");
-    PUSH(pointer2cell(reg));
+    PUSH(pointer2cell(memreg));
     PUSH(3 * sizeof(ucell));
     push_str("reg");
     PUSH_ph(s_phandle_memory);
     fword("encode-property");
 
+    /* Setup /virtual-memory:reg property */
+    virtregsize = ((phys_addr_t)((ucell)-1) + 1) / 2;
+    
+    virtreg = malloc(6 * sizeof(ucell));
+    ofmem_arch_encode_physaddr(virtreg, 0);
+    virtreg[2] = virtregsize;
+    ofmem_arch_encode_physaddr(&virtreg[3], virtregsize);
+    virtreg[5] = virtregsize;
+    
+    push_str("/virtual-memory");
+    fword("find-device");
+    PUSH(pointer2cell(virtreg));
+    PUSH(6 * sizeof(ucell));
+    push_str("reg");
+    PUSH_ph(s_phandle_mmu);
+    fword("encode-property");
+    
     PUSH(0);
     fword("active-package!");
     bind_func("pgmap@", pgmap_fetch);

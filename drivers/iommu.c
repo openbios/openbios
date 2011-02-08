@@ -155,20 +155,6 @@ ob_init_iommu(uint64_t base)
 
     regs = iommu_init(&ciommu, base);
 
-    push_str("/virtual-memory");
-    fword("find-device");
-
-    PUSH(base >> 32);
-    fword("encode-int");
-    PUSH(base & 0xffffffff);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(IOMMU_REGS);
-    fword("encode-int");
-    fword("encode+");
-    push_str("reg");
-    fword("property");
-
     push_str("/iommu");
     fword("find-device");
     PUSH((unsigned long)regs);
