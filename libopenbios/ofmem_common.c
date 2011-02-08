@@ -481,6 +481,7 @@ static phys_addr_t ofmem_claim_phys_( phys_addr_t phys, ucell size, ucell align,
 			return -1;
 		}
 		add_entry( phys, size, &ofmem->phys_range );
+		ofmem_update_translations();
 		return phys;
 	}
 	phys = find_area( align, size, ofmem->phys_range, min, max, reverse );
@@ -515,6 +516,7 @@ static ucell ofmem_claim_virt_( ucell virt, ucell size, ucell align,
 			return -1;
 		}
 		add_entry( virt, size, &ofmem->virt_range );
+		ofmem_update_translations();
 		return virt;
 	}
 
@@ -524,6 +526,9 @@ static ucell ofmem_claim_virt_( ucell virt, ucell size, ucell align,
 		return -1;
 	}
 	add_entry( virt, size, &ofmem->virt_range );
+	
+	ofmem_update_translations();
+	
 	return virt;
 }
 
