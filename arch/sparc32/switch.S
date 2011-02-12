@@ -79,11 +79,15 @@ __switch_context:
 	set	(PSR_PS | PSR_S | PSR_PIL | PSR_EF), %g2
 	wr	%g2, 0x0, %psr
 #endif
-
+        set     __context, %g1
+        /* Swap ctx pointer with %fp and jump*/
+        ba     __set_context
+         swap      [%g1], %fp
 __switch_context_nosave:
-	set	__context, %g1
-        /* Swap ctx pointer with %fp */
-        swap      [%g1], %fp
+        set     __context, %g1
+        /* load %fp from ctx pointer */
+        ld      [%g1], %fp
+__set_context:
 	/* Load all registers */
         /* offset 0: %g0, no need to load */
         ld      [%fp + 4], %g1
