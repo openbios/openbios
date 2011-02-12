@@ -12,7 +12,7 @@
 #include "mconfig.h"
 
 #ifdef BOOTSTRAP
-#include <stdint.h>
+#include <inttypes.h>
 #else
 typedef unsigned char   uint8_t;
 typedef unsigned short  uint16_t;
