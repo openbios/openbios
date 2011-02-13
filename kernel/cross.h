@@ -103,11 +103,11 @@
 /* bit width handling */
 
 #if BITS==32
-#define FMT_CELL_x "x"
-#define FMT_CELL_d "d"
+#define FMT_CELL_x PRIx32
+#define FMT_CELL_d PRId32
 #else
-#define FMT_CELL_x "llx"
-#define FMT_CELL_d "lld"
+#define FMT_CELL_x PRIx64
+#define FMT_CELL_d PRId64
 #endif
 
 #ifdef NATIVE_BITWIDTH_SMALLER_THAN_HOST_BITWIDTH

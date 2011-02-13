@@ -45,13 +45,13 @@ typedef uint64_t phys_addr_t;
 #define FMT_plx "%016" PRIx64
 
 /* cell based types */
-typedef long long          cell;
-typedef unsigned long long ucell;
+typedef int64_t     cell;
+typedef uint64_t    ucell;
 
-#define FMT_cell    "%lld"
-#define FMT_ucell   "%llu"
-#define FMT_ucellx  "%016llx"
-#define FMT_ucellX  "%016llX"
+#define FMT_cell    "%" PRId64
+#define FMT_ucell   "%" PRIu64
+#define FMT_ucellx  "%016" PRIx64
+#define FMT_ucellX  "%016" PRIX64
 
 typedef int64_t         prom_arg_t;
 typedef uint64_t        prom_uarg_t;

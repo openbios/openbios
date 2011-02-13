@@ -24,12 +24,12 @@ typedef uint64_t phys_addr_t;
 
 /* cell based types */
 
-typedef long long     cell;
-typedef unsigned long long ucell;
-typedef __int128_t   dcell;
+typedef int64_t     cell;
+typedef uint64_t    ucell;
+typedef __int128_t  dcell;
 typedef __uint128_t ducell;
 
-#define FMT_ucellx  "%016llx"
+#define FMT_ucellx  "%016" PRIx64
 
 typedef int64_t         prom_arg_t;
 typedef uint64_t        prom_uarg_t;

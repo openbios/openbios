@@ -55,10 +55,10 @@ typedef uint32_t	ucell;
 typedef int64_t		dcell;
 typedef uint64_t	ducell;
 
-#define FMT_cell    "%d"
-#define FMT_ucell   "%u"
-#define FMT_ucellx  "%08x"
-#define FMT_ucellX  "%08X"
+#define FMT_cell    "%" PRId32
+#define FMT_ucell   "%" PRIu32
+#define FMT_ucellx  "%08" PRIx32
+#define FMT_ucellX  "%08" PRIX32
 
 typedef int32_t         prom_arg_t;
 typedef uint32_t        prom_uarg_t;
