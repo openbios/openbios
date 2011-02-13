@@ -494,6 +494,11 @@ _GLOBAL(call_elf):
 	MTMSRD(r0)
 	blrl
 
+#ifdef CONFIG_PPC64
+    /* Restore SF bit */
+    LOAD_REG_IMMEDIATE(r0, MSR_SF | MSR_FP | MSR_ME | MSR_DR | MSR_IR)
+    MTMSRD(r0)
+#endif
 	LOAD_REG_IMMEDIATE(r8, saved_stack)		// restore stack pointer
 	mr	r1,r8
 	PPC_LL r0, (STACKFRAME_MINSIZE + PPC_LR_STKOFF)(r1)

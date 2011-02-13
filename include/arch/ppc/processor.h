@@ -40,6 +40,8 @@
 
 #ifndef MSR_VEC
 
+#define MSR_SF      (1 << 63)   /* Sixty-Four Bit Mode */
+
 #define MSR_VEC		(1<<25)		/*  6: Enable AltiVec */
 #define MSR_POW		(1<<18)		/* 13: Enable Power Management */
 #define MSR_TGPR	(1<<17)		/* 14: TLB Update registers in use */
