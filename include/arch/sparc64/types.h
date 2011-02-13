@@ -53,6 +53,16 @@ typedef unsigned long long ucell;
 #define FMT_ucellx  "%016llx"
 #define FMT_ucellX  "%016llX"
 
+typedef int64_t         prom_arg_t;
+typedef uint64_t        prom_uarg_t;
+
+#define PRIdPROMARG     PRId64
+#define PRIuPROMARG     PRIu64
+#define PRIxPROMARG     PRIx64
+#define FMT_prom_arg    "%" PRIdPROMARG
+#define FMT_prom_uarg   "%" PRIuPROMARG
+#define FMT_prom_uargx  "%016" PRIxPROMARG
+
 #define FMT_elf	    "%#llx"
 #define FMT_sizet   "%lx"
 #define FMT_aout_ehdr  "%x"

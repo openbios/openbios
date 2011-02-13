@@ -32,11 +32,23 @@
 
 #define PROM_MAX_ARGS	10
 typedef struct prom_args {
-        const char 	*service;
-        long 		nargs;
-        long 		nret;
-        unsigned long	args[PROM_MAX_ARGS];
-} prom_args_t;
+    prom_uarg_t service;
+    prom_arg_t  nargs;
+    prom_arg_t  nret;
+    prom_uarg_t args[PROM_MAX_ARGS];
+} __attribute__((packed)) prom_args_t;
+
+static inline const char *
+arg2pointer(prom_uarg_t value)
+{
+    return (char*)(uintptr_t)value;
+}
+
+static inline const char *
+get_service(prom_args_t *pb)
+{
+    return arg2pointer(pb->service);
+}
 
 #ifdef DEBUG_CIF
 static void memdump(const char *mem, unsigned long size)
@@ -73,83 +85,84 @@ static void memdump(const char *mem, unsigned long size)
 static void dump_service(prom_args_t *pb)
 {
 	int i;
-	if (strcmp(pb->service, "test") == 0) {
-		printk("test(\"%s\") = ", (char*)pb->args[0]);
-	} else if (strcmp(pb->service, "peer") == 0) {
-		printk("peer(0x%08lx) = ", pb->args[0]);
-	} else if (strcmp(pb->service, "child") == 0) {
-		printk("child(0x%08lx) = ", pb->args[0]);
-	} else if (strcmp(pb->service, "parent") == 0) {
-		printk("parent(0x%08lx) = ", pb->args[0]);
-	} else if (strcmp(pb->service, "instance-to-package") == 0) {
-		printk("instance-to-package(0x%08lx) = ", pb->args[0]);
-	} else if (strcmp(pb->service, "getproplen") == 0) {
-		printk("getproplen(0x%08lx, \"%s\") = ",
-			pb->args[0], (char*)pb->args[1]);
-	} else if (strcmp(pb->service, "getprop") == 0) {
-		printk("getprop(0x%08lx, \"%s\", 0x%08lx, %ld) = ",
-			pb->args[0], (char*)pb->args[1],
+	const char *service = get_service(pb);
+	if (strcmp(service, "test") == 0) {
+		printk("test(\"%s\") = ", arg2pointer(pb->args[0]));
+	} else if (strcmp(service, "peer") == 0) {
+		printk("peer(0x" FMT_prom_uargx ") = ", pb->args[0]);
+	} else if (strcmp(service, "child") == 0) {
+		printk("child(0x" FMT_prom_uargx ") = ", pb->args[0]);
+	} else if (strcmp(service, "parent") == 0) {
+		printk("parent(0x" FMT_prom_uargx ") = ", pb->args[0]);
+	} else if (strcmp(service, "instance-to-package") == 0) {
+		printk("instance-to-package(0x" FMT_prom_uargx ") = ", pb->args[0]);
+	} else if (strcmp(service, "getproplen") == 0) {
+		printk("getproplen(0x" FMT_prom_uargx ", \"%s\") = ",
+			pb->args[0], arg2pointer(pb->args[1]));
+	} else if (strcmp(service, "getprop") == 0) {
+		printk("getprop(0x" FMT_prom_uargx ", \"%s\", 0x" FMT_prom_uargx ", " FMT_prom_arg ") = ",
+			pb->args[0], arg2pointer(pb->args[1]),
 			pb->args[2], pb->args[3]);
-	} else if (strcmp(pb->service, "nextprop") == 0) {
-		printk("nextprop(0x%08lx, \"%s\", 0x%08lx) = ",
-			pb->args[0], (char*)pb->args[1], pb->args[2]);
-	} else if (strcmp(pb->service, "setprop") == 0) {
-		printk("setprop(0x%08lx, \"%s\", 0x%08lx, %ld)\n",
-			pb->args[0], (char*)pb->args[1],
+	} else if (strcmp(service, "nextprop") == 0) {
+		printk("nextprop(0x" FMT_prom_uargx ", \"%s\", 0x" FMT_prom_uargx ") = ",
+			pb->args[0], arg2pointer(pb->args[1]), pb->args[2]);
+	} else if (strcmp(service, "setprop") == 0) {
+		printk("setprop(0x" FMT_prom_uargx ", \"%s\", 0x" FMT_prom_uargx ", " FMT_prom_arg ")\n",
+			pb->args[0], arg2pointer(pb->args[1]),
 			pb->args[2], pb->args[3]);
-		memdump((char*)pb->args[2], pb->args[3]);
+		memdump(arg2pointer(pb->args[2]), pb->args[3]);
 		printk(" = ");
-	} else if (strcmp(pb->service, "canon") == 0) {
-		printk("canon(\"%s\", 0x%08lx, %ld)\n",
-			(char*)pb->args[0], pb->args[1], pb->args[2]);
-	} else if (strcmp(pb->service, "finddevice") == 0) {
-		printk("finddevice(\"%s\") = ", (char*)pb->args[0]);
-	} else if (strcmp(pb->service, "instance-to-path") == 0) {
-		printk("instance-to-path(0x%08lx, 0x%08lx, %ld) = ",
+	} else if (strcmp(service, "canon") == 0) {
+		printk("canon(\"%s\", 0x" FMT_prom_uargx ", " FMT_prom_arg ")\n",
+			arg2pointer(pb->args[0]), pb->args[1], pb->args[2]);
+	} else if (strcmp(service, "finddevice") == 0) {
+		printk("finddevice(\"%s\") = ", arg2pointer(pb->args[0]));
+	} else if (strcmp(service, "instance-to-path") == 0) {
+		printk("instance-to-path(0x" FMT_prom_uargx ", 0x" FMT_prom_uargx ", " FMT_prom_arg ") = ",
 			pb->args[0], pb->args[1], pb->args[2]);
-	} else if (strcmp(pb->service, "package-to-path") == 0) {
-		printk("package-to-path(0x%08lx, 0x%08lx, %ld) = ",
+	} else if (strcmp(service, "package-to-path") == 0) {
+		printk("package-to-path(0x" FMT_prom_uargx ", 0x" FMT_prom_uargx ", " FMT_prom_arg ") = ",
 			pb->args[0], pb->args[1], pb->args[2]);
-	} else if (strcmp(pb->service, "open") == 0) {
-		printk("open(\"%s\") = ", (char*)pb->args[0]);
-	} else if (strcmp(pb->service, "close") == 0) {
-		printk("close(0x%08lx)\n", pb->args[0]);
-	} else if (strcmp(pb->service, "read") == 0) {
+	} else if (strcmp(service, "open") == 0) {
+		printk("open(\"%s\") = ", arg2pointer(pb->args[0]));
+	} else if (strcmp(service, "close") == 0) {
+		printk("close(0x" FMT_prom_uargx ")\n", pb->args[0]);
+	} else if (strcmp(service, "read") == 0) {
 #ifdef DUMP_IO
-		printk("read(0x%08lx, 0x%08lx, %ld) = ",
+		printk("read(0x" FMT_prom_uargx ", 0x" FMT_prom_uargx ", " FMT_prom_arg ") = ",
 			pb->args[0], pb->args[1], pb->args[2]);
 #endif
-	} else if (strcmp(pb->service, "write") == 0) {
+	} else if (strcmp(service, "write") == 0) {
 #ifdef DUMP_IO
-		printk("write(0x%08lx, 0x%08lx, %ld)\n",
+		printk("write(0x" FMT_prom_uargx ", 0x" FMT_prom_uargx ", " FMT_prom_arg ")\n",
 			pb->args[0], pb->args[1], pb->args[2]);
-		memdump((char*)pb->args[1], pb->args[2]);
+		memdump(arg2pointer(pb->args[1]), pb->args[2]);
 		printk(" = ");
 #endif
-	} else if (strcmp(pb->service, "seek") == 0) {
+	} else if (strcmp(service, "seek") == 0) {
 #ifdef DUMP_IO
-		printk("seek(0x%08lx, 0x%08lx, 0x%08lx) = ",
+		printk("seek(0x" FMT_prom_uargx ", 0x" FMT_prom_uargx ", 0x" FMT_prom_uargx ") = ",
 			pb->args[0], pb->args[1], pb->args[2]);
 #endif
-	} else if (strcmp(pb->service, "claim") == 0) {
-		printk("claim(0x%08lx, %ld, %ld) = ",
+	} else if (strcmp(service, "claim") == 0) {
+		printk("claim(0x" FMT_prom_uargx ", " FMT_prom_arg ", " FMT_prom_arg ") = ",
 			pb->args[0], pb->args[1], pb->args[2]);
-	} else if (strcmp(pb->service, "release") == 0) {
-		printk("release(0x%08lx, %ld)\n",
+	} else if (strcmp(service, "release") == 0) {
+		printk("release(0x" FMT_prom_uargx ", " FMT_prom_arg ")\n",
 			pb->args[0], pb->args[1]);
-	} else if (strcmp(pb->service, "boot") == 0) {
-		printk("boot \"%s\"\n", (char*)pb->args[0]);
-	} else if (strcmp(pb->service, "enter") == 0) {
+	} else if (strcmp(service, "boot") == 0) {
+		printk("boot \"%s\"\n", arg2pointer(pb->args[0]));
+	} else if (strcmp(service, "enter") == 0) {
 		printk("enter()\n");
-	} else if (strcmp(pb->service, "exit") == 0) {
+	} else if (strcmp(service, "exit") == 0) {
 		printk("exit()\n");
-	} else if (strcmp(pb->service, "test-method") == 0) {
-		printk("test-method(0x%08lx, \"%s\") = ",
-			pb->args[0], (char*)pb->args[1]);
+	} else if (strcmp(service, "test-method") == 0) {
+		printk("test-method(0x" FMT_prom_uargx ", \"%s\") = ",
+			pb->args[0], arg2pointer(pb->args[1]));
 	} else {
-		printk("of_client_interface: %s ", pb->service );
+		printk("of_client_interface: %s", service);
 		for( i = 0; i < pb->nargs; i++ )
-			printk("%lx ", pb->args[i] );
+			printk(" " FMT_prom_uargx, pb->args[i]);
 		printk("\n");
 	}
 }
@@ -157,71 +170,72 @@ static void dump_service(prom_args_t *pb)
 static void dump_return(prom_args_t *pb)
 {
 	int i;
-	if (strcmp(pb->service, "test") == 0) {
-		printk(" %ld\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "peer") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "child") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "parent") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "instance-to-package") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "getproplen") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "getprop") == 0) {
-		printk("%ld\n", pb->args[pb->nargs]);
-		if ((long)pb->args[pb->nargs] != -1)
-			memdump((char*)pb->args[2], MIN(pb->args[3], pb->args[pb->nargs]));
-	} else if (strcmp(pb->service, "nextprop") == 0) {
-		printk("%ld\n", pb->args[pb->nargs]);
-		memdump((char*)pb->args[2], pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "setprop") == 0) {
-		printk("%ld\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "canon") == 0) {
-		printk("%ld\n", pb->args[pb->nargs]);
-		memdump((char*)pb->args[1], pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "finddevice") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "instance-to-path") == 0) {
-		printk("%ld\n", pb->args[pb->nargs]);
-		memdump((char*)pb->args[1], pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "package-to-path") == 0) {
-		printk("%ld\n", pb->args[pb->nargs]);
-		memdump((char*)pb->args[1], pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "open") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "close") == 0) {
+	const char *service = get_service(pb);
+	if (strcmp(service, "test") == 0) {
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "peer") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "child") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "parent") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "instance-to-package") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "getproplen") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "getprop") == 0) {
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+		if ((prom_arg_t)pb->args[pb->nargs] != -1)
+			memdump(arg2pointer(pb->args[2]), MIN(pb->args[3], pb->args[pb->nargs]));
+	} else if (strcmp(service, "nextprop") == 0) {
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+		memdump(arg2pointer(pb->args[2]), pb->args[pb->nargs]);
+	} else if (strcmp(service, "setprop") == 0) {
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "canon") == 0) {
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+		memdump(arg2pointer(pb->args[1]), pb->args[pb->nargs]);
+	} else if (strcmp(service, "finddevice") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "instance-to-path") == 0) {
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+		memdump(arg2pointer(pb->args[1]), pb->args[pb->nargs]);
+	} else if (strcmp(service, "package-to-path") == 0) {
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+		memdump(arg2pointer(pb->args[1]), pb->args[pb->nargs]);
+	} else if (strcmp(service, "open") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "close") == 0) {
 		/* do nothing */
-	} else if (strcmp(pb->service, "read") == 0) {
+	} else if (strcmp(service, "read") == 0) {
 #ifdef DUMP_IO
-		printk("%ld\n", pb->args[pb->nargs]);
-		memdump((char*)pb->args[1], pb->args[pb->nargs]);
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
+		memdump(arg2pointer(pb->args[1]), pb->args[pb->nargs]);
 #endif
-	} else if (strcmp(pb->service, "write") == 0) {
+	} else if (strcmp(service, "write") == 0) {
 #ifdef DUMP_IO
-		printk("%ld\n", pb->args[pb->nargs]);
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
 #endif
-	} else if (strcmp(pb->service, "seek") == 0) {
+	} else if (strcmp(service, "seek") == 0) {
 #ifdef DUMP_IO
-		printk("%ld\n", pb->args[pb->nargs]);
+		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
 #endif
-	} else if (strcmp(pb->service, "claim") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
-	} else if (strcmp(pb->service, "release") == 0) {
+	} else if (strcmp(service, "claim") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "release") == 0) {
 		/* do nothing */
-	} else if (strcmp(pb->service, "boot") == 0) {
+	} else if (strcmp(service, "boot") == 0) {
 		/* do nothing */
-	} else if (strcmp(pb->service, "enter") == 0) {
+	} else if (strcmp(service, "enter") == 0) {
 		/* do nothing */
-	} else if (strcmp(pb->service, "exit") == 0) {
+	} else if (strcmp(service, "exit") == 0) {
 		/* do nothing */
-	} else if (strcmp(pb->service, "test-method") == 0) {
-		printk("0x%08lx\n", pb->args[pb->nargs]);
+	} else if (strcmp(service, "test-method") == 0) {
+		printk("0x" FMT_prom_uargx "\n", pb->args[pb->nargs]);
 	} else {
 		printk("of_client_interface return:");
 		for (i = 0; i < pb->nret; i++) {
-			printk(" %lx", pb->args[pb->nargs + i]);
+			printk(" " FMT_prom_uargx, pb->args[pb->nargs + i]);
 		}
 		printk("\n");
 	}
@@ -233,17 +247,17 @@ static int
 handle_calls( prom_args_t *pb )
 {
 	int i, dstacksave = dstackcnt;
-        long val;
+    prom_uarg_t val;
 
 #ifdef DEBUG_CIF
-        printk("%s %s ([%ld] -- [%ld])\n", pb->service, (char *)pb->args[0],
-               pb->nargs, pb->nret);
+    printk("%s %s ([" FMT_prom_arg "] -- [" FMT_prom_arg "])\n",
+           get_service(pb), arg2pointer(pb->args[0]), pb->nargs, pb->nret);
 #endif
 
 	for( i=pb->nargs-1; i>=0; i-- )
 		PUSH( pb->args[i] );
 
-	push_str( pb->service );
+	push_str(get_service(pb));
 	fword("client-call-iface");
 
 	/* Drop the return code from client-call-iface (status is handled by the 
@@ -260,17 +274,18 @@ handle_calls( prom_args_t *pb )
 	}
 
 #ifdef DEBUG_CIF
-	/* useful for debug but not necessarily an error */
-	if( i != pb->nret || dstackcnt != dstacksave ) {
-                printk("%s '%s': possible argument error (%ld--%ld) got %d\n",
-		       pb->service, (char*)pb->args[0], pb->nargs-2, pb->nret, i );
-	}
+    /* useful for debug but not necessarily an error */
+    if (i != pb->nret || dstackcnt != dstacksave) {
+        printk("%s '%s': possible argument error (" FMT_prom_arg "--" FMT_prom_arg ") got %d\n",
+               get_service(pb), arg2pointer(pb->args[0]),
+               pb->nargs - 2, pb->nret, i);
+    }
 
-        printk("handle_calls return: ");
-        for (i = 0; i < pb->nret; i++) {
-            printk("%lx ", pb->args[pb->nargs + i]);
-        }
-        printk("\n");
+    printk("handle_calls return:");
+    for (i = 0; i < pb->nret; i++) {
+        printk(" " FMT_prom_uargx, pb->args[pb->nargs + i]);
+    }
+    printk("\n");
 #endif
 
 	dstackcnt = dstacksave;
@@ -292,21 +307,21 @@ of_client_interface( int *params )
 #endif
 
 	/* call-method exceptions are special */
-	if( !strcmp("call-method", pb->service) || !strcmp("interpret", pb->service) )
+	if (!strcmp("call-method", get_service(pb)) || !strcmp("interpret", get_service(pb)))
 		return handle_calls( pb );
 
 	dstacksave = dstackcnt;
 	for( i=pb->nargs-1; i>=0; i-- )
 		PUSH( pb->args[i] );
 
-	push_str( pb->service );
+	push_str(get_service(pb));
 	fword("client-iface");
 
 	if( (val=POP()) ) {
 		dstackcnt = dstacksave;
 		if( val == -1 )
-			printk("Unimplemented service %s ([%ld] -- [%ld])\n",
-			       pb->service, pb->nargs, pb->nret );
+			printk("Unimplemented service %s ([" FMT_prom_arg "] -- [" FMT_prom_arg "])\n",
+			       get_service(pb), pb->nargs, pb->nret );
 #ifdef DEBUG_CIF
 		else
 			printk("ERROR!\n");
@@ -320,7 +335,7 @@ of_client_interface( int *params )
 	if( dstackcnt != dstacksave ) {
 #ifdef DEBUG_CIF
 		printk("service %s: possible argument error (%d %d)\n",
-		       pb->service, i, dstackcnt - dstacksave );
+		       get_service(pb), i, dstackcnt - dstacksave );
 #endif
 		/* Some clients request less parameters than the CIF method
 		returns, e.g. getprop with OpenSolaris. Hence we drop any

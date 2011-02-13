@@ -60,6 +60,16 @@ typedef uint64_t	ducell;
 #define FMT_ucellx  "%08x"
 #define FMT_ucellX  "%08X"
 
+typedef int32_t         prom_arg_t;
+typedef uint32_t        prom_uarg_t;
+
+#define PRIdPROMARG     PRId32
+#define PRIuPROMARG     PRIu32
+#define PRIxPROMARG     PRIx32
+#define FMT_prom_arg    "%" PRIdPROMARG
+#define FMT_prom_uarg   "%" PRIuPROMARG
+#define FMT_prom_uargx  "%08" PRIxPROMARG
+
 #define FMT_elf     "%#x"
 #define FMT_sizet   "%lx"
 #define FMT_aout_ehdr  "%lx"

@@ -31,6 +31,16 @@ typedef __uint128_t ducell;
 
 #define FMT_ucellx  "%016llx"
 
+typedef int64_t         prom_arg_t;
+typedef uint64_t        prom_uarg_t;
+
+#define PRIdPROMARG     PRId64
+#define PRIuPROMARG     PRIu64
+#define PRIxPROMARG     PRIx64
+#define FMT_prom_arg    "%" PRIdPROMARG
+#define FMT_prom_uarg   "%" PRIuPROMARG
+#define FMT_prom_uargx  "%016" PRIxPROMARG
+
 #define FMT_elf     "%#x"
 
 #define bitspercell	(sizeof(cell)<<3)
