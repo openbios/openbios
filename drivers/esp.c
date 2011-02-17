@@ -147,7 +147,7 @@ ob_sd_read_sector(esp_private_t *esp, sd_private_t *sd, int offset)
             sd->id, offset);
 
     // Setup command = Read(10)
-    memset(esp->buffer, 0, 10);
+    memset(esp->buffer, 0, 11);
     esp->buffer[0] = 0x80;
     esp->buffer[1] = READ_10;
 
@@ -159,7 +159,7 @@ ob_sd_read_sector(esp_private_t *esp, sd_private_t *sd, int offset)
     esp->buffer[8] = 0;
     esp->buffer[9] = 1;
 
-    if (do_command(esp, sd, 10, sd->bs))
+    if (do_command(esp, sd, 11, sd->bs))
         return 0;
 
     return 0;
