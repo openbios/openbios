@@ -296,8 +296,8 @@ ob_counter_init(uint64_t base, unsigned long offset)
 
     counter_regs = (struct sun4m_timer_regs *)ofmem_map_io(base + (uint64_t)offset, sizeof(*counter_regs));
     counter_regs->cfg = 0xffffffff;
-    counter_regs->l10_timer_limit = (((1000000/100) + 1) << 10);
-    counter_regs->cpu_timers[0].l14_timer_limit = 0;
+    counter_regs->l10_timer_limit = 0;
+    counter_regs->cpu_timers[0].l14_timer_limit = 0x9c4000;    /* see comment in obio.h */
     counter_regs->cpu_timers[0].cntrl = 1;
 
     for (i = 0; i < SUN4M_NCPU; i++) {
