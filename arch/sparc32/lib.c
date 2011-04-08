@@ -351,9 +351,28 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
 {
     phys_addr_t phys;
     ucell virt;
+    unsigned long align;
+    int i;
+    
+    /* Solaris seems to assume that the returned value is physically aligned to size. For
+       example, not having this here causes the Solaris 8 kernel to fault because the 
+       IOMMU page table base address is calculated incorrectly. */
+
+    /* Enforce a minimum alignment of CONFIG_OFMEM_MALLOC_ALIGN, and choose an alignment 
+       which is the next power of 2 higher than the specified size */
+    align = size;
+    if (align <= CONFIG_OFMEM_MALLOC_ALIGN) {
+        align = CONFIG_OFMEM_MALLOC_ALIGN;
+    } else {
+        align--;
+        for (i = 1; i < sizeof(unsigned long) * 8; i<<=1) {
+            align |= align >> i;
+        }
+        align++;
+    }
 
     /* Claim physical memory */
-    phys = ofmem_claim_phys(-1, size, CONFIG_OFMEM_MALLOC_ALIGN);
+    phys = ofmem_claim_phys(-1, size, align);
 
     /* Claim virtual memory */
     virt = ofmem_claim_virt(pointer2cell(va), size, 0);
