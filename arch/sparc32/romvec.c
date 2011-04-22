@@ -508,6 +508,8 @@ init_openprom(void)
     fword("open-dev");
     obp_fd_stdout = POP();
 
+    romvec0.v3_memalloc = obp_memalloc_handler;
+
     romvec0.v3_cpustart = obp_cpustart_handler;
     romvec0.v3_cpustop = obp_cpustop_handler;
     romvec0.v3_cpuidle = obp_cpuidle_handler;

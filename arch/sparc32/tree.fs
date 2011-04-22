@@ -125,3 +125,6 @@ finish-device
 
 " /options" find-device
   " disk" encode-string " boot-from" property
+
+" /openprom" find-device
+  0 0 " aligned-allocator" property

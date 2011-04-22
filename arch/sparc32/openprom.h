@@ -135,7 +135,10 @@ struct linux_romvec {
 	struct linux_bootargs_v2 pv_v2bootargs;
 	struct linux_dev_v2_funcs pv_v2devops;
 
-	int filler[15];
+	/* Prom version 3 memory allocation */
+	char * (*v3_memalloc)(char *va, unsigned int size, unsigned int align);
+
+	int filler[14];
 
 	/* This one is sun4c/sun4 only. */
 	void (*pv_setctxt)(int ctxt, char *va, int pmeg);

@@ -347,10 +347,25 @@ void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell 
     map_pages(phys, virt, size, mode);
 }
 
-char *obp_dumb_memalloc(char *va, unsigned int size)
+char *obp_memalloc(char *va, unsigned int size, unsigned int align)
 {
     phys_addr_t phys;
     ucell virt;
+
+    /* Claim physical memory */
+    phys = ofmem_claim_phys(-1, size, align);
+
+    /* Claim virtual memory */
+    virt = ofmem_claim_virt(pointer2cell(va), size, 0);
+
+    /* Map the memory */
+    ofmem_map(phys, virt, size, ofmem_arch_default_translation_mode(phys));
+
+    return cell2pointer(virt);
+}
+
+char *obp_dumb_memalloc(char *va, unsigned int size)
+{
     unsigned long align;
     int i;
     
@@ -371,16 +386,7 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
         align++;
     }
 
-    /* Claim physical memory */
-    phys = ofmem_claim_phys(-1, size, align);
-
-    /* Claim virtual memory */
-    virt = ofmem_claim_virt(pointer2cell(va), size, 0);
-
-    /* Map the memory */
-    ofmem_map(phys, virt, size, ofmem_arch_default_translation_mode(phys));
-
-    return cell2pointer(virt);
+    return obp_memalloc(va, size, align);
 }
 
 void obp_dumb_memfree(__attribute__((unused))char *va,

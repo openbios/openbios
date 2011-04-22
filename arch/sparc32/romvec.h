@@ -74,3 +74,5 @@ int obp_setprop_handler(__attribute__((unused)) int node,
 		       __attribute__((unused)) int len);
 const char *obp_nextprop(int node, const char *name);
 const char *obp_nextprop_handler(int node, const char *name);
+char *obp_memalloc(char *va, unsigned int size, unsigned int align);
+char *obp_memalloc_handler(char *va, unsigned int size, unsigned int align);

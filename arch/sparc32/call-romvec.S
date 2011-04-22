@@ -89,4 +89,5 @@ ROMVEC_HANDLER(obp_proplen)
 ROMVEC_HANDLER(obp_getprop)
 ROMVEC_HANDLER(obp_setprop)
 ROMVEC_HANDLER(obp_nextprop)
+ROMVEC_HANDLER(obp_memalloc)
 
