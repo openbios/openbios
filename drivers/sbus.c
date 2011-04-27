@@ -29,6 +29,20 @@
 #define SS600MP_ESPDMA   0x00081000ULL
 #define SS600MP_ESP      0x00080000ULL
 #define SS600MP_LEBUFFER (SS600MP_ESPDMA + 0x10) // XXX should be 0x40000
+#define LEDMA_REGS       0x4
+#define LE_REGS          0x20
+
+#ifdef CONFIG_DEBUG_SBUS
+#define DPRINTF(fmt, args...)                   \
+    do { printk(fmt , ##args); } while (0)
+#else
+#define DPRINTF(fmt, args...)
+#endif
+
+typedef struct le_private {
+    uint32_t *dmaregs;
+    uint32_t *regs;
+} le_private_t;
 
 static void
 ob_sbus_node_init(uint64_t base)
@@ -57,8 +71,36 @@ ob_sbus_node_init(uint64_t base)
 }
 
 static void
-ob_le_init(unsigned int slot, unsigned long leoffset, unsigned long dmaoffset)
+ob_le_init(unsigned int slot, uint64_t base, unsigned long leoffset, unsigned long dmaoffset)
 {
+    le_private_t *le;
+
+    le = malloc(sizeof(le_private_t));
+    if (!le) {
+        DPRINTF("Can't allocate LANCE private structure\n");
+        return;
+    }
+
+    /* Get the IO region for DMA registers */
+    le->dmaregs = (void *)ofmem_map_io(base + (uint64_t)dmaoffset, LEDMA_REGS);
+    if (le->dmaregs == NULL) {
+        DPRINTF("Can't map LANCE DMA registers\n");
+        return;
+    }
+
+    /* Now it appears that the Solaris kernel forgets to set up the LANCE DMA mapping
+       and so it must inherit the one from OpenBIOS. The symptom of this is that the
+       LANCE DMA base addr register is still zero, and so we start sending network 
+       packets containing random areas of memory.
+       
+       The correct fix for this should be to use dvma_alloc() to grab a section of
+       memory and point the LANCE DMA buffers to use that instead; this gets
+       slightly further but still crashes. Time-consuming investigation on various
+       hacked versions of QEMU seems to indicate that Solaris always assumes the LANCE 
+       DMA base address is fixed 0xff000000 when setting up the IOMMU for the LANCE
+       card. Hence we imitate this behaviour here. */
+    le->dmaregs[3] = 0xff000000;
+    
     push_str("/iommu/sbus/ledma");
     fword("find-device");
     PUSH(slot);
@@ -72,6 +114,13 @@ ob_le_init(unsigned int slot, unsigned long leoffset, unsigned long dmaoffset)
     push_str("reg");
     fword("property");
 
+    /* Get the IO region for Lance registers */
+    le->regs = (void *)ofmem_map_io(base + (uint64_t)leoffset, LE_REGS);
+    if (le->regs == NULL) {
+        DPRINTF("Can't map LANCE registers\n");
+        return;
+    }
+    
     push_str("/iommu/sbus/ledma/le");
     fword("find-device");
     PUSH(slot);
@@ -371,7 +420,7 @@ ob_macio_init(unsigned int slot, uint64_t base, unsigned long offset)
 #endif
 
     // NCR 92C990, Am7990, Lance. See http://www.amd.com
-    ob_le_init(slot, offset + 0x00c00000, offset + 0x00400010);
+    ob_le_init(slot, base, offset + 0x00c00000, offset + 0x00400010);
 
     // Parallel port
     //ob_bpp_init(base);
@@ -430,7 +479,7 @@ sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
         ob_esp_init(slot, base, SS600MP_ESP, SS600MP_ESPDMA);
 #endif
         // NCR 92C990, Am7990, Lance. See http://www.amd.com
-        ob_le_init(slot, 0x00060000, SS600MP_LEBUFFER);
+        ob_le_init(slot, base, 0x00060000, SS600MP_LEBUFFER);
         // Power management (APC) XXX should not exist
         ob_apc_init(slot, APC_OFFSET);
         break;
