@@ -383,6 +383,14 @@ ob_esp_initialize(__attribute__((unused)) esp_private_t **esp)
     push_str("scsi");
     fword("device-type");
 
+    /* QEMU's ESP emulation does not support mixing DMA and FIFO messages. By
+       setting this attribute, we prevent the Solaris ESP kernel driver from
+       trying to use this feature when booting a disk image (and failing) */
+    PUSH(0x58);
+    fword("encode-int");
+    push_str("scsi-options");
+    fword("property");
+
     PUSH(0x24);
     fword("encode-int");
     PUSH(0);
