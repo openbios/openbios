@@ -922,12 +922,14 @@ arch_init( void )
 	push_str("boot-device");
 	fword("property");
 
+	device_end();
+	
+	bind_func("platform-boot", boot );
+	bind_func("(go)", go );
+	
 	/* Set up other properties */
         push_str("/chosen");
         fword("find-device");
-
-	bind_func("platform-boot", boot );
-	bind_func("(go)", go );
 
         setup_uuid();
 }
