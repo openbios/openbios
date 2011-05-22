@@ -19,8 +19,8 @@ fi
 
 crosscflags()
 {
-    local host=$1
-    local target=$2
+    host=$1
+    target=$2
 
     if test "$host" = "powerpc" -o "$host" = "ppc" \
         -o "$host" = "mips" -o "$host" = "s390" \
