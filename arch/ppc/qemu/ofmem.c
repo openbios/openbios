@@ -25,6 +25,8 @@
 
 #define BIT(n)		(1U << (31 - (n)))
 
+#define SLB_VSID_SHIFT 12
+
 /* called from assembly */
 extern void dsi_exception(void);
 extern void isi_exception(void);
@@ -497,7 +499,7 @@ setup_mmu(unsigned long ramsize)
 
     slbia(); /* Invalidate all SLBs except SLB 0 */
     for (i = 0; i < 16; i++) {
-        unsigned long rs = ((0x400 + i) << 12) | (0x10 << 7);
+        unsigned long rs = (0x400 + i) << SLB_VSID_SHIFT;
         unsigned long rb = ((unsigned long)i << 28) | (1 << 27) | i;
         slbmte(rs, rb);
     }
