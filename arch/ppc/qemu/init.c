@@ -507,6 +507,18 @@ static const struct cpudef ppc_defs[] = {
         .clock_frequency = 0x1dcd6500,
         .initfn = cpu_970_init,
     },
+    {
+        .iu_version = 0x00350000,
+        .name = "PowerPC,POWER4",
+        .icache_size = 0x10000,
+        .dcache_size = 0x8000,
+        .icache_sets = 0x100,
+        .dcache_sets = 0x40,
+        .icache_block_size = 0x80,
+        .dcache_block_size = 0x80,
+        .clock_frequency = 0x629b4940,
+        .initfn = cpu_970_init,
+    },
 };
 
 static const struct cpudef *
