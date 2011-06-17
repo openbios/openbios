@@ -44,7 +44,7 @@
 	beq	1f; \
 	\
 	mfmsr	r1 ;				/* unset MSR_SF */ \
-	clrlwi	r1,r1,0 ; \
+	clrldi	r1,r1,1 ; \
 	mtmsrd	r1 ; \
 1: \
 	mfsprg0	r1 ;				/* exception stack in sprg0 */ \
