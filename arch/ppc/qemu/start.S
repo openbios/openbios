@@ -37,9 +37,16 @@
 
 #define EXCEPTION_PREAMBLE_TEMPLATE \
 	mtsprg1	r1 ;				/* scratch */ \
+	mfcr	r1 ; \
+	mtsprg2	r1 ;				/* scratch */ \
+	lis	r1, 0x8000 ;			/* r1=0x80000000 */ \
+	add.	r1,r1,r1 ;			/* r1=r1+r1 (high 32bit !0) */ \
+	beq	1f; \
+	\
 	mfmsr	r1 ;				/* unset MSR_SF */ \
 	clrlwi	r1,r1,0 ; \
-	mtmsr	r1 ; \
+	mtmsrd	r1 ; \
+1: \
 	mfsprg0	r1 ;				/* exception stack in sprg0 */ \
 .ifc ULONG_SIZE, 8 ; \
 	addi	r1,r1,-(40 * ULONG_SIZE) ;	/* push exception frame */ \
@@ -85,7 +92,7 @@
  \
 	mflr	r0 ; \
 	stl	r0,(13 * ULONG_SIZE)(r1) ; \
-	mfcr	r0 ; \
+	mfsprg2	r0 ; \
 	stl	r0,(14 * ULONG_SIZE)(r1) ; \
 	mfctr	r0 ; \
 	stl	r0,(15 * ULONG_SIZE)(r1) ; \
@@ -301,14 +308,12 @@ VECTOR( 0x100, "SRE" ):
 ILLEGAL_VECTOR( 0x200 )
 
 VECTOR( 0x300, "DSI" ):
-	EXCEPTION_PREAMBLE
-	b	call_dsi_exception
+	b	real_dsi
 
 ILLEGAL_VECTOR( 0x380 )
 
 VECTOR( 0x400, "ISI" ):
-	EXCEPTION_PREAMBLE
-	b	call_isi_exception
+	b	real_isi
 
 ILLEGAL_VECTOR( 0x480 )
 
@@ -359,6 +364,14 @@ VECTOR( 0x2200, "ISI_64" ):
 
 #endif
 
+real_dsi:
+	EXCEPTION_PREAMBLE
+	b	call_dsi_exception
+
+real_isi:
+	EXCEPTION_PREAMBLE
+	b	call_isi_exception
+
 GLOBL(__vectors_end):
 
 /************************************************************************/
@@ -368,10 +381,21 @@ GLOBL(__vectors_end):
 GLOBL(_entry):
 
 #ifdef CONFIG_PPC_64BITSUPPORT
-	/* clear MSR, disable MMU */
-
 	li	r0,0
+
+	lis	r3, 0x8000			/* r1=0x80000000 */
+	add.	r3,r3,r3			/* r1=r1+r1 (high 32bit !0) */
+	beq	no_64bit			/* only true when !MSR_SF */
+
+	/* clear MSR, disable MMU, SF */
+	mtmsrd	r0
+	b	real_entry
+
+no_64bit:
+	/* clear MSR, disable MMU */
 	mtmsr	r0
+
+real_entry:
 #endif
 
 	/* copy exception vectors */
