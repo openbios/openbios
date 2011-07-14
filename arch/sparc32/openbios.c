@@ -27,7 +27,7 @@
 #include "arch/common/fw_cfg.h"
 #include "libopenbios/ofmem.h"
 
-#define MEMORY_SIZE     (16*1024)       /* 16K ram for hosted system */
+#define MEMORY_SIZE     (128*1024)       /* 128K ram for hosted system */
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 #define FW_CFG_SUN4M_DEPTH   (FW_CFG_ARCH_LOCAL + 0x00)
 
