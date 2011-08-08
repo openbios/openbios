@@ -471,10 +471,6 @@ constant sinfo.size
   ( ihandle )
 ;
 
-: select-dev ( dev-str dev-len -- ihandle | 0 )
-  open-dev
-;
-
 : execute-device-method
 ( ... dev-str dev-len met-str met-len -- ... false | ?? true )
   2swap

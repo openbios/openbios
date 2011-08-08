@@ -46,10 +46,34 @@
   0 active-package!
   ;
 
-: unselect-dev ( -- )
-  device-end
+\ Open selected device node and make it the current instance
+\   section H.8 errata: pre OpenFirmware, but Sun OBP compatible
+: select-dev    ( -- )
+  open-dev dup 0= abort" failed opening parent."
+  dup to my-self
+  ihandle>phandle active-package!
 ;
-  
+
+\ Close current node, deselect active package and current instance,
+\ leaving no instance selected
+\   section H.8 errata: pre OpenFirmware, but Sun OBP compatible
+: unselect-dev ( -- )
+  my-self close-dev
+  device-end
+  0 to my-self
+;
+
+: begin-package ( arg-str arg-len reg-str reg-len dev-str dev-len -- )
+  select-dev
+  new-device
+  set-args
+;
+
+: end-package   ( -- )
+  finish-device
+  unselect-dev
+;
+ 
 : ?active-package ( -- phandle )
   active-package dup 0= abort" no active device"
 ;
