@@ -108,11 +108,17 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
 
     DPRINTF("do_command: id %d, cmd[0] 0x%x, status 0x%x\n", sd->id, esp->buffer[0], status);
 
-    // Target didn't want all command data or went to status phase
-    // instead of data phase?
-    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT
-        || (status & ESP_STAT_PMASK) == ESP_STATP)
+    /* Target didn't want all command data? */
+    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT) {
         return status;
+    }
+    if (replylen == 0) {
+        return 0;
+    }
+    /* Target went to status phase instead of data phase? */
+    if ((status & ESP_STAT_PMASK) == ESP_STATP) {
+        return status;
+    }
 
     // Get reply
     // Set DMA address
@@ -176,12 +182,31 @@ read_capacity(esp_private_t *esp, sd_private_t *sd)
     if (do_command(esp, sd, 11, 8)) {
         sd->sectors = 0;
         sd->bs = 0;
-
+        DPRINTF("read_capacity id %d failed\n", sd->id);
         return 0;
     }
     sd->bs = (esp->buffer[4] << 24) | (esp->buffer[5] << 16) | (esp->buffer[6] << 8) | esp->buffer[7];
     sd->sectors = ((esp->buffer[0] << 24) | (esp->buffer[1] << 16) | (esp->buffer[2] << 8) | esp->buffer[3]) * (sd->bs / 512);
 
+    DPRINTF("read_capacity id %d bs %d sectors %d\n", sd->id, sd->bs,
+            sd->sectors);
+    return 1;
+}
+
+static unsigned int
+test_unit_ready(esp_private_t *esp, sd_private_t *sd)
+{
+    /* Setup command = Test Unit Ready */
+    memset(esp->buffer, 0, 6);
+    esp->buffer[0] = 0x80;
+    esp->buffer[1] = TEST_UNIT_READY;
+
+    if (do_command(esp, sd, 6, 0)) {
+        DPRINTF("test_unit_ready id %d failed\n", sd->id);
+        return 0;
+    }
+
+    DPRINTF("test_unit_ready id %d success\n", sd->id);
     return 1;
 }
 
@@ -234,6 +259,10 @@ ob_sd_read_blocks(sd_private_t **sd)
 
     DPRINTF("ob_sd_read_blocks id %d %lx block=%d n=%d\n", (*sd)->id, (unsigned long)dest, blk, n );
 
+    if ((*sd)->bs == 0) {
+        PUSH(0);
+        return;
+    }
     spb = (*sd)->bs / 512;
     while (n) {
         sect_offset = blk / spb;
@@ -438,6 +467,7 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
     int id, diskcount = 0, cdcount = 0, *counter_ptr;
     char nodebuff[256], aliasbuff[256];
     esp_private_t *esp;
+    unsigned int i;
 
     DPRINTF("Initializing SCSI...");
 
@@ -476,8 +506,21 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
 
     for (id = 0; id < 8; id++) {
         esp->sd[id].id = id;
-        if (!inquiry(esp, &esp->sd[id]))
+        if (!inquiry(esp, &esp->sd[id])) {
+            DPRINTF("Unit %d not present\n", id);
             continue;
+        }
+        /* Clear Unit Attention condition from reset */
+        for (i = 0; i < 5; i++) {
+            if (test_unit_ready(esp, &esp->sd[id])) {
+                break;
+            }
+        }
+        if (i == 5) {
+            DPRINTF("Unit %d present but won't become ready\n", id);
+            continue;
+        }
+        DPRINTF("Unit %d present\n", id);
         read_capacity(esp, &esp->sd[id]);
 
 #ifdef CONFIG_DEBUG_ESP
