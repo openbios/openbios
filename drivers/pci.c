@@ -931,6 +931,7 @@ static void ob_pci_configure_bar(pci_addr addr, pci_config_t *config,
 
         if ((*p_omask & 0x0000000f) == 0x4) {
                 /* 64 bits memory mapping */
+                PCI_DPRINTF("Skipping 64 bit BARs for %s\n", config->path);
                 return;
         }
 
@@ -966,11 +967,17 @@ static void ob_pci_configure_bar(pci_addr addr, pci_config_t *config,
                 size = min_align;
         reloc = (reloc + size -1) & ~(size - 1);
         if (*io_base == base) {
+                PCI_DPRINTF("changing io_base from 0x%lx to 0x%x\n",
+                            *io_base, reloc + size);
                 *io_base = reloc + size;
-                reloc -= arch->io_base;
         } else {
+                PCI_DPRINTF("changing mem_base from 0x%lx to 0x%x\n",
+                            *mem_base, reloc + size);
                 *mem_base = reloc + size;
         }
+        PCI_DPRINTF("Configuring BARs for %s: reloc 0x%x omask 0x%x "
+                    "io_base 0x%lx mem_base 0x%lx size 0x%x\n",
+                    config->path, reloc, *p_omask, *io_base, *mem_base, size);
         pci_config_write32(addr, config_addr, reloc | *p_omask);
         config->assigned[reg] = reloc | *p_omask;
 }
@@ -1260,7 +1267,7 @@ int ob_pci_init(void)
     mem_base = arch->pci_mem_base;
     /* I/O ports under 0x400 are used by devices mapped at fixed
        location. */
-    io_base = arch->io_base + 0x400;
+    io_base = 0x400;
 
     bus = 0;
 
