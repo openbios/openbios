@@ -31,6 +31,7 @@ static union {
 
 translation_t **g_ofmem_translations = &s_ofmem_data.ofmem.trans;
 
+ucell *va2ttedata = 0;
 extern uint64_t qemu_mem_size;
 
 static inline size_t ALIGN_SIZE(size_t x, size_t a)
@@ -160,6 +161,37 @@ ucell ofmem_arch_io_translation_mode( phys_addr_t phys )
 {
 	/* Writable, not privileged and not locked */
 	return SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE;
+}
+
+/* Architecture-specific helpers */
+unsigned long
+find_tte(unsigned long va)
+{
+	translation_t *t = *g_ofmem_translations;
+	unsigned long tte_data;
+	
+	/* Search the ofmem linked list for this virtual address */
+	while (t != NULL) {
+		/* Find the correct range */
+		if (va >= t->virt && va < (t->virt + t->size)) {
+
+			/* valid tte, 8k size */
+			tte_data = SPITFIRE_TTE_VALID;
+
+			/* mix in phys address mode */
+			tte_data |= t->mode;
+
+			/* mix in page physical address = t->phys + offset */
+			tte_data |= t->phys + (va - t->virt);
+
+			/* return tte_data */
+			return tte_data;
+		}
+		t = t->next;
+	}
+
+	/* Couldn't find tte */
+	return -1;
 }
 
 /************************************************************************/

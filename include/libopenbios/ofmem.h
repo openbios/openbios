@@ -144,6 +144,12 @@ extern unsigned long find_pte(unsigned long va, int alloc);
 
 void mem_init(struct mem *t, char *begin, char *limit);
 void *mem_alloc(struct mem *t, int size, int align);
+
+#elif defined(CONFIG_SPARC64)
+
+extern ucell *va2ttedata;
+extern unsigned long find_tte(unsigned long va);
+
 #endif
 
 #ifdef PAGE_SHIFT

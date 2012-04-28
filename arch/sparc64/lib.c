@@ -16,8 +16,6 @@
 
 #include "ofmem_sparc64.h"
 
-static ucell *va2ttedata = 0;
-
 /* Format a string and print it on the screen, just like the libc
  * function printf.
  */
@@ -165,35 +163,21 @@ mmu_translate(void)
 static void
 pgmap_fetch(void)
 {
-	translation_t *t = *g_ofmem_translations;
-	unsigned long va, tte_data;
+    unsigned long va, tte_data;
 
-	va = POP();
+    va = POP();
 
-	/* Search the ofmem linked list for this virtual address */
-	while (t != NULL) {
-		/* Find the correct range */
-		if (va >= t->virt && va < (t->virt + t->size)) {
+    tte_data = find_tte(va);
+    if (tte_data == -1)
+        goto error;
 
-			/* valid tte, 8k size */
-			tte_data = SPITFIRE_TTE_VALID;
+    /* return tte_data */
+    PUSH(tte_data);
+    return;
 
-			/* mix in phys address mode */
-			tte_data |= t->mode;
-
-			/* mix in page physical address = t->phys + offset */
-			tte_data |= t->phys + (va - t->virt);
-
-			/* return tte_data */
-			PUSH(tte_data);
-
-			return;
-		}
-		t = t->next;
-	}
-
-	/* If we get here, there was no entry */
-	PUSH(0);
+error:
+    /* If we get here, there was no entry */
+    PUSH(0);
 }
 
 static void
@@ -270,9 +254,7 @@ dtlb_miss_handler(void)
 		}		
 	} else {
 		/* Search the ofmem linked list for this virtual address */
-		PUSH(faultva);
-		pgmap_fetch();
-		tte_data = POP();
+		tte_data = find_tte(faultva);
 	}
 
 	if (tte_data) {
@@ -359,9 +341,7 @@ itlb_miss_handler(void)
 		}		
 	} else {
 		/* Search the ofmem linked list for this virtual address */
-		PUSH(faultva);
-		pgmap_fetch();
-		tte_data = POP();
+		tte_data = find_tte(faultva);
 	}
 
 	if (tte_data) {
@@ -373,16 +353,14 @@ itlb_miss_handler(void)
 	}
 }
 
-static void
-map_pages(phys_addr_t phys, unsigned long virt,
-		  unsigned long size, unsigned long mode)
+void ofmem_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
 {
-	unsigned long tte_data, currsize;
+    unsigned long tte_data, currsize;
 
-	/* aligned to 8k page */
-	size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
+    /* aligned to 8k page */
+    size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
 
-	while (size > 0) {
+    while (size > 0) {
         currsize = size;
         if (currsize >= PAGE_SIZE_4M &&
             (virt & PAGE_MASK_4M) == 0 &&
@@ -406,18 +384,16 @@ map_pages(phys_addr_t phys, unsigned long virt,
 
         tte_data |= phys | mode | SPITFIRE_TTE_VALID;
 
-        itlb_load2(virt, tte_data);
-        dtlb_load2(virt, tte_data);
-
+	if (mode & SPITFIRE_TTE_LOCKED) {
+	    // install locked tlb entries now
+            itlb_load2(virt, tte_data);
+            dtlb_load2(virt, tte_data);
+	}
+    
         size -= currsize;
         phys += currsize;
         virt += currsize;
     }
-}
-
-void ofmem_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
-{
-	return map_pages(phys, virt, size, mode);
 }
 
 /*
@@ -457,7 +433,7 @@ dtlb_demap(unsigned long vaddr)
 static void
 unmap_pages(ucell virt, ucell size)
 {
-	ucell va;
+    ucell va;
 
     /* align address to 8k */
     virt &= ~PAGE_MASK_8K;
@@ -478,10 +454,7 @@ void ofmem_arch_unmap_pages(ucell virt, ucell size)
 
 void ofmem_arch_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
 {
-	if (mode & SPITFIRE_TTE_LOCKED) {
-		// install locked tlb entries now
-		ofmem_map_pages(phys, virt, size, mode);
-	}
+	ofmem_map_pages(phys, virt, size, mode);
 }
 
 /*
