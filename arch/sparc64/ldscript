@@ -12,7 +12,6 @@ BASE_ADDR = 0x00000000ffd00000;
 
 /* 16KB stack */
 STACK_SIZE = 16384;
-VMEM_SIZE = 128 * 1024;
 IOMEM_SIZE = 256 * 1024 + 768 * 1024;
 
 SECTIONS
@@ -50,11 +49,6 @@ SECTIONS
 	*(.bss)
 	*(.bss.*)
 	*(COMMON)
-
-	. = ALIGN(4096);
-	_vmem = .;
-	. += VMEM_SIZE;
-        _evmem = .;
 
 	_stack = .;
 	. += STACK_SIZE;

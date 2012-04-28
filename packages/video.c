@@ -25,6 +25,7 @@
 
 typedef struct osi_fb_info {
     unsigned long mphys;
+    unsigned long mvirt;
     int rb, w, h, depth;
 } osi_fb_info_t;
 
@@ -79,7 +80,7 @@ startup_splash( void )
 		dx = (video.fb.w - width)/2;
 		dy = (video.fb.h - height)/3;
 
-		pp = (char*)video.fb.mphys + dy * video.fb.rb + dx * (video.fb.depth >= 24 ? 4 : 2);
+		pp = (char*)video.fb.mvirt + dy * video.fb.rb + dx * (video.fb.depth >= 24 ? 4 : 2);
 
 		for( y=0 ; y<height; y++, pp += video.fb.rb ) {
 			if( video.fb.depth >= 24 ) {
@@ -121,7 +122,7 @@ get_color( int col_ind )
 void
 draw_pixel( int x, int y, int colind )
 {
-	char *p = (char*)video.fb.mphys + video.fb.rb * y;
+	char *p = (char*)video.fb.mvirt + video.fb.rb * y;
 	int color, d = video.fb.depth;
 
 	if( x < 0 || y < 0 || x >= video.fb.w || y >=video.fb.h )
@@ -146,7 +147,7 @@ fill_rect( int col_ind, int x, int y, int w, int h )
             x + w > video.fb.w || y + h > video.fb.h)
 		return;
 
-	pp = (char*)video.fb.mphys + video.fb.rb * y;
+	pp = (char*)video.fb.mvirt + video.fb.rb * y;
 	for( ; h--; pp += video.fb.rb ) {
 		int ww = w;
 		if( video.fb.depth == 24 || video.fb.depth == 32 ) {
@@ -209,8 +210,8 @@ video_scroll( int height )
         }
 	offs = video.fb.rb * height;
 	size = (video.fb.h * video.fb.rb - offs)/16;
-	dest = (int*)video.fb.mphys;
-	src = (int*)(video.fb.mphys + offs);
+	dest = (int*)video.fb.mvirt;
+	src = (int*)(video.fb.mvirt + offs);
 
 	for( i=0; i<size; i++ ) {
 		dest[0] = src[0];
@@ -309,15 +310,21 @@ NODE_METHODS( video ) = {
 /************************************************************************/
 
 void
-init_video( unsigned long fb,  int width, int height, int depth, int rb )
+init_video( unsigned long fb, int width, int height, int depth, int rb )
 {
         int i;
-#ifdef CONFIG_PPC
-        int s, size;
+#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
+        int size;
 #endif
 	phandle_t ph=0;
 
-	video.fb.mphys = fb;
+	video.fb.mphys = video.fb.mvirt = fb;
+
+#if defined(CONFIG_SPARC64)
+	/* Fix virtual address on SPARC64 somewhere else */
+	video.fb.mvirt = 0xfe000000;
+#endif 
+
 	video.fb.w = width;
 	video.fb.h = height;
 	video.fb.depth = depth;
@@ -327,18 +334,17 @@ init_video( unsigned long fb,  int width, int height, int depth, int rb )
 		set_int_property( ph, "height", video.fb.h );
 		set_int_property( ph, "depth", video.fb.depth );
 		set_int_property( ph, "linebytes", video.fb.rb );
-		set_int_property( ph, "address", video.fb.mphys );
+		set_int_property( ph, "address", video.fb.mvirt );
 	}
 	video.has_video = 1;
 	video.pal = malloc( 256 * sizeof(unsigned long) );
 
-#ifdef CONFIG_PPC
-        s = (video.fb.mphys & 0xfff);
-        size = ((video.fb.h * video.fb.rb + s) + 0xfff) & ~0xfff;
+#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
+        size = ((video.fb.h * video.fb.rb)  + 0xfff) & ~0xfff;
 
 	ofmem_claim_phys( video.fb.mphys, size, 0 );
-	ofmem_claim_virt( video.fb.mphys, size, 0 );
-	ofmem_map( video.fb.mphys, video.fb.mphys, size, -1 );
+	ofmem_claim_virt( video.fb.mvirt, size, 0 );
+	ofmem_map( video.fb.mphys, video.fb.mvirt, size, ofmem_arch_io_translation_mode(video.fb.mphys) );
 #endif
 
 	for( i=0; i<256; i++ )

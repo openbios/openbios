@@ -133,7 +133,7 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 	int depth = VGA_DEFAULT_DEPTH;
 	int linebytes = VGA_DEFAULT_LINEBYTES;
 
-#if defined(CONFIG_QEMU) && (defined(CONFIG_PPC) || defined(CONFIG_SPARC64))
+#if defined(CONFIG_QEMU) && (defined(CONFIG_PPC) || defined(CONFIG_SPARC32) || defined(CONFIG_SPARC64))
 	int w, h, d;
         w = fw_cfg_read_i16(FW_CFG_ARCH_WIDTH);
         h = fw_cfg_read_i16(FW_CFG_ARCH_HEIGHT);
@@ -144,13 +144,6 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 		depth = d;
 		linebytes = (width * ((depth + 7) / 8));
 	}
-#ifdef CONFIG_SPARC64
-#define VGA_VADDR  0xfe000000
-        ofmem_claim_phys(fb, fb_size, 0);
-        ofmem_claim_virt(VGA_VADDR, fb_size, 0);
-        ofmem_map(fb, VGA_VADDR, fb_size, 0x76);
-        fb = VGA_VADDR;
-#endif
 #endif
 
 	vga_vbe_set_mode(width, height, depth);
