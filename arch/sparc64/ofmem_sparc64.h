@@ -18,8 +18,7 @@
 
 extern void ofmem_map_pages(ucell phys, ucell virt, ucell size, ucell mode);
 
-typedef int (*translation_entry_cb)(ucell phys,	ucell virt,
-									ucell size, ucell mode);
+typedef int (*translation_entry_cb)(ucell phys,	ucell virt, ucell size, ucell mode);
 
 extern void ofmem_walk_boot_map(translation_entry_cb cb);
 

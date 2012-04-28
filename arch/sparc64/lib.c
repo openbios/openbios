@@ -70,15 +70,6 @@ void free(void *ptr)
 	ofmem_free(ptr);
 }
 
-#define PAGE_SIZE_4M   (4 * 1024 * 1024)
-#define PAGE_SIZE_512K (512 * 1024)
-#define PAGE_SIZE_64K  (64 * 1024)
-#define PAGE_SIZE_8K   (8 * 1024)
-#define PAGE_MASK_4M   (4 * 1024 * 1024 - 1)
-#define PAGE_MASK_512K (512 * 1024 - 1)
-#define PAGE_MASK_64K  (64 * 1024 - 1)
-#define PAGE_MASK_8K   (8 * 1024 - 1)
-
 static void
 mmu_open(void)
 {
@@ -180,37 +171,6 @@ error:
     PUSH(0);
 }
 
-static void
-dtlb_load2(unsigned long vaddr, unsigned long tte_data)
-{
-    asm("stxa %0, [%1] %2\n"
-        "stxa %3, [%%g0] %4\n"
-        : : "r" (vaddr), "r" (48), "i" (ASI_DMMU),
-          "r" (tte_data), "i" (ASI_DTLB_DATA_IN));
-}
-
-static void
-dtlb_load3(unsigned long vaddr, unsigned long tte_data,
-           unsigned long tte_index)
-{
-    asm("stxa %0, [%1] %2\n"
-        "stxa %3, [%4] %5\n"
-        : : "r" (vaddr), "r" (48), "i" (ASI_DMMU),
-          "r" (tte_data), "r" (tte_index << 3), "i" (ASI_DTLB_DATA_ACCESS));
-}
-
-static unsigned long
-dtlb_faultva(void)
-{
-    unsigned long faultva;
-
-    asm("ldxa [%1] %2, %0\n"
-        : "=r" (faultva)
-        : "r" (48), "i" (ASI_DMMU));
-
-    return faultva;
-}
-
 /*
   ( index tte_data vaddr -- ? )
 */
@@ -267,25 +227,6 @@ dtlb_miss_handler(void)
 
 }
 
-static void
-itlb_load2(unsigned long vaddr, unsigned long tte_data)
-{
-    asm("stxa %0, [%1] %2\n"
-        "stxa %3, [%%g0] %4\n"
-        : : "r" (vaddr), "r" (48), "i" (ASI_IMMU),
-          "r" (tte_data), "i" (ASI_ITLB_DATA_IN));
-}
-
-static void
-itlb_load3(unsigned long vaddr, unsigned long tte_data,
-           unsigned long tte_index)
-{
-    asm("stxa %0, [%1] %2\n"
-        "stxa %3, [%4] %5\n"
-        : : "r" (vaddr), "r" (48), "i" (ASI_IMMU),
-          "r" (tte_data), "r" (tte_index << 3), "i" (ASI_ITLB_DATA_ACCESS));
-}
-
 /*
   ( index tte_data vaddr -- ? )
 */
@@ -298,18 +239,6 @@ itlb_load(void)
     tte_data = POP();
     idx = POP();
     itlb_load3(vaddr, tte_data, idx);
-}
-
-static unsigned long
-itlb_faultva(void)
-{
-    unsigned long faultva;
-
-    asm("ldxa [%1] %2, %0\n"
-        : "=r" (faultva)
-        : "r" (48), "i" (ASI_IMMU));
-
-    return faultva;
 }
 
 /* MMU I-TLB miss handler */
@@ -353,49 +282,6 @@ itlb_miss_handler(void)
 	}
 }
 
-void ofmem_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
-{
-    unsigned long tte_data, currsize;
-
-    /* aligned to 8k page */
-    size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
-
-    while (size > 0) {
-        currsize = size;
-        if (currsize >= PAGE_SIZE_4M &&
-            (virt & PAGE_MASK_4M) == 0 &&
-            (phys & PAGE_MASK_4M) == 0) {
-            currsize = PAGE_SIZE_4M;
-            tte_data = 6ULL << 60;
-        } else if (currsize >= PAGE_SIZE_512K &&
-                   (virt & PAGE_MASK_512K) == 0 &&
-                   (phys & PAGE_MASK_512K) == 0) {
-            currsize = PAGE_SIZE_512K;
-            tte_data = 4ULL << 60;
-        } else if (currsize >= PAGE_SIZE_64K &&
-                   (virt & PAGE_MASK_64K) == 0 &&
-                   (phys & PAGE_MASK_64K) == 0) {
-            currsize = PAGE_SIZE_64K;
-            tte_data = 2ULL << 60;
-        } else {
-            currsize = PAGE_SIZE_8K;
-            tte_data = 0;
-        }
-
-        tte_data |= phys | mode | SPITFIRE_TTE_VALID;
-
-	if (mode & SPITFIRE_TTE_LOCKED) {
-	    // install locked tlb entries now
-            itlb_load2(virt, tte_data);
-            dtlb_load2(virt, tte_data);
-	}
-    
-        size -= currsize;
-        phys += currsize;
-        virt += currsize;
-    }
-}
-
 /*
   3.6.5 map
   ( phys.lo ... phys.hi virt size mode -- )
@@ -414,47 +300,6 @@ mmu_map(void)
     phys |= POP();
 
     ofmem_map(phys, virt, size, mode);
-}
-
-static void
-itlb_demap(unsigned long vaddr)
-{
-    asm("stxa %0, [%0] %1\n"
-        : : "r" (vaddr), "i" (ASI_IMMU_DEMAP));
-}
-
-static void
-dtlb_demap(unsigned long vaddr)
-{
-    asm("stxa %0, [%0] %1\n"
-        : : "r" (vaddr), "i" (ASI_DMMU_DEMAP));
-}
-
-static void
-unmap_pages(ucell virt, ucell size)
-{
-    ucell va;
-
-    /* align address to 8k */
-    virt &= ~PAGE_MASK_8K;
-
-    /* align size to 8k */
-    size = (size + PAGE_MASK_8K) & ~PAGE_MASK_8K;
-
-    for (va = virt; va < virt + size; va += PAGE_SIZE_8K) {
-        itlb_demap(va);
-        dtlb_demap(va);
-    }
-}
-
-void ofmem_arch_unmap_pages(ucell virt, ucell size)
-{
-	unmap_pages(virt, size);
-}
-
-void ofmem_arch_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
-{
-	ofmem_map_pages(phys, virt, size, mode);
 }
 
 /*
