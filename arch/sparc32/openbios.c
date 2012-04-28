@@ -27,11 +27,9 @@
 #include "arch/common/fw_cfg.h"
 #include "libopenbios/ofmem.h"
 
-#define MEMORY_SIZE     (128*1024)       /* 128K ram for hosted system */
+#define MEMORY_SIZE     (512*1024)       /* 512K ram for hosted system */
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 #define FW_CFG_SUN4M_DEPTH   (FW_CFG_ARCH_LOCAL + 0x00)
-
-static ucell *memory;
 
 int qemu_machine_type;
 
@@ -807,17 +805,28 @@ static void setup_stdio(void)
 
 static void init_memory(void)
 {
-    memory = malloc(MEMORY_SIZE);
-    if (!memory)
-        printk("panic: not enough memory on host system.\n");
+    phys_addr_t phys;
+    ucell virt;
+    
+    /* Claim the memory from OFMEM */
+    phys = ofmem_claim_phys(-1, MEMORY_SIZE, PAGE_SIZE);
+    if (!phys)
+        printk("panic: not enough physical memory on host system.\n");
+    
+    virt = ofmem_claim_virt(-1, MEMORY_SIZE, PAGE_SIZE);
+    if (!virt)
+        printk("panic: not enough virtual memory on host system.\n");
+
+    /* Generate the mapping (and lock translation into the TLBs) */
+    ofmem_map(phys, virt, MEMORY_SIZE, ofmem_arch_default_translation_mode(phys));
 
     /* we push start and end of memory to the stack
      * so that it can be used by the forth word QUIT
      * to initialize the memory allocator
      */
-
-    PUSH((ucell)memory);
-    PUSH((ucell)memory + MEMORY_SIZE);
+    
+    PUSH(virt);
+    PUSH(virt + MEMORY_SIZE);
 }
 
 static void
