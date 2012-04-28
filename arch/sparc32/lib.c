@@ -56,8 +56,8 @@ struct mem {
 struct mem cdvmem;              /* Current device virtual memory space */
 
 unsigned int va_shift;
+unsigned long *l1;
 static unsigned long *context_table;
-static unsigned long *l1;
 
 static ucell *mem_reg = 0;
 static ucell *mem_avail = 0;
@@ -141,78 +141,6 @@ mem_alloc(struct mem *t, int size, int align)
     return p;
 }
 
-static unsigned long
-find_pte(unsigned long va, int alloc)
-{
-    uint32_t pte;
-    void *p;
-    unsigned long pa;
-    int ret;
-
-    pte = l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)];
-    if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
-        if (alloc) {
-            ret = ofmem_posix_memalign(&p, SRMMU_PTRS_PER_PMD * sizeof(int),
-                                 SRMMU_PTRS_PER_PMD * sizeof(int));
-            if (ret != 0)
-                return ret;
-            pte = SRMMU_ET_PTD | ((va2pa((unsigned long)p)) >> 4);
-            l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
-            /* barrier() */
-        } else {
-            return -1;
-        }
-    }
-
-    pa = (pte & 0xFFFFFFF0) << 4;
-    pa += ((va >> SRMMU_PMD_SHIFT) & (SRMMU_PTRS_PER_PMD - 1)) << 2;
-    pte = *(uint32_t *)pa2va(pa);
-    if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
-        if (alloc) {
-            ret = ofmem_posix_memalign(&p, SRMMU_PTRS_PER_PTE * sizeof(void *),
-                                 SRMMU_PTRS_PER_PTE * sizeof(void *));
-            if (ret != 0)
-                return ret;
-            pte = SRMMU_ET_PTD | ((va2pa((unsigned int)p)) >> 4);
-            *(uint32_t *)pa2va(pa) = pte;
-        } else {
-            return -2;
-        }
-    }
-
-    pa = (pte & 0xFFFFFFF0) << 4;
-    pa += ((va >> PAGE_SHIFT) & (SRMMU_PTRS_PER_PTE - 1)) << 2;
-
-    return pa2va(pa);
-}
-
-static void
-map_pages(phys_addr_t phys, unsigned long virt,
-		  unsigned long size, unsigned long mode)
-{
-    unsigned long npages, off;
-    uint32_t pte;
-    unsigned long pa;
-
-    DPRINTF("map_pages: va 0x%lx, pa 0x%llx, size 0x%lx\n", virt, phys, size);
-
-    off = phys & (PAGE_SIZE - 1);
-    npages = (off + (size - 1) + (PAGE_SIZE - 1)) / PAGE_SIZE;
-    phys &= ~(uint64_t)(PAGE_SIZE - 1);
-
-    while (npages-- != 0) {
-        pa = find_pte(virt, 1);
-
-        pte = SRMMU_ET_PTE | ((phys & PAGE_MASK) >> 4);
-	pte |= mode;
-
-        *(uint32_t *)pa = pte;
-
-        virt += PAGE_SIZE;
-        phys += PAGE_SIZE;
-    }
-}
-
 /*
  * D5.3 pgmap@ ( va -- pte )
  */
@@ -269,8 +197,7 @@ ob_map_pages(void)
     pa <<= 32;
     pa |= POP() & 0xffffffff;
 
-    map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
-    DPRINTF("map-page: va 0x%lx pa 0x%llx size 0x%x\n", va, pa, size);
+    ofmem_arch_map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
 }
 
 static void
@@ -327,7 +254,7 @@ char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
 {
     uint64_t mpa = ((uint64_t)which_io << 32) | (uint64_t)pa;
 
-    map_pages(mpa, (unsigned long)va, size, ofmem_arch_default_translation_mode(mpa));
+    ofmem_arch_map_pages(mpa, (unsigned long)va, size, ofmem_arch_default_translation_mode(mpa));
     return va;
 }
 
@@ -335,16 +262,6 @@ void obp_dumb_munmap(__attribute__((unused)) char *va,
                      __attribute__((unused)) unsigned int size)
 {
     DPRINTF("obp_dumb_munmap: virta 0x%x, sz %d\n", (unsigned int)va, size);
-}
-
-void ofmem_arch_unmap_pages(ucell virt, ucell size)
-{
-    /* Currently do nothing */
-}
-
-void ofmem_arch_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
-{
-    map_pages(phys, virt, size, mode);
 }
 
 char *obp_memalloc(char *va, unsigned int size, unsigned int align)
@@ -483,10 +400,10 @@ init_mmu_swift(void)
     va = (unsigned long)&_start;
     size = (unsigned long)&_end - (unsigned long)&_start;
     pa = va2pa(va);
-    map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
+    ofmem_arch_map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
 
     // 1:1 mapping for RAM
-    map_pages(0, 0, LOWMEMSZ, ofmem_arch_default_translation_mode(0));
+    ofmem_arch_map_pages(0, 0, LOWMEMSZ, ofmem_arch_default_translation_mode(0));
 
     /*
      * Flush cache

@@ -133,10 +133,86 @@ int ofmem_arch_get_available_entry_size(phandle_t ph)
 /* Generate memory available property entry for Sparc32 */
 void ofmem_arch_create_available_entry(phandle_t ph, ucell *availentry, phys_addr_t start, ucell size)
 {
-	int i = 0;
+  int i = 0;
 
 	i += ofmem_arch_encode_physaddr(availentry, start);
 	availentry[i] = size;
+}
+
+/* Unmap a set of pages */
+void ofmem_arch_unmap_pages(ucell virt, ucell size)
+{
+    /* Currently do nothing */
+}
+
+/* Map a set of pages */
+void ofmem_arch_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
+{
+	unsigned long npages, off;
+	uint32_t pte;
+	unsigned long pa;
+
+	off = phys & (PAGE_SIZE - 1);
+	npages = (off + (size - 1) + (PAGE_SIZE - 1)) / PAGE_SIZE;
+	phys &= ~(uint64_t)(PAGE_SIZE - 1);
+
+	while (npages-- != 0) {
+		pa = find_pte(virt, 1);
+
+		pte = SRMMU_ET_PTE | ((phys & PAGE_MASK) >> 4);
+		pte |= mode;
+
+		*(uint32_t *)pa = pte;
+
+		virt += PAGE_SIZE;
+		phys += PAGE_SIZE;
+	}
+}
+
+/* Architecture-specific OFMEM helpers */
+unsigned long
+find_pte(unsigned long va, int alloc)
+{
+    uint32_t pte;
+    void *p;
+    unsigned long pa;
+    int ret;
+
+    pte = l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)];
+    if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
+        if (alloc) {
+            ret = ofmem_posix_memalign(&p, SRMMU_PTRS_PER_PMD * sizeof(int),
+                                 SRMMU_PTRS_PER_PMD * sizeof(int));
+            if (ret != 0)
+                return ret;
+            pte = SRMMU_ET_PTD | ((va2pa((unsigned long)p)) >> 4);
+            l1[(va >> SRMMU_PGDIR_SHIFT) & (SRMMU_PTRS_PER_PGD - 1)] = pte;
+            /* barrier() */
+        } else {
+            return -1;
+        }
+    }
+
+    pa = (pte & 0xFFFFFFF0) << 4;
+    pa += ((va >> SRMMU_PMD_SHIFT) & (SRMMU_PTRS_PER_PMD - 1)) << 2;
+    pte = *(uint32_t *)pa2va(pa);
+    if ((pte & SRMMU_ET_MASK) == SRMMU_ET_INVALID) {
+        if (alloc) {
+            ret = ofmem_posix_memalign(&p, SRMMU_PTRS_PER_PTE * sizeof(void *),
+                                 SRMMU_PTRS_PER_PTE * sizeof(void *));
+            if (ret != 0)
+                return ret;
+            pte = SRMMU_ET_PTD | ((va2pa((unsigned int)p)) >> 4);
+            *(uint32_t *)pa2va(pa) = pte;
+        } else {
+            return -2;
+        }
+    }
+
+    pa = (pte & 0xFFFFFFF0) << 4;
+    pa += ((va >> PAGE_SHIFT) & (SRMMU_PTRS_PER_PTE - 1)) << 2;
+
+    return pa2va(pa);
 }
 
 /************************************************************************/
