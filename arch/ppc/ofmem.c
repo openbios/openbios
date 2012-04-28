@@ -121,7 +121,7 @@ void ofmem_arch_unmap_pages(ucell virt, ucell size)
 	/* kill page mappings in provided range */
 }
 
-void ofmem_arch_early_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
+void ofmem_arch_map_pages(ucell phys, ucell virt, ucell size, ucell mode)
 {
 	/* none yet */
 }

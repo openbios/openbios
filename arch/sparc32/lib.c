@@ -342,7 +342,7 @@ void ofmem_arch_unmap_pages(ucell virt, ucell size)
     /* Currently do nothing */
 }
 
-void ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
+void ofmem_arch_map_pages(phys_addr_t phys, ucell virt, ucell size, ucell mode)
 {
     map_pages(phys, virt, size, mode);
 }

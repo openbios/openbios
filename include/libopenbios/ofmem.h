@@ -67,15 +67,15 @@ extern phys_addr_t 	ofmem_arch_get_phys_top(void);
 extern ucell		ofmem_arch_get_iomem_base(void);
 extern ucell		ofmem_arch_get_iomem_top(void);
 extern retain_t*	ofmem_arch_get_retained(void);
-extern int			ofmem_arch_get_physaddr_cellsize(void);
-extern int			ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value);
+extern int		ofmem_arch_get_physaddr_cellsize(void);
+extern int		ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value);
 extern int		ofmem_arch_get_available_entry_size(phandle_t ph);
 extern void 		ofmem_arch_create_available_entry(phandle_t ph, ucell *availentry, phys_addr_t start, ucell size);
 extern int 		ofmem_arch_get_translation_entry_size(void);
 extern void 		ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t);
 extern ucell    	ofmem_arch_default_translation_mode( phys_addr_t phys );
 extern ucell    	ofmem_arch_io_translation_mode( phys_addr_t phys );
-extern void     	ofmem_arch_early_map_pages(phys_addr_t phys, ucell virt, ucell size,
+extern void     	ofmem_arch_map_pages(phys_addr_t phys, ucell virt, ucell size,
                                            ucell mode);
 extern void     	ofmem_arch_unmap_pages(ucell virt, ucell size);
 /* sparc64 uses this method */

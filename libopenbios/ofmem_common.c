@@ -794,8 +794,8 @@ int ofmem_map( phys_addr_t phys, ucell virt, ucell size, ucell mode )
 	/* install translations */
 	ofmem_map_page_range(phys, virt, size, mode);
 
-	/* allow arch to install mappings early, e.g. for locked mappings */
-	ofmem_arch_early_map_pages(phys, virt, size, mode);
+	/* allow arch to map the pages */
+	ofmem_arch_map_pages(phys, virt, size, mode);
 
 	return 0;
 }
@@ -836,7 +836,7 @@ ucell ofmem_map_io( phys_addr_t phys, ucell size )
 	mode = ofmem_arch_io_translation_mode(off);
 
 	ofmem_map_page_range(phys, virt, npages * PAGE_SIZE, mode);
-	ofmem_arch_early_map_pages(phys, virt, npages * PAGE_SIZE, mode);
+	ofmem_arch_map_pages(phys, virt, npages * PAGE_SIZE, mode);
 
 	return (virt + off);
 }
