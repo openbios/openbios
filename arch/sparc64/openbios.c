@@ -21,7 +21,8 @@
 #include "../../drivers/timer.h" // XXX
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
-#include "libopenbios/ofmem.h"
+#include "arch/sparc64/ofmem_sparc64.h"
+#include "spitfire.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
@@ -33,8 +34,6 @@
 #define APB_MEM_BASE         0x1ff00000000ULL
 
 #define MEMORY_SIZE     (512*1024)      /* 512K ram for hosted system */
-
-static ucell *memory;
 
 // XXX
 #define NVRAM_SIZE       0x2000
@@ -553,17 +552,28 @@ void udelay(unsigned int usecs)
 
 static void init_memory(void)
 {
-    memory = malloc(MEMORY_SIZE);
-    if (!memory)
-        printk("panic: not enough memory on host system.\n");
+    phys_addr_t phys;
+    ucell virt;
+    
+    /* Claim the memory from OFMEM (align to 512K so we only take 1 TLB slot) */
+    phys = ofmem_claim_phys(-1, MEMORY_SIZE, PAGE_SIZE_512K);
+    if (!phys)
+        printk("panic: not enough physical memory on host system.\n");
+    
+    virt = ofmem_claim_virt(-1, MEMORY_SIZE, PAGE_SIZE_512K);
+    if (!virt)
+        printk("panic: not enough virtual memory on host system.\n");
+
+    /* Generate the mapping (and lock translation into the TLBs) */
+    ofmem_map(phys, virt, MEMORY_SIZE, ofmem_arch_default_translation_mode(phys) | SPITFIRE_TTE_LOCKED);
 
     /* we push start and end of memory to the stack
      * so that it can be used by the forth word QUIT
      * to initialize the memory allocator
      */
-
-    PUSH((ucell)memory);
-    PUSH((ucell)memory + (ucell)MEMORY_SIZE);
+    
+    PUSH(virt);
+    PUSH(virt + MEMORY_SIZE);
 }
 
 static void
