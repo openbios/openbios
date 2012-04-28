@@ -8,7 +8,7 @@
 #include "libopenbios/bindings.h"
 #include "drivers/drivers.h"
 #include "iommu.h"
-#include "libopenbios/ofmem.h"
+#include "arch/sparc32/ofmem_sparc32.h"
 
 #ifdef CONFIG_DEBUG_IOMMU
 #define DPRINTF(fmt, args...)                   \

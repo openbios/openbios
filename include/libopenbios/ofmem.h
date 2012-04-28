@@ -129,52 +129,9 @@ extern phandle_t s_phandle_mmu;
 /* Currently the same for all architectures */
 #define PAGE_SHIFT   12
 
-#ifdef CONFIG_PPC
-unsigned long get_ram_top( void );
-unsigned long get_ram_bottom( void );
-
-#elif defined(CONFIG_SPARC32)
-
-/* arch/sparc32/lib.c */
-struct mem;
-extern struct mem cdvmem;
-
-extern unsigned long *l1;
-extern unsigned long find_pte(unsigned long va, int alloc);
-
-void mem_init(struct mem *t, char *begin, char *limit);
-void *mem_alloc(struct mem *t, int size, int align);
-
-#elif defined(CONFIG_SPARC64)
-
-#define PAGE_SIZE_4M   (4 * 1024 * 1024)
-#define PAGE_SIZE_512K (512 * 1024)
-#define PAGE_SIZE_64K  (64 * 1024)
-#define PAGE_SIZE_8K   (8 * 1024)
-#define PAGE_MASK_4M   (4 * 1024 * 1024 - 1)
-#define PAGE_MASK_512K (512 * 1024 - 1)
-#define PAGE_MASK_64K  (64 * 1024 - 1)
-#define PAGE_MASK_8K   (8 * 1024 - 1)
-
-extern ucell *va2ttedata;
-extern unsigned long find_tte(unsigned long va);
-
-void itlb_load2(unsigned long vaddr, unsigned long tte_data);
-void itlb_load3(unsigned long vaddr, unsigned long tte_data, unsigned long tte_index);
-unsigned long itlb_faultva(void);
-void itlb_demap(unsigned long vaddr);
-void dtlb_load2(unsigned long vaddr, unsigned long tte_data);
-void dtlb_load3(unsigned long vaddr, unsigned long tte_data, unsigned long tte_index);
-unsigned long dtlb_faultva(void);
-void dtlb_demap(unsigned long vaddr);
-
-#endif
-
-#ifdef PAGE_SHIFT
 #define PAGE_SIZE    (1 << PAGE_SHIFT)
 #define PAGE_MASK    (~(PAGE_SIZE - 1))
 #define PAGE_ALIGN(addr)  (((addr) + PAGE_SIZE - 1) & PAGE_MASK)
-#endif
 
 #if defined(CONFIG_DEBUG_OFMEM)
 # define OFMEM_TRACE(fmt, ...) do { printk("OFMEM: " fmt, ## __VA_ARGS__); } while (0)

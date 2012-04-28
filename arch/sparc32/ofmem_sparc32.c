@@ -15,7 +15,7 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/string.h"
-#include "libopenbios/ofmem.h"
+#include "arch/sparc32/ofmem_sparc32.h"
 #include "asm/asi.h"
 #include "pgtsrmmu.h"
 

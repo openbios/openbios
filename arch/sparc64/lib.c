@@ -14,7 +14,7 @@
 #include "libopenbios/sys_info.h"
 #include "boot.h"
 
-#include "ofmem_sparc64.h"
+#include "arch/sparc64/ofmem_sparc64.h"
 
 /* Format a string and print it on the screen, just like the libc
  * function printf.

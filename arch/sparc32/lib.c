@@ -9,7 +9,7 @@
 
 #include "libc/vsprintf.h"
 #include "libopenbios/bindings.h"
-#include "libopenbios/ofmem.h"
+#include "arch/sparc32/ofmem_sparc32.h"
 #include "asm/asi.h"
 #include "pgtsrmmu.h"
 #include "openprom.h"

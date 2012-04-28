@@ -75,13 +75,13 @@ get_rom_base(void)
     return ofmem->ramsize - OF_CODE_SIZE;
 }
 
-unsigned long
+static unsigned long
 get_ram_top(void)
 {
     return get_hash_base() - (32 + 64 + 64) * 1024 - OFMEM_SIZE;
 }
 
-unsigned long
+static unsigned long
 get_ram_bottom(void)
 {
     return FREE_BASE;

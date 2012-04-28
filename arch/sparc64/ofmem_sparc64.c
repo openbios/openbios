@@ -15,7 +15,7 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libc/string.h"
-#include "ofmem_sparc64.h"
+#include "arch/sparc64/ofmem_sparc64.h"
 #include "spitfire.h"
 
 #define OF_MALLOC_BASE		((char*)OFMEM + ALIGN_SIZE(sizeof(ofmem_t), 8))
