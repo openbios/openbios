@@ -126,12 +126,23 @@ entry:
         set     0x2000, %g3
         sub     %g1, %g3, %g6
 
+        ! Check if this is the boot CPU and skip SMP table check if yes
+        ! XXX: not all CPUs should have MXCC
+        set     0x1c00f00, %g2
+        ldda    [%g2] ASI_CONTROL, %g2
+        srl     %g3, 24, %g7
+        sub     %g7, 8, %g7
+        tst     %g7
+        bz      skip_table
+         nop
+
         ! Calculate SMP table location
 	set	0x1f0c, %g2
         add     %g6, %g2, %g2                 ! valid?
         lda     [%g2] ASI_M_BYPASS, %g7
         sta     %g0, [%g2] ASI_M_BYPASS
 
+skip_table:
         ! Get machine ID from configuration device
         mov     FW_CFG_MACHINE_ID, %g2
         sub     %g5, 2, %g5
