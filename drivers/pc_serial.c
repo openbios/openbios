@@ -190,6 +190,9 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
     fword("encode+");
     push_str("reg");
     fword("property");
+#if defined(CONFIG_SPARC64)
+    set_int_property(get_cur_dev(), "interrupts", 1);
+#endif
 
     aliases = find_dev("/aliases");
     set_property(aliases, "ttya", nodebuff, strlen(nodebuff) + 1);

@@ -401,6 +401,21 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 	props[PCI_INT_MAP_PCI_INT] = 0x7;
 
 	set_property(dev, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
+#elif defined(CONFIG_SPARC64)
+	phandle_t dev = get_cur_dev();
+	uint32_t props[5];
+
+	props[0] = 0x000001fe;
+	props[1] = 0x020003f8;
+	props[2] = 1;
+	props[3] = find_dev("/");
+	props[4] = 0x2b;
+	set_property(dev, "interrupt-map", (char *)props, 5 * sizeof(props[0]));
+
+	props[0] = 0x000001ff;
+	props[1] = 0xffffffff;
+	props[2] = 3;
+	set_property(dev, "interrupt-map-mask", (char *)props, 3 * sizeof(props[0]));
 #endif
 }
 
@@ -520,6 +535,14 @@ int bridge_config_cb(const pci_config_t *config)
 	set_property(aliases, "bridge", config->path, strlen(config->path) + 1);
 
 	return 0;
+}
+
+int virtio_config_cb(const pci_config_t *config)
+{
+#if defined(CONFIG_SPARC64)
+    set_int_property(get_cur_dev(), "interrupts", 0);
+#endif
+    return 0;
 }
 
 int ide_config_cb2 (const pci_config_t *config)
@@ -756,6 +779,21 @@ int vga_config_cb (const pci_config_t *config)
 int ebus_config_cb(const pci_config_t *config)
 {
 #ifdef CONFIG_DRIVER_EBUS
+    phandle_t dev = get_cur_dev();
+    uint32_t props[5];
+
+    props[0] = 0x000001fe;
+    props[1] = 0x020003f8;
+    props[2] = 1;
+    props[3] = find_dev("/");
+    props[4] = 0x2b;
+    set_property(dev, "interrupt-map", (char *)props, 5 * sizeof(props[0]));
+
+    props[0] = 0x000001ff;
+    props[1] = 0xffffffff;
+    props[2] = 3;
+    set_property(dev, "interrupt-map-mask", (char *)props, 3 * sizeof(props[0]));
+
 #ifdef CONFIG_DRIVER_FLOPPY
     ob_floppy_init(config->path, "fdthree", 0x3f0ULL, 0);
 #endif
