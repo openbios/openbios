@@ -45,6 +45,23 @@ static const pci_subclass_t undef_subclass[] = {
     },
 };
 
+static const pci_dev_t scsi_devices[] = {
+    {
+        /* Virtio-block controller */
+        PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_DEVICE_ID_VIRTIO_BLOCK,
+        NULL, "virtio-scsi", NULL,
+        "pci1af4,1001\0pci1af4,1001\0pciclass,01018f\0",
+        0, 0, 0,
+        NULL, NULL,
+    },
+    {
+        0xFFFF, 0xFFFF,
+        NULL, NULL, NULL, NULL,
+        -1, -1, -1,
+        NULL, NULL,
+    },
+};
+
 static const pci_dev_t ide_devices[] = {
     {
         PCI_VENDOR_ID_CMD, PCI_DEVICE_ID_CMD_646, /* CMD646 IDE controller */
@@ -64,7 +81,7 @@ static const pci_dev_t ide_devices[] = {
 static const pci_subclass_t mass_subclass[] = {
     {
         PCI_SUBCLASS_STORAGE_SCSI, "SCSI bus controller",
-        NULL, NULL, NULL,
+        "scsi", scsi_devices, NULL,
         NULL, NULL,
     },
     {
