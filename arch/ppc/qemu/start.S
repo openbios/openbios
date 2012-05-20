@@ -701,7 +701,7 @@ _GLOBAL(flush_icache_range):
         isync
         blr
 
-        /* Get RAM size from Qemu configuration device */
+        /* Get RAM size from QEMU configuration device */
 
 #define CFG_ADDR 0xf0000510
 #define FW_CFG_RAM_SIZE         0x03

@@ -429,7 +429,7 @@ ob_macio_init(unsigned int slot, uint64_t base, unsigned long offset)
 static void
 sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
 {
-    // OpenBIOS and Qemu don't know how to do Sbus probing
+    // OpenBIOS and QEMU don't know how to do Sbus probing
     switch(slot) {
     case 3: // SUNW,tcx
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
@@ -451,7 +451,7 @@ sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
 static void
 sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
 {
-    // OpenBIOS and Qemu don't know how to do Sbus probing
+    // OpenBIOS and QEMU don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
@@ -469,7 +469,7 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
 static void
 sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
 {
-    // OpenBIOS and Qemu don't know how to do Sbus probing
+    // OpenBIOS and QEMU don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
