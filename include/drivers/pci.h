@@ -206,6 +206,7 @@ extern const pci_arch_t *arch;
 #define PCI_DEVICE_ID_QEMU_VGA           0x1111
 
 #define PCI_VENDOR_ID_REDHAT_QUMRANET    0x1af4
+#define PCI_DEVICE_ID_VIRTIO_NET         0x1000
 #define PCI_DEVICE_ID_VIRTIO_BLOCK       0x1001
 
 #define PCI_VENDOR_ID_INTEL              0x8086

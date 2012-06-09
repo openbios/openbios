@@ -129,6 +129,14 @@ static const pci_dev_t eth_devices[] = {
         NULL, "ethernet",
     },
     {
+        /* Virtio-network controller */
+        PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_DEVICE_ID_VIRTIO_NET,
+        NULL, "virtio-net", NULL,
+        "pci1af4,1000\0pci1af4,1000\0pciclass,020000\0",
+        0, 0, 0,
+        virtio_config_cb, NULL,
+    },
+    {
         0xFFFF, 0xFFFF,
         NULL, NULL, NULL, NULL,
         -1, -1, -1,
