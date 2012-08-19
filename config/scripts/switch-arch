@@ -232,11 +232,12 @@ for ARCH in $arch_list; do
         ppc)
         select_prefix powerpc
         if [ "$unix" = "no" ]; then
-            CFLAGS="-msoft-float -fno-builtin-bcopy -fno-builtin-log2"
+            CFLAGS="-m32 -msoft-float -fno-builtin-bcopy -fno-builtin-log2"
+            AS_FLAGS="-m32"
         else
             CFLAGS="-fno-builtin"
+            AS_FLAGS=
         fi
-        AS_FLAGS=
         ;;
 
         ppc64)
