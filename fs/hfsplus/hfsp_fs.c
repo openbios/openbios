@@ -437,14 +437,147 @@ hfsp_files_volume_name( hfsp_info_t *mi )
 	PUSH(pointer2cell(volname));
 }
 
+static const int days_month[12] =
+	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+static const int days_month_leap[12] =
+	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+static inline int is_leap(int year)
+{
+	return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+}
+
+static void
+print_date(uint32_t sec)
+{
+	unsigned int second, minute, hour, month, day, year;
+	int current;
+	const int *days;
+
+	second = sec % 60;
+	sec /= 60;
+
+	minute = sec % 60;
+	sec /= 60;
+
+	hour = sec % 24;
+	sec /= 24;
+
+	year = sec * 100 / 36525;
+	sec -= year * 36525 / 100;
+	year += 1904;
+
+	days = is_leap(year) ?  days_month_leap : days_month;
+
+	current = 0;
+	month = 0;
+	while (month < 12) {
+		if (sec <= current + days[month]) {
+			break;
+		}
+		current += days[month];
+		month++;
+	}
+	month++;
+
+	day = sec - current + 1;
+
+	forth_printf("%d-%02d-%02d %02d:%02d:%02d ",
+		     year, month, day, hour, minute, second);
+}
+
 /* static method, ( pathstr len ihandle -- ) */
 static void
 hfsp_files_dir( hfsp_info_t *dummy )
 {
-	forth_printf("dir method not implemented for HFS+ filesystem\n");
-	POP();
-	POP();
-	POP();
+	ihandle_t ih = POP_ih();
+	char *path = pop_fstr_copy();
+	int fd, found;
+	volume *vol;
+	record rec, r, folrec;
+	char name[256], *curfol, *tmppath;
+	
+	fd = open_ih(ih);
+	if ( fd == -1 ) {
+		free( path );
+		RET( 0 );
+	}
+
+	vol = malloc( sizeof(volume) );
+	if (volume_open(vol, fd)) {
+		free( path );
+		close_io( fd );
+		RET( 0 );
+	}
+	
+	/* First move to the specified folder */
+	tmppath = strdup(path);
+	record_init_root( &rec, &vol->catalog );
+	record_init_parent( &r, &rec );
+	
+	/* Remove initial \ or / */
+	curfol = strsep(&tmppath, "\\//");
+	curfol = strsep(&tmppath, "\\//");
+	forth_printf("\n");
+	
+	while (curfol && strlen(curfol)) {	    
+	    found = 0;
+	    do {
+		if (r.record.type == HFSP_FOLDER) {
+		    unicode_uni2asc(name, &r.key.name, sizeof(name));
+		    
+		    if (!strcmp(name, curfol)) {
+			folrec = r;
+			found = -1;
+		    }
+		}
+	    } while ( !record_next(&r) );
+	    
+	    if (!found) {
+		forth_printf("Unable to locate path %s on filesystem\n", path);
+		goto done;
+	    } else {
+		record_init_parent( &r, &folrec );
+	    }
+	    
+	    curfol = strsep(&tmppath, "\\//");
+	}
+	
+	/* Output the directory contents */
+	found = 0;
+	do {
+	    unicode_uni2asc(name, &r.key.name, sizeof(name));
+	    
+	    if (r.record.type == HFSP_FILE) {
+		/* Grab the file entry */
+		hfsp_cat_file *file = &r.record.u.file;
+		forth_printf("% 10" PRId64 " ", file->data_fork.total_size);
+		print_date(file->create_date);
+		forth_printf(" %s\n", name);
+		found = -1;
+	    }
+	    
+	    if (r.record.type == HFSP_FOLDER) {
+		/* Grab the directory entry */
+		hfsp_cat_folder *folder = &r.record.u.folder;
+		forth_printf("         0 ");
+		print_date(folder->create_date);
+		forth_printf(" %s\\\n", name);
+		found = -1;
+	    }
+	    
+	} while ( !record_next(&r) );
+	
+	if (!found) {
+	    forth_printf("  (Empty folder)\n");
+	}
+	
+done:
+	volume_close(vol);
+	free(vol);
+	free(path);
+	if (tmppath)
+	    free(tmppath);
 }
 
 /* static method, ( pos.d ih -- flag? ) */
