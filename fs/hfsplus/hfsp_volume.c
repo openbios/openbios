@@ -171,7 +171,9 @@ volume_read_wrapper(volume * vol, hfsp_vh* vh)
 	UInt16  signature;
 	char	buf[vol->blksize];
         char    *p = buf;
-
+	int	ret;
+	UInt64	vol_size;
+	
 	if( volume_readinbuf(vol, buf, 2) ) // Wrapper or volume header starts here
 		return -1;
 
@@ -202,7 +204,14 @@ volume_read_wrapper(volume * vol, hfsp_vh* vh)
 	}
 	else if( signature == HFSP_VOLHEAD_SIG) { /* Native HFS+ volume */
 		p = buf; // Restore to begin of block
-                return volume_readbuf(vh, p);
+                ret = volume_readbuf(vh, p);
+		if( !ret ) {
+		    /* When reading the initial partition we must use 512 byte blocks */
+		    vol_size = vh->blocksize * vh->total_blocks;
+		    vol->maxblocks = vol_size / HFSP_BLOCKSZ;
+		}
+		
+		return ret;
 	} else
 		 HFSP_ERROR(-1, "Neither Wrapper nor native HFS+ volume header found");
 fail:
