@@ -43,7 +43,10 @@ uni2asc( char *astr, const unsigned char *ustr, int ustrlen, int maxlen )
 		/* might be unrepresentable (or too complicated for us) */
 		if( ustr[0] || !ustr[1] )
 			continue;
-		*astr++ = ustr[1];
+		if( ustr[1] < 0x20 || ustr[1] >= 0x7f )
+		    *astr++ = '?';
+		else
+		    *astr++ = ustr[1];
 		len++;
 	}
 	*astr = 0;
