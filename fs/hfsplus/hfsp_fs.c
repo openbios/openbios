@@ -551,7 +551,7 @@ hfsp_files_dir( hfsp_info_t *dummy )
 	    if (r.record.type == HFSP_FILE) {
 		/* Grab the file entry */
 		hfsp_cat_file *file = &r.record.u.file;
-		forth_printf("% 10" PRId64 " ", file->data_fork.total_size);
+		forth_printf("% 10lld ", file->data_fork.total_size);
 		print_date(file->create_date);
 		forth_printf(" %s\n", name);
 		found = -1;
