@@ -16,6 +16,7 @@
   <object source="split.fs"/>
   <object source="lists.fs"/>
   <object source="64bit.fs"/>
+  <object source="locals.fs"/>
  </dictionary>
 
 </build>
