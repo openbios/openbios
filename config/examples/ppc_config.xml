@@ -60,6 +60,7 @@
   <option name="CONFIG_PPC_64BITSUPPORT" type="boolean" value="true"/>
   <option name="CONFIG_LINUXBIOS" type="boolean" value="false"/>
   <option name="CONFIG_RTAS" type="boolean" value="false"/>
+  <option name="CONFIG_LOCALS" type="boolean" value="true"/>
 
   <!-- Drivers -->
   <option name="CONFIG_DRIVER_PCI" type="boolean" value="true"/>
