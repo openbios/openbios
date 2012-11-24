@@ -140,7 +140,7 @@ macparts_open( macparts_info_t *di )
 	 * Implement partition selection as per the PowerPC Microprocessor CHRP bindings
 	 */
 
-	if (str == NULL || parnum == 0) {
+	if (parnum == 0) {
 		/* According to the spec, partition 0 as well as no arguments means the whole disk */
 		offs = (long long)0;
 		size = (long long)__be32_to_cpu(dmap.sbBlkCount) * bs;
@@ -156,12 +156,11 @@ macparts_open( macparts_info_t *di )
 		ret = -1;
 		goto out;
 
-	} else if (parnum == -1 && strlen(argstr)) {
+	} else if (parnum == -1) {
 
 		DPRINTF("mac-parts: counted %d partitions\n", __be32_to_cpu(par.pmMapBlkCnt));
 
-		/* No partition was explicitly requested, but an argstr was passed in.
-		   So let's find a suitable partition... */
+		/* No partition was explicitly requested so let's find a suitable partition... */
 		for (parnum = 1; parnum <= __be32_to_cpu(par.pmMapBlkCnt); parnum++) {
 			SEEK( bs * parnum );
 			READ( &par, sizeof(par) );
