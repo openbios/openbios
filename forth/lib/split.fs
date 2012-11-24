@@ -47,24 +47,3 @@
 		c@ r@ = if 1- then then
 	r> drop
 ;
-
-\ split <param-text> into separate path and device strings
-: split-path-device  ( str len -- pathstr len devstr len )
-  ascii , left-split 2 pick 0= if
-    \ No comma - so either <dev>:<id> or <dev>:<id><path>
-    2dup ascii \ strchr 0= if
-      \ No backslash so just <dev> or <dev>:<id>
-      s" " 2swap	\ ( pathstr len devstr len )
-    else
-      \ Contains backslash, must be a <dev>:<id><path>
-      ascii : left-split 	\ ( pathstr len devstr len )
-    then
-
-    \ Remove RHS split (unused)
-    4 roll drop
-    4 roll drop
-  else
-    \ Contains comma so split is already correct
-  then
-;
-

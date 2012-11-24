@@ -126,12 +126,14 @@ variable file-size
 
 : dir ( "{paths}<cr>" -- )
   linefeed parse
-  split-path-device
-  open-dev dup 0= if
+  ascii , left-split
+  2dup open-dev dup 0= if
     drop
+    cr ." Unable to locate device " type
+    2drop
     exit
   then
-  -rot 2 pick
+  -rot 2drop -rot 2 pick
   " dir" rot ['] $call-method catch
   if
     3drop
