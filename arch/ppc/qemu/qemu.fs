@@ -46,6 +46,14 @@
   then
 ;
 
+\ set the keyboard alias to stdin
+:noname
+  active-package
+  " /aliases" find-device
+  input-device encode-string " keyboard" property
+  active-package!
+; SYSTEM-initializer
+
 \ -------------------------------------------------------------------------
 \ pre-booting
 \ -------------------------------------------------------------------------
