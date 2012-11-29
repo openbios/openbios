@@ -177,28 +177,33 @@ constant sinfo.size
 \ 4.3.3 match child node
 \ 
 
+\ used if package lacks a decode-unit method
+: def-decode-unit ( str len -- unitaddr ... )
+  parse-hex
+;
+
+: get-decode-unit-xt ( phandle -- xt )
+  " decode-unit" rot find-method
+  0= if ['] def-decode-unit then
+;
+
 : find-child ( sinfo -- phandle )
   >r
   \ decode unit address string
   r@ >si.unit_addr 2@ dup if
     ( str len )
-    " decode-unit" active-package find-method
-    if
-      depth 3 - >r execute depth r@ - r> swap
-      ( ... a_lo ... a_hi olddepth n )
-      4 min 0 max
-      dup r@ >si.unit_phys_len !
-      ( ... a_lo ... a_hi olddepth n )
-      r@ >si.unit_phys >r
-      begin 1- dup 0>= while
-        rot r> dup la1+ >r l!-be
-      repeat
-      r> 2drop
-      depth!
-    else
-      \ no decode-unit method... failure
-      -99 throw
-    then
+    active-package get-decode-unit-xt
+    depth 3 - >r execute depth r@ - r> swap
+    ( ... a_lo ... a_hi olddepth n )
+    4 min 0 max
+    dup r@ >si.unit_phys_len !
+    ( ... a_lo ... a_hi olddepth n )
+    r@ >si.unit_phys >r
+    begin 1- dup 0>= while
+      rot r> dup la1+ >r l!-be
+    repeat
+    r> 2drop
+    depth!
   else
     2drop
     \ clear unit_phys
