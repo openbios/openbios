@@ -46,12 +46,37 @@
   then
 ;
 
-\ set the keyboard alias to stdin
+variable keyboard-phandle 0 keyboard-phandle !
+
+: (find-keyboard-device) ( phandle -- )
+  recursive
+  keyboard-phandle @ 0= if  \ Return first match
+    >dn.child @
+    begin ?dup while
+      dup dup " device_type" rot get-package-property 0= if
+        drop dup cstrlen
+        " keyboard" strcmp 0= if
+          dup to keyboard-phandle
+        then
+      then
+      (find-keyboard-device)
+      >dn.peer @
+    repeat
+  else
+    drop
+  then
+;
+
+\ create the keyboard devalias 
 :noname
-  active-package
-  " /aliases" find-device
-  input-device encode-string " keyboard" property
-  active-package!
+  device-tree @ (find-keyboard-device)
+  keyboard-phandle @ if
+    active-package
+    " /aliases" find-device
+    keyboard-phandle @ get-package-path
+    encode-string " keyboard" property
+    active-package!  
+  then
 ; SYSTEM-initializer
 
 \ -------------------------------------------------------------------------
