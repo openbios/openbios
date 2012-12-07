@@ -1052,17 +1052,21 @@ variable #instance
     3 /n* + !
   then
 ;
-
-: to
-  ['] ' execute
+  
+: (to-xt) ( xt -- )  
   dup @ instance-cfa?
   state @ if
     swap ['] (lit) , , if ['] (ito) else ['] (to) then ,
   else
     if (ito) else /n + ! then
   then
-  ; immediate
+;
 
+: to
+  ['] ' execute
+  (to-xt)
+  ; immediate
+  
 : is ( xt "wordname<>" -- )
   parse-word $find if
     (to)

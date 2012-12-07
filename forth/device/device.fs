@@ -189,3 +189,14 @@ variable device-tree
     free-mem
   then
 ;
+
+\ Redefine to word so that statements of the form "0 to active-package"
+\ are supported for bootloaders that require it
+: to
+  ['] ' execute
+  dup ['] active-package = if
+    drop active-package!
+  else
+    (to-xt)
+  then
+; immediate
