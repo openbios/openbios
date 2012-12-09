@@ -613,6 +613,21 @@ static void kvm_of_init(void)
     fword("finish-device");
 }
 
+/*
+ *  filll        ( addr len quad -- )
+ */
+
+static void ffilll(void)
+{
+    const u32 longval = POP();
+    u32 len = POP();
+    u32 *aaddr = (u32 *)cell2pointer(POP());
+
+    while (len--) {
+        *aaddr++ = longval;
+    }
+}
+
 void
 arch_of_init(void)
 {
@@ -877,6 +892,9 @@ arch_of_init(void)
 
     device_end();
 
+    /* Implementation of filll word (required by BootX) */
+    bind_func("filll", ffilll);
+    
     bind_func("platform-boot", boot);
     bind_func("(go)", go);
 }
