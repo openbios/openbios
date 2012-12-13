@@ -339,6 +339,9 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	video.has_video = 1;
 	video.pal = malloc( 256 * sizeof(unsigned long) );
 
+	PUSH(video.fb.mvirt);
+	feval("to frame-buffer-adr");
+	
 #if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
         size = ((video.fb.h * video.fb.rb)  + 0xfff) & ~0xfff;
 
