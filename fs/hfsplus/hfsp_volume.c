@@ -311,7 +311,7 @@ volume_probe(int fd, long long offset)
 	os_read(fd, vol, 2, HFSP_BLOCKSZ_BITS);
 
 	if (__be16_to_cpu(vol[0]) == HFS_VOLHEAD_SIG &&
-		__be16_to_cpu(vol[0x7c]) == HFSP_VOLHEAD_SIG) {
+		__be16_to_cpu(vol[0x3e]) == HFSP_VOLHEAD_SIG) {
 		ret = -1;
 	} else if (__be16_to_cpu(vol[0]) == HFSP_VOLHEAD_SIG) {
 		ret = -1;
