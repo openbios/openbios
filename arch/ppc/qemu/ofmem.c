@@ -311,10 +311,32 @@ ea_to_phys(unsigned long ea, ucell *mode)
     return phys;
 }
 
+/* Converts a global variable (from .data or .bss) into a pointer that
+   can be accessed from real mode */
+static void *
+global_ptr_real(void *p)
+{
+    return (void*)((uintptr_t)p - OF_CODE_START + get_rom_base());
+}
+
+/* Return the next slot to evict, in the range of [0..7] */
+static int
+next_evicted_slot(void)
+{
+    static int next_grab_slot;
+    int *next_grab_slot_va;
+    int r;
+
+    next_grab_slot_va = global_ptr_real(&next_grab_slot);
+    r = *next_grab_slot_va;
+    *next_grab_slot_va = (r + 1) % 8;
+
+    return r;
+}
+
 static void
 hash_page_64(unsigned long ea, phys_addr_t phys, ucell mode)
 {
-    static int next_grab_slot = 0;
     uint64_t vsid_mask, page_mask, pgidx, hash;
     uint64_t htab_mask, mask, avpn;
     unsigned long pgaddr;
@@ -349,10 +371,8 @@ hash_page_64(unsigned long ea, phys_addr_t phys, ucell mode)
             found = 1;
 
     /* out of slots, just evict one */
-    if (!found) {
-        i = next_grab_slot + 1;
-        next_grab_slot = (next_grab_slot + 1) % 8;
-    }
+    if (!found)
+        i = next_evicted_slot() + 1;
     i--;
     {
     mPTE_64_t p = {
@@ -381,7 +401,6 @@ static void
 hash_page_32(unsigned long ea, phys_addr_t phys, ucell mode)
 {
 #ifndef __powerpc64__
-    static int next_grab_slot = 0;
     unsigned long *upte, cmp, hash1;
     int i, vsid, found;
     mPTE_t *pp;
@@ -407,10 +426,8 @@ hash_page_32(unsigned long ea, phys_addr_t phys, ucell mode)
             found = 1;
 
     /* out of slots, just evict one */
-    if (!found) {
-        i = next_grab_slot + 1;
-        next_grab_slot = (next_grab_slot + 1) % 8;
-    }
+    if (!found)
+        i = next_evicted_slot() + 1;
     i--;
     upte[i * 2] = cmp;
     upte[i * 2 + 1] = (phys & ~0xfff) | mode;
