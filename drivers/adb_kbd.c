@@ -42,11 +42,13 @@ keyboard_close(int *idx)
 }
 
 static void keyboard_read(void);
+static void keyboard_getkeymap(void);
 
 NODE_METHODS( keyboard ) = {
 	{ "open",		keyboard_open		},
 	{ "close",		keyboard_close		},
 	{ "read",               keyboard_read		},
+	{ "get-key-map",	keyboard_getkeymap	},
 };
 
 /* VT100 escape sequences */
@@ -471,6 +473,7 @@ struct adb_kbd_t {
     int next_key;
     char sequence[ADB_MAX_SEQUENCE_LEN];
     int len;
+    char keytable[32];
 };
 
 static adb_dev_t *my_adb_dev = NULL;
@@ -531,6 +534,21 @@ void *adb_kbd_new (char *path, void *private)
 			ADB_kbd_us, ADB_sequences);
         kbd->next_key = -1;
         kbd->len = 0;
+	
+	/* Debugging BootX: the lines below force get-key-map to report that
+	 * cmd-V is being held down, which forces BootX to run in verbose mode
+	 * for debugging.
+	 *
+	 * TODO: if we can find a mapping between the get-key-map bitmap and
+	 * ADB scancodes, the keyboard driver should be altered to update this
+	 * accordingly.
+	 */
+	
+	/*
+	kbd->keytable[3] = 0x40;
+	kbd->keytable[28] = 0x10;
+	*/
+	
 	dev->state = kbd;
 	my_adb_dev = dev;
     }
@@ -565,4 +583,13 @@ static void keyboard_read(void)
 		*addr++ = (char)key;
 	}
 	PUSH(i);
+}
+
+/* ( -- keymap ) (?) */
+/* should return a pointer to an array with 32 bytes (256 bits) */
+static void keyboard_getkeymap(void)
+{
+	adb_kbd_t *kbd = my_adb_dev->state;
+	
+	PUSH( pointer2cell(kbd->keytable) );
 }
