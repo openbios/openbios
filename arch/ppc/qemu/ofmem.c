@@ -553,7 +553,13 @@ ofmem_init(void)
     ofmem_claim_virt(0, get_ram_bottom(), 0);
     ofmem_map(0, 0, get_ram_bottom(), 0);
 
-    ofmem_claim_phys(get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
-    ofmem_claim_virt(get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
-    ofmem_map(get_ram_top(), get_ram_top(), ofmem->ramsize - get_ram_top(), 0);
+    /* Map everything at the top of physical RAM 1:1, minus the OpenBIOS ROM in RAM copy */
+    ofmem_claim_phys(get_ram_top(), get_hash_base() + HASH_SIZE - get_ram_top(), 0);
+    ofmem_claim_virt(get_ram_top(), get_hash_base() + HASH_SIZE - get_ram_top(), 0);
+    ofmem_map(get_ram_top(), get_ram_top(), get_hash_base() + HASH_SIZE - get_ram_top(), 0);
+    
+    /* Map the OpenBIOS ROM in RAM copy */
+    ofmem_claim_phys(ofmem->ramsize - OF_CODE_SIZE, OF_CODE_SIZE, 0);
+    ofmem_claim_virt(OF_CODE_START, OF_CODE_SIZE, 0);
+    ofmem_map(ofmem->ramsize - OF_CODE_SIZE, OF_CODE_START, OF_CODE_SIZE, 0);
 }
