@@ -80,8 +80,11 @@ variable io-out-char
 ;
 
 : io-emit ( char -- )
-  io-out-char c!
-  io-out-char 1 " write" stdout @ $call-method drop
+  stdout @ if
+    io-out-char c!
+    io-out-char 1 " write" stdout @ $call-method
+  then
+  drop
 ;
 
 variable CONSOLE-IN-list
