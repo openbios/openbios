@@ -614,18 +614,19 @@ static void kvm_of_init(void)
 }
 
 /*
- *  filll        ( addr len quad -- )
+ *  filll        ( addr bytes quad -- )
  */
 
 static void ffilll(void)
 {
     const u32 longval = POP();
-    u32 len = POP();
-    u32 *aaddr = (u32 *)cell2pointer(POP());
-
-    while (len--) {
-        *aaddr++ = longval;
-    }
+    u32 bytes = POP();
+    u32 *laddr = (u32 *)cell2pointer(POP());
+    u32 len;
+    
+    for (len = 0; len < bytes / sizeof(u32); len++) {
+        *laddr++ = longval;
+    }   
 }
 
 void
