@@ -184,6 +184,7 @@ macparts_open( macparts_info_t *di )
 				
 				if (apple_parnum == -1 &&
 				    (strcmp(par.pmPartType, "Apple_Boot") == 0 || 
+				    strcmp(par.pmPartType, "Apple_Bootstrap") == 0 || 
 				    strcmp(par.pmPartType, "Apple_HFS") == 0 ||
 				    strcmp(par.pmPartType, "DOS_FAT_") == 0)) {
 					apple_parnum = i;
