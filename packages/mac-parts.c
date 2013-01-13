@@ -50,13 +50,14 @@ macparts_open( macparts_info_t *di )
 {
 	char *str = my_args_copy();
 	char *parstr = NULL, *argstr = NULL;
+	char *tmpstr, *bootpath;
 	int bs, parnum=-1, apple_parnum=-1;
 	int parlist[2], parlist_size = 0;
 	desc_map_t dmap;
 	part_entry_t par;
 	int ret = 0, i = 0, j = 0;
 	int want_bootcode = 0;
-	phandle_t ph;
+	phandle_t ph, chosen_ph;
 	ducell offs = 0, size = -1;
 
 	DPRINTF("macparts_open '%s'\n", str );
@@ -256,6 +257,35 @@ macparts_open( macparts_info_t *di )
 		    DPRINTF("mac-parts: filesystem found on partition %d with ph " FMT_ucellx " and args %s\n", parnum, ph, argstr);
 		    di->filesystem_ph = ph;
 
+		    /* Update bootpath to reflect where we booted from */
+		    chosen_ph = find_dev("/chosen");
+		    tmpstr = get_property(chosen_ph, "bootpath", &i);
+		    if (tmpstr == NULL) {
+			tmpstr = strdup("");
+		    }
+		    
+		    /* Find just the device */
+		    if (strlen(tmpstr)) {
+			for (i = 0; i < strlen(tmpstr); i++) {
+			    if (tmpstr[i] == ':' || tmpstr[i] == ',') {
+				tmpstr[i] = '\0';
+			    }
+			}
+			
+			/* Rebuild bootpath with the currently selected partition number */
+			bootpath = malloc(strlen(tmpstr) + strlen(str) + 4);
+			sprintf(bootpath, "%s:%d", tmpstr, parnum);
+			if (strlen(argstr)) {
+			    sprintf(bootpath, "%s:%d,%s", tmpstr, parnum, argstr);
+			} else {
+			    sprintf(bootpath, "%s:%d", tmpstr, parnum);
+			}
+			
+			DPRINTF("mac-parts: setting bootpath to %s\n", bootpath);
+			
+			set_property(chosen_ph, "bootpath", bootpath, strlen(bootpath) + 1);
+		    }
+		    
 		    /* If the filename was %BOOT then it's not a real filename, so clear argstr before
 		    attempting interpose */
 		    if (want_bootcode) {
