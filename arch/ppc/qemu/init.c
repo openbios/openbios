@@ -59,6 +59,14 @@ unexpected_excep(int vector)
     }
 }
 
+extern void __divide_error(void);
+
+void
+__divide_error(void)
+{
+    return;
+}
+
 enum {
     ARCH_PREP = 0,
     ARCH_MAC99,

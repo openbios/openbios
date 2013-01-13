@@ -295,7 +295,6 @@ call_isi_exception:
 exception_return:
 	EXCEPTION_EPILOGUE
 
-_GLOBAL(__divide_error):
 trap_error:
 	mflr	r3
 	LOAD_REG_FUNC(r4, unexpected_excep)
