@@ -49,8 +49,7 @@ static void
 macparts_open( macparts_info_t *di )
 {
 	char *str = my_args_copy();
-	char *argstr = strdup("");
-	char *parstr = strdup("");
+	char *parstr = NULL, *argstr = NULL;
 	int bs, parnum=-1, apple_parnum=-1;
 	int parlist[2], parlist_size = 0;
 	desc_map_t dmap;
@@ -67,47 +66,32 @@ macparts_open( macparts_info_t *di )
 		id: [0-7]
 		[(id)][,][filespec]
 	*/
-
-	if( str ) {
-		if ( !strlen(str) )
-			parnum = -1;
-		else {
-			/* Detect the boot parameters */
-			char *ptr;
-			ptr = str;
-
-			/* <id>,<file> */
-			if (*ptr >= '0' && *ptr <= '9' && *(ptr + 1) == ',') {
-				parstr = ptr;
-				*(ptr + 1) = '\0';
-				argstr = ptr + 2;
-			}
-
-			/* <id> */
-			else if (*ptr >= '0' && *ptr <='9' && *(ptr + 1) == '\0') {
-				parstr = ptr;
-			}
-
-			/* ,<file> */
-			else if (*ptr == ',') {
-				argstr = ptr + 1;
-			}	
-
-			/* <file> */
-			else {
-				argstr = str;
-			}
-		
-			/* Convert the id to a partition number */
-			if (strlen(parstr))
-				parnum = atol(parstr);
-
-			/* Detect if we are looking for the bootcode */
-			if (strcmp(argstr, "%BOOT") == 0)
-				want_bootcode = 1;
+	
+	if ( strlen(str) ) {
+		/* Detect the arguments */
+		if ((*str >= '0' && *str <= '9') || (*str == ',')) {
+		    push_str(str);
+		    PUSH(',');
+		    fword("left-parse-string");
+		    parstr = pop_fstr_copy();
+		    argstr = pop_fstr_copy();
+		} else {
+		    argstr = str;
 		}
+		
+		/* Convert the id to a partition number */
+		if (parstr && strlen(parstr))
+		    parnum = atol(parstr);
+
+		/* Detect if we are looking for the bootcode */
+		if (strcmp(argstr, "%BOOT") == 0)
+		    want_bootcode = 1;
 	}
 
+	/* Make sure argstr is not null */
+	if (argstr == NULL)
+	    argstr = strdup("");	
+	
 	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
 
 	DPRINTF("want_bootcode %d\n", want_bootcode);
@@ -230,7 +214,7 @@ macparts_open( macparts_info_t *di )
 	    /* Make sure our partition is valid */
 	    parnum = parlist[j];
 	    
-	    DPRINTF("Selected partition %d to boot\n", parnum);
+	    DPRINTF("Selected partition %d\n", parnum);
 	    
 	    SEEK( bs * parnum );
 	    READ( &par, sizeof(par) );	

@@ -94,42 +94,27 @@ pcparts_open( pcparts_info_t *di )
 		[(id)][,][filespec]
 	*/
 
-	if( str ) {
-		if ( !strlen(str) )
-			parnum = -1;
-		else {
-			/* Detect the boot parameters */
-			char *ptr;
-			ptr = str;
-
-			/* <id>,<file> */
-			if (*ptr >= '0' && *ptr <= '9' && *(ptr + 1) == ',') {
-				parstr = ptr;
-				*(ptr + 1) = '\0';
-				argstr = ptr + 2;
-			}
-
-			/* <id> */
-			else if (*ptr >= '0' && *ptr <='9' && *(ptr + 1) == '\0') {
-				parstr = ptr;
-			}
-
-			/* ,<file> */
-			else if (*ptr == ',') {
-				argstr = ptr + 1;
-			}	
-
-			/* <file> */
-			else {
-				argstr = str;
-			}
-		
-			/* Convert the id to a partition number */
-			if (strlen(parstr))
-				parnum = atol(parstr);
+	if ( strlen(str) ) {
+		/* Detect the arguments */
+		if ((*str >= '0' && *str <= '7') || (*str == ',')) {
+		    push_str(str);
+		    PUSH(',');
+		    fword("left-parse-string");
+		    parstr = pop_fstr_copy();
+		    argstr = pop_fstr_copy();
+		} else {
+		    argstr = str;
 		}
+			
+		/* Convert the id to a partition number */
+		if (parstr && strlen(parstr))
+		    parnum = atol(parstr);
 	}
 
+	/* Make sure argstr is not null */
+	if (argstr == NULL)
+	    argstr = strdup("");
+	
 	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
         free(parstr);
 
