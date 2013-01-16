@@ -159,7 +159,7 @@ fill_rect( int col_ind, int x, int y, int w, int h )
 			while( ww-- )
 				*p++ = col;
 		} else {
-                        char *p = (char *)((unsigned short*)pp + x);
+                        char *p = (char *)(pp + x);
 
 			while( ww-- )
 				*p++ = col;
