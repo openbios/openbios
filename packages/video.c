@@ -187,12 +187,14 @@ set_color( int ind, unsigned long color )
 	if( video.fb.depth == 8 )
 		OSI_SetColor( ind, color );
 #elif defined(CONFIG_SPARC32)
+#if defined(CONFIG_DEBUG_CONSOLE_VIDEO)
 	if( video.fb.depth == 8 ) {
             dac[0] = ind << 24;
             dac[1] = ((color >> 16) & 0xff) << 24; // Red
             dac[1] = ((color >> 8) & 0xff) << 24; // Green
             dac[1] = (color & 0xff) << 24; // Blue
         }
+#endif
 #else
 	vga_set_color(ind, ((color >> 16) & 0xff),
 			   ((color >> 8) & 0xff),

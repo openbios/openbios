@@ -11,7 +11,7 @@
   <option name="CONFIG_DEBUG_INTERPRETER" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_CONSOLE" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_CONSOLE_SERIAL" type="boolean" value="true"/>
-  <option name="CONFIG_DEBUG_CONSOLE_VIDEO" type="boolean" value="true"/>
+  <option name="CONFIG_DEBUG_CONSOLE_VIDEO" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_ESP" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_SUN_PARTS" type="boolean" value="false"/>
   <option name="CONFIG_DEBUG_OBP" type="boolean" value="false"/>
