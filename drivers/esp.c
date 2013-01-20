@@ -106,7 +106,7 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
     // Clear interrupts to avoid guests seeing spurious interrupts
     (void)esp->ll->regs[ESP_INTRPT];
 
-    DPRINTF("do_command: id %d, cmd[0] 0x%x, status 0x%x\n", sd->id, esp->buffer[0], status);
+    DPRINTF("do_command: id %d, cmd[0] 0x%x, status 0x%x\n", sd->id, esp->buffer[1], status);
 
     /* Target didn't want all command data? */
     if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT) {
