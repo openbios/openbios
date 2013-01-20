@@ -197,11 +197,11 @@ static unsigned int
 test_unit_ready(esp_private_t *esp, sd_private_t *sd)
 {
     /* Setup command = Test Unit Ready */
-    memset(esp->buffer, 0, 6);
+    memset(esp->buffer, 0, 7);
     esp->buffer[0] = 0x80;
     esp->buffer[1] = TEST_UNIT_READY;
 
-    if (do_command(esp, sd, 6, 0)) {
+    if (do_command(esp, sd, 7, 0)) {
         DPRINTF("test_unit_ready id %d failed\n", sd->id);
         return 0;
     }
