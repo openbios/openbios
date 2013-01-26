@@ -452,6 +452,7 @@ highmem:
         wr	%g3, PSR_ET, %psr
         WRITE_PAUSE
 
+        set     0, %fp
         call    __switch_context_nosave
          nop
 
