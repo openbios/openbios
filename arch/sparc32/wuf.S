@@ -131,6 +131,7 @@ fnwin_patch2:	and	%twin_tmp1, 0xff, %twin_tmp1
 	/* LOCATION: Window 'O' */
 
 	restore %g0, %g0, %g0
+        WRITE_PAUSE
 
 	/* LOCATION: Window 'W' */
 
