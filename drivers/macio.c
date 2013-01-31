@@ -57,12 +57,6 @@ void macio_nvram_init(const char *path, phys_addr_t addr)
         } else {
                 nvram_offset = NW_IO_NVRAM_OFFSET;
                 nvram_size = NW_IO_NVRAM_SIZE;
-                push_str("/");
-                fword("find-device");
-                fword("new-device");
-                push_str("nvram");
-                fword("device-name");
-                fword("finish-device");
         }
 	nvram = (char*)addr + nvram_offset;
         snprintf(buf, sizeof(buf), "%s/nvram", path);
