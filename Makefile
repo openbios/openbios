@@ -1,5 +1,4 @@
-ODIRS=$(wildcard obj-*)
-TARGETS=$(subst obj-,,$(ODIRS))
+include config-host.mak
 
 all: requirements info build
 

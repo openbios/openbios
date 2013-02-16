@@ -52,7 +52,6 @@
     <xsl:text>.o: </xsl:text>
  
     <!-- path of source file -->
-    <xsl:text>$(SRCDIR)/</xsl:text>
     <xsl:value-of select="$path"/>
     <xsl:value-of select="@source"/>
 

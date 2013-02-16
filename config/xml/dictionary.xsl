@@ -56,7 +56,6 @@
       <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY:=$(</xsl:text>
       <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY) </xsl:text>
 
-      <xsl:text>$(SRCDIR)/</xsl:text>
       <xsl:value-of select="$path"/>
       <xsl:value-of select="@source"/>
       <xsl:text>&#10;</xsl:text>
@@ -122,6 +121,8 @@
       </xsl:if>
      </xsl:for-each>
 
+     <!-- needed to locate files with full path -->
+     <xsl:text> -I$(SRCDIR)</xsl:text>
      <!-- needed to include config and build date -->
      <xsl:text> -I$(ODIR)/forth</xsl:text>
      

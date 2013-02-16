@@ -6,7 +6,6 @@
 include config.mak
 
 ODIR := .
-SRCDIR := ..
 HOSTCC := gcc
 
 HOSTCFLAGS+= -O2 -g -DFCOMPILER -DBOOTSTRAP $(CROSSCFLAGS)
@@ -37,6 +36,10 @@ INCLUDES := -I$(SRCDIR)/include -I$(SRCDIR)/kernel/include -I$(ODIR)/target/incl
 AS_FLAGS+= -g
 
 quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
+
+VPATH_SUFFIXES = %.c %.h %.S %.fs
+set-vpath = $(if $1,$(foreach PATTERN,$(VPATH_SUFFIXES),$(eval vpath $(PATTERN) $1)))
+$(call set-vpath, $(SRCDIR))
 
 #
 # pre rules

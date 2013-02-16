@@ -117,21 +117,18 @@ config_set_boolean()
     echo "<option name=\"$option\" type=\"boolean\" value=\"true\" />"
 }
 
-if ! test -f utils/dist/debian/rules; then
-	echo "switch-arch must be run from the top-level source directory" >&2
-	exit 1
-fi
 
-# This is needed because viewvc messes with the permissions of executables:
-chmod 755 utils/dist/debian/rules
-chmod 755 config/scripts/switch-arch
-chmod 755 config/scripts/reldir
+SRCDIR=`dirname "$0"`/../..
+BUILDDIR=`pwd`
+
+# make source path absolute
+SRCDIR=`cd "$SRCDIR"; pwd`
 
 if test "x$HOSTARCH" = "x"; then
     archname
 fi
 
-VERSION=`head VERSION`
+VERSION=`head $SRCDIR/VERSION`
 
 echo "Configuring OpenBIOS on $HOSTARCH for $*"
 
@@ -156,8 +153,8 @@ done
 arch_list=""
 for target in $target_list; do
     arch=`echo $target | sed s/.*-//g`
-    if ! test -f config/examples/${arch}_config.xml; then
-        echo "Cannot find config/examples/${arch}_config.xml" >&2
+    if ! test -f $SRCDIR/config/examples/${arch}_config.xml; then
+        echo "Cannot find $SRCDIR/config/examples/${arch}_config.xml" >&2
         exit 1
     fi
     if ! echo $arch_list | grep -q "$arch"; then
@@ -269,7 +266,8 @@ for ARCH in $arch_list; do
         cross="yes"
     fi
     crosscflags $HOSTARCH $ARCH
-    OBJDIR=obj-$ARCH
+    OBJDIR=$BUILDDIR/obj-$ARCH
+    ODIRS="$ODIRS $OBJDIR"
 
     printf "Initializing build tree $OBJDIR..."
     rm -rf "$OBJDIR"
@@ -294,9 +292,9 @@ for ARCH in $arch_list; do
     mkdir -p $OBJDIR/host/include
     mkdir -p $OBJDIR/host/kernel
     mkdir -p $OBJDIR/forth
-    ln -s ../../../include/arch/$BASEARCH $OBJDIR/target/include/asm
+    ln -s  $SRCDIR/include/arch/$BASEARCH $OBJDIR/target/include/asm
     #compile the host binary with target settings instead
-    #ln -s ../../../include/arch/$HOSTARCH $OBJDIR/host/include/asm
+    #ln -s $SRCDIR/include/arch/$HOSTARCH $OBJDIR/host/include/asm
     if [ "$mol" = "yes" ]; then
         printf "\nUsing MOL path $MOLPATH...\n"
         mkdir -p $OBJDIR/target/arch/ppc/mol
@@ -324,11 +322,9 @@ for ARCH in $arch_list; do
     fi
     echo "ok."
 
-    cd $OBJDIR
-    SRCDIR=..
-    ODIR=.
+    ODIR=$OBJDIR
 
-    printf "Creating target Makefile..."
+    printf "Creating target config.mak..."
     echo "ARCH=$ARCH" > $ODIR/config.mak
     if [ "$cross" = "yes" ]; then
         echo "TARGET=$TARGET" >> $ODIR/config.mak
@@ -338,7 +334,10 @@ for ARCH in $arch_list; do
     echo "HOSTARCH?=$HOSTARCH" >> $ODIR/config.mak
     echo "CROSSCFLAGS=$CROSSCFLAGS" >> $ODIR/config.mak
     echo "VERSION=\"$VERSION\"" >> $ODIR/config.mak
+    echo "SRCDIR=$SRCDIR" >> $ODIR/config.mak
+    echo "ok."
 
+    printf "Creating target rules.mak..."
     ln -s $SRCDIR/config/xml/rules.xml $ODIR/rules.xml
     echo "<?xml version=\"1.0\"?><config>" > $ODIR/config.xml
     # Generic
@@ -381,8 +380,9 @@ for ARCH in $arch_list; do
     fi
     cat $SRCDIR/config/examples/${ARCH}_config.xml >> $ODIR/config.xml
 
+    cd $ODIR
     echo "</config>" >> $ODIR/config.xml
-    ln -s ../Makefile.target $ODIR/Makefile
+    ln -s $SRCDIR/Makefile.target $ODIR/Makefile
     xsltproc $SRCDIR/config/xml/xinclude.xsl $SRCDIR/build.xml > $ODIR/build-full.xml
     xsltproc $SRCDIR/config/xml/makefile.xsl $ODIR/build-full.xml > $ODIR/rules.mak
     echo "ok."
@@ -392,5 +392,12 @@ for ARCH in $arch_list; do
     xsltproc $SRCDIR/config/xml/config-forth.xsl $ODIR/config.xml > $ODIR/forth/config.fs
     echo "ok."
 
-    cd $SRCDIR
+    cd $BUILDDIR
 done
+
+if [ "$SRCDIR" != "$BUILDDIR" ]; then
+    ln -s $SRCDIR/Makefile $BUILDDIR
+fi
+
+echo "ODIRS=$ODIRS" >> $BUILDDIR/config-host.mak
+echo "TARGETS=$arch_list" >> $BUILDDIR/config-host.mak
