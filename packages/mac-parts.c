@@ -68,7 +68,7 @@ macparts_open( macparts_info_t *di )
 		[(id)][,][filespec]
 	*/
 	
-	if ( strlen(str) ) {
+	if ( str && strlen(str) ) {
 		/* Detect the arguments */
 		if ((*str >= '0' && *str <= '9') || (*str == ',')) {
 		    push_str(str);
@@ -126,7 +126,7 @@ macparts_open( macparts_info_t *di )
 	 * Implement partition selection as per the PowerPC Microprocessor CHRP bindings
 	 */
 
-	if (parnum == 0) {
+	if (str == NULL || parnum == 0) {
 		/* According to the spec, partition 0 as well as no arguments means the whole disk */
 		offs = (long long)0;
 		size = (long long)__be32_to_cpu(dmap.sbBlkCount) * bs;
