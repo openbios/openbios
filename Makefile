@@ -15,18 +15,24 @@ clean:
 		$(MAKE) -C $$dir clean; \
 	done
 
-build:
-	@printf "Building..."
+build: start-build
 	@for dir in $(ODIRS); do \
 		$(MAKE) -C $$dir > $$dir/build.log 2>&1 && echo "ok." || \
 		( echo "error:"; tail -15 $$dir/build.log; exit 1 ) \
 	done
 
-build-verbose:
+SUBDIR_RULES=$(patsubst %,subdir-%, $(TARGETS))
+SUBDIR_MAKEFLAGS=$(if $(V),,--no-print-directory)
+
+quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
+
+build-verbose: start-build $(SUBDIR_RULES)
+
+subdir-%:
+	$(call quiet-command,$(MAKE) $(SUBDIR_MAKEFLAGS) -C obj-$* V="$(V)" all,)
+
+start-build:
 	@echo "Building..."
-	@for dir in $(ODIRS); do \
-		$(MAKE) -C $$dir || exit 1; \
-	done
 
 run:
 	@echo "Running..."
