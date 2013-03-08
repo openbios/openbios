@@ -296,6 +296,14 @@ exception_return:
 	EXCEPTION_EPILOGUE
 
 trap_error:
+	lis	r1, 0x8000			/* r1=0x80000000 */
+	add.	r1,r1,r1			/* r1=r1+r1 (high 32bit !0) */
+	beq	1f
+
+	mfmsr	r1  				/* unset MSR_SF */
+	clrldi	r1,r1,1
+	mtmsrd	r1
+1:
 	mflr	r3
 	LOAD_REG_FUNC(r4, unexpected_excep)
 	mtctr r4
