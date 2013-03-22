@@ -79,6 +79,10 @@ macparts_open( macparts_info_t *di )
 		} else {
 		    argstr = str;
 		}
+
+		/* Make sure argstr is not null */
+		if (argstr == NULL)
+		    argstr = strdup("");	
 		
 		/* Convert the id to a partition number */
 		if (parstr && strlen(parstr))
@@ -89,10 +93,6 @@ macparts_open( macparts_info_t *di )
 		    want_bootcode = 1;
 	}
 
-	/* Make sure argstr is not null */
-	if (argstr == NULL)
-	    argstr = strdup("");	
-	
 	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
 
 	DPRINTF("want_bootcode %d\n", want_bootcode);
@@ -126,7 +126,7 @@ macparts_open( macparts_info_t *di )
 	 * Implement partition selection as per the PowerPC Microprocessor CHRP bindings
 	 */
 
-	if (str == NULL || parnum == 0) {
+	if (argstr == NULL || parnum == 0) {
 		/* According to the spec, partition 0 as well as no arguments means the whole disk */
 		offs = (long long)0;
 		size = (long long)__be32_to_cpu(dmap.sbBlkCount) * bs;

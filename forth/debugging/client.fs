@@ -126,7 +126,7 @@ variable file-size
 
 : dir ( "{paths}<cr>" -- )
   linefeed parse
-  ascii , left-split
+  ascii , split-after
   2dup open-dev dup 0= if
     drop
     cr ." Unable to locate device " type
