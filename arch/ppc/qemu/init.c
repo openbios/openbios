@@ -76,7 +76,7 @@ enum {
 
 int is_apple(void)
 {
-    return 1;
+    return is_oldworld() || is_newworld();
 }
 
 int is_oldworld(void)
