@@ -89,8 +89,12 @@ macparts_open( macparts_info_t *di )
 		    parnum = atol(parstr);
 
 		/* Detect if we are looking for the bootcode */
-		if (strcmp(argstr, "%BOOT") == 0)
+		if (strcmp(argstr, "%BOOT") == 0) {
 		    want_bootcode = 1;
+		    feval("1 want-bootcode !");
+		} else {
+		    feval("0 want-bootcode !");
+		}
 	}
 
 	DPRINTF("parstr: %s  argstr: %s  parnum: %d\n", parstr, argstr, parnum);
@@ -285,16 +289,10 @@ macparts_open( macparts_info_t *di )
 			
 			set_property(chosen_ph, "bootpath", bootpath, strlen(bootpath) + 1);
 		    }
-		    
-		    /* If the filename was %BOOT then it's not a real filename, so clear argstr before
-		    attempting interpose */
-		    if (want_bootcode) {
-			    argstr = strdup("");
-		    }
-		    
+		
 		    /* If we have been asked to open a particular file, interpose the filesystem package with 
 		    the passed filename as an argument */
-		    if (strlen(argstr)) {
+		    if (!want_bootcode && strlen(argstr)) {
 			    push_str( argstr );
 			    PUSH_ph( ph );
 			    fword("interpose");

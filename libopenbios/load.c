@@ -36,6 +36,10 @@
 #include "libopenbios/forth_load.h"
 #endif
 
+#ifdef CONFIG_LOADER_BOOTCODE
+#include "libopenbios/bootcode_load.h"
+#endif
+
 
 struct sys_info sys_info;
 void *elf_boot_notes = NULL;
@@ -90,6 +94,15 @@ void load(ihandle_t dev)
         if (valid) {
                 return;
         }
+#endif
+
+#ifdef CONFIG_LOADER_BOOTCODE
+	/* Check for a "raw" %BOOT bootcode payload */
+	feval("want-bootcode @");
+	valid = POP();
+	if (valid) {
+                bootcode_load(dev);
+	}
 #endif
 
 }

@@ -27,6 +27,9 @@ create saved-program-state saved-program-state.size allot
 variable state-valid
 0 state-valid !
 
+variable want-bootcode
+0 want-bootcode !
+
 variable file-size
 
 : !load-size file-size ! ;
@@ -44,6 +47,7 @@ variable file-size
 5  constant aout
 10 constant fcode
 11 constant forth
+12 constant bootcode
 
 
 : init-program    ( -- )

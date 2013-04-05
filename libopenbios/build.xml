@@ -3,6 +3,7 @@
  <library name="openbios" type="static" target="target">
   <object source="aout_load.c" condition="LOADER_AOUT"/>
   <object source="bindings.c"/>
+  <object source="bootcode_load.c" condition="LOADER_BOOTCODE"/>
   <object source="bootinfo_load.c" condition="LOADER_BOOTINFO"/>
   <object source="client.c"/>
   <object source="console_common.c"/>
