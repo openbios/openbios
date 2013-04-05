@@ -375,7 +375,7 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
  */
 #if defined(CONFIG_PPC)
 	phandle_t dev = get_cur_dev();
-	u32 props[7 * 4];
+	u32 props[7 * 8];
 	int i;
 
 #if defined(CONFIG_PPC)
@@ -384,7 +384,7 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 		return;
 #endif
 
-	for (i = 0; i < (7*4); i+=7) {
+	for (i = 0; i < (7*8); i+=7) {
 		props[i+PCI_INT_MAP_PCI0] = 0;
 		props[i+PCI_INT_MAP_PCI1] = 0;
 		props[i+PCI_INT_MAP_PCI2] = 0;
@@ -393,7 +393,7 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 		props[i+PCI_INT_MAP_PIC_INT] = arch->irqs[i / 7];
 		props[i+PCI_INT_MAP_PIC_POL] = 3;
 	}
-	set_property(dev, "interrupt-map", (char *)props, 7 * 4 * sizeof(props[0]));
+	set_property(dev, "interrupt-map", (char *)props, 7 * 8 * sizeof(props[0]));
 
 	props[PCI_INT_MAP_PCI0] = 0;
 	props[PCI_INT_MAP_PCI1] = 0;
