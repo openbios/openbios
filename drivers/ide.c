@@ -1611,9 +1611,11 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 		}
 		props[1] = 0x00000000; /* XXX level triggered on real hw */
 		props[3] = 0x00000000;
-		set_property(dnode, "interrupts",
-			     (char *)&props, 4*sizeof(props[0]));
-		set_int_property(dnode, "#interrupt-cells", 2);
+		NEWWORLD(set_property(dnode, "interrupts",
+			     (char *)&props, 4*sizeof(props[0])));
+		NEWWORLD(set_int_property(dnode, "#interrupt-cells", 2));
+
+		props[1] = props[2];
 		OLDWORLD(set_property(dnode, "AAPL,interrupts",
 				      (char *)&props, 2*sizeof(props[0])));
 
