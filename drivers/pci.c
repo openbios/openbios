@@ -854,7 +854,7 @@ static void ob_pci_add_properties(phandle_t phandle,
 	if (config->irq_pin) {
 		OLDWORLD(set_int_property(dev, "AAPL,interrupts",
 					  config->irq_line));
-		set_int_property(dev, "interrupts", config->irq_pin);
+		NEWWORLD(set_int_property(dev, "interrupts", config->irq_pin));
 	}
 
 	set_int_property(dev, "min-grant", pci_config_read8(addr, PCI_MIN_GNT));
