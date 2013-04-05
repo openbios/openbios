@@ -167,43 +167,41 @@ openpic_init(const char *path, phys_addr_t addr)
 
         fword("finish-device");
 
-        if (is_newworld()) {
-            u32 *interrupt_map;
-            int len, i;
+        u32 *interrupt_map;
+        int len, i;
 
-            /* patch in interrupt parent */
-            dnode = find_dev(buf);
+        /* patch in interrupt parent */
+        dnode = find_dev(buf);
 
-            target_node = find_dev("/pci/mac-io");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci/mac-io");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            target_node = find_dev("/pci/mac-io/escc/ch-a");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci/mac-io/escc/ch-a");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            target_node = find_dev("/pci/mac-io/escc/ch-b");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci/mac-io/escc/ch-b");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            target_node = find_dev("/pci/mac-io/ata-1");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci/mac-io/ata-1");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            target_node = find_dev("/pci/mac-io/ata-2");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci/mac-io/ata-2");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            target_node = find_dev("/pci/mac-io/ata-3");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci/mac-io/ata-3");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            target_node = find_dev("/pci/mac-io/via-cuda");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci/mac-io/via-cuda");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            target_node = find_dev("/pci");
-            set_int_property(target_node, "interrupt-parent", dnode);
+        target_node = find_dev("/pci");
+        set_int_property(target_node, "interrupt-parent", dnode);
 
-            interrupt_map = (u32 *)get_property(target_node, "interrupt-map", &len);
-            for (i = 0; i < 8; i++) {
-                interrupt_map[(i * 7) + PCI_INT_MAP_PIC_HANDLE] = (u32)dnode;
-            }
-            set_property(target_node, "interrupt-map", (char *)interrupt_map, len);
+        interrupt_map = (u32 *)get_property(target_node, "interrupt-map", &len);
+        for (i = 0; i < 8; i++) {
+            interrupt_map[(i * 7) + PCI_INT_MAP_PIC_HANDLE] = (u32)dnode;
         }
+        set_property(target_node, "interrupt-map", (char *)interrupt_map, len);
 }
 
 DECLARE_NODE(ob_macio, INSTALL_OPEN, sizeof(int), "Tmac-io");
