@@ -855,7 +855,7 @@ arch_of_init(void)
     }
 
     /* Setup default boot devices */
-    snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt", boot_path, boot_path);
+    snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt %s:,%%BOOT", boot_path, boot_path, boot_path);
     push_str(buf);
     fword("encode-string");
     push_str("boot-device");
