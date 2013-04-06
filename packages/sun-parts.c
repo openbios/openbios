@@ -109,7 +109,7 @@ sunparts_open( sunparts_info_t *di )
 		[(id)][,][filespec]
 	*/
 
-	if ( strlen(str) ) {
+	if ( str && strlen(str) ) {
 		/* Detect the arguments */
 		if ((*str >= '0' && *str <= '9') || (*str >= 'a' && *str < ('a' + 8)) || (*str == ',')) {
 		    push_str(str);
