@@ -401,9 +401,11 @@ init_mmu_swift(void)
     size = (unsigned long)&_end - (unsigned long)&_start;
     pa = va2pa(va);
     ofmem_arch_map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
+    ofmem_map_page_range(pa, va, size, ofmem_arch_default_translation_mode(pa));
 
     // 1:1 mapping for RAM
     ofmem_arch_map_pages(0, 0, LOWMEMSZ, ofmem_arch_default_translation_mode(0));
+    ofmem_map_page_range(0, 0, LOWMEMSZ, ofmem_arch_default_translation_mode(0));
 
     /*
      * Flush cache
