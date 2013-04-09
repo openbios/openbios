@@ -54,6 +54,7 @@ new-device
   \ " hda1:/boot/vmunix" encode-string " bootpath" property
   \ " -as" encode-string " bootargs" property
   0 encode-int " memory" property
+  0 encode-int " mmu" property
 finish-device
   
 \ END

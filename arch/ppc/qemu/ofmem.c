@@ -549,10 +549,9 @@ ofmem_init(void)
 {
     ofmem_t *ofmem = ofmem_arch_get_private();
 
-    /* Map the memory (don't map page 0 to allow catching of NULL dereferences) */
-    ofmem_claim_phys(PAGE_SIZE, get_ram_bottom() - PAGE_SIZE, 0);
-    ofmem_claim_virt(PAGE_SIZE, get_ram_bottom() - PAGE_SIZE, 0);
-    ofmem_map(PAGE_SIZE, PAGE_SIZE, get_ram_bottom() - PAGE_SIZE, 0);
+    ofmem_claim_phys(0, get_ram_bottom(), 0);
+    ofmem_claim_virt(0, get_ram_bottom(), 0);
+    ofmem_map(0, 0, get_ram_bottom(), 0);
 
     /* Map everything at the top of physical RAM 1:1, minus the OpenBIOS ROM in RAM copy */
     ofmem_claim_phys(get_ram_top(), get_hash_base() + HASH_SIZE - get_ram_top(), 0);

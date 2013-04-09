@@ -403,9 +403,9 @@ init_mmu_swift(void)
     ofmem_arch_map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
     ofmem_map_page_range(pa, va, size, ofmem_arch_default_translation_mode(pa));
 
-    // 1:1 mapping for RAM (don't map page 0 to allow catching of NULL dereferences)
-    ofmem_arch_map_pages(PAGE_SIZE, PAGE_SIZE, LOWMEMSZ - PAGE_SIZE, ofmem_arch_default_translation_mode(0));
-    ofmem_map_page_range(PAGE_SIZE, PAGE_SIZE, LOWMEMSZ - PAGE_SIZE, ofmem_arch_default_translation_mode(0));
+    // 1:1 mapping for RAM
+    ofmem_arch_map_pages(0, 0, LOWMEMSZ, ofmem_arch_default_translation_mode(0));
+    ofmem_map_page_range(0, 0, LOWMEMSZ, ofmem_arch_default_translation_mode(0));
 
     /*
      * Flush cache
