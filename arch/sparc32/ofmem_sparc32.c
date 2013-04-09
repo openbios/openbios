@@ -61,7 +61,7 @@ ucell ofmem_arch_get_heap_top(void)
 
 ucell ofmem_arch_get_virt_top(void)
 {
-	return (ucell)TOP_OF_RAM;
+	return (ucell)OFMEM_VIRT_TOP;
 }
 
 phys_addr_t ofmem_arch_get_phys_top(void)

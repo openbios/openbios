@@ -25,9 +25,9 @@
 #include "packages/video.h"
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
-#include "libopenbios/ofmem.h"
+#include "arch/sparc32/ofmem_sparc32.h"
 
-#define MEMORY_SIZE     (512*1024)       /* 512K ram for hosted system */
+#define MEMORY_SIZE     (128*1024)       /* 128K ram for hosted system */
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 #define FW_CFG_SUN4M_DEPTH   (FW_CFG_ARCH_LOCAL + 0x00)
 
@@ -813,13 +813,16 @@ static void init_memory(void)
     if (!phys)
         printk("panic: not enough physical memory on host system.\n");
     
-    virt = ofmem_claim_virt(-1, MEMORY_SIZE, PAGE_SIZE);
+    virt = ofmem_claim_virt(OF_CODE_START - MEMORY_SIZE, MEMORY_SIZE, 0);
     if (!virt)
         printk("panic: not enough virtual memory on host system.\n");
 
     /* Generate the mapping (and lock translation into the TLBs) */
     ofmem_map(phys, virt, MEMORY_SIZE, ofmem_arch_default_translation_mode(phys));
 
+    /* Mark everything up until OFMEM_VIRT_TOP as in use */
+    ofmem_claim_virt(OFMEM_VIRT_TOP, OF_CODE_START - MEMORY_SIZE - OFMEM_VIRT_TOP, 0);
+    
     /* we push start and end of memory to the stack
      * so that it can be used by the forth word QUIT
      * to initialize the memory allocator
