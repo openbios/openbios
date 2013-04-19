@@ -42,9 +42,6 @@
 #define NVRAM_OB_START   (0)
 #define NVRAM_OB_SIZE    ((0x1fd0 - NVRAM_OB_START) & ~15)
 
-#define OBIO_CMDLINE_MAX 256
-static char obio_cmdline[OBIO_CMDLINE_MAX];
-
 static uint8_t idprom[NVRAM_IDPROM_SIZE];
 
 struct hwdef {
@@ -370,6 +367,7 @@ static uint8_t qemu_uuid[16];
 
 void arch_nvram_get(char *data)
 {
+    char *obio_cmdline;
     uint32_t size = 0;
     const struct cpudef *cpu;
     char buf[256];
@@ -401,12 +399,13 @@ void arch_nvram_get(char *data)
         kernel_image = fw_cfg_read_i64(FW_CFG_KERNEL_ADDR);
 
     size = fw_cfg_read_i32(FW_CFG_CMDLINE_SIZE);
-    if (size > OBIO_CMDLINE_MAX - 1)
-        size = OBIO_CMDLINE_MAX - 1;
     if (size) {
+	obio_cmdline = (char *)malloc(size + 1);
         fw_cfg_read(FW_CFG_CMDLINE_DATA, obio_cmdline, size);
+	obio_cmdline[size] = '\0';
+    } else {
+	obio_cmdline = strdup("");    
     }
-    obio_cmdline[size] = '\0';
     qemu_cmdline = (uint64_t)obio_cmdline;
     cmdline_size = size;
     boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
