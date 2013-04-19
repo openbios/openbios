@@ -425,13 +425,27 @@ static ucell find_area( ucell align, ucell size, range_t *r,
 {
 	phys_addr_t base = min;
 	range_t *r2;
+	ucell old_align;
+	int i;
 
 	if( (align & (align-1)) ) {
-		OFMEM_TRACE("bad alignment " FMT_ucell "\n", align);
-		align = 0x1000;
+	
+		/* As per IEEE1275 specification, round up to the nearest power of 2 */
+		old_align = align;
+		if (old_align <= PAGE_SIZE) {
+			align = PAGE_SIZE;
+		} else {
+			align--;
+			for (i = 1; i < sizeof(ucell) * 8; i<<=1) {
+				align |= align >> i;
+			}
+			align++;
+		}
+		
+		OFMEM_TRACE("warning: bad alignment " FMT_ucellx " rounded up to " FMT_ucellx "\n", old_align, align);
 	}
 	if( !align )
-		align = 0x1000;
+		align = PAGE_SIZE;
 
 	base = reverse ? max - size : min;
 	r2 = reverse ? NULL : r;
