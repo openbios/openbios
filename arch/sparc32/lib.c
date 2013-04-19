@@ -269,6 +269,8 @@ char *obp_memalloc(char *va, unsigned int size, unsigned int align)
     phys_addr_t phys;
     ucell virt;
 
+    DPRINTF("obp_memalloc: virta 0x%x, sz %d, align %d\n", (unsigned int)va, size, align);    
+    
     /* Claim physical memory */
     phys = ofmem_claim_phys(-1, size, align);
 
@@ -285,6 +287,8 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
 {
     unsigned long align;
     int i;
+    
+    DPRINTF("obp_dumb_memalloc: virta 0x%x, sz %d\n", (unsigned int)va, size);    
     
     /* Solaris seems to assume that the returned value is physically aligned to size. For
        example, not having this here causes the Solaris 8 kernel to fault because the 
