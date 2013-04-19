@@ -53,7 +53,6 @@ new-device
   0 encode-int " stdout" property
   \ " hda1:/boot/vmunix" encode-string " bootpath" property
   \ " -as" encode-string " bootargs" property
-  0 encode-int " memory" property
 finish-device
   
 \ END

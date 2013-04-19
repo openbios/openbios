@@ -32,7 +32,7 @@
 \ preopen device nodes (and store the ihandles under /chosen)
 :noname
   " memory" " /memory" preopen
-  " mmu" " /cpus/@0" preopen
+  " mmu" " /virtual-memory" preopen
 ; SYSTEM-initializer
 
 device-end
