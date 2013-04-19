@@ -285,28 +285,14 @@ char *obp_memalloc(char *va, unsigned int size, unsigned int align)
 
 char *obp_dumb_memalloc(char *va, unsigned int size)
 {
-    unsigned long align;
-    int i;
+    unsigned long align = size;
     
     DPRINTF("obp_dumb_memalloc: virta 0x%x, sz %d\n", (unsigned int)va, size);    
     
-    /* Solaris seems to assume that the returned value is physically aligned to size. For
-       example, not having this here causes the Solaris 8 kernel to fault because the 
-       IOMMU page table base address is calculated incorrectly. */
-
-    /* Enforce a minimum alignment of CONFIG_OFMEM_MALLOC_ALIGN, and choose an alignment 
-       which is the next power of 2 higher than the specified size */
-    align = size;
-    if (align <= CONFIG_OFMEM_MALLOC_ALIGN) {
-        align = CONFIG_OFMEM_MALLOC_ALIGN;
-    } else {
-        align--;
-        for (i = 1; i < sizeof(unsigned long) * 8; i<<=1) {
-            align |= align >> i;
-        }
-        align++;
-    }
-
+    /* Solaris seems to assume that the returned value is physically aligned to size.
+       e.g. it is used for setting up page tables. Fortunately this is now handled by 
+       ofmem_claim_phys() above. */
+    
     return obp_memalloc(va, size, align);
 }
 
