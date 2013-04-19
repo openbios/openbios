@@ -835,8 +835,7 @@ static void init_memory(void)
 static void
 arch_init( void )
 {
-	static char cmdline[128];
-        int size = 0;
+	char *cmdline;
         const char *kernel_cmdline;
         uint32_t temp;
         uint16_t machine_id;
@@ -897,11 +896,11 @@ arch_init( void )
 
         kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
         if (kernel_cmdline) {
-            size = strlen(kernel_cmdline);
-            memcpy(cmdline, kernel_cmdline, size);
+            cmdline = strdup(kernel_cmdline);
             obp_arg.argv[1] = cmdline;
-        }
-	cmdline[size] = '\0';
+        } else {
+	    cmdline = strdup("");
+	}
 	qemu_cmdline = (uint32_t)cmdline;
 
         /* Setup nvram variables */
