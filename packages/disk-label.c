@@ -73,63 +73,70 @@ dlabel_open( dlabel_info_t *di )
 	di->filesystem_ph = 0;
 	di->parent_seek_xt = find_parent_method("seek");
 	di->parent_tell_xt = find_parent_method("tell");
-        di->parent_read_xt = find_parent_method("read");	
+	di->parent_read_xt = find_parent_method("read");
 
-	/* Read first block from parent device */
-	DPUSH(0);
-	call_package(di->parent_seek_xt, my_parent());
-	POP();
+	/* If arguments have been passed, determine the partition/filesystem type */
+	if (path && strlen(path)) {
 
-	PUSH(pointer2cell(block0));
-	PUSH(sizeof(block0));
-	call_package(di->parent_read_xt, my_parent());
-	status = POP();
-	if (status != sizeof(block0))
-		goto out;
+		/* Read first block from parent device */
+		DPUSH(0);
+		call_package(di->parent_seek_xt, my_parent());
+		POP();
 
-	/* Find partition handler */
-	PUSH( pointer2cell(block0) );
-	selfword("find-part-handler");
-	ph = POP_ph();
-	if( ph ) {
-		/* We found a suitable partition handler, so interpose it */
-		DPRINTF("Partition found on disk - scheduling interpose with ph " FMT_ucellx "\n", ph);
+		PUSH(pointer2cell(block0));
+		PUSH(sizeof(block0));
+		call_package(di->parent_read_xt, my_parent());
+		status = POP();
+		if (status != sizeof(block0))
+			goto out;
 
-		push_str(path);
-		PUSH_ph(ph);
-		fword("interpose");	
-
-		success = 1;
-	} else {
-		/* unknown (or missing) partition map,
-		 * try the whole disk
-		 */
-
-		DPRINTF("Unknown or missing partition map; trying whole disk\n");
-
-		/* Probe for filesystem from start of device */
-		DPUSH ( 0 );	
-		PUSH_ih( my_self() );
-		selfword("find-filesystem");
+		/* Find partition handler */
+		PUSH( pointer2cell(block0) );
+		selfword("find-part-handler");
 		ph = POP_ph();
 		if( ph ) {
-			/* If we have been asked to open a particular file, interpose the filesystem package with the passed filename as an argument */
-			di->filesystem_ph = ph;
+			/* We found a suitable partition handler, so interpose it */
+			DPRINTF("Partition found on disk - scheduling interpose with ph " FMT_ucellx "\n", ph);
 
-			DPRINTF("Located filesystem with ph " FMT_ucellx "\n", ph);
-			DPRINTF("path: %s length: %d\n", path, strlen(path));
+			push_str(path);
+			PUSH_ph(ph);
+			fword("interpose");	
 
-                        if (path && strlen(path)) {
-				DPRINTF("INTERPOSE!\n");
+			success = 1;
+		} else {
+			/* unknown (or missing) partition map,
+			* try the whole disk
+			*/
 
-				push_str( path );
-				PUSH_ph( ph );
-				fword("interpose");
+			DPRINTF("Unknown or missing partition map; trying whole disk\n");
+
+			/* Probe for filesystem from start of device */
+			DPUSH ( 0 );	
+			PUSH_ih( my_self() );
+			selfword("find-filesystem");
+			ph = POP_ph();
+			if( ph ) {
+				/* If we have been asked to open a particular file, interpose the filesystem package with the passed filename as an argument */
+				di->filesystem_ph = ph;
+
+				DPRINTF("Located filesystem with ph " FMT_ucellx "\n", ph);
+				DPRINTF("path: %s length: %d\n", path, strlen(path));
+
+				if (path && strlen(path)) {
+					DPRINTF("INTERPOSE!\n");
+
+					push_str( path );
+					PUSH_ph( ph );
+					fword("interpose");
+				}
+			} else if (path && strcmp(path, "%BOOT") != 0) {
+				goto out;
 			}
-                } else if (path && strcmp(path, "%BOOT") != 0) {
-			goto out;
-		}
 
+			success = 1;
+		}
+	} else {
+		/* No arguments were passed, so we just use the parent raw device directly */
 		success = 1;
 	}
 
