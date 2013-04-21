@@ -131,7 +131,7 @@ void serial_cls(void)
 
 /* ( addr len -- actual ) */
 static void
-escc_read(phys_addr_t *address)
+escc_read(ucell *address)
 {
     char *addr;
     int len;
@@ -152,7 +152,7 @@ escc_read(phys_addr_t *address)
 
 /* ( addr len -- actual ) */
 static void
-escc_write(phys_addr_t *address)
+escc_write(ucell *address)
 {
     unsigned char *addr;
     int i, len;
@@ -172,7 +172,7 @@ escc_close(void)
 }
 
 static void
-escc_open(phys_addr_t *address)
+escc_open(ucell *address)
 {
 #ifdef CONFIG_DRIVER_ESCC_SUN
     int len;
@@ -199,7 +199,7 @@ escc_open(phys_addr_t *address)
     RET ( -1 );
 }
 
-DECLARE_UNNAMED_NODE(escc, INSTALL_OPEN, sizeof(phys_addr_t));
+DECLARE_UNNAMED_NODE(escc, INSTALL_OPEN, sizeof(ucell));
 
 NODE_METHODS(escc) = {
     { "open",               escc_open              },
