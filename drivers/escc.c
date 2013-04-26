@@ -305,7 +305,7 @@ escc_read_keyboard(void)
     }
 }
 
-DECLARE_UNNAMED_NODE(escc_keyboard, INSTALL_OPEN, sizeof(phys_addr_t));
+DECLARE_UNNAMED_NODE(escc_keyboard, INSTALL_OPEN, sizeof(ucell));
 
 NODE_METHODS(escc_keyboard) = {
     { "open",               escc_open              },
