@@ -820,9 +820,6 @@ static void init_memory(void)
     /* Generate the mapping (and lock translation into the TLBs) */
     ofmem_map(phys, virt, MEMORY_SIZE, ofmem_arch_default_translation_mode(phys));
 
-    /* Mark everything up until OFMEM_VIRT_TOP as in use */
-    ofmem_claim_virt(OFMEM_VIRT_TOP, OF_CODE_START - MEMORY_SIZE - OFMEM_VIRT_TOP, 0);
-    
     /* we push start and end of memory to the stack
      * so that it can be used by the forth word QUIT
      * to initialize the memory allocator
