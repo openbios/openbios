@@ -537,14 +537,6 @@ int bridge_config_cb(const pci_config_t *config)
 	return 0;
 }
 
-int virtio_config_cb(const pci_config_t *config)
-{
-#if defined(CONFIG_SPARC64)
-    set_int_property(get_cur_dev(), "interrupts", 0);
-#endif
-    return 0;
-}
-
 int ide_config_cb2 (const pci_config_t *config)
 {
 	ob_ide_init(config->path,

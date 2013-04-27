@@ -28,7 +28,6 @@ struct pci_dev_t {
     const void *private;
 };
 
-extern int virtio_config_cb(const pci_config_t *config);
 extern int ide_config_cb2(const pci_config_t *config);
 extern int eth_config_cb(const pci_config_t *config);
 extern int macio_heathrow_config_cb(const pci_config_t *config);

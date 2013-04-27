@@ -1432,8 +1432,6 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 		props[0]=14; props[1]=0;
 		set_property(dnode, "interrupts",
 			     (char *)&props, 2*sizeof(props[0]));
-#elif defined(CONFIG_SPARC64)
-                set_int_property(get_cur_dev(), "interrupts", 0);
 #endif
 
 		props[0] = __cpu_to_be32(chan->io_regs[0]);
