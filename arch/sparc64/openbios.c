@@ -547,6 +547,9 @@ void setup_timers(void)
 
 void udelay(unsigned int usecs)
 {
+    volatile int i;
+
+    for (i = 0; i < usecs * 100; i++);
 }
 
 static void init_memory(void)
