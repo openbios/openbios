@@ -230,6 +230,12 @@
   endof
   a of \ LF
     line# 1+ to line# 0 to column# 
+    line# #lines >= if
+      line# 1-
+      0 to line#
+      1 delete-lines
+      to line#
+    then
   endof
   b of \ VT
     line# 0<> if
