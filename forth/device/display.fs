@@ -44,6 +44,7 @@ hex
 0 value foreground-color
 0 value background-color
 
+2 value font-spacing
 0 value depth-bytes
 0 value line-bytes
 
@@ -82,7 +83,7 @@ defer fb-emit ( x -- )
   to char-num
   to char-min
   to fontbytes
-  to char-height
+  font-spacing + to char-height
   to char-width
   to font
   ;
@@ -192,12 +193,17 @@ defer fb8-invertrect
 ;
   
 : fb8-draw-character ( char -- )
+  \ erase the current character
+  background-color
+  column# char-width * window-left +
+  line# char-height * window-top +
+  char-width char-height fb8-fillrect
   \ draw the character:
   >font  
   line# char-height * window-top + screen-width * depth-bytes *
   column# char-width * depth-bytes *
   window-left depth-bytes * + + frame-buffer-adr +
-  swap char-width char-height
+  swap char-width char-height font-spacing -
   \ normal or inverse?
   foreground-color background-color
   inverse? if
@@ -234,7 +240,7 @@ defer fb8-invertrect
 : fb8-toggle-cursor ( -- )
   column# char-width * window-left +
   line# char-height * window-top +
-  char-width char-height
+  char-width char-height font-spacing -
   foreground-color background-color
   fb8-invertrect
   ;
