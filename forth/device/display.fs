@@ -175,7 +175,12 @@ defer fb8-invertrect
   frame-buffer-adr + 
   window-left depth-bytes * +
 ;
-  
+
+: fb8-curpos2addr ( col line -- addr )
+  char-height * fb8-line2addr
+  swap char-width * depth-bytes * +
+;
+
 : fb8-copy-lines ( count from to -- )
   fb8-line2addr swap
   fb8-line2addr swap
@@ -253,9 +258,41 @@ defer fb8-invertrect
   ;
   
 : fb8-insert-characters ( n -- )
-  ;
+  \ numcopy = ( #columns - column# - n )
+  #columns over - column# -
+  char-width * depth-bytes * ( n numbytescopy )
+
+  over column# + line# fb8-curpos2addr
+  column# line# fb8-curpos2addr ( n numbytescopy destaddr srcaddr )
+  char-height 0 do
+    3dup swap rot move
+    line-bytes + swap line-bytes + swap
+  loop 3drop
   
+  background-color
+  column# char-width * window-left + line# char-height * window-top +
+  3 pick char-width * char-height
+  fb8-fillrect
+  drop
+  ;
+
 : fb8-delete-characters ( n -- )
+  \ numcopy = ( #columns - column# - n )
+  #columns over - column# -
+  char-width * depth-bytes * ( n numbytescopy )
+
+  over column# + line# fb8-curpos2addr
+  column# line# fb8-curpos2addr swap ( n numbytescopy destaddr srcaddr )
+  char-height 0 do
+    3dup swap rot move
+    line-bytes + swap line-bytes + swap
+  loop 3drop
+
+  background-color
+  over #columns swap - char-width * window-left + line# char-height * window-top +
+  3 pick char-width * char-height
+  fb8-fillrect
+  drop
   ;
 
 : fb8-insert-lines ( n -- )
