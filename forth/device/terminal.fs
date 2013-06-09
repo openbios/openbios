@@ -97,17 +97,39 @@
     endof
     ascii f of
       2 (esc-number) 
-      2 = if
-        #columns 1- min to column#
-        #lines 1- min to line#
-      then
+      case
+        2 of
+          1- #columns 1- min to column#
+          1- #lines 1- min to line#
+        endof
+        1 of
+          0 to column#
+          1- #lines 1- min to line#
+        endof
+        0 of
+          0 to column#
+          0 to line#
+          drop
+        endof
+      endcase
     endof
     ascii H of
-      2 (esc-number) 
-      2 = if
-        #columns 1- min to column#
-        #lines 1- min to line#
-      then
+      2 (esc-number)
+      case
+        2 of
+          1- #columns 1- min to column#
+          1- #lines 1- min to line#
+        endof
+        1 of
+          0 to column#
+          1- #lines 1- min to line#
+        endof
+        0 of
+          0 to column#
+          0 to line#
+          drop
+        endof
+      endcase
     endof
     ascii J of
       0 to (escseq)
