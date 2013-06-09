@@ -9,6 +9,7 @@ void video_scroll(int height);
 void fill_rect(int col_ind, int x, int y, int w, int h);
 void video_mask_blit(void);
 void video_invert_rect(void);
+void video_fill_rect(void);
 
 typedef struct osi_fb_info {
     unsigned long mphys;

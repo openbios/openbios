@@ -71,19 +71,6 @@ video_color_bang( void )
 	refresh_palette();
 }
 
-/* ( color_ind x y width height -- ) (?) */
-static void
-video_fill_rect( void )
-{
-	int h = POP();
-	int w = POP();
-	int y = POP();
-	int x = POP();
-	int color_ind = POP();
-
-	fill_rect( color_ind, x, y, w, h );
-}
-
 NODE_METHODS( video ) = {
 	{"dimensions",		video_dimensions	},
 	{"set-colors",		video_set_colors	},

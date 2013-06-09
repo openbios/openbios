@@ -339,6 +339,19 @@ video_write(void)
     PUSH(len);
 }
 
+/* ( color_ind x y width height -- ) (?) */
+void
+video_fill_rect(void)
+{
+	int h = POP();
+	int w = POP();
+	int y = POP();
+	int x = POP();
+	int color_ind = POP();
+
+	fill_rect( color_ind, x, y, w, h );
+}
+
 void
 init_video( unsigned long fb, int width, int height, int depth, int rb )
 {
@@ -391,6 +404,9 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	PUSH( pointer2cell(video_mask_blit) );
 	fword("is-noname-cfunc");
 	feval("to fb8-blitmask");
+	PUSH( pointer2cell(video_fill_rect) );
+	fword("is-noname-cfunc");
+	feval("to fb8-fillrect");
 	PUSH( pointer2cell(video_invert_rect) );
 	fword("is-noname-cfunc");
 	feval("to fb8-invertrect");

@@ -165,6 +165,7 @@ defer fb-emit ( x -- )
 
 \ bind to low-level C function later
 defer fb8-blitmask
+defer fb8-fillrect
 defer fb8-invertrect
 
 : fb8-line2addr ( line -- addr )
@@ -236,14 +237,13 @@ defer fb8-invertrect
   ;
 
 : fb8-erase-screen ( -- )
-  frame-buffer-adr 
-  screen-height screen-width * 
   inverse-screen? if
     foreground-color
   else
     background-color
   then
-  fill
+  0 0 screen-width screen-height
+  fb8-fillrect
   ;
 
 : fb8-invert-screen ( -- )
