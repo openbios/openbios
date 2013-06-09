@@ -259,6 +259,14 @@ defer fb8-invertrect
   ;
 
 : fb8-insert-lines ( n -- )
+  \ numcopy = ( #lines - n )
+  #lines over - char-height *
+  over line# char-height *
+  swap char-height * over +
+  fb8-copy-lines
+
+  char-height * line# char-height *
+  fb8-clear-lines
   ;
   
 : fb8-delete-lines ( n -- )
