@@ -22,7 +22,7 @@
 #include "boot.h"
 #include "romvec.h"
 #include "openprom.h"
-#include "packages/video.h"
+#include "libopenbios/video.h"
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
 #include "arch/sparc32/ofmem_sparc32.h"

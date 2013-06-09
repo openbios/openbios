@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/ofmem.h"
 #include "libopenbios/video.h"
 #include "packages/video.h"
 #include "drivers/vga.h"
@@ -62,4 +63,208 @@ set_color( int ind, unsigned long color )
 			   ((color >> 8) & 0xff),
 			   (color & 0xff));
 #endif
+}
+
+static void
+startup_splash( void )
+{
+#ifdef CONFIG_MOL
+	int fd, s, i, y, x, dx, dy;
+	int width, height;
+	char *pp, *p;
+	char buf[64];
+#endif
+
+	/* only draw logo in 24-bit mode (for now) */
+	if( video.fb.depth < 15 )
+		return;
+#ifdef CONFIG_MOL
+	for( i=0; i<2; i++ ) {
+		if( !BootHGetStrResInd("bootlogo", buf, sizeof(buf), 0, i) )
+			return;
+		*(!i ? &width : &height) = atol(buf);
+	}
+
+	if( (s=width * height * 3) > 0x20000 )
+		return;
+
+	if( (fd=open_io("pseudo:,bootlogo")) >= 0 ) {
+		p = malloc( s );
+		if( read_io(fd, p, s) != s )
+			printk("bootlogo size error\n");
+		close_io( fd );
+
+		dx = (video.fb.w - width)/2;
+		dy = (video.fb.h - height)/3;
+
+		pp = (char*)video.fb.mvirt + dy * video.fb.rb + dx * (video.fb.depth >= 24 ? 4 : 2);
+
+		for( y=0 ; y<height; y++, pp += video.fb.rb ) {
+			if( video.fb.depth >= 24 ) {
+				unsigned long *d = (unsigned long*)pp;
+				for( x=0; x<width; x++, p+=3, d++ )
+					*d = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
+			} else if( video.fb.depth == 15 ) {
+				unsigned short *d = (unsigned short*)pp;
+				for( x=0; x<width; x++, p+=3, d++ ) {
+					int col = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
+					*d = ((col>>9) & 0x7c00) | ((col>>6) & 0x03e0) | ((col>>3) & 0x1f);
+				}
+			}
+		}
+		free( p );
+	}
+#else
+	/* No bootlogo support yet on other platforms */
+	return;
+#endif
+}
+
+int
+video_get_res( int *w, int *h )
+{
+	if( !video.has_video ) {
+		*w = *h = 0;
+		return -1;
+	}
+	*w = video.fb.w;
+	*h = video.fb.h;
+	return 0;
+}
+
+void
+draw_pixel( int x, int y, int colind )
+{
+	char *p = (char*)video.fb.mvirt + video.fb.rb * y;
+	int color, d = video.fb.depth;
+
+	if( x < 0 || y < 0 || x >= video.fb.w || y >=video.fb.h )
+		return;
+	color = get_color( colind );
+
+	if( d >= 24 )
+		*((unsigned long*)p + x) = color;
+	else if( d >= 15 )
+		*((short*)p + x) = color;
+	else
+		*(p + x) = color;
+}
+
+void
+video_scroll( int height )
+{
+	int i, offs, size, *dest, *src;
+
+        if (height <= 0 || height >= video.fb.h) {
+                return;
+        }
+	offs = video.fb.rb * height;
+	size = (video.fb.h * video.fb.rb - offs)/16;
+	dest = (int*)video.fb.mvirt;
+	src = (int*)(video.fb.mvirt + offs);
+
+	for( i=0; i<size; i++ ) {
+		dest[0] = src[0];
+		dest[1] = src[1];
+		dest[2] = src[2];
+		dest[3] = src[3];
+		dest += 4;
+		src += 4;
+	}
+}
+
+void
+fill_rect( int col_ind, int x, int y, int w, int h )
+{
+	char *pp;
+	unsigned long col = get_color(col_ind);
+
+        if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
+            x + w > video.fb.w || y + h > video.fb.h)
+		return;
+
+	pp = (char*)video.fb.mvirt + video.fb.rb * y;
+	for( ; h--; pp += video.fb.rb ) {
+		int ww = w;
+		if( video.fb.depth == 24 || video.fb.depth == 32 ) {
+			unsigned long *p = (unsigned long*)pp + x;
+			while( ww-- )
+				*p++ = col;
+		} else if( video.fb.depth == 16 || video.fb.depth == 15 ) {
+			unsigned short *p = (unsigned short*)pp + x;
+			while( ww-- )
+				*p++ = col;
+		} else {
+                        char *p = (char *)(pp + x);
+
+			while( ww-- )
+				*p++ = col;
+		}
+	}
+}
+
+void
+refresh_palette( void )
+{
+#ifdef CONFIG_MOL
+	if( video.fb.depth == 8 )
+		OSI_RefreshPalette();
+#endif
+}
+
+void
+init_video( unsigned long fb, int width, int height, int depth, int rb )
+{
+        int i;
+#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
+        int size;
+#endif
+	phandle_t ph=0, saved_ph=0;
+
+	video.fb.mphys = video.fb.mvirt = fb;
+
+#if defined(CONFIG_SPARC64)
+	/* Fix virtual address on SPARC64 somewhere else */
+	video.fb.mvirt = 0xfe000000;
+#endif
+
+	video.fb.w = width;
+	video.fb.h = height;
+	video.fb.depth = depth;
+	video.fb.rb = rb;
+
+	saved_ph = get_cur_dev();
+	while( (ph=dt_iterate_type(ph, "display")) ) {
+		set_int_property( ph, "width", video.fb.w );
+		set_int_property( ph, "height", video.fb.h );
+		set_int_property( ph, "depth", video.fb.depth );
+		set_int_property( ph, "linebytes", video.fb.rb );
+		set_int_property( ph, "address", video.fb.mvirt );
+
+		activate_dev(ph);
+		molvideo_init();
+	}
+	video.has_video = 1;
+	video.pal = malloc( 256 * sizeof(unsigned long) );
+	activate_dev(saved_ph);
+
+	PUSH(video.fb.mvirt);
+	feval("to frame-buffer-adr");
+
+#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
+        size = ((video.fb.h * video.fb.rb)  + 0xfff) & ~0xfff;
+
+	ofmem_claim_phys( video.fb.mphys, size, 0 );
+	ofmem_claim_virt( video.fb.mvirt, size, 0 );
+	ofmem_map( video.fb.mphys, video.fb.mvirt, size, ofmem_arch_io_translation_mode(video.fb.mphys) );
+#endif
+
+	for( i=0; i<256; i++ )
+		set_color( i, i * 0x010101 );
+
+	set_color( 254, 0xffffcc );
+	fill_rect( 254, 0, 0, video.fb.w, video.fb.h );
+
+	refresh_palette();
+	startup_splash();
 }
