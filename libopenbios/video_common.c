@@ -134,6 +134,56 @@ video_get_res( int *w, int *h )
 	return 0;
 }
 
+/* ( fbaddr maskaddr width height fgcolor bgcolor -- ) */
+
+void
+video_mask_blit(void)
+{
+	ucell bgcolor = POP();
+	ucell fgcolor = POP();
+	ucell height = POP();
+	ucell width = POP();
+	unsigned char *mask = (unsigned char *)POP();
+	unsigned char *fbaddr = (unsigned char *)POP();
+
+	ucell color;
+	unsigned char *dst, *rowdst;
+	int x, y, m, b, d, depthbytes;
+
+	fgcolor = get_color(fgcolor);
+	bgcolor = get_color(bgcolor);
+	d = video.fb.depth;
+	depthbytes = (video.fb.depth + 1) >> 3;
+
+	dst = fbaddr;
+	for( y = 0; y < height; y++) {
+		rowdst = dst;
+		for( x = 0; x < (width + 1) >> 3; x++ ) {
+			for (b = 0; b < 8; b++) {
+				m = (1 << (7 - b));
+
+				if (*mask & m) {
+					color = fgcolor;
+				} else {
+					color = bgcolor;
+				}
+
+				if( d >= 24 )
+					*((unsigned long*)dst) = color;
+				else if( d >= 15 )
+					*((short*)dst) = color;
+				else
+					*dst = color;
+
+				dst += depthbytes;
+			}
+			mask++;
+		}
+		dst = rowdst;
+		dst += video.fb.rb;
+	}
+}
+
 void
 draw_pixel( int x, int y, int colind )
 {
@@ -283,6 +333,10 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	feval("to frame-buffer-adr");
 
 	/* Set global variables ready for fb8-install */
+	PUSH( pointer2cell(video_mask_blit) );
+	fword("is-noname-cfunc");
+	feval("to fb8-blitmask");
+
 	PUSH((video.fb.depth + 1) >> 3);
 	feval("to depth-bytes");
 	PUSH(video.fb.rb);

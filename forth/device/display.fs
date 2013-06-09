@@ -163,45 +163,8 @@ defer fb-emit ( x -- )
   
 \ 5.3.6.3.3 Generic eight-bit frame-buffer support
 
-\ The following two functions are unrolled for speed.
-
-
-\ blit 8 continuous pixels described by the 8bit
-\ value in bitmask8. The most significant bit is
-\ painted first. 
-
-\ this function should honour fg and bg colors
-
-: fb8-write-mask8 ( bitmask8 faddr -- )
-  over 1  and 0<> over 7 + c!
-  over 2  and 0<> over 6 + c!
-  over 4  and 0<> over 5 + c!
-  over 8  and 0<> over 4 + c!
-  over 10 and 0<> over 3 + c!
-  over 20 and 0<> over 2 + c!
-  over 40 and 0<> over 1 + c!
-  over 80 and 0<> over 0 + c!
-  2drop
-  ; 
-
-: fb8-blitmask ( fbaddr mask-addr width height --  )
-  over >r          \ save width ( -- R: width )
-  * 3 >>           \ fbaddr mask-addr width*height/8
-  bounds           \ fbaddr mask-end mask
-  r> 0 2swap       \ fbaddr width 0 mask-end mask
-  ?do              \ ( fbaddr width l-cnt )
-    2 pick over +  \ fbaddr-current
-    i c@           \ bitmask8 
-    swap fb8-write-mask8
-    ( fbaddr width l-cnt )
-    8 + 2dup = if
-      drop swap screen-width + 
-      swap 0
-    then
-    ( fbaddr width l-cnt )
-  loop
-  2drop drop
-  ;
+\ bind to low-level C function later
+defer fb8-blitmask
 
 : fb8-line2addr ( line -- addr )
   window-top +
@@ -229,6 +192,11 @@ defer fb-emit ( x -- )
   line# char-height * window-top + screen-width *
   column# char-width * window-left + + frame-buffer-adr +
   swap char-width char-height
+  \ normal or inverse?
+  foreground-color background-color
+  inverse? if
+    swap
+  then
   fb8-blitmask
   \ now advance the position
   column# 1+
