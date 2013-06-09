@@ -175,17 +175,20 @@ defer fb8-invertrect
   window-left depth-bytes * +
 ;
   
-: fb8-copy-line ( from to -- )
-  fb8-line2addr swap 
-  fb8-line2addr swap 
-  #columns char-width * depth-bytes * move
+: fb8-copy-lines ( count from to -- )
+  fb8-line2addr swap
+  fb8-line2addr swap
+  #columns char-width * depth-bytes *
+  3 pick * move drop
 ;
 
-: fb8-clear-line ( line -- )
-  fb8-line2addr 
-  #columns char-width * depth-bytes *
-  background-color fill
-\ 0 fill
+: fb8-clear-lines ( count line -- )
+  background-color 0
+  2 pick window-top +
+  #columns char-width *
+  5 pick
+  fb8-fillrect
+  2drop
 ;
   
 : fb8-draw-character ( char -- )
@@ -269,20 +272,14 @@ defer fb8-invertrect
 : fb8-delete-lines ( n -- )
   \ numcopy = ( #lines - ( line# + n )) * char-height
   #lines over line# + - char-height *
-
-  ( numcopy ) 0 ?do
-    dup line# + char-height * i +
-    line# char-height * i +
-    fb8-copy-line
-  loop
-
-  #lines over - char-height *
-  over char-height *
-  0 ?do
-    dup i + fb8-clear-line
-  loop
+  over line# + char-height *
+  line# char-height *
+  fb8-copy-lines
   
-  2drop
+  #lines over - char-height *
+  dup #lines char-height * swap - swap
+  fb8-clear-lines
+  drop
 ;
 
 
