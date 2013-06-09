@@ -165,6 +165,7 @@ defer fb-emit ( x -- )
 
 \ bind to low-level C function later
 defer fb8-blitmask
+defer fb8-invertrect
 
 : fb8-line2addr ( line -- addr )
   window-top +
@@ -226,15 +227,11 @@ defer fb8-blitmask
   ;
 
 : fb8-toggle-cursor ( -- )
-  line# char-height * window-top + screen-width *
-  column# char-width * window-left + + frame-buffer-adr +
-  char-height 0 ?do
-    char-width 0 ?do
-      dup i + dup c@ invert ff and swap c!
-    loop
-    screen-width +
-  loop
-  drop
+  column# char-width * window-left +
+  line# char-height * window-top +
+  char-width char-height
+  foreground-color background-color
+  fb8-invertrect
   ;
 
 : fb8-erase-screen ( -- )
@@ -249,20 +246,14 @@ defer fb8-blitmask
   ;
 
 : fb8-invert-screen ( -- )
-  frame-buffer-adr
-  screen-height screen-width * 
-  bounds ?do
-    i c@ case
-      foreground-color of background-color endof
-      background-color of foreground-color endof
-      dup
-    endcase
-    i c!
-  loop
+  0 0 screen-width screen-height
+  background-color foreground-color
+  fb8-invertrect
   ;
 
 : fb8-blink-screen ( -- )
-  fb8-invert-screen fb8-invert-screen
+  fb8-invert-screen 2000 ms
+  fb8-invert-screen
   ;
   
 : fb8-insert-characters ( n -- )

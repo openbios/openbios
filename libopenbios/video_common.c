@@ -184,6 +184,61 @@ video_mask_blit(void)
 	}
 }
 
+/* ( x y w h fgcolor bgcolor -- ) */
+
+void
+video_invert_rect( void )
+{
+	ucell bgcolor = POP();
+	ucell fgcolor = POP();
+	int h = POP();
+	int w = POP();
+	int y = POP();
+	int x = POP();
+	char *pp;
+
+	bgcolor = get_color(bgcolor);
+	fgcolor = get_color(fgcolor);
+
+	if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
+		x + w > video.fb.w || y + h > video.fb.h)
+		return;
+
+	pp = (char*)video.fb.mvirt + video.fb.rb * y;
+	for( ; h--; pp += video.fb.rb ) {
+		int ww = w;
+		if( video.fb.depth == 24 || video.fb.depth == 32 ) {
+			unsigned long *p = (unsigned long*)pp + x;
+			while( ww-- ) {
+				if (*p == fgcolor) {
+					*p++ = bgcolor;
+				} else if (*p == bgcolor) {
+					*p++ = fgcolor;
+				}
+			}
+		} else if( video.fb.depth == 16 || video.fb.depth == 15 ) {
+			unsigned short *p = (unsigned short*)pp + x;
+			while( ww-- ) {
+				if (*p == (unsigned short)fgcolor) {
+					*p++ = bgcolor;
+				} else if (*p == (unsigned short)bgcolor) {
+					*p++ = fgcolor;
+				}
+			}
+		} else {
+			char *p = (char *)(pp + x);
+
+			while( ww-- ) {
+				if (*p == (char)fgcolor) {
+					*p++ = bgcolor;
+				} else if (*p == (char)bgcolor) {
+					*p++ = fgcolor;
+				}
+			}
+		}
+	}
+}
+
 void
 draw_pixel( int x, int y, int colind )
 {
@@ -336,6 +391,9 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	PUSH( pointer2cell(video_mask_blit) );
 	fword("is-noname-cfunc");
 	feval("to fb8-blitmask");
+	PUSH( pointer2cell(video_invert_rect) );
+	fword("is-noname-cfunc");
+	feval("to fb8-invertrect");
 
 	PUSH((video.fb.depth + 1) >> 3);
 	feval("to depth-bytes");
