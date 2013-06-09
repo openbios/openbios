@@ -169,20 +169,20 @@ defer fb8-invertrect
 
 : fb8-line2addr ( line -- addr )
   window-top +
-  screen-width * 
+  screen-width * depth-bytes *
   frame-buffer-adr + 
-  window-left +
+  window-left depth-bytes * +
 ;
   
 : fb8-copy-line ( from to -- )
   fb8-line2addr swap 
   fb8-line2addr swap 
-  #columns char-width * move
+  #columns char-width * depth-bytes * move
 ;
 
 : fb8-clear-line ( line -- )
   fb8-line2addr 
-  #columns char-width * 
+  #columns char-width * depth-bytes *
   background-color fill
 \ 0 fill
 ;
@@ -190,8 +190,9 @@ defer fb8-invertrect
 : fb8-draw-character ( char -- )
   \ draw the character:
   >font  
-  line# char-height * window-top + screen-width *
-  column# char-width * window-left + + frame-buffer-adr +
+  line# char-height * window-top + screen-width * depth-bytes *
+  column# char-width * depth-bytes *
+  window-left depth-bytes * + + frame-buffer-adr +
   swap char-width char-height
   \ normal or inverse?
   foreground-color background-color
