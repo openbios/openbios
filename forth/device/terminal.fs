@@ -215,9 +215,9 @@
   endof
   8 of \ BS
     column# 0<> if
-      column# 1- dup 
+      column# dup
       to column#
-      20 draw-character
+      20 draw-character 1-
       to column#
     then
   endof
