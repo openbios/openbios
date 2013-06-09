@@ -226,12 +226,12 @@ defer fb-emit ( x -- )
   dup #columns = if
     drop 0 to column#
     line# 1+ 
-    dup #lines = if
-      drop 
-      \ FIXME move up screen (and keep position)
-    else
-      to #lines 
+    dup #lines >= if
+      line#
+      0 to line#
+      1 delete-lines
     then
+    to line#
   else
     to column#
   then
@@ -295,12 +295,12 @@ defer fb-emit ( x -- )
   
 : fb8-delete-lines ( n -- )
   \ numcopy = ( #lines - ( line# + n )) * char-height
-  #lines over #line + - char-height *
+  #lines over line# + - char-height *
 
   ( numcopy ) 0 ?do
     dup line# + char-height * i +
     line# char-height * i +
-    swap fb8-copy-line
+    fb8-copy-line
   loop
 
   #lines over - char-height *
