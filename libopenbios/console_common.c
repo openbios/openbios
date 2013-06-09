@@ -16,6 +16,7 @@
 #include "libopenbios/bindings.h"
 #include "libopenbios/fontdata.h"
 #include "libopenbios/console.h"
+#include "libopenbios/video.h"
 #include "packages/video.h"
 
 #define FONT_ADJ_HEIGHT	 (FONT_HEIGHT + 2)
