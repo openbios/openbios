@@ -27,6 +27,7 @@
 
 
 #define PCI_REVISION_ID 	0x08    /* Revision ID */
+#define PCI_CLASS_DISPLAY	0x03
 #define PCI_CLASS_PROG		0x09
 #define PCI_CLASS_DEVICE	0x0a
 #define PCI_CACHE_LINE_SIZE     0x0c    /* 8 bits */
