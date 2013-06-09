@@ -44,6 +44,9 @@ hex
 0 value foreground-color
 0 value background-color
 
+0 value depth-bytes
+0 value line-bytes
+
 \ internal values read from QEMU firmware interface
 0 value qemu-video-addr
 0 value qemu-video-height

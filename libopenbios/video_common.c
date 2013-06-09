@@ -283,6 +283,10 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	feval("to frame-buffer-adr");
 
 	/* Set global variables ready for fb8-install */
+	PUSH((video.fb.depth + 1) >> 3);
+	feval("to depth-bytes");
+	PUSH(video.fb.rb);
+	feval("to line-bytes");
 	PUSH((ucell)fontdata);
 	feval("to (romfont)");
 	PUSH(FONT_HEIGHT);
