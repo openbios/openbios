@@ -68,7 +68,7 @@ defer fb-emit ( x -- )
 \ 
 
 : default-font ( -- addr width height advance min-char #glyphs )
-  \ (romfont-8x16) 8 10 10 0 100
+  (romfont) (romfont-width) (romfont-height) (romfont-height) 0 100
   ;
 
 : set-font ( addr width height advance min-char #glyphs -- )
