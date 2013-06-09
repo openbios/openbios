@@ -210,20 +210,6 @@ defer fb8-invertrect
     swap
   then
   fb8-blitmask
-  \ now advance the position
-  column# 1+
-  dup #columns = if
-    drop 0 to column#
-    line# 1+ 
-    dup #lines >= if
-      line#
-      0 to line#
-      1 delete-lines
-    then
-    to line#
-  else
-    to column#
-  then
   ;
 
 : fb8-reset-screen ( -- )

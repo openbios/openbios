@@ -229,12 +229,13 @@
     then
   endof
   a of \ LF
-    line# 1+ to line# 0 to column# 
+    line# 1+ to line#
+    0 to column#
     line# #lines >= if
-      line# 1-
       0 to line#
       1 delete-lines
-      to line#
+      #lines 1- to line#
+      toggle-cursor exit
     then
   endof
   b of \ VT
@@ -253,7 +254,21 @@
     1b (sequence) c!
     1 to (escseq)
   endof
+
+  \ draw character and advance position
+  column# #columns >= if
+    0 to column#
+    line# 1+ to line#
+    line# #lines >= if
+      0 to line#
+      1 delete-lines
+      #lines 1- to line#
+    then
+  then
+
   dup draw-character
+  column# 1+ to column#
+
   endcase
   toggle-cursor
   ;
