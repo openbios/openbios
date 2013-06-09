@@ -764,12 +764,16 @@ int macio_keylargo_config_cb (const pci_config_t *config)
 
 int vga_config_cb (const pci_config_t *config)
 {
-	if (config->assigned[0] != 0x00000000)
+	if (config->assigned[0] != 0x00000000) {
             vga_vbe_init(config->path,
                          pci_bus_addr_to_host_addr(config->assigned[0] & ~0x0000000F),
                          config->sizes[0],
                          pci_bus_addr_to_host_addr(config->assigned[1] & ~0x0000000F),
                          config->sizes[1]);
+
+            feval("['] qemu-vga-driver-init is-install");
+        }
+
 	return 0;
 }
 

@@ -329,6 +329,8 @@ ob_tcx_init(unsigned int slot, const char *path)
         fword("property");
     }
 
+    feval("['] qemu-tcx-driver-init is-install");
+
     chosen = find_dev("/chosen");
     push_str(path);
     fword("open-dev");

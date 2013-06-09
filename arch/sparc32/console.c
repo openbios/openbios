@@ -30,15 +30,6 @@ void cls(void);
 unsigned char *vmem;
 volatile uint32_t *dac;
 
-static void video_putchar(int c)
-{
-    char buf;
-
-    buf = c & 0xff;
-
-    console_draw_fstr(&buf, 1);
-}
-
 static void video_cls(void)
 {
     memset((void *)vmem, 0, VMEM_SIZE);
@@ -62,9 +53,6 @@ int putchar(int c)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	serial_putchar(c);
-#endif
-#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	video_putchar(c);
 #endif
 	return c;
 }
