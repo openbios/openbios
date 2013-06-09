@@ -29,6 +29,8 @@
   <object source="pci.fs" condition="DRIVER_PCI"/>
   <object source="sbus.fs" condition="DRIVER_SBUS"/>
   <object source="esp.fs" condition="DRIVER_ESP"/>
+  <object source="tcx.fs" condition="DRIVER_SBUS"/>
+  <object source="vga.fs" condition="DRIVER_VGA"/>
  </dictionary>
 
 </build>

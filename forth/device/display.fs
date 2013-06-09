@@ -44,6 +44,10 @@ hex
 0 value foreground-color
 0 value background-color
 
+\ internal values read from QEMU firmware interface
+0 value qemu-video-addr
+0 value qemu-video-height
+0 value qemu-video-width
 
 \ The following wordset is called the "defer word interface" of the 
 \ terminal-emulator support package. It gets overloaded by fb1-install
@@ -102,6 +106,8 @@ defer fb-emit ( x -- )
   s" open" header 
   1 , \ colon definition
   ,
+  ['] (lit) ,
+  -1 ,
   ['] (semis) ,
   reveal
   s" : write dup >r bounds do i c@ fb-emit loop r> ; " evaluate
@@ -242,6 +248,10 @@ defer fb-emit ( x -- )
   false to inverse-screen?
   0 to foreground-color 
   d# 15 to background-color
+
+  \ override with OpenBIOS defaults
+  fe to background-color
+  0 to foreground-color
   ;
 
 : fb8-toggle-cursor ( -- )
@@ -363,4 +373,9 @@ defer fb-emit ( x -- )
   then
   to foreground-color to background-color
 
+  \ ... but let's override with some better defaults
+  fe to background-color
+  0 to foreground-color
+
+  fb8-erase-screen
 ;

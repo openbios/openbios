@@ -84,26 +84,11 @@ video_fill_rect( void )
 	fill_rect( color_ind, x, y, w, h );
 }
 
-/* ( addr len -- actual ) */
-static void
-video_write(void)
-{
-    char *addr;
-    int len;
-
-    len = POP();
-    addr = (char *)cell2pointer(POP());
-
-    console_draw_fstr(addr, len);
-    PUSH(len);
-}
-
 NODE_METHODS( video ) = {
 	{"dimensions",		video_dimensions	},
 	{"set-colors",		video_set_colors	},
 	{"fill-rectangle",	video_fill_rect		},
 	{"color!",		video_color_bang	},
-	{"write",		video_write		},
 };
 
 

@@ -16,6 +16,8 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/console.h"
+#include "libopenbios/fontdata.h"
 #include "libopenbios/ofmem.h"
 #include "libopenbios/video.h"
 #include "packages/video.h"
@@ -212,6 +214,26 @@ refresh_palette( void )
 #endif
 }
 
+static void
+video_open(void)
+{
+	PUSH(-1);
+}
+
+/* ( addr len -- actual ) */
+static void
+video_write(void)
+{
+    char *addr;
+    int len;
+
+    len = POP();
+    addr = (char *)cell2pointer(POP());
+
+    console_draw_fstr(addr, len);
+    PUSH(len);
+}
+
 void
 init_video( unsigned long fb, int width, int height, int depth, int rb )
 {
@@ -242,6 +264,15 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 		set_int_property( ph, "address", video.fb.mvirt );
 
 		activate_dev(ph);
+
+		if (!find_package_method("open", ph)) {
+                        bind_func("open", video_open);
+		}
+
+		if (!find_package_method("write", ph)) {
+                        bind_func("write", video_write);
+		}
+
 		molvideo_init();
 	}
 	video.has_video = 1;
@@ -250,6 +281,20 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 
 	PUSH(video.fb.mvirt);
 	feval("to frame-buffer-adr");
+
+	/* Set global variables ready for fb8-install */
+	PUSH((ucell)fontdata);
+	feval("to (romfont)");
+	PUSH(FONT_HEIGHT);
+	feval("to (romfont-height)");
+	PUSH(FONT_WIDTH);
+	feval("to (romfont-width)");
+	PUSH(video.fb.mvirt);
+	feval("to qemu-video-addr");
+	PUSH(video.fb.w);
+	feval("to qemu-video-width");
+	PUSH(video.fb.h);
+	feval("to qemu-video-height");
 
 #if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
         size = ((video.fb.h * video.fb.rb)  + 0xfff) & ~0xfff;
