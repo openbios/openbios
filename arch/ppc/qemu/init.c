@@ -263,7 +263,7 @@ cpu_generic_init(const struct cpudef *cpu)
     push_str("timebase-frequency");
     fword("property");
 
-    PUSH(fw_cfg_read_i32(FW_CFG_PPC_CPUFREQ));
+    PUSH(fw_cfg_read_i32(FW_CFG_PPC_CLOCKFREQ));
     fword("encode-int");
     push_str("clock-frequency");
     fword("property");
