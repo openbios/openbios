@@ -82,6 +82,26 @@ void flush_icache_range(char *start, char *stop)
 }
 #endif
 
+#ifdef CONFIG_PPC
+/* Expose system level is_machine helpers to make generic code easier */
+
+#include "drivers/drivers.h"
+int is_apple(void)
+{
+    return 0;
+}
+
+int is_oldworld(void)
+{
+    return 0;
+}
+
+int is_newworld(void)
+{
+    return 0;
+}
+#endif
+
 #if 0
 static void write_dictionary(char *filename)
 {
