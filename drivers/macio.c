@@ -253,7 +253,7 @@ ob_macio_heathrow_init(const char *path, phys_addr_t addr)
 	cuda_init(path, addr);
 	macio_nvram_init(path, addr);
         escc_init(path, addr);
-	macio_ide_init(path, addr, 1);
+	macio_ide_init(path, addr, 2);
 }
 
 void
