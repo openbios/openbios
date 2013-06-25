@@ -369,6 +369,20 @@ rtc_init(char *path)
 
 }
 
+static void
+powermgt_init(char *path)
+{
+	phandle_t ph;
+	char buf[64];
+
+        snprintf(buf, sizeof(buf), "%s/power-mgt", path);
+	REGISTER_NAMED_NODE(rtc, buf);
+
+	ph = find_dev(buf);
+	set_property(ph, "device_type", "power-mgt", 10);
+	set_property(ph, "compatible", "power-mgt", 10);
+}
+
 cuda_t *cuda_init (const char *path, phys_addr_t base)
 {
 	cuda_t *cuda;
@@ -399,6 +413,7 @@ cuda_t *cuda_init (const char *path, phys_addr_t base)
 #endif
 
 	rtc_init(buf);
+	powermgt_init(buf);
 
         main_cuda = cuda;
 
