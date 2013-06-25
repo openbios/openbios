@@ -207,7 +207,7 @@ volume_read_wrapper(volume * vol, hfsp_vh* vh)
                 ret = volume_readbuf(vh, p);
 		if( !ret ) {
 		    /* When reading the initial partition we must use 512 byte blocks */
-		    vol_size = vh->blocksize * vh->total_blocks;
+		    vol_size = (uint64_t)vh->blocksize * vh->total_blocks;
 		    vol->maxblocks = vol_size / HFSP_BLOCKSZ;
 		}
 		
