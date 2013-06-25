@@ -43,6 +43,34 @@ arch_nvram_size( void )
                 return NW_IO_NVRAM_SIZE >> NW_IO_NVRAM_SHIFT;
 }
 
+/* XXX this is barely enough to make Mac OS happy, we really should just
+       emulate an actual PMU and have that behind the mac-io */
+static void
+macio_pmu_init(const char *path)
+{
+	phandle_t dnode;
+	char buf[128];
+
+        push_str(path);
+        fword("find-device");
+        fword("new-device");
+        push_str("via-pmu");
+        fword("device-name");
+        fword("finish-device");
+
+	snprintf(buf, sizeof(buf), "%s/via-pmu", path);
+        push_str(buf);
+        fword("find-device");
+        fword("new-device");
+        push_str("power-mgt");
+        fword("device-name");
+
+        snprintf(buf, sizeof(buf), "%s/via-pmu/power-mgt", path);
+        dnode = find_dev(buf);
+        set_property(dnode, "compatible", "via-pmu-99", 11);
+        fword("finish-device");
+}
+
 void macio_nvram_init(const char *path, phys_addr_t addr)
 {
 	phandle_t chosen, aliases;
@@ -241,6 +269,28 @@ NODE_METHODS(ob_macio) = {
         { "encode-unit",	ob_macio_encode_unit	},
 };
 
+static void
+ob_unin_init(void)
+{
+        phandle_t dnode;
+        int props[2];
+
+	push_str("/");
+        fword("find-device");
+        fword("new-device");
+        push_str("uni-n");
+        fword("device-name");
+
+        dnode = find_dev("/uni-n");
+        set_property(dnode, "device_type", "memory-controller", 18);
+        set_property(dnode, "compatible", "uni-north", 10);
+        props[0] = __cpu_to_be32(0xf8000000);
+        props[1] = __cpu_to_be32(0x1000000);
+        set_property(dnode, "reg", (char *)&props, sizeof(props));
+
+        fword("finish-device");
+}
+
 void
 ob_macio_heathrow_init(const char *path, phys_addr_t addr)
 {
@@ -270,4 +320,6 @@ ob_macio_keylargo_init(const char *path, phys_addr_t addr)
         escc_init(path, addr);
         macio_ide_init(path, addr, 3);
         openpic_init(path, addr);
+	macio_pmu_init(path);
+	ob_unin_init();
 }
