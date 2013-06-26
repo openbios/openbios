@@ -190,7 +190,6 @@ ob_cuda_initialize (int *idx)
 	set_int_property(ph, "#address-cells", 1);
         set_int_property(ph, "#size-cells", 0);
 
-	set_property(ph, "device_type", "via-cuda", 9);
 	set_property(ph, "compatible", "cuda", 5);
 
 	props[0] = __cpu_to_be32(IO_CUDA_OFFSET);
