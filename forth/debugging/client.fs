@@ -59,12 +59,13 @@ variable file-size
   then
   ;
 
-: (encode-bootpath) ( param-str param-len -- bootpath-str bootpath-len)
-  \ Parse the <param> string from a load/boot command and set both
-  \ the bootargs and bootpath properties as appropriate.
+: (find-bootdevice) ( param-str param-len -- bootpath-str bootpath-len)
+  \ Parse the <param> string which is a space-separated list of one or
+  \ more potential boot devices, and return the first one that can be
+  \ successfully opened.
 
-  \ bootpath
-  bl left-split 	\ argstr argstr-len bootdevstr bootdevstr-len
+  \ Space-separated bootpath string
+  bl left-split 	\ bootpathstr bootpathstr-len bootdevstr bootdevstr-len
   dup 0= if
 
     \ None specified. As per IEEE-1275 specification, search through each value
@@ -89,12 +90,6 @@ variable file-size
     2drop
   then
 
-  \ Set the bootpath property
-  2dup encode-string
-  " /chosen" (find-dev) if
-    " bootpath" rot (property)
-  then
-
   \ bootargs
   2swap dup 0= if
     \ None specified, use default from nvram
@@ -108,6 +103,31 @@ variable file-size
   then
 ;
 
+\ Locate the boot-device opened by this ihandle (currently taken as being
+\ the first non-interposed package in the instance chain)
+
+: ihandle>boot-device-handle ( ihandle -- 0 | device-ihandle -1 )
+  >r 0
+  begin r> dup >in.my-parent @ dup >r while
+    ( result ihandle R: ihandle.parent )
+    dup >in.interposed @ 0= if
+      \ Find the first non-interposed package
+      over 0= if
+        swap drop
+      else
+        drop
+      then
+    else
+      drop
+    then
+  repeat
+  r> drop drop
+
+  dup 0<> if
+    -1
+  then
+;
+
 : $load ( devstr len )
   open-dev ( ihandle )
   dup 0= if
@@ -118,13 +138,53 @@ variable file-size
   " load-base" evaluate swap ( load-base ihandle )
   dup ihandle>phandle " load" rot find-method ( xt 0|1 )
   if swap call-package !load-size else cr ." Cannot find load for this package" 2drop then
+
+  \ If the boot device path doesn't contain an explicit partition id, e.g. cd:,\\:tbxi
+  \ then the interposed partition package may have auto-probed a suitable partition. If
+  \ this is the case then it will have set the " selected-partition-args" property in
+  \ the partition package to contain the new device arguments.
+  \
+  \ In order to ensure that bootpath contains the partition argument, we use the contents
+  \ of this property if it exists to override the boot device arguments when generating
+  \ the full bootpath using get-instance-path.
+
+  my-self
+  r@ to my-self
+  " selected-partition-args" get-inherited-property 0= if
+    decode-string 2swap 2drop
+    ( myself-save partargs-str partargs-len )
+    r@ ihandle>boot-device-handle if
+      ( myself-save partargs-str partargs-len block-ihandle )
+      \ Override the arguments before get-instance-path
+      dup >in.arguments 2@ >r >r dup >r    ( R: block-ihandle arg-len arg-str )
+      >in.arguments 2!    ( myself-save )
+      r@ " get-instance-path" $find if
+        execute   ( myself-save bootpathstr bootpathlen )
+      then
+      \ Now write the original arguments back
+      r> r> r> rot >in.arguments 2!   ( myself-save bootpathstr bootpathlen  R: )
+      rot    ( bootpathstr bootpathlen myself-save )
+    then
+  else
+    my-self " get-instance-path" $find if
+      execute  ( myself-save bootpathstr pathlen )
+      rot    ( bootpathstr bootpathlen myself-save )
+    then
+  then
+  to my-self
+
+  \ Set bootpath property in /chosen
+  encode-string " /chosen" (find-dev) if
+    " bootpath" rot (property)
+  then
+
   r> close-dev
   init-program
   ;
 
 : load    ( "{params}<cr>" -- )
   linefeed parse
-  (encode-bootpath)
+  (find-bootdevice)
   $load
 ;
 

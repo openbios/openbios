@@ -16,7 +16,7 @@
     execute		
   then
 
-  (encode-bootpath)	\ Setup bootpath/bootargs
+  (find-bootdevice)	\ Setup bootargs
   $load			\ load and go
   go
 ;
