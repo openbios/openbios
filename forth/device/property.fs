@@ -185,7 +185,7 @@
     >r >r >r          ( R: prop-addr1 prop-addr2 prop-len2 nlen )
     drop
     r> r> r>          ( nlen prop-len2 prop-addr2 )
-    -rot swap         ( prop-addr2 prop-len2 nlen )
+    -rot swap 1-      ( prop-addr2 prop-len2 nlen )
     r> swap           ( prop-addr2 prop-len2 str len )
   else
     0 0
