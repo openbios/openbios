@@ -33,8 +33,12 @@ bootcode_load(ihandle_t dev)
     loadbase = POP();
     
 #ifdef CONFIG_PPC
-    /* However Old World Macs need to load to a different address */
-    if (is_oldworld()) {
+    /* ...except that QUIK (the only known user of %BOOT to date) is built
+       with a hard-coded address of 0x3f4000. Let's just use this for the
+       moment on both New World and Old World Macs, allowing QUIK to also
+       work under a New World Mac. If we find another user of %BOOT we can
+       rethink this later. PReP machines should be left unaffected. */
+    if (is_apple()) {
         loadbase = OLDWORLD_BOOTCODE_BASEADDR;
     }
 #endif
