@@ -256,6 +256,7 @@ ob_unin_init(void)
         dnode = find_dev("/uni-n");
         set_property(dnode, "device_type", "memory-controller", 18);
         set_property(dnode, "compatible", "uni-north", 10);
+        set_int_property(dnode, "device-rev", 0);
         props[0] = __cpu_to_be32(0xf8000000);
         props[1] = __cpu_to_be32(0x1000000);
         set_property(dnode, "reg", (char *)&props, sizeof(props));
