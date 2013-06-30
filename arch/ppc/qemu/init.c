@@ -744,6 +744,9 @@ arch_of_init(void)
         push_str("MacRISC");
         fword("encode-string");
         fword("encode+");
+        push_str("MacRISC2");
+        fword("encode-string");
+        fword("encode+");
         push_str("Power Macintosh");
         fword("encode-string");
         fword("encode+");
