@@ -43,6 +43,30 @@ arch_nvram_size( void )
                 return NW_IO_NVRAM_SIZE >> NW_IO_NVRAM_SHIFT;
 }
 
+static unsigned long macio_nvram_offset(void)
+{
+	unsigned long r;
+
+	/* Hypervisor tells us where NVRAM lies */
+	r = fw_cfg_read_i32(FW_CFG_PPC_NVRAM_ADDR);
+	if (r)
+		return r;
+
+	/* Fall back to hardcoded addresses */
+	if (is_oldworld())
+		return OW_IO_NVRAM_OFFSET;
+
+	return NW_IO_NVRAM_OFFSET;
+}
+
+static unsigned long macio_nvram_size(void)
+{
+	if (is_oldworld())
+		return OW_IO_NVRAM_SIZE;
+	else
+		return NW_IO_NVRAM_SIZE;
+}
+
 void macio_nvram_init(const char *path, phys_addr_t addr)
 {
 	phandle_t chosen, aliases;
@@ -51,13 +75,9 @@ void macio_nvram_init(const char *path, phys_addr_t addr)
 	char buf[64];
         unsigned long nvram_size, nvram_offset;
 
-        if (is_oldworld()) {
-                nvram_offset = OW_IO_NVRAM_OFFSET;
-                nvram_size = OW_IO_NVRAM_SIZE;
-        } else {
-                nvram_offset = NW_IO_NVRAM_OFFSET;
-                nvram_size = NW_IO_NVRAM_SIZE;
-        }
+        nvram_offset = macio_nvram_offset();
+        nvram_size = macio_nvram_size();
+
 	nvram = (char*)addr + nvram_offset;
         snprintf(buf, sizeof(buf), "%s/nvram", path);
 	nvram_init(buf);
