@@ -22,9 +22,6 @@ extern void go(void);
 extern unsigned int qemu_mem_size;
 extern void collect_sys_info(struct sys_info *info);
 
-// console.c
-void cls(void);
-
 // romvec.c
 extern struct linux_arguments_v0 obp_arg;
 extern const void *romvec;

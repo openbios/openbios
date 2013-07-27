@@ -619,8 +619,6 @@ int openbios(void)
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);
 #endif
-	/* Clear the screen.  */
-	cls();
         printk("OpenBIOS for Sparc64\n");
 #endif
 

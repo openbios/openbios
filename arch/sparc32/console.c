@@ -12,8 +12,6 @@
 #include "libopenbios/ofmem.h"
 #include "libopenbios/video.h"
 
-void cls(void);
-
 #ifdef CONFIG_DEBUG_CONSOLE
 
 /* ******************************************************************
@@ -29,11 +27,6 @@ void cls(void);
 
 unsigned char *vmem;
 volatile uint32_t *dac;
-
-static void video_cls(void)
-{
-    memset((void *)vmem, 0, VMEM_SIZE);
-}
 
 void tcx_init(uint64_t base)
 {
@@ -96,16 +89,5 @@ int getchar(void)
 #endif
 	return 0;
 }
-
-void cls(void)
-{
-#ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	serial_cls();
-#endif
-#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	video_cls();
-#endif
-}
-
 
 #endif				// CONFIG_DEBUG_CONSOLE

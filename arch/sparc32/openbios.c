@@ -971,8 +971,6 @@ int openbios(void)
 	tcx_init(hwdef->tcx_base);
 	kbd_init(hwdef->ms_kb_base);
 #endif
-	/* Clear the screen.  */
-	cls();
 #endif
 
         collect_sys_info(&sys_info);

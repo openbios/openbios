@@ -58,16 +58,4 @@ int getchar(void)
 	return 0;
 }
 
-void cls(void)
-{
-#ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	serial_putchar(27);
-	serial_putchar('[');
-	serial_putchar('H');
-	serial_putchar(27);
-	serial_putchar('[');
-	serial_putchar('J');
-#endif
-}
-
 #endif // CONFIG_DEBUG_CONSOLE
