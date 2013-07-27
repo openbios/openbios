@@ -117,6 +117,11 @@ config_set_boolean()
     echo "<option name=\"$option\" type=\"boolean\" value=\"true\" />"
 }
 
+exists()
+{
+    type "$1" >/dev/null 2>&1
+}
+
 
 SRCDIR=`dirname "$0"`/../..
 BUILDDIR=`pwd`
@@ -131,6 +136,13 @@ fi
 VERSION=`head $SRCDIR/VERSION`
 
 echo "Configuring OpenBIOS on $HOSTARCH for $*"
+
+if exists toke; then
+    :
+else
+    echo "Unable to locate toke executable from the fcode-utils package - aborting"
+    exit 1
+fi
 
 target_list=""
 for target in $*; do
