@@ -7,14 +7,12 @@ void video_mask_blit(void);
 void video_invert_rect(void);
 void video_fill_rect(void);
 
-typedef struct osi_fb_info {
-    unsigned long mphys;
-    unsigned long mvirt;
-    int rb, w, h, depth;
-} osi_fb_info_t;
-
 extern struct video_info {
     int has_video;
-    osi_fb_info_t fb;
+
+    phys_addr_t mphys;
+    unsigned long mvirt;
+    int rb, w, h, depth;
+
     unsigned long *pal;    /* 256 elements */
 } video;

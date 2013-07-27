@@ -35,7 +35,7 @@ static void
 molvideo_refresh_palette( void )
 {
 #ifdef CONFIG_MOL
-	if( video.fb.depth == 8 )
+	if( video.depth == 8 )
 		OSI_RefreshPalette();
 #endif
 }
@@ -99,7 +99,7 @@ molvideo_startup_splash( void )
 #endif
 
 	/* only draw logo in 24-bit mode (for now) */
-	if( video.fb.depth < 15 )
+	if( video.depth < 15 )
 		return;
 #ifdef CONFIG_MOL
 	for( i=0; i<2; i++ ) {
@@ -117,17 +117,17 @@ molvideo_startup_splash( void )
 			printk("bootlogo size error\n");
 		close_io( fd );
 
-		dx = (video.fb.w - width)/2;
-		dy = (video.fb.h - height)/3;
+		dx = (video.w - width)/2;
+		dy = (video.h - height)/3;
 
-		pp = (char*)video.fb.mvirt + dy * video.fb.rb + dx * (video.fb.depth >= 24 ? 4 : 2);
+		pp = (char*)video.mvirt + dy * video.rb + dx * (video.depth >= 24 ? 4 : 2);
 
-		for( y=0 ; y<height; y++, pp += video.fb.rb ) {
-			if( video.fb.depth >= 24 ) {
+		for( y=0 ; y<height; y++, pp += video.rb ) {
+			if( video.depth >= 24 ) {
 				unsigned long *d = (unsigned long*)pp;
 				for( x=0; x<width; x++, p+=3, d++ )
 					*d = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
-			} else if( video.fb.depth == 15 ) {
+			} else if( video.depth == 15 ) {
 				unsigned short *d = (unsigned short*)pp;
 				for( x=0; x<width; x++, p+=3, d++ ) {
 					int col = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
