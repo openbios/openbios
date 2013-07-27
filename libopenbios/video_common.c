@@ -224,11 +224,11 @@ void setup_video(phys_addr_t phys, ucell virt)
 	feval("['] display-ih cell+");
 	video.ih = cell2pointer(POP());
 
-	feval("['] qemu-video-addr cell+");
+	feval("['] openbios-video-addr cell+");
 	video.mvirt = cell2pointer(POP());
-	feval("['] qemu-video-width cell+");
+	feval("['] openbios-video-width cell+");
 	video.w = cell2pointer(POP());
-	feval("['] qemu-video-height cell+");
+	feval("['] openbios-video-height cell+");
 	video.h = cell2pointer(POP());
 	feval("['] depth-bits cell+");
 	video.depth = cell2pointer(POP());

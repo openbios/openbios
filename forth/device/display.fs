@@ -50,10 +50,10 @@ create color-palette 100 cells allot
 0 value line-bytes
 0 value display-ih
 
-\ internal values read from QEMU firmware interface
-0 value qemu-video-addr
-0 value qemu-video-height
-0 value qemu-video-width
+\ internal values
+0 value openbios-video-addr
+0 value openbios-video-height
+0 value openbios-video-width
 
 \ The following wordset is called the "defer word interface" of the 
 \ terminal-emulator support package. It gets overloaded by fb1-install
