@@ -2,6 +2,7 @@
 
  <dictionary name="openbios-x86" init="openbios">
   <object source="init.fs" target="forth"/>
+  <object source="QEMU,VGA.bin" target="fcode" condition="DRIVER_VGA"/>
  </dictionary>
 
  <library name="x86" type="static" target="target">

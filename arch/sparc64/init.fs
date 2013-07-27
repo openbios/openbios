@@ -53,3 +53,9 @@ device-end
 : rmap@    ( virt -- rmentry )
   drop 0
   ;
+
+\ Load VGA FCode driver blob
+[IFDEF] CONFIG_DRIVER_VGA
+  -1 value vga-driver-fcode
+  " QEMU,VGA.bin" $encode-file to vga-driver-fcode
+[THEN]

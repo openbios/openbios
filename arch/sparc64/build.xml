@@ -3,6 +3,7 @@
  <dictionary name="openbios-sparc64" init="openbios">
   <object source="tree.fs" target="forth"/>
   <object source="init.fs" target="forth"/>
+  <object source="QEMU,VGA.bin" target="fcode" condition="DRIVER_VGA"/>
  </dictionary>
 
  <library name="sparc64" type="static" target="target">

@@ -771,7 +771,8 @@ int vga_config_cb (const pci_config_t *config)
                          pci_bus_addr_to_host_addr(config->assigned[1] & ~0x0000000F),
                          config->sizes[1]);
 
-            feval("['] qemu-vga-driver-init is-install");
+	    /* Currently we don't read FCode from the hardware but execute it directly */
+	    feval("['] vga-driver-fcode 2 cells + 1 byte-load");
         }
 
 	return 0;

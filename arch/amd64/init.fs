@@ -1,3 +1,5 @@
+include config.fs
+
 :noname 
   ."   Type 'help' for detailed information" cr
   \ ."   boot secondary slave cdrom: " cr
@@ -74,3 +76,8 @@ finish-device
   " keyboard" input
 ; CONSOLE-IN-initializer
   
+\ Load VGA FCode driver blob
+[IFDEF] CONFIG_DRIVER_VGA
+  -1 value vga-driver-fcode
+  " QEMU,VGA.bin" $encode-file to vga-driver-fcode
+[THEN]

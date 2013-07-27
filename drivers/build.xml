@@ -29,9 +29,9 @@
   <object source="pci.fs" condition="DRIVER_PCI"/>
   <object source="sbus.fs" condition="DRIVER_SBUS"/>
   <object source="esp.fs" condition="DRIVER_ESP"/>
-  <object source="vga.fs" condition="DRIVER_VGA"/>
  </dictionary>
 
  <fcode source="tcx.fs" name="QEMU,tcx.bin" condition="DRIVER_SBUS" />
+ <fcode source="vga.fs" name="QEMU,VGA.bin" condition="DRIVER_VGA" />
 
 </build>

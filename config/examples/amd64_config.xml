@@ -58,3 +58,4 @@
   <option name="CONFIG_DRIVER_IDE" type="boolean" value="true"/>
   <option name="CONFIG_IDE_NUM_CHANNELS" type="integer" value="4"/>
   <option name="CONFIG_DEBUG_IDE" type="boolean" value="false"/>
+  <option name="CONFIG_DRIVER_VGA" type="boolean" value="false"/>

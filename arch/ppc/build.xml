@@ -5,24 +5,28 @@
   <object source="ppc.fs"/>
   <object source="briq/tree.fs"/>
   <object source="briq/briq.fs"/>
+  <object source="QEMU,VGA.bin" target="fcode" condition="DRIVER_VGA"/>
  </dictionary>
 
   <dictionary name="openbios-pearpc" init="openbios" target="forth" condition="PEARPC">
   <object source="ppc.fs"/>
   <object source="pearpc/tree.fs"/>
   <object source="pearpc/pearpc.fs"/>
+  <object source="QEMU,VGA.bin" target="fcode" condition="DRIVER_VGA"/>
  </dictionary>
 
   <dictionary name="openbios-qemu" init="openbios" target="forth" condition="QEMU">
   <object source="ppc.fs"/>
   <object source="qemu/tree.fs"/>
   <object source="qemu/qemu.fs"/>
+  <object source="QEMU,VGA.bin" target="fcode" condition="DRIVER_VGA"/>
  </dictionary>
 
  <dictionary name="openbios-mol" init="openbios" target="forth" condition="MOL">
   <object source="ppc.fs"/>
   <object source="mol/tree.fs"/>
   <object source="mol/mol.fs"/>
+  <object source="QEMU,VGA.bin" target="fcode" condition="DRIVER_VGA"/>
  </dictionary>
 
  <!-- HACK ALERT -->
