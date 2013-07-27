@@ -319,26 +319,6 @@ refresh_palette( void )
 #endif
 }
 
-static void
-video_open(void)
-{
-	PUSH(-1);
-}
-
-/* ( addr len -- actual ) */
-static void
-video_write(void)
-{
-    char *addr;
-    int len;
-
-    len = POP();
-    addr = (char *)cell2pointer(POP());
-
-    console_draw_fstr(addr, len);
-    PUSH(len);
-}
-
 /* ( color_ind x y width height -- ) (?) */
 void
 video_fill_rect(void)
@@ -382,14 +362,6 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 		set_int_property( ph, "address", video.fb.mvirt );
 
 		activate_dev(ph);
-
-		if (!find_package_method("open", ph)) {
-                        bind_func("open", video_open);
-		}
-
-		if (!find_package_method("write", ph)) {
-                        bind_func("write", video_write);
-		}
 
 		molvideo_init();
 	}
