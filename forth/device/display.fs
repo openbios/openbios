@@ -375,4 +375,10 @@ defer fb8-invertrect
   0 to foreground-color
 
   fb8-erase-screen
+
+  \ If we have a startup splash then display it
+  [IFDEF] CONFIG_MOL
+      startup-splash 2000 ms
+      fb8-erase-screen
+  [THEN]
 ;

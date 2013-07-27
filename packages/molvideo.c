@@ -31,6 +31,15 @@
 
 DECLARE_NODE( video, 0, 0, "Tdisplay" );
 
+static void
+molvideo_refresh_palette( void )
+{
+#ifdef CONFIG_MOL
+	if( video.fb.depth == 8 )
+		OSI_RefreshPalette();
+#endif
+}
+
 /* ( -- width height ) (?) */
 static void
 molvideo_dimensions( void )
@@ -54,7 +63,7 @@ molvideo_set_colors( void )
 		unsigned long col = (p[0] << 16) | (p[1] << 8) | p[2];
 		set_color( i + start, col );
 	}
-	refresh_palette();
+	molvideo_refresh_palette();
 }
 
 /* ( r g b index -- ) */
@@ -68,7 +77,7 @@ molvideo_color_bang( void )
 	unsigned long col = ((r << 16) & 0xff0000) | ((g << 8) & 0x00ff00) | (b & 0xff);
 	/* printk("color!: %08lx %08lx %08lx %08lx\n", r, g, b, index ); */
 	set_color( index, col );
-	refresh_palette();
+	molvideo_refresh_palette();
 }
 
 /* ( color_ind x y width height -- ) (?) */
@@ -78,11 +87,69 @@ molvideo_fill_rect ( void )
 	video_fill_rect();
 }
 
+/* ( -- ) - really should be reworked as draw-logo */
+static void
+molvideo_startup_splash( void )
+{
+#ifdef CONFIG_MOL
+	int fd, s, i, y, x, dx, dy;
+	int width, height;
+	char *pp, *p;
+	char buf[64];
+#endif
+
+	/* only draw logo in 24-bit mode (for now) */
+	if( video.fb.depth < 15 )
+		return;
+#ifdef CONFIG_MOL
+	for( i=0; i<2; i++ ) {
+		if( !BootHGetStrResInd("bootlogo", buf, sizeof(buf), 0, i) )
+			return;
+		*(!i ? &width : &height) = atol(buf);
+	}
+
+	if( (s=width * height * 3) > 0x20000 )
+		return;
+
+	if( (fd=open_io("pseudo:,bootlogo")) >= 0 ) {
+		p = malloc( s );
+		if( read_io(fd, p, s) != s )
+			printk("bootlogo size error\n");
+		close_io( fd );
+
+		dx = (video.fb.w - width)/2;
+		dy = (video.fb.h - height)/3;
+
+		pp = (char*)video.fb.mvirt + dy * video.fb.rb + dx * (video.fb.depth >= 24 ? 4 : 2);
+
+		for( y=0 ; y<height; y++, pp += video.fb.rb ) {
+			if( video.fb.depth >= 24 ) {
+				unsigned long *d = (unsigned long*)pp;
+				for( x=0; x<width; x++, p+=3, d++ )
+					*d = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
+			} else if( video.fb.depth == 15 ) {
+				unsigned short *d = (unsigned short*)pp;
+				for( x=0; x<width; x++, p+=3, d++ ) {
+					int col = ((int)p[0] << 16) | ((int)p[1] << 8) | p[2];
+					*d = ((col>>9) & 0x7c00) | ((col>>6) & 0x03e0) | ((col>>3) & 0x1f);
+				}
+			}
+		}
+		free( p );
+	}
+#else
+	/* No bootlogo support yet on other platforms */
+	return;
+#endif
+}
+
+
 NODE_METHODS( video ) = {
 	{"dimensions",		molvideo_dimensions	},
 	{"set-colors",		molvideo_set_colors	},
 	{"fill-rectangle",	molvideo_fill_rect	},
 	{"color!",		molvideo_color_bang	},
+	{"startup-splash",	molvideo_startup_splash },
 };
 
 
