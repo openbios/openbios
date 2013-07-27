@@ -107,9 +107,9 @@ video_mask_blit(void)
 				}
 
 				if( d >= 24 )
-					*((unsigned long*)dst) = color;
+					*((uint32_t*)dst) = color;
 				else if( d >= 15 )
-					*((short*)dst) = color;
+					*((uint16_t*)dst) = color;
 				else
 					*dst = color;
 
@@ -146,7 +146,7 @@ video_invert_rect( void )
 	for( ; h--; pp += *(video.rb) ) {
 		int ww = w;
 		if( VIDEO_DICT_VALUE(video.depth) == 24 || VIDEO_DICT_VALUE(video.depth) == 32 ) {
-			unsigned long *p = (unsigned long*)pp + x;
+			uint32_t *p = (uint32_t*)pp + x;
 			while( ww-- ) {
 				if (*p == fgcolor) {
 					*p++ = bgcolor;
@@ -155,11 +155,11 @@ video_invert_rect( void )
 				}
 			}
 		} else if( VIDEO_DICT_VALUE(video.depth) == 16 || VIDEO_DICT_VALUE(video.depth) == 15 ) {
-			unsigned short *p = (unsigned short*)pp + x;
+			uint16_t *p = (uint16_t*)pp + x;
 			while( ww-- ) {
-				if (*p == (unsigned short)fgcolor) {
+				if (*p == (uint16_t)fgcolor) {
 					*p++ = bgcolor;
-				} else if (*p == (unsigned short)bgcolor) {
+				} else if (*p == (uint16_t)bgcolor) {
 					*p++ = fgcolor;
 				}
 			}
@@ -198,11 +198,11 @@ video_fill_rect(void)
 	for( ; h--; pp += VIDEO_DICT_VALUE(video.rb) ) {
 		int ww = w;
 		if( VIDEO_DICT_VALUE(video.depth) == 24 || VIDEO_DICT_VALUE(video.depth) == 32 ) {
-			unsigned long *p = (unsigned long*)pp + x;
+			uint32_t *p = (uint32_t*)pp + x;
 			while( ww-- )
 				*p++ = col;
 		} else if( VIDEO_DICT_VALUE(video.depth) == 16 || VIDEO_DICT_VALUE(video.depth) == 15 ) {
-			unsigned short *p = (unsigned short*)pp + x;
+			uint16_t *p = (uint16_t*)pp + x;
 			while( ww-- )
 				*p++ = col;
 		} else {
