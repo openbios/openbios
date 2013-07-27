@@ -225,9 +225,16 @@ video_scroll( int height )
 	}
 }
 
+/* ( color_ind x y width height -- ) (?) */
 void
-fill_rect( int col_ind, int x, int y, int w, int h )
+video_fill_rect(void)
 {
+	int h = POP();
+	int w = POP();
+	int y = POP();
+	int x = POP();
+	int col_ind = POP();
+
 	char *pp;
 	unsigned long col = get_color(col_ind);
 
@@ -253,19 +260,6 @@ fill_rect( int col_ind, int x, int y, int w, int h )
 				*p++ = col;
 		}
 	}
-}
-
-/* ( color_ind x y width height -- ) (?) */
-void
-video_fill_rect(void)
-{
-	int h = POP();
-	int w = POP();
-	int y = POP();
-	int x = POP();
-	int color_ind = POP();
-
-	fill_rect( color_ind, x, y, w, h );
 }
 
 void
