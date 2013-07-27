@@ -16,6 +16,7 @@
 #include "drivers/drivers.h"
 #include "drivers/pci.h"
 #include "libopenbios/sys_info.h"
+#include "libopenbios/video.h"
 #include "openbios.h"
 #include "relocate.h"
 #include "boot.h"
@@ -61,7 +62,12 @@ arch_init( void )
 	ob_floppy_init("/isa", "floppy0", 0x3f0, 0);
 #endif
 #ifdef CONFIG_XBOX
-	init_video(phys_to_virt(0x3C00000), 640, 480, 32, 2560);
+	setup_video(0x3C00000, phys_to_virt(0x3C00000));
+
+	/* Force video to 32-bit depth */
+	VIDEO_DICT_VALUE(video.depth) = 32;
+
+	init_video();
 	node_methods_init();
 #endif
 	device_end();

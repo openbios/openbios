@@ -198,6 +198,10 @@ for ARCH in $arch_list; do
             xbox-x86)
             xbox="yes"
             ;;
+            builtin-sparc32)
+            builtin="yes"
+            qemu="yes"
+            ;;
             builtin-sparc64)
             builtin="yes"
             qemu="yes"

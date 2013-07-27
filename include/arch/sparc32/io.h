@@ -191,4 +191,11 @@ extern void outl(u32 reg, u32 val);
 extern void outsw(u32 reg, const void *addr, unsigned long count);
 #endif
 #endif
+
+#if defined(CONFIG_QEMU)
+#define FW_CFG_ARCH_DEPTH        (FW_CFG_ARCH_LOCAL + 0x00)
+#define FW_CFG_ARCH_WIDTH        (FW_CFG_ARCH_LOCAL + 0x01)
+#define FW_CFG_ARCH_HEIGHT       (FW_CFG_ARCH_LOCAL + 0x02)
+#endif
+
 #endif /* _ASM_IO_H */

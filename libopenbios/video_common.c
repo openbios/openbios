@@ -22,6 +22,8 @@
 #include "libopenbios/video.h"
 #include "packages/video.h"
 #include "drivers/vga.h"
+#define NO_QEMU_PROTOS
+#include "arch/common/fw_cfg.h"
 
 struct video_info video;
 
@@ -221,20 +223,13 @@ video_fill_rect(void)
 	}
 }
 
-void
-init_video( unsigned long fb, int width, int height, int depth, int rb )
+void setup_video(phys_addr_t phys, ucell virt)
 {
-        int i;
-#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
-        int size;
-#endif
-	phandle_t ph=0, saved_ph=0;
-
-	video.mphys = fb;
-
 	/* Make everything inside the video_info structure point to the
 	   values in the Forth dictionary. Hence everything is always in
 	   sync. */
+
+	video.mphys = phys;
 
 	feval("['] qemu-video-addr cell+");
 	video.mvirt = cell2pointer(POP());
@@ -248,32 +243,6 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	video.rb = cell2pointer(POP());
 	feval("['] color-palette cell+");
 	video.pal = cell2pointer(POP());
-
-	VIDEO_DICT_VALUE(video.mvirt) = (ucell)fb;
-	VIDEO_DICT_VALUE(video.w) = (ucell)width;
-	VIDEO_DICT_VALUE(video.h) = (ucell)height;
-	VIDEO_DICT_VALUE(video.depth) = (ucell)depth;
-	VIDEO_DICT_VALUE(video.rb) = (ucell)rb;
-
-#if defined(CONFIG_SPARC64)
-	/* Fix virtual address on SPARC64 somewhere else */
-	VIDEO_DICT_VALUE(video.mvirt) = 0xfe000000ULL;
-#endif
-
-	saved_ph = get_cur_dev();
-	while( (ph=dt_iterate_type(ph, "display")) ) {
-		set_int_property( ph, "width", VIDEO_DICT_VALUE(video.w) );
-		set_int_property( ph, "height", VIDEO_DICT_VALUE(video.h) );
-		set_int_property( ph, "depth", VIDEO_DICT_VALUE(video.depth) );
-		set_int_property( ph, "linebytes", VIDEO_DICT_VALUE(video.rb) );
-		set_int_property( ph, "address", VIDEO_DICT_VALUE(video.mvirt) );
-
-		activate_dev(ph);
-
-		molvideo_init();
-	}
-	video.has_video = 1;
-	activate_dev(saved_ph);
 
 	/* Set global variables ready for fb8-install */
 	PUSH( pointer2cell(video_mask_blit) );
@@ -293,6 +262,54 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	feval("to (romfont-height)");
 	PUSH(FONT_WIDTH);
 	feval("to (romfont-width)");
+
+	/* Initialise the structure */
+	VIDEO_DICT_VALUE(video.mvirt) = virt;
+	VIDEO_DICT_VALUE(video.w) = VGA_DEFAULT_WIDTH;
+	VIDEO_DICT_VALUE(video.h) = VGA_DEFAULT_HEIGHT;
+	VIDEO_DICT_VALUE(video.depth) = VGA_DEFAULT_DEPTH;
+	VIDEO_DICT_VALUE(video.rb) = VGA_DEFAULT_LINEBYTES;
+
+#if defined(CONFIG_QEMU) && (defined(CONFIG_PPC) || defined(CONFIG_SPARC32) || defined(CONFIG_SPARC64))
+	/* If running from QEMU, grab the parameters from the firmware interface */
+	int w, h, d;
+
+	w = fw_cfg_read_i16(FW_CFG_ARCH_WIDTH);
+        h = fw_cfg_read_i16(FW_CFG_ARCH_HEIGHT);
+        d = fw_cfg_read_i16(FW_CFG_ARCH_DEPTH);
+	if (w && h && d) {
+		VIDEO_DICT_VALUE(video.w) = w;
+		VIDEO_DICT_VALUE(video.h) = h;
+		VIDEO_DICT_VALUE(video.depth) = d;
+		VIDEO_DICT_VALUE(video.rb) = (w * ((d + 7) / 8));
+	}
+#endif
+}
+
+void
+init_video(void)
+{
+        int i;
+#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
+        int size;
+#endif
+	phandle_t ph=0, saved_ph=0;
+
+	saved_ph = get_cur_dev();
+	while( (ph=dt_iterate_type(ph, "display")) ) {
+		video.has_video = 1;
+
+		set_int_property( ph, "width", VIDEO_DICT_VALUE(video.w) );
+		set_int_property( ph, "height", VIDEO_DICT_VALUE(video.h) );
+		set_int_property( ph, "depth", VIDEO_DICT_VALUE(video.depth) );
+		set_int_property( ph, "linebytes", VIDEO_DICT_VALUE(video.rb) );
+		set_int_property( ph, "address", VIDEO_DICT_VALUE(video.mvirt) );
+
+		activate_dev(ph);
+
+		molvideo_init();
+	}
+	activate_dev(saved_ph);
 
 #if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
         size = ((VIDEO_DICT_VALUE(video.h) * VIDEO_DICT_VALUE(video.rb))  + 0xfff) & ~0xfff;

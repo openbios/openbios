@@ -72,7 +72,7 @@ defer draw-logo ( line# addr width height -- )
 
 defer fb-emit ( x -- )
 
-: depth-bytes ( bits -- bytes )
+: depth-bytes ( -- bytes )
   depth-bits 1+ 8 /
 ;
 
