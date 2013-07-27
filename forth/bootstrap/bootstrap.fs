@@ -660,6 +660,7 @@ defer emit
 
 \ : type 0 do count emit loop drop ;
 
+: debug-type bounds ?do i c@ (emit) loop ;
 
 \ 
 \ 7.3.4.1 Text Input
@@ -863,6 +864,7 @@ variable span 0 span !
 \ 
 
 : cr linefeed emit ;
+: debug-cr linefeed (emit) ;
 : (cr carret emit ;
 : space bl emit ;
 : spaces 0 ?do space loop ;
