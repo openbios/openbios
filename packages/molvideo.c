@@ -21,7 +21,6 @@
 #include "drivers/drivers.h"
 #include "packages/video.h"
 #include "libopenbios/video.h"
-#include "libopenbios/console.h"
 #include "drivers/vga.h"
 
 

@@ -16,7 +16,6 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
-#include "libopenbios/console.h"
 #include "libopenbios/fontdata.h"
 #include "libopenbios/ofmem.h"
 #include "libopenbios/video.h"

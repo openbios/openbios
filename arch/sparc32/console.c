@@ -9,7 +9,6 @@
 #include "kernel/kernel.h"
 #include "drivers/drivers.h"
 #include "openbios.h"
-#include "libopenbios/console.h"
 #include "libopenbios/ofmem.h"
 #include "libopenbios/video.h"
 
