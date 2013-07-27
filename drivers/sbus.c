@@ -17,6 +17,7 @@
 #include "libc/vsprintf.h"
 #include "drivers/drivers.h"
 #include "libopenbios/ofmem.h"
+#include "libopenbios/video.h"
 
 #define SBUS_REGS        0x28
 #define SBUS_SLOTS       16
@@ -327,6 +328,17 @@ ob_tcx_init(unsigned int slot, const char *path)
         fword("encode-string");
         push_str("tcx-8-bit");
         fword("property");
+    }
+
+    /* Even with a 24-bit enabled TCX card, the control plane is
+       used in 8-bit mode. So force the video subsystem into 8-bit
+       mode before initialisation. */
+    if (graphic_depth == 24) {
+        VIDEO_DICT_VALUE(video.depth) = 8;
+        VIDEO_DICT_VALUE(video.rb) = VIDEO_DICT_VALUE(video.w);
+
+        chosen = get_cur_dev();
+        set_int_property(chosen, "linebytes", VIDEO_DICT_VALUE(video.rb));
     }
 
     bind_func("hw-set-color", tcx_hw_set_color);
