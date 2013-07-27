@@ -39,8 +39,6 @@ void tcx_init(uint64_t base)
 {
     vmem = (unsigned char *)ofmem_map_io(base + VMEM_BASE, VMEM_SIZE);
     dac = (uint32_t *)ofmem_map_io(base + DAC_BASE, DAC_SIZE);
-
-    console_init();
 }
 
 #endif
