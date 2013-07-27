@@ -184,47 +184,6 @@ video_invert_rect( void )
 	}
 }
 
-void
-draw_pixel( int x, int y, int colind )
-{
-	char *p = (char*)video.fb.mvirt + video.fb.rb * y;
-	int color, d = video.fb.depth;
-
-	if( x < 0 || y < 0 || x >= video.fb.w || y >=video.fb.h )
-		return;
-	color = get_color( colind );
-
-	if( d >= 24 )
-		*((unsigned long*)p + x) = color;
-	else if( d >= 15 )
-		*((short*)p + x) = color;
-	else
-		*(p + x) = color;
-}
-
-void
-video_scroll( int height )
-{
-	int i, offs, size, *dest, *src;
-
-        if (height <= 0 || height >= video.fb.h) {
-                return;
-        }
-	offs = video.fb.rb * height;
-	size = (video.fb.h * video.fb.rb - offs)/16;
-	dest = (int*)video.fb.mvirt;
-	src = (int*)(video.fb.mvirt + offs);
-
-	for( i=0; i<size; i++ ) {
-		dest[0] = src[0];
-		dest[1] = src[1];
-		dest[2] = src[2];
-		dest[3] = src[3];
-		dest += 4;
-		src += 4;
-	}
-}
-
 /* ( color_ind x y width height -- ) (?) */
 void
 video_fill_rect(void)

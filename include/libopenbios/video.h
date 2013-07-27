@@ -3,8 +3,6 @@ void init_video(unsigned long fb, int width, int height, int depth, int rb);
 unsigned long get_color(int col_ind);
 void set_color(int ind, unsigned long color);
 int video_get_res(int *w, int *h);
-void draw_pixel(int x, int y, int colind);
-void video_scroll(int height);
 void video_mask_blit(void);
 void video_invert_rect(void);
 void video_fill_rect(void);
