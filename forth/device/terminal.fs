@@ -240,10 +240,8 @@
   endof
   8 of \ BS
     column# 0<> if
-      column# dup
-      to column#
-      20 draw-character 1-
-      to column#
+      column# 1- to column#
+      toggle-cursor exit
     then
   endof
   9 of \ TAB
