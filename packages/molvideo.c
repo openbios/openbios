@@ -61,7 +61,7 @@ molvideo_set_colors( void )
 
 	for( i=0; i<count; i++, p+=3 ) {
 		unsigned long col = (p[0] << 16) | (p[1] << 8) | p[2];
-		set_color( i + start, col );
+		video_set_color( i + start, col );
 	}
 	molvideo_refresh_palette();
 }
@@ -76,7 +76,7 @@ molvideo_color_bang( void )
 	int r = POP();
 	unsigned long col = ((r << 16) & 0xff0000) | ((g << 8) & 0x00ff00) | (b & 0xff);
 	/* printk("color!: %08lx %08lx %08lx %08lx\n", r, g, b, index ); */
-	set_color( index, col );
+	video_set_color( index, col );
 	molvideo_refresh_palette();
 }
 

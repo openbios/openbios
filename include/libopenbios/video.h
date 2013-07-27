@@ -1,7 +1,7 @@
 
 void init_video(unsigned long fb, int width, int height, int depth, int rb);
-unsigned long get_color(int col_ind);
-void set_color(int ind, unsigned long color);
+unsigned long video_get_color(int col_ind);
+void video_set_color(int ind, unsigned long color);
 int video_get_res(int *w, int *h);
 void video_mask_blit(void);
 void video_invert_rect(void);

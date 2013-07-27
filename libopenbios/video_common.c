@@ -26,7 +26,7 @@
 struct video_info video;
 
 unsigned long
-get_color( int col_ind )
+video_get_color( int col_ind )
 {
 	unsigned long col;
 	if( !video.has_video || col_ind < 0 || col_ind > 255 )
@@ -42,7 +42,7 @@ get_color( int col_ind )
 }
 
 void
-set_color( int ind, unsigned long color )
+video_set_color( int ind, unsigned long color )
 {
 	if( !video.has_video || ind < 0 || ind > 255 )
 		return;
@@ -95,8 +95,8 @@ video_mask_blit(void)
 	unsigned char *dst, *rowdst;
 	int x, y, m, b, d, depthbytes;
 
-	fgcolor = get_color(fgcolor);
-	bgcolor = get_color(bgcolor);
+	fgcolor = video_get_color(fgcolor);
+	bgcolor = video_get_color(bgcolor);
 	d = video.fb.depth;
 	depthbytes = (video.fb.depth + 1) >> 3;
 
@@ -142,8 +142,8 @@ video_invert_rect( void )
 	int x = POP();
 	char *pp;
 
-	bgcolor = get_color(bgcolor);
-	fgcolor = get_color(fgcolor);
+	bgcolor = video_get_color(bgcolor);
+	fgcolor = video_get_color(fgcolor);
 
 	if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
 		x + w > video.fb.w || y + h > video.fb.h)
@@ -195,7 +195,7 @@ video_fill_rect(void)
 	int col_ind = POP();
 
 	char *pp;
-	unsigned long col = get_color(col_ind);
+	unsigned long col = video_get_color(col_ind);
 
         if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
             x + w > video.fb.w || y + h > video.fb.h)
@@ -298,7 +298,7 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 #endif
 
 	for( i=0; i<256; i++ )
-		set_color( i, i * 0x010101 );
+		video_set_color( i, i * 0x010101 );
 
-	set_color( 254, 0xffffcc );
+	video_set_color( 254, 0xffffcc );
 }
