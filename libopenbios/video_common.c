@@ -31,12 +31,12 @@ video_get_color( int col_ind )
 	unsigned long col;
 	if( !video.has_video || col_ind < 0 || col_ind > 255 )
 		return 0;
-	if( video.depth == 8 )
+	if( VIDEO_DICT_VALUE(video.depth) == 8 )
 		return col_ind;
 	col = video.pal[col_ind];
-	if( video.depth == 24 || video.depth == 32 )
+	if( VIDEO_DICT_VALUE(video.depth) == 24 || VIDEO_DICT_VALUE(video.depth) == 32 )
 		return col;
-	if( video.depth == 15 )
+	if( VIDEO_DICT_VALUE(video.depth) == 15 )
 		return ((col>>9) & 0x7c00) | ((col>>6) & 0x03e0) | ((col>>3) & 0x1f);
 	return 0;
 }
@@ -49,11 +49,11 @@ video_set_color( int ind, unsigned long color )
 	video.pal[ind] = color;
 
 #ifdef CONFIG_MOL
-	if( video.depth == 8 )
+	if( VIDEO_DICT_VALUE(video.depth) == 8 )
 		OSI_SetColor( ind, color );
 #elif defined(CONFIG_SPARC32)
 #if defined(CONFIG_DEBUG_CONSOLE_VIDEO)
-	if( video.depth == 8 ) {
+	if( VIDEO_DICT_VALUE(video.depth) == 8 ) {
             dac[0] = ind << 24;
             dac[1] = ((color >> 16) & 0xff) << 24; // Red
             dac[1] = ((color >> 8) & 0xff) << 24; // Green
@@ -74,8 +74,8 @@ video_get_res( int *w, int *h )
 		*w = *h = 0;
 		return -1;
 	}
-	*w = video.w;
-	*h = video.h;
+	*w = VIDEO_DICT_VALUE(video.w);
+	*h = VIDEO_DICT_VALUE(video.h);
 	return 0;
 }
 
@@ -97,8 +97,8 @@ video_mask_blit(void)
 
 	fgcolor = video_get_color(fgcolor);
 	bgcolor = video_get_color(bgcolor);
-	d = video.depth;
-	depthbytes = (video.depth + 1) >> 3;
+	d = VIDEO_DICT_VALUE(video.depth);
+	depthbytes = (d + 1) >> 3;
 
 	dst = fbaddr;
 	for( y = 0; y < height; y++) {
@@ -125,7 +125,7 @@ video_mask_blit(void)
 			mask++;
 		}
 		dst = rowdst;
-		dst += video.rb;
+		dst += VIDEO_DICT_VALUE(video.rb);
 	}
 }
 
@@ -146,13 +146,13 @@ video_invert_rect( void )
 	fgcolor = video_get_color(fgcolor);
 
 	if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
-		x + w > video.w || y + h > video.h)
+		x + w > VIDEO_DICT_VALUE(video.w) || y + h > VIDEO_DICT_VALUE(video.h))
 		return;
 
-	pp = (char*)video.mvirt + video.rb * y;
-	for( ; h--; pp += video.rb ) {
+	pp = (char*)VIDEO_DICT_VALUE(video.mvirt) + VIDEO_DICT_VALUE(video.rb) * y;
+	for( ; h--; pp += *(video.rb) ) {
 		int ww = w;
-		if( video.depth == 24 || video.depth == 32 ) {
+		if( VIDEO_DICT_VALUE(video.depth) == 24 || VIDEO_DICT_VALUE(video.depth) == 32 ) {
 			unsigned long *p = (unsigned long*)pp + x;
 			while( ww-- ) {
 				if (*p == fgcolor) {
@@ -161,7 +161,7 @@ video_invert_rect( void )
 					*p++ = fgcolor;
 				}
 			}
-		} else if( video.depth == 16 || video.depth == 15 ) {
+		} else if( VIDEO_DICT_VALUE(video.depth) == 16 || VIDEO_DICT_VALUE(video.depth) == 15 ) {
 			unsigned short *p = (unsigned short*)pp + x;
 			while( ww-- ) {
 				if (*p == (unsigned short)fgcolor) {
@@ -198,17 +198,17 @@ video_fill_rect(void)
 	unsigned long col = video_get_color(col_ind);
 
         if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
-            x + w > video.w || y + h > video.h)
+            x + w > VIDEO_DICT_VALUE(video.w) || y + h > VIDEO_DICT_VALUE(video.h))
 		return;
 
-	pp = (char*)video.mvirt + video.rb * y;
-	for( ; h--; pp += video.rb ) {
+	pp = (char*)VIDEO_DICT_VALUE(video.mvirt) + VIDEO_DICT_VALUE(video.rb) * y;
+	for( ; h--; pp += VIDEO_DICT_VALUE(video.rb) ) {
 		int ww = w;
-		if( video.depth == 24 || video.depth == 32 ) {
+		if( VIDEO_DICT_VALUE(video.depth) == 24 || VIDEO_DICT_VALUE(video.depth) == 32 ) {
 			unsigned long *p = (unsigned long*)pp + x;
 			while( ww-- )
 				*p++ = col;
-		} else if( video.depth == 16 || video.depth == 15 ) {
+		} else if( VIDEO_DICT_VALUE(video.depth) == 16 || VIDEO_DICT_VALUE(video.depth) == 15 ) {
 			unsigned short *p = (unsigned short*)pp + x;
 			while( ww-- )
 				*p++ = col;
@@ -230,36 +230,50 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 #endif
 	phandle_t ph=0, saved_ph=0;
 
-	video.mphys = video.mvirt = fb;
+	video.mphys = fb;
+
+	/* Make everything inside the video_info structure point to the
+	   values in the Forth dictionary. Hence everything is always in
+	   sync. */
+
+	feval("['] qemu-video-addr cell+");
+	video.mvirt = cell2pointer(POP());
+	feval("['] qemu-video-width cell+");
+	video.w = cell2pointer(POP());
+	feval("['] qemu-video-height cell+");
+	video.h = cell2pointer(POP());
+	feval("['] depth-bits cell+");
+	video.depth = cell2pointer(POP());
+	feval("['] line-bytes cell+");
+	video.rb = cell2pointer(POP());
+	feval("['] color-palette cell+");
+	video.pal = cell2pointer(POP());
+
+	VIDEO_DICT_VALUE(video.mvirt) = (ucell)fb;
+	VIDEO_DICT_VALUE(video.w) = (ucell)width;
+	VIDEO_DICT_VALUE(video.h) = (ucell)height;
+	VIDEO_DICT_VALUE(video.depth) = (ucell)depth;
+	VIDEO_DICT_VALUE(video.rb) = (ucell)rb;
 
 #if defined(CONFIG_SPARC64)
 	/* Fix virtual address on SPARC64 somewhere else */
-	video.mvirt = 0xfe000000;
+	VIDEO_DICT_VALUE(video.mvirt) = 0xfe000000ULL;
 #endif
-
-	video.w = width;
-	video.h = height;
-	video.depth = depth;
-	video.rb = rb;
 
 	saved_ph = get_cur_dev();
 	while( (ph=dt_iterate_type(ph, "display")) ) {
-		set_int_property( ph, "width", video.w );
-		set_int_property( ph, "height", video.h );
-		set_int_property( ph, "depth", video.depth );
-		set_int_property( ph, "linebytes", video.rb );
-		set_int_property( ph, "address", video.mvirt );
+		set_int_property( ph, "width", VIDEO_DICT_VALUE(video.w) );
+		set_int_property( ph, "height", VIDEO_DICT_VALUE(video.h) );
+		set_int_property( ph, "depth", VIDEO_DICT_VALUE(video.depth) );
+		set_int_property( ph, "linebytes", VIDEO_DICT_VALUE(video.rb) );
+		set_int_property( ph, "address", VIDEO_DICT_VALUE(video.mvirt) );
 
 		activate_dev(ph);
 
 		molvideo_init();
 	}
 	video.has_video = 1;
-	video.pal = malloc( 256 * sizeof(unsigned long) );
 	activate_dev(saved_ph);
-
-	PUSH(video.mvirt);
-	feval("to frame-buffer-adr");
 
 	/* Set global variables ready for fb8-install */
 	PUSH( pointer2cell(video_mask_blit) );
@@ -272,29 +286,20 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 	fword("is-noname-cfunc");
 	feval("to fb8-invertrect");
 
-	PUSH((video.depth + 1) >> 3);
-	feval("to depth-bytes");
-	PUSH(video.rb);
-	feval("to line-bytes");
+	/* Static information */
 	PUSH((ucell)fontdata);
 	feval("to (romfont)");
 	PUSH(FONT_HEIGHT);
 	feval("to (romfont-height)");
 	PUSH(FONT_WIDTH);
 	feval("to (romfont-width)");
-	PUSH(video.mvirt);
-	feval("to qemu-video-addr");
-	PUSH(video.w);
-	feval("to qemu-video-width");
-	PUSH(video.h);
-	feval("to qemu-video-height");
 
 #if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
-        size = ((video.h * video.rb)  + 0xfff) & ~0xfff;
+        size = ((VIDEO_DICT_VALUE(video.h) * VIDEO_DICT_VALUE(video.rb))  + 0xfff) & ~0xfff;
 
 	ofmem_claim_phys( video.mphys, size, 0 );
-	ofmem_claim_virt( video.mvirt, size, 0 );
-	ofmem_map( video.mphys, video.mvirt, size, ofmem_arch_io_translation_mode(video.mphys) );
+	ofmem_claim_virt( VIDEO_DICT_VALUE(video.mvirt), size, 0 );
+	ofmem_map( video.mphys, VIDEO_DICT_VALUE(video.mvirt), size, ofmem_arch_io_translation_mode(video.mphys) );
 #endif
 
 	for( i=0; i<256; i++ )

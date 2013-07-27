@@ -10,9 +10,11 @@ void video_fill_rect(void);
 extern struct video_info {
     int has_video;
 
-    phys_addr_t mphys;
-    unsigned long mvirt;
-    int rb, w, h, depth;
+    volatile phys_addr_t mphys;
+    volatile ucell *mvirt;
+    volatile ucell *rb, *w, *h, *depth;
 
-    unsigned long *pal;    /* 256 elements */
+    volatile ucell *pal;    /* 256 elements */
 } video;
+
+#define VIDEO_DICT_VALUE(x)  (*(ucell *)(x))

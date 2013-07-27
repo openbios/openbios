@@ -43,9 +43,10 @@ hex
 
 0 value foreground-color
 0 value background-color
+create color-palette 100 cells allot
 
 2 value font-spacing
-0 value depth-bytes
+0 value depth-bits
 0 value line-bytes
 
 \ internal values read from QEMU firmware interface
@@ -70,6 +71,10 @@ defer delete-lines ( n -- )
 defer draw-logo ( line# addr width height -- )
 
 defer fb-emit ( x -- )
+
+: depth-bytes ( bits -- bytes )
+  depth-bits 1+ 8 /
+;
 
 \ 
 \ 5.3.6.2 Frame-buffer support routines
