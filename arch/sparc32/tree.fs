@@ -1,3 +1,4 @@
+include config.fs
 
 " /" find-device
   2 encode-int " #address-cells" property

@@ -45,3 +45,9 @@ device-end
 : obmem ( -- space )
   0
   ;
+
+\ Load TCX FCode driver blob
+[IFDEF] CONFIG_DRIVER_SBUS
+  -1 value tcx-driver-fcode
+  " QEMU,tcx.bin" $encode-file to tcx-driver-fcode
+[THEN]

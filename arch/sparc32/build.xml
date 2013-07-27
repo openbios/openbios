@@ -3,6 +3,7 @@
  <dictionary name="openbios-sparc32" init="openbios">
   <object source="tree.fs" target="forth"/>
   <object source="init.fs" target="forth"/>
+  <object source="QEMU,tcx.bin" target="fcode" condition="DRIVER_SBUS"/>
  </dictionary>
 
  <library name="sparc32" type="static" target="target">

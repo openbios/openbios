@@ -342,7 +342,10 @@ ob_tcx_init(unsigned int slot, const char *path)
     }
 
     bind_func("hw-set-color", tcx_hw_set_color);
-    feval("['] qemu-tcx-driver-init is-install");
+
+    /* Currently we don't have an SBus probe routine, so execute FCode
+       directly */
+    feval("['] tcx-driver-fcode 2 cells + 1 byte-load");
 
     chosen = find_dev("/chosen");
     push_str(path);
