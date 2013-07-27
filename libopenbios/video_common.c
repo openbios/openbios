@@ -31,7 +31,7 @@ unsigned long
 video_get_color( int col_ind )
 {
 	unsigned long col;
-	if( !video.has_video || col_ind < 0 || col_ind > 255 )
+	if( !VIDEO_DICT_VALUE(video.ih) || col_ind < 0 || col_ind > 255 )
 		return 0;
 	if( VIDEO_DICT_VALUE(video.depth) == 8 )
 		return col_ind;
@@ -48,7 +48,7 @@ video_set_color( int ind, unsigned long color )
 {
 	xt_t hw_xt = 0;
 
-	if( !video.has_video || ind < 0 || ind > 255 )
+	if( !VIDEO_DICT_VALUE(video.ih) || ind < 0 || ind > 255 )
 		return;
 	video.pal[ind] = color;
 
@@ -138,7 +138,7 @@ video_invert_rect( void )
 	bgcolor = video_get_color(bgcolor);
 	fgcolor = video_get_color(fgcolor);
 
-	if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
+	if (!VIDEO_DICT_VALUE(video.ih) || x < 0 || y < 0 || w <= 0 || h <= 0 ||
 		x + w > VIDEO_DICT_VALUE(video.w) || y + h > VIDEO_DICT_VALUE(video.h))
 		return;
 
@@ -190,7 +190,7 @@ video_fill_rect(void)
 	char *pp;
 	unsigned long col = video_get_color(col_ind);
 
-        if (!video.has_video || x < 0 || y < 0 || w <= 0 || h <= 0 ||
+        if (!VIDEO_DICT_VALUE(video.ih) || x < 0 || y < 0 || w <= 0 || h <= 0 ||
             x + w > VIDEO_DICT_VALUE(video.w) || y + h > VIDEO_DICT_VALUE(video.h))
 		return;
 
@@ -277,38 +277,5 @@ void setup_video(phys_addr_t phys, ucell virt)
 		VIDEO_DICT_VALUE(video.depth) = d;
 		VIDEO_DICT_VALUE(video.rb) = (w * ((d + 7) / 8));
 	}
-#endif
-}
-
-void
-init_video(void)
-{
-#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
-        int size;
-#endif
-	phandle_t ph=0, saved_ph=0;
-
-	saved_ph = get_cur_dev();
-	while( (ph=dt_iterate_type(ph, "display")) ) {
-		video.has_video = 1;
-
-		set_int_property( ph, "width", VIDEO_DICT_VALUE(video.w) );
-		set_int_property( ph, "height", VIDEO_DICT_VALUE(video.h) );
-		set_int_property( ph, "depth", VIDEO_DICT_VALUE(video.depth) );
-		set_int_property( ph, "linebytes", VIDEO_DICT_VALUE(video.rb) );
-		set_int_property( ph, "address", VIDEO_DICT_VALUE(video.mvirt) );
-
-		activate_dev(ph);
-
-		molvideo_init();
-	}
-	activate_dev(saved_ph);
-
-#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
-        size = ((VIDEO_DICT_VALUE(video.h) * VIDEO_DICT_VALUE(video.rb))  + 0xfff) & ~0xfff;
-
-	ofmem_claim_phys( video.mphys, size, 0 );
-	ofmem_claim_virt( VIDEO_DICT_VALUE(video.mvirt), size, 0 );
-	ofmem_map( video.mphys, VIDEO_DICT_VALUE(video.mvirt), size, ofmem_arch_io_translation_mode(video.mphys) );
 #endif
 }

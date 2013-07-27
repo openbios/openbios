@@ -27,6 +27,7 @@
 #include "drivers/vga.h"
 #include "libopenbios/video.h"
 #include "libopenbios/ofmem.h"
+#include "packages/video.h"
 
 /* VGA init. We use the Bochs VESA VBE extensions  */
 #define VBE_DISPI_INDEX_ID              0x0
@@ -125,6 +126,7 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 	phys_addr_t phys;
 	phandle_t ph, chosen, aliases, options;
 	char buf[6];
+	int size;
 
 	phys = fb;
 
@@ -152,6 +154,8 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 	set_int_property(ph, "linebytes", VIDEO_DICT_VALUE(video.rb));
 	set_int_property(ph, "address", (u32)(fb & ~0x0000000F));
 
+	molvideo_init();
+
 	chosen = find_dev("/chosen");
 	push_str(path);
 	fword("open-dev");
@@ -168,7 +172,6 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 
 	if (rom_size >= 8) {
                 const char *p;
-		int size;
 
                 p = (const char *)rom;
 		if (p[0] == 'N' && p[1] == 'D' && p[2] == 'R' && p[3] == 'V') {
@@ -178,5 +181,11 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 		}
 	}
 
-	init_video();
+#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
+        size = ((VIDEO_DICT_VALUE(video.h) * VIDEO_DICT_VALUE(video.rb))  + 0xfff) & ~0xfff;
+
+	ofmem_claim_phys( video.mphys, size, 0 );
+	ofmem_claim_virt( VIDEO_DICT_VALUE(video.mvirt), size, 0 );
+	ofmem_map( video.mphys, VIDEO_DICT_VALUE(video.mvirt), size, ofmem_arch_io_translation_mode(video.mphys) );
+#endif
 }
