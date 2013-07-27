@@ -249,6 +249,7 @@
     else
       8 + -8 and ff and to column#
     then
+    toggle-cursor exit
   endof
   a of \ LF
     line# 1+ to line#
@@ -264,6 +265,7 @@
     line# 0<> if
       line# 1- to line#
     then
+    toggle-cursor exit
   endof
   c of \ FF
     0 to column# 0 to line#
@@ -271,6 +273,7 @@
   endof
   d of \ CR
     0 to column#
+    toggle-cursor exit
   endof
   1b of \ ESC
     1b (sequence) c!
