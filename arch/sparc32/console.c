@@ -11,6 +11,7 @@
 #include "openbios.h"
 #include "libopenbios/console.h"
 #include "libopenbios/ofmem.h"
+#include "libopenbios/video.h"
 
 void cls(void);
 
@@ -39,6 +40,22 @@ void tcx_init(uint64_t base)
 {
     vmem = (unsigned char *)ofmem_map_io(base + VMEM_BASE, VMEM_SIZE);
     dac = (uint32_t *)ofmem_map_io(base + DAC_BASE, DAC_SIZE);
+}
+
+/* ( r g b index -- ) */
+void tcx_hw_set_color(void)
+{
+    int index = POP();
+    int b = POP();
+    int g = POP();
+    int r = POP();
+
+    if( VIDEO_DICT_VALUE(video.depth) == 8 ) {
+        dac[0] = index << 24;
+        dac[1] = r << 24; // Red
+        dac[1] = g << 24; // Green
+        dac[1] = b << 24; // Blue
+    }
 }
 
 #endif

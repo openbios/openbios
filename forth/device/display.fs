@@ -48,6 +48,7 @@ create color-palette 100 cells allot
 2 value font-spacing
 0 value depth-bits
 0 value line-bytes
+0 value display-ih
 
 \ internal values read from QEMU firmware interface
 0 value qemu-video-addr
@@ -353,6 +354,8 @@ defer fb8-invertrect
   0 to inverse? 
   0 to inverse-screen?
 
+  my-self to display-ih
+
   \ set defer functions to 8bit versions
 
   ['] fb8-draw-character to draw-character
@@ -374,6 +377,28 @@ defer fb8-invertrect
     2drop d# 15 0
   then
   to foreground-color to background-color
+
+  \ setup palette
+  10101 ['] color-palette cell+ ff 0 do
+    dup 2 pick i * swap ! cell+
+  loop 2drop
+
+  \ special background color
+  ffffcc ['] color-palette cell+ fe cells + !
+
+  \ load palette onto the hardware
+  ['] color-palette cell+ ff 0 do
+    dup @ ff0000 and d# 16 rshift
+    1 pick @ ff00 and d# 8 rshift
+    2 pick @ ff and
+    i
+    s" hw-set-color" $find if
+      execute
+    else
+      2drop
+    then
+    cell+
+  loop drop
 
   \ ... but let's override with some better defaults
   fe to background-color

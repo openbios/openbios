@@ -46,27 +46,30 @@ video_get_color( int col_ind )
 void
 video_set_color( int ind, unsigned long color )
 {
+	xt_t hw_xt = 0;
+
 	if( !video.has_video || ind < 0 || ind > 255 )
 		return;
 	video.pal[ind] = color;
 
-#ifdef CONFIG_MOL
-	if( VIDEO_DICT_VALUE(video.depth) == 8 )
-		OSI_SetColor( ind, color );
-#elif defined(CONFIG_SPARC32)
-#if defined(CONFIG_DEBUG_CONSOLE_VIDEO)
-	if( VIDEO_DICT_VALUE(video.depth) == 8 ) {
-            dac[0] = ind << 24;
-            dac[1] = ((color >> 16) & 0xff) << 24; // Red
-            dac[1] = ((color >> 8) & 0xff) << 24; // Green
-            dac[1] = (color & 0xff) << 24; // Blue
-        }
-#endif
-#else
-	vga_set_color(ind, ((color >> 16) & 0xff),
-			   ((color >> 8) & 0xff),
-			   (color & 0xff));
-#endif
+	/* Call the low-level hardware setter in the
+	   display package */
+	hw_xt = find_ih_method("hw-set-color", VIDEO_DICT_VALUE(video.ih));
+	if (hw_xt) {
+		PUSH((color >> 16) & 0xff);  // Red
+		PUSH((color >> 8) & 0xff);  // Green
+		PUSH(color & 0xff);  // Blue
+		PUSH(ind);
+		PUSH(hw_xt);
+		fword("execute");
+	}
+
+	/* Call the low-level palette update if required */
+	hw_xt = find_ih_method("hw-refresh-palette", VIDEO_DICT_VALUE(video.ih));
+	if (hw_xt) {
+		PUSH(hw_xt);
+		fword("execute");
+	}
 }
 
 /* ( fbaddr maskaddr width height fgcolor bgcolor -- ) */
@@ -219,6 +222,9 @@ void setup_video(phys_addr_t phys, ucell virt)
 
 	video.mphys = phys;
 
+	feval("['] display-ih cell+");
+	video.ih = cell2pointer(POP());
+
 	feval("['] qemu-video-addr cell+");
 	video.mvirt = cell2pointer(POP());
 	feval("['] qemu-video-width cell+");
@@ -277,7 +283,6 @@ void setup_video(phys_addr_t phys, ucell virt)
 void
 init_video(void)
 {
-        int i;
 #if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
         int size;
 #endif
@@ -306,9 +311,4 @@ init_video(void)
 	ofmem_claim_virt( VIDEO_DICT_VALUE(video.mvirt), size, 0 );
 	ofmem_map( video.mphys, VIDEO_DICT_VALUE(video.mvirt), size, ofmem_arch_io_translation_mode(video.mphys) );
 #endif
-
-	for( i=0; i<256; i++ )
-		video_set_color( i, i * 0x010101 );
-
-	video_set_color( 254, 0xffffcc );
 }

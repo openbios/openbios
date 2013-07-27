@@ -103,6 +103,22 @@ void vga_vbe_set_mode(int width, int height, int depth)
         vga_build_rgb_palette();
 }
 
+/* Low-level Forth accessor to update VGA color registers */
+
+/* ( r g b index -- ) */
+static
+void vga_hw_set_color(void)
+{
+    int index = POP();
+    int b = POP();
+    int g = POP();
+    int r = POP();
+
+    vga_set_color(index, (r & 0xff),
+        (g & 0xff),
+        (b & 0xff));
+}
+
 void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
                   unsigned long rom, uint32_t rom_size)
 {
@@ -127,6 +143,8 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 #else
     ph = get_cur_dev();
 #endif
+
+	bind_func("hw-set-color", vga_hw_set_color);
 
 	set_int_property(ph, "width", VIDEO_DICT_VALUE(video.w));
 	set_int_property(ph, "height", VIDEO_DICT_VALUE(video.h));

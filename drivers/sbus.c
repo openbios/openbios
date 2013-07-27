@@ -329,6 +329,7 @@ ob_tcx_init(unsigned int slot, const char *path)
         fword("property");
     }
 
+    bind_func("hw-set-color", tcx_hw_set_color);
     feval("['] qemu-tcx-driver-init is-install");
 
     chosen = find_dev("/chosen");

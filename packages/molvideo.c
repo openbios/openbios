@@ -31,14 +31,23 @@
 
 DECLARE_NODE( video, 0, 0, "Tdisplay" );
 
+#ifdef CONFIG_MOL
 static void
 molvideo_refresh_palette( void )
 {
-#ifdef CONFIG_MOL
+
 	if( VIDEO_DICT_VALUE(video.depth) == 8 )
 		OSI_RefreshPalette();
-#endif
 }
+
+static void
+molvideo_hw_set_color( void )
+{
+
+	if( VIDEO_DICT_VALUE(video.depth) == 8 )
+		OSI_SetColor( ind, color );
+}
+#endif
 
 /* ( -- width height ) (?) */
 static void
@@ -61,7 +70,6 @@ molvideo_set_colors( void )
 		unsigned long col = (p[0] << 16) | (p[1] << 8) | p[2];
 		video_set_color( i + start, col );
 	}
-	molvideo_refresh_palette();
 }
 
 /* ( r g b index -- ) */
@@ -75,7 +83,6 @@ molvideo_color_bang( void )
 	unsigned long col = ((r << 16) & 0xff0000) | ((g << 8) & 0x00ff00) | (b & 0xff);
 	/* printk("color!: %08lx %08lx %08lx %08lx\n", r, g, b, index ); */
 	video_set_color( index, col );
-	molvideo_refresh_palette();
 }
 
 /* ( color_ind x y width height -- ) (?) */
@@ -143,6 +150,10 @@ molvideo_startup_splash( void )
 
 
 NODE_METHODS( video ) = {
+#ifdef CONFIG_MOL
+	{"hw-set-color",	molvideo_hw_set_color   },
+	{"hw-refresh-palette",	molvideo_refresh_palette},
+#endif
 	{"dimensions",		molvideo_dimensions	},
 	{"set-colors",		molvideo_set_colors	},
 	{"fill-rectangle",	molvideo_fill_rect	},

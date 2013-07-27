@@ -30,6 +30,7 @@ void video_fill_rect(void);
 extern struct video_info {
     int has_video;
 
+    volatile ihandle_t *ih;
     volatile phys_addr_t mphys;
     volatile ucell *mvirt;
     volatile ucell *rb, *w, *h, *depth;
