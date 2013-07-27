@@ -230,6 +230,9 @@
   then
   
   case
+  0 of \ NULL
+    toggle-cursor exit
+  endof
   7 of \ BEL
     blink-screen
     s" /screen" s" ring-bell" 
