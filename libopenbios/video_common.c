@@ -412,7 +412,6 @@ init_video( unsigned long fb, int width, int height, int depth, int rb )
 		set_color( i, i * 0x010101 );
 
 	set_color( 254, 0xffffcc );
-	fill_rect( 254, 0, 0, video.fb.w, video.fb.h );
 
 	refresh_palette();
 	startup_splash();
