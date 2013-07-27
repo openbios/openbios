@@ -29,11 +29,11 @@
 /*	OF methods							*/
 /************************************************************************/
 
-DECLARE_NODE( video, INSTALL_OPEN, 0, "Tdisplay" );
+DECLARE_NODE( video, 0, 0, "Tdisplay" );
 
 /* ( -- width height ) (?) */
 static void
-video_dimensions( void )
+molvideo_dimensions( void )
 {
 	int w, h;
 	(void) video_get_res( &w, &h );
@@ -43,7 +43,7 @@ video_dimensions( void )
 
 /* ( table start count -- ) (?) */
 static void
-video_set_colors( void )
+molvideo_set_colors( void )
 {
 	int count = POP();
 	int start = POP();
@@ -59,7 +59,7 @@ video_set_colors( void )
 
 /* ( r g b index -- ) */
 static void
-video_color_bang( void )
+molvideo_color_bang( void )
 {
 	int index = POP();
 	int b = POP();
@@ -71,11 +71,18 @@ video_color_bang( void )
 	refresh_palette();
 }
 
+/* ( color_ind x y width height -- ) (?) */
+static void
+molvideo_fill_rect ( void )
+{
+	video_fill_rect();
+}
+
 NODE_METHODS( video ) = {
-	{"dimensions",		video_dimensions	},
-	{"set-colors",		video_set_colors	},
-	{"fill-rectangle",	video_fill_rect		},
-	{"color!",		video_color_bang	},
+	{"dimensions",		molvideo_dimensions	},
+	{"set-colors",		molvideo_set_colors	},
+	{"fill-rectangle",	molvideo_fill_rect	},
+	{"color!",		molvideo_color_bang	},
 };
 
 
