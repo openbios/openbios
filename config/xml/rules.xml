@@ -13,6 +13,9 @@
 <rule target="host" entity="library">
 	$(call quiet--command,$(AR) cru $@ $^; $(RANLIB) $@," HOSTAR $(TARGET_DIR)$@")
 </rule>
+<rule target="host" entity="fcode">
+	$(call quiet-command,$(TOKE) -o $@ $^,"  TOKE  $(TARGET_DIR)$@")
+</rule>
 
  <!-- target/cross compiler build rules -->
 <rule target="target" entity="executable">

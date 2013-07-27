@@ -53,16 +53,23 @@
      </xsl:variable>
 
      <xsl:if test="$conditions=0">
-      <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY:=$(</xsl:text>
-      <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY) </xsl:text>
 
-      <xsl:value-of select="$path"/>
-      <xsl:value-of select="@source"/>
-      <xsl:text>&#10;</xsl:text>
+      <xsl:variable name="source"><xsl:value-of select="@source" /></xsl:variable>
+
+      <!-- Handle just Forth source, not FCode -->
+      <xsl:if test="not(@target = 'fcode')">
+       <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY:=$(</xsl:text>
+       <xsl:value-of select="$dictname"/><xsl:text>-DICTIONARY) </xsl:text>
+
+       <xsl:value-of select="$path"/>
+       <xsl:value-of select="$source"/>
+       <xsl:text>&#10;</xsl:text>
+      </xsl:if>
+
      </xsl:if>
     </xsl:for-each>
     
-    <xsl:text>&#10;</xsl:text>
+    <xsl:text>&#10;&#10;</xsl:text>
 
     <!-- Create targets for all dictionaries -->
     <xsl:for-each select="//dictionary">
@@ -92,6 +99,27 @@
      <xsl:if test="$init!=''">
       <xsl:text> $(ODIR)/</xsl:text><xsl:value-of select="$init"/><xsl:text>.dict</xsl:text>
      </xsl:if>
+
+     <!-- Check for Fcode dependency -->
+     <xsl:for-each select="object[@target = 'fcode']">
+
+      <xsl:variable name="conditions">
+       <xsl:text>0</xsl:text>
+       <xsl:for-each select="(ancestor-or-self::*)[@condition!='']">
+        <xsl:call-template name="resolve-condition">
+         <xsl:with-param select="@condition" name="expression"/>
+        </xsl:call-template>
+       </xsl:for-each>
+      </xsl:variable>
+
+      <xsl:if test="$conditions = 0">
+
+       <xsl:text> $(ODIR)/</xsl:text>
+       <xsl:value-of select="@source"/>
+
+      </xsl:if>
+     </xsl:for-each>
+
      <xsl:text>&#10;</xsl:text>
      <!-- rule -->
      <xsl:text>&#9;$(call quiet-command,$(ODIR)/forthstrap</xsl:text>
