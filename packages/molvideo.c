@@ -44,10 +44,8 @@ molvideo_refresh_palette( void )
 static void
 molvideo_dimensions( void )
 {
-	int w, h;
-	(void) video_get_res( &w, &h );
-	PUSH( w );
-	PUSH( h );
+	fword("screen-width");
+	fword("screen-height");
 }
 
 /* ( table start count -- ) (?) */

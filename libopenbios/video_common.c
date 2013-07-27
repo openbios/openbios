@@ -69,18 +69,6 @@ video_set_color( int ind, unsigned long color )
 #endif
 }
 
-int
-video_get_res( int *w, int *h )
-{
-	if( !video.has_video ) {
-		*w = *h = 0;
-		return -1;
-	}
-	*w = VIDEO_DICT_VALUE(video.w);
-	*h = VIDEO_DICT_VALUE(video.h);
-	return 0;
-}
-
 /* ( fbaddr maskaddr width height fgcolor bgcolor -- ) */
 
 void
