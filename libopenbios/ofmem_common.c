@@ -878,9 +878,35 @@ phys_addr_t ofmem_translate( ucell virt, ucell *mode )
 	return -1;
 }
 
-static void remove_range( ucell ea, ucell size, range_t **r )
+static void remove_range_( phys_addr_t ea, ucell size, range_t **r )
 {
-    OFMEM_TRACE("%s: not implemented\n", __func__);
+	range_t *cr;
+
+	/* Handle special case if we're removing the first entry */
+	if ((**r).start >= ea) {
+		cr = *r;
+		*r = (**r).next;
+		free(cr);
+
+		return;
+	}
+
+	for( ; *r && ((**r).next)->start < ea; r=&(**r).next ) {
+	}
+
+	cr = (**r).next;
+	(**r).next = cr->next;
+	free(cr);
+}
+
+static int remove_range( phys_addr_t ea, ucell size, range_t **r )
+{
+	if( is_free( ea, size, *r ) ) {
+		OFMEM_TRACE("remove_range: range isn't occupied\n");
+		return -1;
+	}
+	remove_range_( ea, size, r );
+	return 0;
 }
 
 /* release memory allocated by ofmem_claim_phys */
