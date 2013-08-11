@@ -50,34 +50,37 @@ static ucell get_ram_size( void )
 
 #if 0
 static void
-print_range( range_t *r, char *str )
+print_range( range_t *r, const char *str )
 {
 	printk("--- Range %s ---\n", str );
 	for( ; r; r=r->next )
-		printk(FMT_plx " - " FMT_plx "\n", r->start, r->start + r->size - 1);
+		printk("%p : " FMT_plx " - " FMT_plx "\n", r, r->start, r->start + r->size - 1);
 	printk("\n");
 }
 
 static void
-print_phys_range()
+print_phys_range(void)
 {
-	print_range( ofmem.phys_range, "phys" );
+	ofmem_t *ofmem = ofmem_arch_get_private();
+	print_range( ofmem->phys_range, "phys" );
 }
 
 static void
-print_virt_range()
+print_virt_range(void)
 {
-	print_range( ofmem.virt_range, "virt" );
+	ofmem_t *ofmem = ofmem_arch_get_private();
+	print_range( ofmem->virt_range, "virt" );
 }
 
 static void
 print_trans( void )
 {
-	translation_t *t = ofmem.trans;
+	ofmem_t *ofmem = ofmem_arch_get_private();
+	translation_t *t = ofmem->trans;
 
 	printk("--- Translations ---\n");
 	for( ; t; t=t->next )
-		printk("%08lx -> " FMT_plx " [size %lx]\n", t->virt, t->phys, t->size);
+		printk("%p : " FMT_ucellx " -> " FMT_plx " [size " FMT_ucellx "]\n", t, t->virt, t->phys, t->size);
 	printk("\n");
 }
 #endif
