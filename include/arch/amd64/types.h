@@ -29,7 +29,9 @@ typedef uint64_t    ucell;
 typedef __int128_t  dcell;
 typedef __uint128_t ducell;
 
+#define FMT_cell    "%" PRId64
 #define FMT_ucellx  "%016" PRIx64
+#define FMT_ucell   "%" PRIu64
 
 typedef int64_t         prom_arg_t;
 typedef uint64_t        prom_uarg_t;
