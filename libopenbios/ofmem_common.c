@@ -929,6 +929,16 @@ void ofmem_release_virt( ucell virt, ucell size )
     remove_range(virt, size, &ofmem->virt_range);
 }
 
+/* release memory allocated by ofmem_claim_io */
+void ofmem_release_io( ucell virt, ucell size )
+{
+    OFMEM_TRACE("ofmem_release_io addr=" FMT_ucellx " size=" FMT_ucellx "\n",
+                virt, size);
+
+    ofmem_t *ofmem = ofmem_arch_get_private();
+    remove_range(virt, size, &ofmem->io_range);
+}
+
 /* release memory allocated by ofmem_claim - 6.3.2.4 */
 void ofmem_release( ucell virt, ucell size )
 {
