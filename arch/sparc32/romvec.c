@@ -25,7 +25,6 @@
 #endif
 
 char obp_stdin, obp_stdout;
-static int obp_fd_stdin, obp_fd_stdout;
 const char *obp_stdin_path, *obp_stdout_path;
 
 struct linux_arguments_v0 obp_arg;
@@ -498,15 +497,12 @@ init_openprom(void)
     romvec0.pv_v2bootargs.bootpath = &bootpath;
 
     romvec0.pv_v2bootargs.bootargs = &obp_arg.argv[1];
-    romvec0.pv_v2bootargs.fd_stdin = &obp_fd_stdin;
-    romvec0.pv_v2bootargs.fd_stdout = &obp_fd_stdout;
 
-    push_str(obp_stdin_path);
-    fword("open-dev");
-    obp_fd_stdin = POP();
-    push_str(obp_stdout_path);
-    fword("open-dev");
-    obp_fd_stdout = POP();
+    /* Point fd_stdin/fd_stdout to the Forth stdin/stdout variables */
+    fword("stdin");
+    romvec0.pv_v2bootargs.fd_stdin = cell2pointer(POP());
+    fword("stdout");
+    romvec0.pv_v2bootargs.fd_stdout = cell2pointer(POP());
 
     romvec0.v3_memalloc = obp_memalloc_handler;
 

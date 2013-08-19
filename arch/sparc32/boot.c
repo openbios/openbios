@@ -23,7 +23,7 @@ const void *romvec;
 void go(void)
 {
 	ucell address, type, size;
-	int image_retval = 0, proplen, target, device;
+	int image_retval = 0, intprop, proplen, target, device;
 	phandle_t chosen;
 	char *prop, *id, *name;
 	static char bootpathbuf[128], bootargsbuf[128], buf[128];
@@ -40,8 +40,19 @@ void go(void)
 	   needs to be set up to pass certain parameters using a C struct. Hence this section
 	   extracts the relevant boot information and places it in obp_arg. */
 	
-	/* Get the name of the selected boot device, along with the device and unit number */
+	/* Get the stdin and stdout paths */
 	chosen = find_dev("/chosen");
+	intprop = get_int_property(chosen, "stdin", &proplen);
+	PUSH(intprop);
+	fword("get-instance-path");
+	((struct linux_romvec *)romvec)->pv_stdin = pop_fstr_copy();
+
+	intprop = get_int_property(chosen, "stdout", &proplen);
+	PUSH(intprop);
+	fword("get-instance-path");
+	((struct linux_romvec *)romvec)->pv_stdout = pop_fstr_copy();
+
+	/* Get the name of the selected boot device, along with the device and unit number */
 	prop = get_property(chosen, "bootpath", &proplen);
 	strncpy(bootpathbuf, prop, proplen);
 	prop = get_property(chosen, "bootargs", &proplen);
