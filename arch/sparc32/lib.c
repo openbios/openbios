@@ -302,6 +302,22 @@ void obp_dumb_memfree(__attribute__((unused))char *va,
     DPRINTF("obp_dumb_memfree 0x%p (size %d)\n", va, sz);
 }
 
+/* Data fault handling routines */
+
+extern unsigned int ignore_dfault;
+
+/* ( -- reg ) */
+static void srmmu_get_sfsr(void)
+{
+    PUSH(srmmu_get_fstatus());
+}
+
+/* ( -- addr ) */
+static void ignore_dfault_addr(void)
+{
+    PUSH(pointer2cell(&ignore_dfault));
+}
+
 void
 ob_init_mmu(void)
 {
@@ -360,6 +376,12 @@ ob_init_mmu(void)
     bind_func("pgmap@", pgmap_fetch);
     bind_func("pgmap!", pgmap_store);
     bind_func("map-pages", ob_map_pages);
+
+    /* Install data fault handler words for cpeek etc. */
+    PUSH_xt(bind_noname_func(srmmu_get_sfsr));
+    feval("to sfsr@");
+    PUSH_xt(bind_noname_func(ignore_dfault_addr));
+    feval("to ignore-dfault");
 }
 
 /*

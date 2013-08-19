@@ -46,6 +46,36 @@ device-end
   0
   ;
 
+\ (peek) and (poke) implementation
+defer sfsr@
+defer ignore-dfault
+
+:noname
+  \ ( addr xt -- false | value true )
+  sfsr@ drop            \ Clear any existing MMU fault status
+
+  -1 ignore-dfault !    \ Disable data fault trap
+  execute
+  0 ignore-dfault !     \ Enable data fault trap
+
+  sfsr@ 0= if
+    true
+  else
+    drop false          \ Failed, drop the read value
+  then
+; to (peek)
+
+:noname
+  \ ( value addr xt -- okay? )
+  sfsr@ drop            \ Clear any existing MMU fault status
+
+  -1 ignore-dfault !    \ Disable data fault trap
+  execute
+  0 ignore-dfault !     \ Enable data fault trap
+
+  sfsr@ 0=              \ true if no fault
+; to (poke)
+
 \ Load TCX FCode driver blob
 [IFDEF] CONFIG_DRIVER_SBUS
   -1 value tcx-driver-fcode
