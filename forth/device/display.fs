@@ -399,7 +399,7 @@ defer fb8-invertrect
     1 pick @ ff00 and d# 8 rshift
     2 pick @ ff and
     i
-    s" hw-set-color" $find if
+    s" color!" $find if
       execute
     else
       2drop

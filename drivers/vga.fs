@@ -135,7 +135,7 @@ defer mol-color!
 \ Perhaps for neatness this there should be a separate molvga.fs
 \ but let's leave it here for now.
 
-: hw-set-color  ( r g b index -- )
+: color!  ( r g b index -- )
   mol-color!
 ;
 
@@ -143,15 +143,11 @@ defer mol-color!
 
 \ Standard VGA
 
-: hw-set-color  ( r g b index -- )
+: color!  ( r g b index -- )
   vga-color!
 ;
 
 [THEN]
-
-: color!  ( r g b index -- )
-  hw-set-color
-;
 
 : fill-rectangle  ( color_ind x y width height -- )
   fb8-fillrect
@@ -168,7 +164,7 @@ defer mol-color!
     c@ swap 1+      \ ( table start r table-g )
     dup c@ swap 1+  \ ( table start r g table-b )
     c@ 3 pick       \ ( table start r g b index )
-    hw-set-color    \ ( table start )
+    color!          \ ( table start )
     1+
     swap 3 + swap   \ ( table+3 start+1 )
   loop

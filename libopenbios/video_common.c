@@ -43,35 +43,6 @@ video_get_color( int col_ind )
 	return 0;
 }
 
-void
-video_set_color( int ind, unsigned long color )
-{
-	xt_t hw_xt = 0;
-
-	if( !VIDEO_DICT_VALUE(video.ih) || ind < 0 || ind > 255 )
-		return;
-	video.pal[ind] = color;
-
-	/* Call the low-level hardware setter in the
-	   display package */
-	hw_xt = find_ih_method("hw-set-color", VIDEO_DICT_VALUE(video.ih));
-	if (hw_xt) {
-		PUSH((color >> 16) & 0xff);  // Red
-		PUSH((color >> 8) & 0xff);  // Green
-		PUSH(color & 0xff);  // Blue
-		PUSH(ind);
-		PUSH(hw_xt);
-		fword("execute");
-	}
-
-	/* Call the low-level palette update if required */
-	hw_xt = find_ih_method("hw-refresh-palette", VIDEO_DICT_VALUE(video.ih));
-	if (hw_xt) {
-		PUSH(hw_xt);
-		fword("execute");
-	}
-}
-
 /* ( fbaddr maskaddr width height fgcolor bgcolor -- ) */
 
 void

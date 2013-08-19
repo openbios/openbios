@@ -145,6 +145,8 @@ h# 1 constant /tcx-off13-8
   >r dup 2dup bljoin r> tcx-dac + l!
 ;
 
+external
+
 : color!  ( r g b c# -- )
   0 dac!       ( r g b )
   swap rot     ( b g r )
@@ -152,6 +154,8 @@ h# 1 constant /tcx-off13-8
   4 dac!       ( b )
   4 dac!       (  )
 ;
+
+headerless
 
 \
 \ Mapping
@@ -168,14 +172,6 @@ h# 1 constant /tcx-off13-8
 : map-regs
   dac-map fb-map
 ;
-
-external
-
-: hw-set-color
-  color!
-;
-
-headerless
 
 \
 \ Installation

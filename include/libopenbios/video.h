@@ -21,7 +21,6 @@
 
 void setup_video(void);
 unsigned long video_get_color(int col_ind);
-void video_set_color(int ind, unsigned long color);
 void video_mask_blit(void);
 void video_invert_rect(void);
 void video_fill_rect(void);
