@@ -11,7 +11,7 @@
   <object source="nvram.c"/>
   <object source="pc-parts.c" condition="PC_PARTS"/>
   <object source="sun-parts.c" condition="SUN_PARTS"/>
-  <object source="molvideo.c"/>
+  <object source="molvideo.c" condition="MOL"/>
   <object source="xcoff-loader.c" condition="LOADER_XCOFF"/>
  </library>
 

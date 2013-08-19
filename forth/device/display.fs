@@ -408,7 +408,7 @@ defer fb8-invertrect
 
   \ If we have a startup splash then display it
   [IFDEF] CONFIG_MOL
-      startup-splash 2000 ms
+      mol-startup-splash 2000 ms
       fb8-erase-screen
   [THEN]
 ;

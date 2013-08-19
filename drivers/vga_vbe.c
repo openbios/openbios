@@ -27,7 +27,6 @@
 #include "drivers/vga.h"
 #include "libopenbios/video.h"
 #include "libopenbios/ofmem.h"
-#include "packages/video.h"
 
 /* VGA init. We use the Bochs VESA VBE extensions  */
 #define VBE_DISPI_INDEX_ID              0x0
@@ -74,8 +73,6 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 #else
     ph = get_cur_dev();
 #endif
-
-	molvideo_init();
 
 	chosen = find_dev("/chosen");
 	push_str(path);

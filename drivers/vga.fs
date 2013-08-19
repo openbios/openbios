@@ -33,6 +33,9 @@ fcode-version3
 : depth-bits depth-bits-xt @ ;
 : line-bytes line-bytes-xt @ ;
 
+" fb8-fillrect" (find-xt) value fb8-fillrect-xt
+: fb8-fillrect fb8-fillrect-xt execute ;
+
 \
 \ IO port words
 \
@@ -114,6 +117,9 @@ external
 defer mol-color!
 
 \ Hook for MOL (see packages/molvideo.c)
+\
+\ Perhaps for neatness this there should be a separate molvga.fs
+\ but let's leave it here for now.
 
 : hw-set-color  ( r g b index -- )
   mol-color!
@@ -128,6 +134,31 @@ defer mol-color!
 ;
 
 [THEN]
+
+: color!  ( r g b index -- )
+  hw-set-color
+;
+
+: fill-rectangle  ( color_ind x y width height -- )
+  fb8-fillrect
+;
+
+: dimensions  ( -- width height )
+  openbios-video-width
+  openbios-video-height
+;
+
+: set-colors  ( table start count -- )
+  0 do
+    over dup        \ ( table start table table )
+    c@ swap 1+      \ ( table start r table-g )
+    dup c@ swap 1+  \ ( table start r g table-b )
+    c@ 3 pick       \ ( table start r g b index )
+    hw-set-color    \ ( table start )
+    1+
+    swap 3 + swap   \ ( table+3 start+1 )
+  loop
+;
 
 headerless
 

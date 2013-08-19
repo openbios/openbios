@@ -2,7 +2,7 @@
  *   Creation Date: <2002/10/23 20:26:40 samuel>
  *   Time-stamp: <2004/01/07 19:39:15 samuel>
  *
- *	<video.c>
+ *	<molvideo.c>
  *
  *	Mac-on-Linux display node
  *
@@ -30,47 +30,6 @@
 
 DECLARE_NODE( video, 0, 0, "Tdisplay" );
 
-#ifdef CONFIG_MOL
-static void
-molvideo_refresh_palette( void )
-{
-
-	if( VIDEO_DICT_VALUE(video.depth) == 8 )
-		OSI_RefreshPalette();
-}
-
-static void
-molvideo_hw_set_color( void )
-{
-
-	if( VIDEO_DICT_VALUE(video.depth) == 8 )
-		OSI_SetColor( ind, color );
-}
-#endif
-
-/* ( -- width height ) (?) */
-static void
-molvideo_dimensions( void )
-{
-	fword("screen-width");
-	fword("screen-height");
-}
-
-/* ( table start count -- ) (?) */
-static void
-molvideo_set_colors( void )
-{
-	int count = POP();
-	int start = POP();
-	unsigned char *p = (unsigned char*)cell2pointer(POP());
-	int i;
-
-	for( i=0; i<count; i++, p+=3 ) {
-		unsigned long col = (p[0] << 16) | (p[1] << 8) | p[2];
-		video_set_color( i + start, col );
-	}
-}
-
 /* ( r g b index -- ) */
 static void
 molvideo_color_bang( void )
@@ -81,31 +40,26 @@ molvideo_color_bang( void )
 	int r = POP();
 	unsigned long col = ((r << 16) & 0xff0000) | ((g << 8) & 0x00ff00) | (b & 0xff);
 	/* printk("color!: %08lx %08lx %08lx %08lx\n", r, g, b, index ); */
-	video_set_color( index, col );
-}
 
-/* ( color_ind x y width height -- ) (?) */
-static void
-molvideo_fill_rect ( void )
-{
-	video_fill_rect();
+	if( VIDEO_DICT_VALUE(video.depth) == 8 ) {
+		OSI_SetColor( index, col );
+		OSI_RefreshPalette();
+	}
 }
 
 /* ( -- ) - really should be reworked as draw-logo */
 static void
 molvideo_startup_splash( void )
 {
-#ifdef CONFIG_MOL
 	int fd, s, i, y, x, dx, dy;
 	int width, height;
 	char *pp, *p;
 	char buf[64];
-#endif
 
 	/* only draw logo in 24-bit mode (for now) */
 	if( VIDEO_DICT_VALUE(video.depth) < 15 )
 		return;
-#ifdef CONFIG_MOL
+
 	for( i=0; i<2; i++ ) {
 		if( !BootHGetStrResInd("bootlogo", buf, sizeof(buf), 0, i) )
 			return;
@@ -141,23 +95,14 @@ molvideo_startup_splash( void )
 		}
 		free( p );
 	}
-#else
+
 	/* No bootlogo support yet on other platforms */
 	return;
-#endif
 }
 
 
 NODE_METHODS( video ) = {
-#ifdef CONFIG_MOL
-	{"hw-set-color",	molvideo_hw_set_color   },
-	{"hw-refresh-palette",	molvideo_refresh_palette},
-#endif
-	{"dimensions",		molvideo_dimensions	},
-	{"set-colors",		molvideo_set_colors	},
-	{"fill-rectangle",	molvideo_fill_rect	},
-	{"color!",		molvideo_color_bang	},
-	{"startup-splash",	molvideo_startup_splash },
+	{"mol-startup-splash",	molvideo_startup_splash },
 };
 
 
@@ -168,5 +113,12 @@ NODE_METHODS( video ) = {
 void
 molvideo_init(void)
 {
+	xt_t color_bang;
+
 	REGISTER_NODE( video );
+
+	/* Bind the MOL graphic routines to the mol-color! defer */
+	color_bang = bind_noname_func(molvideo_color_bang);
+	PUSH(color_bang);
+	feval(" to mol-color!");
 }

@@ -24,6 +24,7 @@
 
 #include "drivers/drivers.h"
 #include "drivers/vga.h"
+#include "packages/video.h"
 #include "timer.h"
 #include "pci.h"
 #include "pci_database.h"
@@ -773,6 +774,12 @@ int vga_config_cb (const pci_config_t *config)
 
 	    /* Currently we don't read FCode from the hardware but execute it directly */
 	    feval("['] vga-driver-fcode 2 cells + 1 byte-load");
+
+#ifdef CONFIG_MOL
+	    /* Install special words for Mac On Linux */
+	    molvideo_init();
+#endif
+
         }
 
 	return 0;
