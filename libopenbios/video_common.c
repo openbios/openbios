@@ -15,6 +15,7 @@
  */
 
 #include "config.h"
+#include "libc/vsprintf.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/fontdata.h"
 #include "libopenbios/ofmem.h"
@@ -218,6 +219,8 @@ void setup_video(phys_addr_t phys, ucell virt)
 	/* Make everything inside the video_info structure point to the
 	   values in the Forth dictionary. Hence everything is always in
 	   sync. */
+	phandle_t options;
+	char buf[6];
 
 	video.mphys = phys;
 
@@ -277,4 +280,11 @@ void setup_video(phys_addr_t phys, ucell virt)
 		VIDEO_DICT_VALUE(video.rb) = (w * ((d + 7) / 8));
 	}
 #endif
+
+	/* Setup screen-#rows/screen-#columns */
+	options = find_dev("/options");
+	snprintf(buf, sizeof(buf), FMT_ucell, VIDEO_DICT_VALUE(video.w) / FONT_WIDTH);
+	set_property(options, "screen-#columns", buf, strlen(buf) + 1);
+	snprintf(buf, sizeof(buf), FMT_ucell, VIDEO_DICT_VALUE(video.h) / FONT_HEIGHT);
+	set_property(options, "screen-#rows", buf, strlen(buf) + 1);
 }
