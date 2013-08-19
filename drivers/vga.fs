@@ -21,13 +21,11 @@ fcode-version3
   then
 ;
 
-" openbios-video-addr" (find-xt) cell+ value openbios-video-addr-xt
 " openbios-video-width" (find-xt) cell+ value openbios-video-width-xt
 " openbios-video-height" (find-xt) cell+ value openbios-video-height-xt
 " depth-bits" (find-xt) cell+ value depth-bits-xt
 " line-bytes" (find-xt) cell+ value line-bytes-xt
 
-: openbios-video-addr openbios-video-addr-xt @ ;
 : openbios-video-width openbios-video-width-xt @ ;
 : openbios-video-height openbios-video-height-xt @ ;
 : depth-bits depth-bits-xt @ ;

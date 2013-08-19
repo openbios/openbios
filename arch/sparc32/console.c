@@ -15,24 +15,6 @@
 #ifdef CONFIG_DEBUG_CONSOLE
 
 /* ******************************************************************
- *          simple polling video/keyboard console functions
- * ****************************************************************** */
-
-#ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-
-#define VMEM_BASE 0x00800000ULL
-#define VMEM_SIZE (1024*768*1)
-
-unsigned char *vmem;
-
-void tcx_init(uint64_t base)
-{
-    vmem = (unsigned char *)ofmem_map_io(base + VMEM_BASE, VMEM_SIZE);
-}
-
-#endif
-
-/* ******************************************************************
  *      common functions, implementing simple concurrent console
  * ****************************************************************** */
 

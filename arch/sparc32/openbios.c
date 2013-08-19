@@ -846,7 +846,7 @@ arch_init( void )
 #endif
 #ifdef CONFIG_DRIVER_SBUS
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	setup_video(hwdef->tcx_base + 0x00800000ULL, (unsigned long)vmem);
+	setup_video();
 #endif
 	ob_sbus_init(hwdef->iommu_base + 0x1000ULL, qemu_machine_type);
 #endif
@@ -939,7 +939,6 @@ int openbios(void)
                   CONFIG_SERIAL_SPEED);
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
-	tcx_init(hwdef->tcx_base);
 	kbd_init(hwdef->ms_kb_base);
 #endif
 #endif

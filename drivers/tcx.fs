@@ -22,13 +22,11 @@ fcode-version3
   then
 ;
 
-" openbios-video-addr" (find-xt) cell+ value openbios-video-addr-xt
 " openbios-video-width" (find-xt) cell+ value openbios-video-width-xt
 " openbios-video-height" (find-xt) cell+ value openbios-video-height-xt
 " depth-bits" (find-xt) cell+ value depth-bits-xt
 " line-bytes" (find-xt) cell+ value line-bytes-xt
 
-: openbios-video-addr openbios-video-addr-xt @ ;
 : openbios-video-width openbios-video-width-xt @ ;
 : openbios-video-height openbios-video-height-xt @ ;
 : depth-bits depth-bits-xt @ ;
@@ -141,6 +139,7 @@ h# 1 constant /tcx-off13-8
 
 -1 value tcx-dac
 -1 value /tcx-dac
+-1 value fb-addr
 
 : dac! ( data reg# -- )
   >r dup 2dup bljoin r> tcx-dac + l!
@@ -162,8 +161,12 @@ h# 1 constant /tcx-off13-8
   tcx-off-dac /tcx-dac do-map-in to tcx-dac
 ;
 
+: fb-map
+  tcx-off-fb h# c0000 do-map-in to fb-addr
+;
+
 : map-regs
-  dac-map
+  dac-map fb-map
 ;
 
 external
@@ -184,7 +187,7 @@ headerless
 : qemu-tcx-driver-install ( -- )
   tcx-dac -1 = if
     map-regs
-    openbios-video-addr to frame-buffer-adr
+    fb-addr to frame-buffer-adr
     default-font set-font
 
     frame-buffer-adr encode-int " address" property

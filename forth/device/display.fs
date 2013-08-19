@@ -51,7 +51,6 @@ create color-palette 100 cells allot
 0 value display-ih
 
 \ internal values
-0 value openbios-video-addr
 0 value openbios-video-height
 0 value openbios-video-width
 

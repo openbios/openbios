@@ -54,18 +54,10 @@
 void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
                   unsigned long rom, uint32_t rom_size)
 {
-	phys_addr_t phys;
 	phandle_t ph;
 	int size;
 
-	phys = fb;
-
-#if defined(CONFIG_SPARC64)
-	/* Fix virtual address on SPARC64 somewhere else */
-	fb = 0xfe000000ULL;
-#endif
-
-	setup_video(phys, fb);
+	setup_video();
 
 #if 0
     ph = find_dev(path);

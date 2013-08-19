@@ -361,11 +361,11 @@ ob_pci_map_in(int *idx)
 #if defined(CONFIG_OFMEM)
 	ofmem_claim_phys(phys, size, 0);
 
-#if defined(CONFIG_SPARC64)
-	/* Fix virtual address on SPARC64 somewhere else */
-	virt = ofmem_claim_virt(0xfe000000ULL, size, 0);
-#else
+#if defined(CONFIG_PPC)
+	/* For some reason PPC gets upset when virt != phys for map-in... */
 	virt = ofmem_claim_virt(phys, size, 0);
+#else
+	virt = ofmem_claim_virt(-1, size, size);
 #endif
 
 	ofmem_map(phys, virt, size, ofmem_arch_io_translation_mode(phys));

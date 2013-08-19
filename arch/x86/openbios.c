@@ -62,7 +62,7 @@ arch_init( void )
 	ob_floppy_init("/isa", "floppy0", 0x3f0, 0);
 #endif
 #ifdef CONFIG_XBOX
-	setup_video(0x3C00000, phys_to_virt(0x3C00000));
+	setup_video();
 
 	/* Force video to 32-bit depth */
 	VIDEO_DICT_VALUE(video.depth) = 32;

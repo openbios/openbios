@@ -214,7 +214,7 @@ video_fill_rect(void)
 	}
 }
 
-void setup_video(phys_addr_t phys, ucell virt)
+void setup_video()
 {
 	/* Make everything inside the video_info structure point to the
 	   values in the Forth dictionary. Hence everything is always in
@@ -222,12 +222,10 @@ void setup_video(phys_addr_t phys, ucell virt)
 	phandle_t options;
 	char buf[6];
 
-	video.mphys = phys;
-
 	feval("['] display-ih cell+");
 	video.ih = cell2pointer(POP());
 
-	feval("['] openbios-video-addr cell+");
+	feval("['] frame-buffer-adr cell+");
 	video.mvirt = cell2pointer(POP());
 	feval("['] openbios-video-width cell+");
 	video.w = cell2pointer(POP());
@@ -260,7 +258,6 @@ void setup_video(phys_addr_t phys, ucell virt)
 	feval("to (romfont-width)");
 
 	/* Initialise the structure */
-	VIDEO_DICT_VALUE(video.mvirt) = virt;
 	VIDEO_DICT_VALUE(video.w) = VGA_DEFAULT_WIDTH;
 	VIDEO_DICT_VALUE(video.h) = VGA_DEFAULT_HEIGHT;
 	VIDEO_DICT_VALUE(video.depth) = VGA_DEFAULT_DEPTH;
