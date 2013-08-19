@@ -58,3 +58,21 @@
 : map-out-sbus ( virt )
   " map-out" $call-parent
 ;
+
+\ -------------------------------------------------------------------------
+\ SBus probe
+\ -------------------------------------------------------------------------
+
+: probe-self-sbus ( arg-adr arg-len reg-adr reg-len fcode-adr fcode-len -- )
+  2drop
+  new-device
+  set-args
+
+  \ Note: this is currently hardcoded to TCX for testing as we don't have
+  \ cpeek (yet). Once cpeek is in place, adapting this to probe any slot
+  \ will be faily easy.
+  " tcx-driver-fcode" $find drop 2 cells +
+  1 byte-load
+
+  finish-device
+;

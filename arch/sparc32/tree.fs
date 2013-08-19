@@ -70,25 +70,6 @@ finish-device
 
 " /iommu/sbus" find-device
 new-device
-  " SUNW,tcx" device-name
-  " display" device-type
-  h# 1d encode-int " vbporch" property
-  h# a0 encode-int " hbporch" property
-  h# 06 encode-int " vsync" property
-  h# 88 encode-int " hsync" property
-  h# 03 encode-int " vfporch" property
-  h# 18 encode-int " hfporch" property
-  h# 03dfd240 encode-int " pixfreq" property
-  h# 3c encode-int " vfreq" property
-  h# 300 encode-int " height" property
-  h# 400 encode-int " width" property
-  h# 400 encode-int " linebytes" property
-  5 encode-int 0 encode-int encode+ " intr" property
-  5 encode-int " interrupts" property
-finish-device
-
-" /iommu/sbus" find-device
-new-device
   " espdma" device-name
   external
   : encode-unit encode-unit-sbus ;

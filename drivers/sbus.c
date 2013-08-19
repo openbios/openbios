@@ -141,7 +141,7 @@ uint16_t graphic_depth;
 static void
 ob_tcx_init(unsigned int slot, const char *path)
 {
-    phandle_t chosen, aliases;
+    phandle_t chosen;
 
     push_str(path);
     fword("find-device");
@@ -342,18 +342,6 @@ ob_tcx_init(unsigned int slot, const char *path)
     }
 
     bind_func("hw-set-color", tcx_hw_set_color);
-
-    /* Currently we don't have an SBus probe routine, so execute FCode
-       directly */
-    feval("['] tcx-driver-fcode 2 cells + 1 byte-load");
-
-    chosen = find_dev("/chosen");
-    push_str(path);
-    fword("open-dev");
-    set_int_property(chosen, "screen", POP());
-
-    aliases = find_dev("/aliases");
-    set_property(aliases, "screen", path, strlen(path) + 1);
 }
 
 static void
@@ -445,11 +433,36 @@ ob_macio_init(unsigned int slot, uint64_t base, unsigned long offset)
 }
 
 static void
+sbus_probe_self(unsigned int slot, unsigned long offset)
+{
+    /* Wrapper for calling probe-self in Forth. This is mainly because some
+       drivers don't handle properties correctly when the sbus node is set
+       as the current instance during probe. */
+    char buf[6];
+
+    /* Make the sbus node the current instance and active package for probing */
+    feval("active-package my-self");
+    push_str("/iommu/sbus");
+    feval("open-dev to my-self");
+
+    PUSH(0);
+    PUSH(0);
+    snprintf(buf, 6, "%d,%ld", slot, offset);
+    push_str(buf);
+    fword("2dup");
+    fword("probe-self-sbus");
+
+    /* Restore */
+    feval("to my-self active-package!");
+}
+
+static void
 sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
 {
     // OpenBIOS and QEMU don't know how to do Sbus probing
     switch(slot) {
     case 3: // SUNW,tcx
+        sbus_probe_self(slot, 0);
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 4:
@@ -472,6 +485,7 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
     // OpenBIOS and QEMU don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
+        sbus_probe_self(slot, 0);
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 0xf: // le, esp, bpp, power-management
@@ -490,6 +504,7 @@ sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
     // OpenBIOS and QEMU don't know how to do Sbus probing
     switch(slot) {
     case 2: // SUNW,tcx
+        sbus_probe_self(slot, 0);
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 0xf: // le, esp, bpp, power-management

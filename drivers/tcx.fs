@@ -4,6 +4,8 @@
 \ This is the Forth source for an Fcode payload to initialise
 \ the QEMU TCX graphics card.
 \
+\ (C) Copyright 2013 Mark Cave-Ayland
+\
 
 fcode-version3
 
@@ -30,6 +32,13 @@ fcode-version3
   then
 ;
 
+\
+\ Installation
+\
+
+" SUNW,tcx" device-name
+" display" device-type
+
 : qemu-tcx-driver-install ( -- )
   openbios-video-addr to frame-buffer-adr
   default-font set-font
@@ -38,6 +47,22 @@ fcode-version3
 ;
 
 : qemu-tcx-driver-init
+
+  h# 1d encode-int " vbporch" property
+  h# a0 encode-int " hbporch" property
+  h# 06 encode-int " vsync" property
+  h# 88 encode-int " hsync" property
+  h# 03 encode-int " vfporch" property
+  h# 18 encode-int " hfporch" property
+  h# 03dfd240 encode-int " pixfreq" property
+  h# 3c encode-int " vfreq" property
+  h# 300 encode-int " height" property
+  h# 400 encode-int " width" property
+  h# 400 encode-int " linebytes" property
+
+  5 encode-int 0 encode-int encode+ " intr" property
+  5 encode-int " interrupts" property
+
   ['] qemu-tcx-driver-install is-install
 ;
 
