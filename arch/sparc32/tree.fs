@@ -55,6 +55,8 @@ new-device
   : close ;
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
+  : map-in map-in-sbus ;
+  : map-out map-out-sbus ;
 finish-device
 
 [IFDEF] CONFIG_BPP

@@ -6,6 +6,7 @@
  **/
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/ofmem.h"
 #include "drivers/drivers.h"
 #include "iommu.h"
 #include "arch/sparc32/ofmem_sparc32.h"
@@ -148,6 +149,34 @@ iommu_init(struct iommu *t, uint64_t base)
     return regs;
 }
 
+/* ( addr.lo addr.hi size -- virt ) */
+
+static void
+ob_iommu_map_in(void)
+{
+    phys_addr_t phys;
+    ucell size, virt;
+
+    size = POP();
+    POP();
+    phys = POP();
+
+    virt = ofmem_map_io(phys, size);
+
+    PUSH(virt);
+}
+
+/* ( virt size ) */
+
+static void
+ob_iommu_map_out(void)
+{
+    ucell size = POP();
+    ucell virt = POP();
+
+    ofmem_release_io(virt, size);
+}
+
 void
 ob_init_iommu(uint64_t base)
 {
@@ -172,4 +201,7 @@ ob_init_iommu(uint64_t base)
     fword("encode+");
     push_str("reg");
     fword("property");
+
+    bind_func("map-in", ob_iommu_map_in);
+    bind_func("map-out", ob_iommu_map_out);
 }
