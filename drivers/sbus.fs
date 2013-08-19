@@ -55,7 +55,7 @@
   r> drop
 ;
 
-: map-out-sbus ( virt )
+: map-out-sbus ( virt size )
   " map-out" $call-parent
 ;
 
@@ -64,15 +64,31 @@
 \ -------------------------------------------------------------------------
 
 : probe-self-sbus ( arg-adr arg-len reg-adr reg-len fcode-adr fcode-len -- )
-  2drop
-  new-device
-  set-args
 
-  \ Note: this is currently hardcoded to TCX for testing as we don't have
-  \ cpeek (yet). Once cpeek is in place, adapting this to probe any slot
-  \ will be faily easy.
-  " tcx-driver-fcode" $find drop 2 cells +
-  1 byte-load
+  0 to probe-fcode?
 
-  finish-device
+  ['] decode-unit-sbus catch if
+    2drop 2drop 2drop 2drop
+    exit
+  then
+
+  h# 10000 map-in-sbus
+
+  dup cpeek if
+    dup h# f1 = swap h# fd = or if
+      new-device
+      >r set-args r>
+      dup 1 byte-load
+      finish-device
+
+      -1 to probe-fcode?
+    else
+      nip nip nip nip
+      ." Invalid FCode start byte" cr
+    then
+  else
+    nip nip nip nip
+  then
+
+  h# 10000 map-out-sbus
 ;

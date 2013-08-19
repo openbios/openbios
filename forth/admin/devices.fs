@@ -508,5 +508,8 @@
 
 \ 7.4.11.3 Device probing
 
+\ Set to true if the last probe-self was successful
+0 value probe-fcode?
+
 : probe-all    ( -- )
   ;

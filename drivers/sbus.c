@@ -141,8 +141,26 @@ uint16_t graphic_depth;
 static void
 ob_tcx_init(unsigned int slot, const char *path)
 {
-    push_str(path);
-    fword("find-device");
+    char buf[6];
+
+    printk("No display device located during SBus probe - falling back to internal TCX driver\n");
+
+    /* Make the sbus node the current instance and active package for probing */
+    feval("active-package my-self");
+    push_str("/iommu/sbus");
+    feval("2dup find-device open-dev to my-self");
+
+    fword("new-device");
+    PUSH(0);
+    PUSH(0);
+    snprintf(buf, 6, "%d,0", slot);
+    push_str(buf);
+    fword("set-args");
+    feval("['] tcx-driver-fcode 2 cells + 1 byte-load");
+    fword("finish-device");
+
+    /* Restore */
+    feval("to my-self active-package!");
 }
 
 static void
@@ -241,6 +259,8 @@ sbus_probe_self(unsigned int slot, unsigned long offset)
        as the current instance during probe. */
     char buf[6];
 
+    printk("Probing SBus slot %d offset %ld\n", slot, offset);
+
     /* Make the sbus node the current instance and active package for probing */
     feval("active-package my-self");
     push_str("/iommu/sbus");
@@ -257,13 +277,28 @@ sbus_probe_self(unsigned int slot, unsigned long offset)
     feval("to my-self active-package!");
 }
 
+static int
+sbus_probe_sucess(void)
+{
+    /* Return true if the last sbus_probe_self() resulted in
+       the successful detection and execution of FCode */
+    fword("probe-fcode?");
+    return POP();
+}
+
 static void
 sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
 {
-    // OpenBIOS and QEMU don't know how to do Sbus probing
+    /* Probe the slot */
+    sbus_probe_self(slot, 0);
+
+    /* If the device was successfully created by FCode then do nothing */
+    if (sbus_probe_sucess()) {
+        return;
+    }
+
     switch(slot) {
     case 3: // SUNW,tcx
-        sbus_probe_self(slot, 0);
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 4:
@@ -283,10 +318,16 @@ sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
 static void
 sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
 {
-    // OpenBIOS and QEMU don't know how to do Sbus probing
+    /* Probe the slot */
+    sbus_probe_self(slot, 0);
+
+    /* If the device was successfully created by FCode then do nothing */
+    if (sbus_probe_sucess()) {
+        return;
+    }
+
     switch(slot) {
     case 2: // SUNW,tcx
-        sbus_probe_self(slot, 0);
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 0xf: // le, esp, bpp, power-management
@@ -302,10 +343,16 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
 static void
 sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
 {
-    // OpenBIOS and QEMU don't know how to do Sbus probing
+    /* Probe the slot */
+    sbus_probe_self(slot, 0);
+
+    /* If the device was successfully created by FCode then do nothing */
+    if (sbus_probe_sucess()) {
+        return;
+    }
+
     switch(slot) {
     case 2: // SUNW,tcx
-        sbus_probe_self(slot, 0);
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
     case 0xf: // le, esp, bpp, power-management
