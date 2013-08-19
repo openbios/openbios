@@ -41,6 +41,9 @@ trap_table:
 #define WINDOW_FILL \
         rd %psr, %l0; rd %wim, %l3; b fill_window_entry; nop;
 
+#define TRAP_DFAULT(lvl) \
+        rd %psr, %l0; rd %wim, %l3; b handle_dfault; mov lvl, %l7;
+
 #define BTRAP(lvl) ba bug; mov lvl, %g1; nop; nop;
 #define BTRAPS(x) BTRAP(x) BTRAP(x+1) BTRAP(x+2) BTRAP(x+3) BTRAP(x+4) BTRAP(x+5) BTRAP(x+6) BTRAP(x+7)
 #define TRAP_ENTRY_INTERRUPT(int_level) \
@@ -54,7 +57,9 @@ t_zero:         b entry; nop; nop; nop;
 t_wovf:         WINDOW_SPILL                        /* Window Overflow               */
 t_wunf:         WINDOW_FILL                         /* Window Underflow              */
                 BTRAP(0x7)
-                BTRAPS(0x8)
+                BTRAP(0x8)
+                TRAP_DFAULT(0x9)
+                BTRAP(0xa) BTRAP(0xb) BTRAP(0xc) BTRAP(0xd) BTRAP(0xe) BTRAP(0xf)
 #if 0
                 BAD_TRAP(0x10)
 t_irq1:         TRAP_ENTRY_INTERRUPT(1)             /* IRQ Software/SBUS Level 1     */
@@ -80,7 +85,10 @@ t_irq10:        TRAP_ENTRY_INTERRUPT(10)            /* IRQ Timer #1 (one we use)
 t_irq14:        TRAP_ENTRY_INTERRUPT(14)            /* IRQ Timer #2                  */
                 BTRAP(0x1f)
 #endif
-                BTRAPS(0x20) BTRAPS(0x28)
+                BTRAPS(0x20)
+                BTRAP(0x28)
+                TRAP_DFAULT(0x29)
+                BTRAP(0x2a) BTRAP(0x2b) BTRAP(0x2c) BTRAP(0x2d) BTRAP(0x2e) BTRAP(0x2f)
                 BTRAPS(0x30) BTRAPS(0x38)
                 BTRAPS(0x40) BTRAPS(0x48)
                 BTRAPS(0x50) BTRAPS(0x58)
@@ -205,6 +213,30 @@ irq_entry14:
 /* Register window handlers */
 #include "wof.S"
 #include "wuf.S"
+
+/* Data fault handler */
+        .data
+        .align  4
+        .global ignore_dfault
+
+ignore_dfault:
+        .word   0
+
+        .text
+        .align  4
+
+handle_dfault:
+        /* If ignore_dfault is 0, fall through to normal exception handler */
+        sethi   %hi(ignore_dfault), %l4
+        ld      [%l4 + %lo(ignore_dfault)], %l4
+        tst     %l4
+        bz,a    bug
+         mov    %l7, %g1
+
+        /* Otherwise skip the faulting instruction and return */
+        jmp     %l2
+         rett   %l2 + 4
+
 
         .section .rodata
 _BUG_message_0:
