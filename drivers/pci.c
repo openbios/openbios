@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/ofmem.h"
 #include "kernel/kernel.h"
 #include "drivers/pci.h"
 #include "libc/byteorder.h"
@@ -25,6 +26,7 @@
 #include "drivers/drivers.h"
 #include "drivers/vga.h"
 #include "packages/video.h"
+#include "libopenbios/video.h"
 #include "timer.h"
 #include "pci.h"
 #include "pci_database.h"
@@ -138,6 +140,15 @@ static void dump_reg_property(const char* description, int nreg, u32 *reg)
     printk("\n");
 }
 #endif
+
+static unsigned long pci_bus_addr_to_host_addr(uint32_t ba)
+{
+#ifdef CONFIG_SPARC64
+    return arch->cfg_data + (unsigned long)ba;
+#else
+    return (unsigned long)ba;
+#endif
+}
 
 static void
 ob_pci_open(int *idx)
@@ -330,12 +341,50 @@ ob_pci_encode_unit(int *idx)
 	        ss, dev, fn, buf);
 }
 
+/* ( pci-addr.lo pci-addr.hi size -- virt ) */
+
+static void
+ob_pci_map_in(int *idx)
+{
+	phys_addr_t phys;
+	uint32_t ba;
+	ucell size, virt;
+
+	PCI_DPRINTF("ob_pci_bar_map_in idx=%p\n", idx);
+
+	size = POP();
+	POP();
+	ba = POP();
+
+	phys = pci_bus_addr_to_host_addr(ba);
+
+#if defined(CONFIG_OFMEM)
+	ofmem_claim_phys(phys, size, 0);
+
+#if defined(CONFIG_SPARC64)
+	/* Fix virtual address on SPARC64 somewhere else */
+	virt = ofmem_claim_virt(0xfe000000ULL, size, 0);
+#else
+	virt = ofmem_claim_virt(phys, size, 0);
+#endif
+
+	ofmem_map(phys, virt, size, ofmem_arch_io_translation_mode(phys));
+
+#else
+	virt = size;	/* Keep compiler quiet */
+	virt = phys;
+#endif
+
+	PUSH(virt);
+}
+
 NODE_METHODS(ob_pci_bus_node) = {
 	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
 	{ "decode-unit",	ob_pci_decode_unit	},
 	{ "encode-unit",	ob_pci_encode_unit	},
+	{ "pci-map-in",		ob_pci_map_in		},
 };
 
 NODE_METHODS(ob_pci_simple_node) = {
@@ -483,15 +532,6 @@ static void pci_host_set_ranges(const pci_config_t *config)
         ncells += pci_encode_size(props + ncells, arch->mem_len);
 	}
 	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
-}
-
-static unsigned long pci_bus_addr_to_host_addr(uint32_t ba)
-{
-#ifdef CONFIG_SPARC64
-    return arch->cfg_data + (unsigned long)ba;
-#else
-    return (unsigned long)ba;
-#endif
 }
 
 int host_config_cb(const pci_config_t *config)

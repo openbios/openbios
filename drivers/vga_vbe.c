@@ -98,12 +98,4 @@ void vga_vbe_init(const char *path, unsigned long fb, uint32_t fb_size,
 				     p + 8, size);
 		}
 	}
-
-#if defined(CONFIG_OFMEM) && defined(CONFIG_DRIVER_PCI)
-        size = ((VIDEO_DICT_VALUE(video.h) * VIDEO_DICT_VALUE(video.rb))  + 0xfff) & ~0xfff;
-
-	ofmem_claim_phys( video.mphys, size, 0 );
-	ofmem_claim_virt( VIDEO_DICT_VALUE(video.mvirt), size, 0 );
-	ofmem_map( video.mphys, VIDEO_DICT_VALUE(video.mvirt), size, ofmem_arch_io_translation_mode(video.mphys) );
-#endif
 }

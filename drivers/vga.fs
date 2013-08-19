@@ -108,6 +108,22 @@ h# 1 constant VBE_DISPI_ENABLED
 ;
 
 \
+\ PCI
+\
+
+" pci-bar>pci-region" (find-xt) value pci-bar>pci-region-xt
+: pci-bar>pci-region pci-bar>pci-region-xt execute ;
+
+h# 10 constant cfg-bar0    \ Framebuffer BAR
+-1 value fb-addr
+
+: map-fb ( -- )
+  cfg-bar0 pci-bar>pci-region   \ ( pci-addr.lo pci-addr.hi size )
+  " pci-map-in" $call-parent
+  to fb-addr
+;
+
+\
 \ Publically visible words
 \
 
@@ -167,23 +183,27 @@ headerless
 \
 
 : qemu-vga-driver-install ( -- )
-  openbios-video-addr to frame-buffer-adr
-  default-font set-font
+  fb-addr -1 = if
+    map-fb fb-addr to frame-buffer-adr
+    default-font set-font
 
-  frame-buffer-adr encode-int " address" property
+    frame-buffer-adr encode-int " address" property
+
+    openbios-video-width openbios-video-height over char-width / over char-height /
+    fb8-install
+  then
+;
+
+: qemu-vga-driver-init
+
+  vbe-init
   openbios-video-width encode-int " width" property
   openbios-video-height encode-int " height" property
   depth-bits encode-int " depth" property
   line-bytes encode-int " linebytes" property
 
-  openbios-video-width openbios-video-height over char-width / over char-height /
-  fb8-install
-;
-
-: qemu-vga-driver-init
-  vbe-init
   ['] qemu-vga-driver-install is-install
-  ;
+;
 
 qemu-vga-driver-init
 
