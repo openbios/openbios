@@ -35,6 +35,146 @@ fcode-version3
 : line-bytes line-bytes-xt @ ;
 
 \
+\ Registers
+\
+
+h# 0 constant tcx-off1
+h# 10000 constant /tcx-off1
+
+h# 200000 constant tcx-off-dac
+h# 4000 constant /tcx-off-dac-24
+h# 4 constant /tcx-off-dac-8
+
+h# 240000 constant tcx-off3
+h# 4000 constant /tcx-off3-24
+h# 4 constant /tcx-off3-8
+
+h# 280000 constant tcx-off4
+h# 8000 constant /tcx-off4-24
+h# 1 constant /tcx-off4-8
+
+h# 301000 constant tcx-off5-24
+h# 300000 constant tcx-off5-8
+h# 1000 constant /tcx-off5-24
+h# 81c constant /tcx-off5-8
+
+h# 700000 constant tcx-off6
+h# 1000 constant /tcx-off6
+
+h# 800000 constant tcx-off-fb
+h# 100000 constant /tcx-off-fb
+
+h# 2000000 constant tcx-off8
+h# 400000 constant /tcx-off8-24
+h# 1 constant /tcx-off8-8
+
+h# 4000000 constant tcx-off9
+h# 400000 constant /tcx-off9-24
+h# 1 constant /tcx-off9-8
+
+h# 6000000 constant tcx-off10
+h# 800000 constant /tcx-off10
+
+h# a000000 constant tcx-off11
+h# 400000 constant /tcx-off11-24
+h# 1 constant /tcx-off11-8
+
+h# c000000 constant tcx-off12
+h# 800000 constant /tcx-off12-24
+h# 1 constant /tcx-off12-8
+
+h# e000000 constant tcx-off13
+h# 800000 constant /tcx-off13-24
+h# 1 constant /tcx-off13-8
+
+: >tcx-reg-spec ( offset size -- encoded-reg )
+  >r 0 my-address d+ my-space encode-phys r> encode-int encode+
+;
+
+: tcx-8bit-reg
+  \ WARNING: order is important (at least to Solaris)
+  tcx-off-fb /tcx-off-fb >tcx-reg-spec
+  tcx-off8 /tcx-off8-8 >tcx-reg-spec encode+
+  tcx-off9 /tcx-off9-8 >tcx-reg-spec encode+
+  tcx-off10 /tcx-off10 >tcx-reg-spec encode+
+  tcx-off11 /tcx-off11-8 >tcx-reg-spec encode+
+  tcx-off12 /tcx-off12-8 >tcx-reg-spec encode+
+  tcx-off13 /tcx-off13-8 >tcx-reg-spec encode+
+  tcx-off6 /tcx-off6 >tcx-reg-spec encode+
+  tcx-off-dac /tcx-off-dac-8 >tcx-reg-spec encode+
+  tcx-off5-8 /tcx-off5-8 >tcx-reg-spec encode+
+  tcx-off1 /tcx-off1 >tcx-reg-spec encode+
+  tcx-off3 /tcx-off3-8 >tcx-reg-spec encode+
+  tcx-off4 /tcx-off4-8 >tcx-reg-spec encode+
+  " reg" property
+;
+
+: tcx-24bit-reg
+  \ WARNING: order is important (at least to Solaris)
+  tcx-off-fb /tcx-off-fb >tcx-reg-spec
+  tcx-off8 /tcx-off8-24 >tcx-reg-spec encode+
+  tcx-off9 /tcx-off9-24 >tcx-reg-spec encode+
+  tcx-off10 /tcx-off10 >tcx-reg-spec encode+
+  tcx-off11 /tcx-off11-24 >tcx-reg-spec encode+
+  tcx-off12 /tcx-off12-24 >tcx-reg-spec encode+
+  tcx-off13 /tcx-off13-24 >tcx-reg-spec encode+
+  tcx-off6 /tcx-off6 >tcx-reg-spec encode+
+  tcx-off-dac /tcx-off-dac-24 >tcx-reg-spec encode+
+  tcx-off5-24 /tcx-off5-24 >tcx-reg-spec encode+
+  tcx-off1 /tcx-off1 >tcx-reg-spec encode+
+  tcx-off3 /tcx-off3-24 >tcx-reg-spec encode+
+  tcx-off4 /tcx-off4-24 >tcx-reg-spec encode+
+  " reg" property
+;
+
+: do-map-in ( offset size -- virt )
+  >r my-space r> " map-in" $call-parent
+;
+
+: do-map-out ( virt size )
+  " map-out" $call-parent
+;
+
+\
+\ DAC
+\
+
+-1 value tcx-dac
+-1 value /tcx-dac
+
+: dac! ( data reg# -- )
+  >r dup 2dup bljoin r> tcx-dac + l!
+;
+
+: color!  ( r g b c# -- )
+  0 dac!       ( r g b )
+  swap rot     ( b g r )
+  4 dac!       ( b g )
+  4 dac!       ( b )
+  4 dac!       (  )
+;
+
+\
+\ Mapping
+\
+
+: dac-map
+  tcx-off-dac /tcx-dac do-map-in to tcx-dac
+;
+
+: map-regs
+  dac-map
+;
+
+external
+
+: hw-set-color
+  color!
+;
+
+headerless
+
+\
 \ Installation
 \
 
@@ -42,13 +182,35 @@ fcode-version3
 " display" device-type
 
 : qemu-tcx-driver-install ( -- )
-  openbios-video-addr to frame-buffer-adr
-  default-font set-font
-  openbios-video-width openbios-video-height over char-width / over char-height /
-  fb8-install
+  tcx-dac -1 = if
+    map-regs
+    openbios-video-addr to frame-buffer-adr
+    default-font set-font
+
+    frame-buffer-adr encode-int " address" property
+
+    openbios-video-width openbios-video-height over char-width / over char-height /
+    fb8-install
+  then
 ;
 
 : qemu-tcx-driver-init
+
+  \ Handle differences between 8-bit/24-bit mode
+  depth-bits 8 = if
+    tcx-8bit-reg
+    /tcx-off-dac-8 to /tcx-dac
+    " true" encode-string " tcx-8-bit" property
+  else
+    tcx-24bit-reg
+    /tcx-off-dac-24 to /tcx-dac
+
+    \ Even with a 24-bit enabled TCX card, the control plane is
+    \ used in 8-bit mode. So force the video subsystem into 8-bit
+    \ mode before initialisation.
+    8 depth-bits-xt !
+    openbios-video-width line-bytes-xt !
+  then
 
   h# 1d encode-int " vbporch" property
   h# a0 encode-int " hbporch" property
