@@ -17,7 +17,6 @@
   <object source="obio.c"   condition="DRIVER_OBIO"/>
   <object source="vga_load_regs.c" condition="DRIVER_VGA"/>
   <object source="vga_set_mode.c" condition="DRIVER_VGA"/>
-  <object source="vga_vbe.c" condition="DRIVER_VGA"/>
   <object source="macio.c" condition="DRIVER_MACIO"/>
   <object source="pc_kbd.c" condition="DRIVER_PC_KBD"/>
   <object source="pc_serial.c" condition="DRIVER_PC_SERIAL"/>
