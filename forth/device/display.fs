@@ -356,6 +356,14 @@ defer fb8-invertrect
 
   my-self to display-ih
 
+  \ set /chosen display property
+  my-self active-package 0 to my-self
+  " /chosen" (find-dev) 0<> if
+    active-package!
+    display-ih encode-int " display" property
+  then
+  active-package! to my-self
+
   \ set defer functions to 8bit versions
 
   ['] fb8-draw-character to draw-character

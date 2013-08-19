@@ -748,7 +748,6 @@ static void setup_stdio(void)
 {
     char nographic;
     const char *stdin, *stdout;
-    phandle_t chosen;
 
     fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
     if (nographic) {
@@ -763,31 +762,6 @@ static void setup_stdio(void)
         stdout = "screen";
     }
 
-    push_str("/");
-    fword("find-device");
-
-    push_str(stdin);
-    fword("pathres-resolve-aliases");
-    fword("encode-string");
-    push_str("stdin-path");
-    fword("property");
-
-    push_str(stdout);
-    fword("pathres-resolve-aliases");
-    fword("encode-string");
-    push_str("stdout-path");
-    fword("property");
-
-    chosen = find_dev("/chosen");
-    push_str(stdin);
-    fword("open-dev");
-    set_int_property(chosen, "stdin", POP());
-
-    chosen = find_dev("/chosen");
-    push_str(stdout);
-    fword("open-dev");
-    set_int_property(chosen, "stdout", POP());
-
     push_str(stdin);
     push_str("input-device");
     fword("$setenv");
@@ -795,9 +769,6 @@ static void setup_stdio(void)
     push_str(stdout);
     push_str("output-device");
     fword("$setenv");
-
-    push_str(stdin);
-    fword("input");
 
     obp_stdin_path = stdin;
     obp_stdout_path = stdout;

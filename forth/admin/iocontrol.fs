@@ -36,6 +36,19 @@ variable stdin
     close-dev
   then
   stdin !
+
+  \ update /chosen
+  " /chosen" find-package if
+    >r stdin @ encode-int " stdin" r> (property)
+  then
+
+[IFDEF] CONFIG_SPARC32
+  \ update stdin-path properties
+  \ (this isn't part of the IEEE1275 spec but needed by older Solaris)
+  " /" find-package if
+    >r stdin @ get-instance-path encode-string " stdin-path" r> (property)
+  then
+[THEN]
 ;
 
 : output    ( dev-str dev-len -- )
@@ -57,6 +70,19 @@ variable stdin
   \ close old stdout
   stdout @ ?dup if close-dev then
   stdout !
+
+  \ update /chosen
+  " /chosen" find-package if
+    >r stdout @ encode-int " stdout" r> (property)
+  then
+
+[IFDEF] CONFIG_SPARC32
+  \ update stdout-path properties
+  \ (this isn't part of the IEEE1275 spec but needed by older Solaris)
+  " /" find-package if
+    >r stdout @ get-instance-path encode-string " stdout-path" r> (property)
+  then
+[THEN]
 ;
 
 : io    ( dev-str dev-len -- )
