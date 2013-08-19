@@ -20,28 +20,38 @@ hex
 
 \ 5.3.7.1 Peek/poke 
 
+defer (peek)
+:noname
+  execute true
+; to (peek)
+
 : cpeek    ( addr -- false | byte true )
-  c@ true
+  ['] c@ (peek)
   ;
 
 : wpeek    ( waddr -- false | w true )
-  w@ true
+  ['] w@ (peek)
   ;
 
 : lpeek    ( qaddr -- false | quad true )
-  l@ true
+  ['] l@ (peek)
   ;
   
+defer (poke)
+:noname
+  execute true
+; to (poke)
+
 : cpoke    ( byte addr -- okay? )
-  c! true
+  ['] c! (poke)
   ;
   
 : wpoke    ( w waddr -- okay? )
-  w! true
+  ['] w! (poke)
   ;
   
 : lpoke    ( quad qaddr -- okay? )
-  l! true
+  ['] l! (poke)
   ;
 
 
