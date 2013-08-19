@@ -31,6 +31,7 @@
  </dictionary>
 
  <fcode source="tcx.fs" name="QEMU,tcx.bin" condition="DRIVER_SBUS" />
+ <fcode source="cgthree.fs" name="QEMU,cgthree.bin" condition="DRIVER_SBUS" />
  <fcode source="vga.fs" name="QEMU,VGA.bin" condition="DRIVER_VGA" />
 
 </build>

@@ -4,6 +4,7 @@
   <object source="tree.fs" target="forth"/>
   <object source="init.fs" target="forth"/>
   <object source="QEMU,tcx.bin" target="fcode" condition="DRIVER_SBUS"/>
+  <object source="QEMU,cgthree.bin" target="fcode" condition="DRIVER_SBUS"/>
  </dictionary>
 
  <library name="sparc32" type="static" target="target">
