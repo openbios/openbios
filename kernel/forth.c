@@ -1787,7 +1787,7 @@ static void iocstore(void)
 	cell reg = POP();
 	cell val = POP();
 
-	outb(reg, val);
+	outb(val, reg);
 #else
         (void)POP();
         (void)POP();
@@ -1805,7 +1805,7 @@ static void iowstore(void)
 	cell reg = POP();
 	cell val = POP();
 
-	outw(reg, val);
+	outw(val, reg);
 #else
         (void)POP();
         (void)POP();
@@ -1823,7 +1823,7 @@ static void iolstore(void)
 	ucell reg = POP();
 	ucell val = POP();
 
-	outl(reg, val);
+	outl(val, reg);
 #else
         (void)POP();
         (void)POP();
