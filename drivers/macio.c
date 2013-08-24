@@ -35,7 +35,7 @@
 static char *nvram;
 
 int
-arch_nvram_size( void )
+macio_get_nvram_size(void)
 {
         if (is_oldworld())
                 return OW_IO_NVRAM_SIZE >> OW_IO_NVRAM_SHIFT;
@@ -120,7 +120,7 @@ dump_nvram(void)
 
 
 void
-arch_nvram_put( char *buf )
+macio_nvram_put(char *buf)
 {
 	int i;
         unsigned int it_shift;
@@ -139,7 +139,7 @@ arch_nvram_put( char *buf )
 }
 
 void
-arch_nvram_get( char *buf )
+macio_nvram_get(char *buf)
 {
 	int i;
         unsigned int it_shift;

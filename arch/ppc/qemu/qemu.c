@@ -76,3 +76,31 @@ printk( const char *fmt, ... )
 	}
 	return i;
 }
+
+int arch_nvram_size(void)
+{
+    if (is_apple()) {
+        return macio_get_nvram_size();
+    } else {
+        // not implemented
+    }
+    return 0;
+}
+
+void arch_nvram_put(char *buf)
+{
+    if (is_apple()) {
+        macio_nvram_put(buf);
+    } else {
+        // not implemented
+    }
+}
+
+void arch_nvram_get(char *buf)
+{
+    if (is_apple()) {
+        macio_nvram_get(buf);
+    } else {
+        // not implemented
+    }
+}

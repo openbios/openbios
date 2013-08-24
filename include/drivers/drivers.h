@@ -122,6 +122,9 @@ int keyboard_dataready(void);
 unsigned char keyboard_readdata(void);
 #endif
 #endif
+int macio_get_nvram_size(void);
+void macio_nvram_put(char *buf);
+void macio_nvram_get(char *buf);
 
 /* drivers/timer.c */
 void setup_timers(void);
