@@ -143,11 +143,7 @@ static void dump_reg_property(const char* description, int nreg, u32 *reg)
 
 static unsigned long pci_bus_addr_to_host_addr(uint32_t ba)
 {
-#ifdef CONFIG_SPARC64
-    return arch->cfg_data + (unsigned long)ba;
-#else
-    return (unsigned long)ba;
-#endif
+    return arch->host_pci_base + (unsigned long)ba;
 }
 
 static void
@@ -525,11 +521,12 @@ static void pci_host_set_ranges(const pci_config_t *config)
         ncells += host_encode_phys_addr(props + ncells, arch->rbase);
         ncells += pci_encode_size(props + ncells, arch->rlen);
 	}
-	if (arch->host_mem_base) {
+	if (arch->pci_mem_base) {
 	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
 				     config->dev, 0, arch->pci_mem_base);
-        ncells += host_encode_phys_addr(props + ncells, arch->host_mem_base);
-        ncells += pci_encode_size(props + ncells, arch->mem_len);
+        ncells += host_encode_phys_addr(props + ncells, arch->host_pci_base +
+				     arch->pci_mem_base);
+	ncells += pci_encode_size(props + ncells, arch->mem_len);
 	}
 	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
 }

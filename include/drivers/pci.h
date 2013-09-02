@@ -13,7 +13,7 @@ struct pci_arch_t {
 	unsigned long cfg_data;
 	unsigned long cfg_base;
 	unsigned long cfg_len;
-	unsigned long host_mem_base; /* in host memory space */
+	unsigned long host_pci_base; /* offset of PCI memory space within host memory space */
 	unsigned long pci_mem_base; /* in PCI memory space */
 	unsigned long mem_len;
 	unsigned long io_base;
