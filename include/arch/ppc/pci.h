@@ -12,7 +12,7 @@
 /* PCI Configuration Mechanism #1 */
 
 #define PCI_ADDR(bus, dev, fn) \
-    ((pci_addr) (arch->cfg_base \
+    ((pci_addr) (0x80000000u \
 		| (uint32_t) (bus) << 16 \
 		| (uint32_t) (dev) << 11 \
 		| (uint32_t) (fn) << 8))
@@ -41,7 +41,7 @@ static inline uint32_t pci_config_read32(pci_addr dev, uint8_t reg)
 {
 	uint32_t res;
 	out_le32((unsigned *)arch->cfg_addr, dev | reg);
-	res = in_le32((unsigned *)(arch->cfg_data + reg));
+	res = in_le32((unsigned *)(arch->cfg_data));
 	return res;
 }
 
@@ -60,7 +60,7 @@ static inline void pci_config_write16(pci_addr dev, uint8_t reg, uint16_t val)
 static inline void pci_config_write32(pci_addr dev, uint8_t reg, uint32_t val)
 {
 	out_le32((unsigned *)arch->cfg_addr, dev | reg);
-	out_le32((unsigned *)(arch->cfg_data + reg), val);
+	out_le32((unsigned *)(arch->cfg_data), val);
 }
 #else /* !PCI_CONFIG_1 */
 #error PCI Configuration Mechanism is not specified or implemented
