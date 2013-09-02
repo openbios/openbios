@@ -336,7 +336,7 @@ static const pci_dev_t hbrg_devices[] = {
     },
     {
         PCI_VENDOR_ID_MOTOROLA, PCI_DEVICE_ID_MOTOROLA_RAVEN, NULL,
-        "pci-bridge", "PREP Host PCI Bridge - Motorola Raven", NULL,
+        "pci", "PREP Host PCI Bridge - Motorola Raven", NULL,
         3, 2, 1,
         host_config_cb, NULL,
     },
