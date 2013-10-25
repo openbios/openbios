@@ -9,6 +9,7 @@
 #include "kernel/kernel.h"
 #include "drivers/drivers.h"
 #include "openbios.h"
+#include "libopenbios/console.h"
 #include "libopenbios/ofmem.h"
 #include "libopenbios/video.h"
 
@@ -18,7 +19,7 @@
  *      common functions, implementing simple concurrent console
  * ****************************************************************** */
 
-int putchar(int c)
+static int arch_putchar(int c)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	serial_putchar(c);
@@ -26,7 +27,7 @@ int putchar(int c)
 	return c;
 }
 
-int availchar(void)
+static int arch_availchar(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	if (uart_charav(CONFIG_SERIAL_PORT))
@@ -39,7 +40,7 @@ int availchar(void)
 	return 0;
 }
 
-int getchar(void)
+static int arch_getchar(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	if (uart_charav(CONFIG_SERIAL_PORT))
@@ -51,5 +52,11 @@ int getchar(void)
 #endif
 	return 0;
 }
+
+struct _console_ops arch_console_ops = {
+	.putchar = arch_putchar,
+	.availchar = arch_availchar,
+	.getchar = arch_getchar
+};
 
 #endif				// CONFIG_DEBUG_CONSOLE

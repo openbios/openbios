@@ -23,6 +23,7 @@
 #include "config.h"
 #include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/console.h"
 #include "drivers/pci.h"
 #include "arch/common/nvram.h"
 #include "drivers/drivers.h"
@@ -162,6 +163,8 @@ static const pci_arch_t known_arch[] = {
 };
 unsigned long isa_io_base;
 
+extern struct _console_ops mac_console_ops;
+
 void
 entry(void)
 {
@@ -183,6 +186,10 @@ entry(void)
     }
 
     isa_io_base = arch->io_base;
+
+#ifdef CONFIG_DEBUG_CONSOLE
+    init_console(mac_console_ops);
+#endif
 
     if (temp != 1) {
         printk("Incompatible configuration device version, freezing\n");

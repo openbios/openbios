@@ -9,6 +9,7 @@
 #include "config.h"
 #include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/console.h"
 #include "drivers/drivers.h"
 #include "dict.h"
 #include "arch/common/nvram.h"
@@ -577,6 +578,8 @@ arch_init( void )
 
 unsigned long isa_io_base;
 
+extern struct _console_ops arch_console_ops;
+
 int openbios(void)
 {
         unsigned int i;
@@ -598,6 +601,7 @@ int openbios(void)
             for(;;); // Internal inconsistency, hang
 
 #ifdef CONFIG_DEBUG_CONSOLE
+        init_console(arch_console_ops);
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);
 #endif

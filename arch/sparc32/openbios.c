@@ -9,6 +9,7 @@
 #include "config.h"
 #include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/console.h"
 #include "drivers/drivers.h"
 #include "asm/types.h"
 #include "dict.h"
@@ -913,6 +914,8 @@ arch_init( void )
         setup_uuid();
 }
 
+extern struct _console_ops arch_console_ops;
+
 int openbios(void)
 {
         unsigned int i;
@@ -927,6 +930,9 @@ int openbios(void)
         if (!hwdef)
             for(;;); // Internal inconsistency, hang
 
+#ifdef CONFIG_DEBUG_CONSOLE
+        init_console(arch_console_ops);
+#endif
         /* Make sure we setup OFMEM before the MMU as we need malloc() to setup page tables */
         ofmem_init();
 

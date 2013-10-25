@@ -9,6 +9,7 @@
 #include "config.h"
 #include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/console.h"
 #include "asm/types.h"
 #include "dict.h"
 #include "kernel/kernel.h"
@@ -75,9 +76,12 @@ arch_init( void )
 	bind_func("(go)", go );
 }
 
+extern struct _console_ops arch_console_ops;
+
 int openbios(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE
+	init_console(arch_console_ops);
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);
 #endif

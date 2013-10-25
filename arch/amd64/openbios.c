@@ -50,9 +50,12 @@ arch_init( void )
 	bind_func("platform-boot", boot );
 }
 
+extern struct _console_ops arch_console_ops;
+
 int openbios(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE
+	init_console(arch_console_ops);
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
 	uart_init(CONFIG_SERIAL_PORT, CONFIG_SERIAL_SPEED);
 #endif
