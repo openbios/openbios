@@ -163,7 +163,7 @@ static const pci_arch_t known_arch[] = {
 };
 unsigned long isa_io_base;
 
-extern struct _console_ops mac_console_ops;
+extern struct _console_ops mac_console_ops, prep_console_ops;
 
 void
 entry(void)
@@ -188,7 +188,11 @@ entry(void)
     isa_io_base = arch->io_base;
 
 #ifdef CONFIG_DEBUG_CONSOLE
-    init_console(mac_console_ops);
+    if (is_apple()) {
+        init_console(mac_console_ops);
+    } else {
+        init_console(prep_console_ops);
+    }
 #endif
 
     if (temp != 1) {
@@ -658,6 +662,11 @@ arch_of_init(void)
 
     ofmem_t *ofmem = ofmem_arch_get_private();
 
+    if (!is_apple()) {
+        /* Initialise PReP serial port */
+        ob_pc_serial_init("", "serial", arch->io_base, 0x3f8ULL, 0);
+    }
+
     openbios_init();
     modules_init();
     setup_timers();
@@ -823,12 +832,17 @@ arch_of_init(void)
 #endif
 
     if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
-        if (CONFIG_SERIAL_PORT) {
-           stdin_path = "scca";
-           stdout_path = "scca";
+        if (is_apple()) {
+            if (CONFIG_SERIAL_PORT) {
+                stdin_path = "scca";
+                stdout_path = "scca";
+            } else {
+                stdin_path = "sccb";
+                stdout_path = "sccb";
+            }
         } else {
-           stdin_path = "sccb";
-           stdout_path = "sccb";
+            stdin_path = "/serial";
+            stdout_path = "/serial";
         }
 
         /* Some bootloaders force the output to the screen device, so

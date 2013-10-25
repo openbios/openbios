@@ -22,6 +22,7 @@
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
 #include "kernel.h"
+#include "drivers/drivers.h"
 #include "libopenbios/ofmem.h"
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
@@ -78,5 +79,7 @@ boot( void )
 	        check_preloaded_kernel();
 	}
 
-	update_nvram();
+	if (is_apple()) {
+		update_nvram();
+	}
 }
