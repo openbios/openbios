@@ -24,7 +24,7 @@
 static int mac_putchar(int c)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-        serial_putchar(c);
+	escc_uart_putchar(c & 0xff);
 #endif
         return c;
 }
@@ -32,7 +32,7 @@ static int mac_putchar(int c)
 static int mac_availchar(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	if (uart_charav(CONFIG_SERIAL_PORT))
+	if (escc_uart_charav(CONFIG_SERIAL_PORT))
         	return 1;
 #endif
         return 0;
@@ -41,8 +41,8 @@ static int mac_availchar(void)
 static int mac_getchar(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	if (uart_charav(CONFIG_SERIAL_PORT))
-		return (uart_getchar(CONFIG_SERIAL_PORT));
+	if (escc_uart_charav(CONFIG_SERIAL_PORT))
+		return (escc_uart_getchar(CONFIG_SERIAL_PORT));
 #endif
         return 0;
 }

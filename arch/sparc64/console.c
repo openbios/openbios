@@ -28,7 +28,7 @@
 static int arch_putchar(int c)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	serial_putchar(c);
+	uart_putchar(c);
 #endif
 	return c;
 }

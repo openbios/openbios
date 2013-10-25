@@ -22,7 +22,7 @@
 static int arch_putchar(int c)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	serial_putchar(c);
+	escc_uart_putchar(c);
 #endif
 	return c;
 }
@@ -30,7 +30,7 @@ static int arch_putchar(int c)
 static int arch_availchar(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	if (uart_charav(CONFIG_SERIAL_PORT))
+	if (escc_uart_charav(CONFIG_SERIAL_PORT))
 		return 1;
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
@@ -43,8 +43,8 @@ static int arch_availchar(void)
 static int arch_getchar(void)
 {
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	if (uart_charav(CONFIG_SERIAL_PORT))
-		return (uart_getchar(CONFIG_SERIAL_PORT));
+	if (escc_uart_charav(CONFIG_SERIAL_PORT))
+		return (escc_uart_getchar(CONFIG_SERIAL_PORT));
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
 	if (keyboard_dataready())

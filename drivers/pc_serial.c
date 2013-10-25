@@ -40,10 +40,10 @@ char uart_getchar(int port)
 	return ((char) inb(RBR(port)) & 0177);
 }
 
-static void uart_putchar(int port, unsigned char c)
+static void uart_port_putchar(int port, unsigned char c)
 {
 	if (c == '\n')
-		uart_putchar(port, '\r');
+		uart_port_putchar(port, '\r');
 	while (!(inb(LSR(port)) & 0x20));
 	outb(c, THR(port));
 }
@@ -91,9 +91,9 @@ int uart_init(int port, unsigned long speed)
 	return -1;
 }
 
-void serial_putchar(int c)
+void uart_putchar(int c)
 {
-	uart_putchar(CONFIG_SERIAL_PORT, (unsigned char) (c & 0xff));
+	uart_port_putchar(CONFIG_SERIAL_PORT, (unsigned char) (c & 0xff));
 }
 #endif
 
@@ -129,7 +129,7 @@ pc_serial_write(unsigned long *address)
     addr = (unsigned char *)POP();
 
      for (i = 0; i < len; i++) {
-        uart_putchar(*address, addr[i]);
+        uart_port_putchar(*address, addr[i]);
     }
     PUSH(len);
 }

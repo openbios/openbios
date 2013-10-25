@@ -11,7 +11,7 @@
  *                       serial console functions
  * ****************************************************************** */
 
-static volatile unsigned char *serial_dev;
+static volatile unsigned char *escc_serial_dev;
 
 #define CTRL(addr) (*(volatile unsigned char *)(uintptr_t)(addr))
 #ifdef CONFIG_DRIVER_ESCC_SUN
@@ -54,25 +54,25 @@ static volatile unsigned char *serial_dev;
 #define Rx_CH_AV        0x1     /* Rx Character Available */
 #define Tx_BUF_EMP      0x4     /* Tx Buffer empty */
 
-int uart_charav(uintptr_t port)
+int escc_uart_charav(uintptr_t port)
 {
     return (CTRL(port) & Rx_CH_AV) != 0;
 }
 
-char uart_getchar(uintptr_t port)
+char escc_uart_getchar(uintptr_t port)
 {
-    while (!uart_charav(port))
+    while (!escc_uart_charav(port))
         ;
     return DATA(port) & 0177;
 }
 
-static void uart_putchar(uintptr_t port, unsigned char c)
+static void escc_uart_port_putchar(uintptr_t port, unsigned char c)
 {
-    if (!serial_dev)
+    if (!escc_serial_dev)
         return;
 
     if (c == '\n')
-        uart_putchar(port, '\r');
+        escc_uart_port_putchar(port, '\r');
     while (!(CTRL(port) & Tx_BUF_EMP))
         ;
     DATA(port) = c;
@@ -102,31 +102,31 @@ static void uart_init_line(volatile unsigned char *port, unsigned long baud)
 
 }
 
-int uart_init(phys_addr_t port, unsigned long speed)
+int escc_uart_init(phys_addr_t port, unsigned long speed)
 {
 #ifdef CONFIG_DRIVER_ESCC_SUN
-    serial_dev = (unsigned char *)ofmem_map_io(port & ~7ULL, ZS_REGS);
-    serial_dev += port & 7ULL;
+    escc_serial_dev = (unsigned char *)ofmem_map_io(port & ~7ULL, ZS_REGS);
+    escc_serial_dev += port & 7ULL;
 #else
-    serial_dev = (unsigned char *)(uintptr_t)port;
+    escc_serial_dev = (unsigned char *)(uintptr_t)port;
 #endif
-    uart_init_line(serial_dev, speed);
+    uart_init_line(escc_serial_dev, speed);
     return -1;
 }
 
-void serial_putchar(int c)
+void escc_uart_putchar(int c)
 {
-    uart_putchar((uintptr_t)serial_dev, (unsigned char) (c & 0xff));
+    escc_uart_port_putchar((uintptr_t)escc_serial_dev, (unsigned char) (c & 0xff));
 }
 
 void serial_cls(void)
 {
-    serial_putchar(27);
-    serial_putchar('[');
-    serial_putchar('H');
-    serial_putchar(27);
-    serial_putchar('[');
-    serial_putchar('J');
+    escc_uart_putchar(27);
+    escc_uart_putchar('[');
+    escc_uart_putchar('H');
+    escc_uart_putchar(27);
+    escc_uart_putchar('[');
+    escc_uart_putchar('J');
 }
 
 /* ( addr len -- actual ) */
@@ -142,8 +142,8 @@ escc_read(ucell *address)
     if (len < 1)
         printk("escc_read: bad len, addr %p len %x\n", addr, len);
 
-    if (uart_charav(*address)) {
-        *addr = (char)uart_getchar(*address);
+    if (escc_uart_charav(*address)) {
+        *addr = (char)escc_uart_getchar(*address);
         PUSH(1);
     } else {
         PUSH(0);
@@ -161,7 +161,7 @@ escc_write(ucell *address)
     addr = (unsigned char *)cell2pointer(POP());
 
     for (i = 0; i < len; i++) {
-        uart_putchar(*address, addr[i]);
+        escc_uart_port_putchar(*address, addr[i]);
     }
     PUSH(len);
 }
@@ -194,7 +194,7 @@ escc_open(ucell *address)
         free(args);
     }
 #else
-    *address = (unsigned long)serial_dev; // XXX
+    *address = (unsigned long)escc_serial_dev; // XXX
 #endif
     RET ( -1 );
 }
@@ -470,7 +470,7 @@ escc_init(const char *path, phys_addr_t addr)
     escc_add_channel(buf, "a", addr, 1);
     escc_add_channel(buf, "b", addr, 0);
 
-    serial_dev = (unsigned char *)addr + IO_ESCC_OFFSET +
+    escc_serial_dev = (unsigned char *)addr + IO_ESCC_OFFSET +
                  (CONFIG_SERIAL_PORT ? 0 : 0x20);
 }
 #endif

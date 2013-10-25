@@ -109,13 +109,13 @@ void ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
 int uart_init(int port, unsigned long speed);
 int uart_charav(int port);
 char uart_getchar(int port);
-void serial_putchar(int c);
+void uart_putchar(int c);
 #endif
 #ifdef CONFIG_DRIVER_ESCC
-int uart_init(phys_addr_t port, unsigned long speed);
-int uart_charav(uintptr_t port);
-char uart_getchar(uintptr_t port);
-void serial_putchar(int c);
+int escc_uart_init(phys_addr_t port, unsigned long speed);
+int escc_uart_charav(uintptr_t port);
+char escc_uart_getchar(uintptr_t port);
+void escc_uart_putchar(int c);
 void serial_cls(void);
 #ifdef CONFIG_DRIVER_ESCC_SUN
 int keyboard_dataready(void);

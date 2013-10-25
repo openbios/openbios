@@ -941,7 +941,7 @@ int openbios(void)
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE
 #ifdef CONFIG_DEBUG_CONSOLE_SERIAL
-	uart_init(hwdef->serial_base | (CONFIG_SERIAL_PORT? 0ULL: 4ULL),
+	escc_uart_init(hwdef->serial_base | (CONFIG_SERIAL_PORT? 0ULL: 4ULL),
                   CONFIG_SERIAL_SPEED);
 #endif
 #ifdef CONFIG_DEBUG_CONSOLE_VIDEO
