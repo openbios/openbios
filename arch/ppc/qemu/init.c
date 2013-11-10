@@ -662,11 +662,6 @@ arch_of_init(void)
 
     ofmem_t *ofmem = ofmem_arch_get_private();
 
-    if (!is_apple()) {
-        /* Initialise PReP serial port */
-        ob_pc_serial_init("", "serial", arch->io_base, 0x3f8ULL, 0);
-    }
-
     openbios_init();
     modules_init();
     setup_timers();
@@ -841,8 +836,8 @@ arch_of_init(void)
                 stdout_path = "sccb";
             }
         } else {
-            stdin_path = "/serial";
-            stdout_path = "/serial";
+            stdin_path = "ttya";
+            stdout_path = "ttya";
         }
 
         /* Some bootloaders force the output to the screen device, so
