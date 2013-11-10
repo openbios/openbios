@@ -9,6 +9,7 @@
   <option name="CONFIG_DEBUG_CONSOLE" type="boolean" value="true"/>
   <option name="CONFIG_DEBUG_CONSOLE_SERIAL" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_PC_SERIAL" type="boolean" value="true"/>
+  <option name="CONFIG_DRIVER_PC_KBD" type="boolean" value="true"/>
   <option name="CONFIG_SERIAL_PORT" type="integer" value="0"/>
   <option name="CONFIG_SERIAL_SPEED" type="integer" value="115200"/>
   <option name="CONFIG_DEBUG_CONSOLE_VGA" type="boolean" value="true"/>
