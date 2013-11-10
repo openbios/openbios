@@ -37,6 +37,7 @@ extern int host_config_cb(const pci_config_t *config);
 extern int sabre_config_cb(const pci_config_t *config);
 extern int bridge_config_cb(const pci_config_t *config);
 extern int ebus_config_cb(const pci_config_t *config);
+extern int i82378_config_cb(const pci_config_t *config);
 
 static inline int pci_compat_len(const pci_dev_t *dev)
 {

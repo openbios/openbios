@@ -868,6 +868,11 @@ int ebus_config_cb(const pci_config_t *config)
     return 0;
 }
 
+int i82378_config_cb(const pci_config_t *config)
+{
+    return 0;
+}
+
 static void ob_pci_add_properties(phandle_t phandle,
                                   pci_addr addr, const pci_dev_t *pci_dev,
                                   const pci_config_t *config, int num_bars)
