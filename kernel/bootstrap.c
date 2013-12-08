@@ -1008,6 +1008,7 @@ encode_file( const char *name )
 	PUSH( pointer2cell(dict + dicthead) );
 	PUSH( size );
 	dicthead += size;
+	paddict(sizeof(cell));
 }
 
 
