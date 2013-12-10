@@ -79,6 +79,8 @@ crosscflags()
          -o "$target" = "alpha"; then
         if test "$host" = "x86"; then
             cflags="$cflags -DNEED_FAKE_INT128_T"
+        elif test "$host" = "arm"; then
+            cflags="$cflags -DNEED_FAKE_INT128_T"
         elif test "$host" = "ppc" -a `uname -s` = "Darwin"; then
             cflags="$cflags -DNEED_FAKE_INT128_T"
         fi
