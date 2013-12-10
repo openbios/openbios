@@ -98,10 +98,15 @@ void go(void)
 		fword("my-args");
 		id = pop_fstr_copy();
 
-		snprintf(buf, sizeof(buf), "sd(0,%d,%d):%c", target, device, id[0]);
+		if (id != NULL) {
+			snprintf(buf, sizeof(buf), "sd(0,%d,%d):%c", target, device, id[0]);
+			obp_arg.dev_partition = id[0] - 'a';
+		} else {
+			snprintf(buf, sizeof(buf), "sd(0,%d,%d)", target, device);
+			obp_arg.dev_partition = 0;
+		}
 
 		obp_arg.boot_dev_unit = target;
-		obp_arg.dev_partition = id[0] - 'a';
 
 		obp_arg.boot_dev[0] = buf[0];
 		obp_arg.boot_dev[1] = buf[1];
