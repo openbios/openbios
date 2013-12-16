@@ -127,9 +127,6 @@ extern phys_addr_t ofmem_translate( ucell virt, ucell *ret_mode );
 extern phandle_t s_phandle_memory;
 extern phandle_t s_phandle_mmu;
 
-/* Currently the same for all architectures */
-#define PAGE_SHIFT   12
-
 #define PAGE_SIZE    (1 << PAGE_SHIFT)
 #define PAGE_MASK    (~(PAGE_SIZE - 1))
 #define PAGE_ALIGN(addr)  (((addr) + PAGE_SIZE - 1) & PAGE_MASK)

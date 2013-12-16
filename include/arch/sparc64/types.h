@@ -85,6 +85,8 @@ typedef __uint128_t    ducell;
 
 #define BITS		64
 
+#define PAGE_SHIFT	12
+
 /* size named types */
 
 typedef unsigned char   u8;

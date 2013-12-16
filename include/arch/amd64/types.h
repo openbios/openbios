@@ -50,6 +50,8 @@ typedef uint64_t        prom_uarg_t;
 
 #define BITS		64
 
+#define PAGE_SHIFT	12
+
 /* size named types */
 
 typedef unsigned char   u8;
