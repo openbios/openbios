@@ -85,7 +85,7 @@ typedef __uint128_t    ducell;
 
 #define BITS		64
 
-#define PAGE_SHIFT	12
+#define PAGE_SHIFT	13
 
 /* size named types */
 
