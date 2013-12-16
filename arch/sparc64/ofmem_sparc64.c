@@ -29,6 +29,7 @@ static union {
 #define OFMEM      	(&s_ofmem_data.ofmem)
 #define TOP_OF_RAM 	(s_ofmem_data.memory + MEMSIZE)
 
+static retain_t s_retained;
 translation_t **g_ofmem_translations = &s_ofmem_data.ofmem.trans;
 
 ucell *va2ttedata = 0;
@@ -41,7 +42,7 @@ static inline size_t ALIGN_SIZE(size_t x, size_t a)
 
 static ucell get_heap_top( void )
 {
-	return (ucell)(TOP_OF_RAM - ALIGN_SIZE(sizeof(retain_t), 8));
+	return (ucell)TOP_OF_RAM;
 }
 
 ofmem_t* ofmem_arch_get_private(void)
@@ -85,8 +86,7 @@ ucell ofmem_arch_get_iomem_top(void)
 
 retain_t *ofmem_arch_get_retained(void)
 {
-	/* Retained area is at the top of physical RAM */
-	return (retain_t *)(qemu_mem_size - sizeof(retain_t));
+	return (&s_retained);
 }
 
 int ofmem_arch_get_translation_entry_size(void)
