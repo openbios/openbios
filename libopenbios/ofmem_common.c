@@ -616,7 +616,7 @@ ucell ofmem_claim( ucell addr, ucell size, ucell align )
 	ofmem_t *ofmem = ofmem_arch_get_private();
 	ucell virt;
 	phys_addr_t phys;
-	ucell offs = addr & 0xfff;
+	ucell offs = addr & (PAGE_SIZE - 1);
 
 	OFMEM_TRACE("ofmem_claim " FMT_ucellx " " FMT_ucellx " " FMT_ucellx "\n", addr, size, align );
 	virt = phys = 0;
@@ -631,8 +631,8 @@ ucell ofmem_claim( ucell addr, ucell size, ucell align )
 			return -1;
 		}
 	} else {
-		if( align < 0x1000 )
-			align = 0x1000;
+		if( align < PAGE_SIZE )
+			align = PAGE_SIZE;
 		phys = ofmem_claim_phys_( addr, size, align, 0, ofmem_arch_get_phys_top(), 1 /* reverse */ );
 		virt = ofmem_claim_virt_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
 		if( phys == -1 || virt == -1 ) {
@@ -643,13 +643,13 @@ ucell ofmem_claim( ucell addr, ucell size, ucell align )
 	}
 
 	/* align */
-	if( phys & 0xfff ) {
-		size += (phys & 0xfff);
-		virt -= (phys & 0xfff);
-		phys &= ~0xfff;
+	if( phys & (PAGE_SIZE - 1) ) {
+		size += (phys & (PAGE_SIZE - 1));
+		virt -= (phys & (PAGE_SIZE - 1));
+		phys &= PAGE_MASK;
 	}
-	if( size & 0xfff )
-		size = (size + 0xfff) & ~0xfff;
+	if( size & (PAGE_SIZE - 1) )
+		size = (size + (PAGE_SIZE - 1)) & PAGE_MASK;
 
 	/* printk("...free memory found... phys: %08lX, virt: %08lX, size %lX\n", phys, virt, size ); */
 	ofmem_map( phys, virt, size, -1 );
@@ -783,15 +783,15 @@ int ofmem_map( phys_addr_t phys, ucell virt, ucell size, ucell mode )
 	/* printk("+ofmem_map: %08lX --> %08lX (size %08lX, mode 0x%02X)\n",
 	   virt, phys, size, mode ); */
 
-	if( (phys & 0xfff) || (virt & 0xfff) || (size & 0xfff) ) {
+	if( (phys & (PAGE_SIZE - 1)) || (virt & (PAGE_SIZE - 1)) || (size & (PAGE_SIZE - 1)) ) {
 
 		OFMEM_TRACE("ofmem_map: Bad parameters ("
 				FMT_plx " " FMT_ucellX " " FMT_ucellX ")\n",
 				phys, virt, size );
 
-		phys &= ~0xfff;
-		virt &= ~0xfff;
-		size = (size + 0xfff) & ~0xfff;
+		phys &= PAGE_MASK;
+		virt &= PAGE_MASK;
+		size = (size + (PAGE_SIZE - 1)) & PAGE_MASK;
 	}
 
 #if defined(OFMEM_FILL_RANGE)
@@ -822,11 +822,11 @@ int ofmem_unmap( ucell virt, ucell size )
 	OFMEM_TRACE("ofmem_unmap " FMT_ucellx " " FMT_ucellx "\n",
 			virt, size );
 
-	if( (virt & 0xfff) || (size & 0xfff) ) {
+	if( (virt & (PAGE_SIZE - 1)) || (size & (PAGE_SIZE - 1)) ) {
 		/* printk("ofmem_unmap: Bad parameters (%08lX %08lX)\n",
 				virt, size ); */
-		virt &= ~0xfff;
-		size = (size + 0xfff) & ~0xfff;
+		virt &= PAGE_MASK;
+		size = (size + (PAGE_SIZE - 1)) & PAGE_MASK;
 	}
 
 	/* remove translations and unmap pages */
