@@ -71,6 +71,7 @@ void go(void)
 	printk("Image returned with return value %#x\n", image_retval);
 }
 
+/* ( path len -- path len ) */
 
 void boot(void)
 {
@@ -99,6 +100,8 @@ void boot(void)
             POP();
             fword("get-package-property");
             POP();
+	    /* Update our local copy of path as well as the one on the stack */
+	    fword("2dup");
             path = pop_fstr_copy();
 	}
 
