@@ -217,7 +217,7 @@ sunparts_open( sunparts_info_t *di )
 		feval("find-package");
 		ph = POP_ph();
 
-                if (argstr && ph) {
+                if (argstr && strlen(argstr) && ph) {
 			ph = POP_ph();
 			push_str(argstr);
 			PUSH_ph(ph);
