@@ -18,7 +18,16 @@ fcode-version3
   $find if
     exit
   else
+    2drop
     -1
+  then
+;
+
+: (is-openbios)  \ ( -- true | false )
+  " openbios-video-width" (find-xt) -1 <> if
+    -1
+  else
+    0
   then
 ;
 
@@ -27,10 +36,37 @@ fcode-version3
 " depth-bits" (find-xt) cell+ value depth-bits-xt
 " line-bytes" (find-xt) cell+ value line-bytes-xt
 
-: openbios-video-width openbios-video-width-xt @ ;
-: openbios-video-height openbios-video-height-xt @ ;
-: depth-bits depth-bits-xt @ ;
-: line-bytes line-bytes-xt @ ;
+: openbios-video-width
+  (is-openbios) if
+    openbios-video-width-xt @
+  else
+    h# 400
+  then
+;
+
+: openbios-video-height
+  (is-openbios) if
+    openbios-video-height-xt @
+  else
+    h# 300
+  then
+;
+
+: depth-bits
+  (is-openbios) if
+    depth-bits-xt @
+  else
+    h# 8
+  then
+;
+
+: line-bytes
+  (is-openbios) if
+    line-bytes-xt @
+  else
+    h# 400
+  then
+;
 
 \
 \ Registers
@@ -183,6 +219,12 @@ headerless
 : qemu-tcx-driver-install ( -- )
   tcx-dac -1 = if
     map-regs
+
+    \ Initial pallette taken from Sun's "Writing FCode Programs"
+    h# ff h# ff h# ff h# 0  color!    \ Background white
+    h# 0  h# 0  h# 0  h# ff color!    \ Foreground black
+    h# 64 h# 41 h# b4 h# 1  color!    \ SUN-blue logo
+
     fb-addr to frame-buffer-adr
     default-font set-font
 
