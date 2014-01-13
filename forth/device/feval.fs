@@ -49,6 +49,15 @@ defer init-fcode-table
       ,
     then
   fcode-end @ until
+
+  \ If we've executed incorrect FCode we may have reached the end of the FCode
+  \ program but still be in compile mode. Make sure that if this has happened
+  \ then we switch back to immediate mode to prevent internal OpenBIOS errors.
+  tmp-comp-depth @ -1 <> if
+    -1 tmp-comp-depth !
+    tmp-comp-buf @ @ here!
+    0 state !
+  then
 ;
 
 : byte-load ( addr xt -- )
