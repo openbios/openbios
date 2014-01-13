@@ -584,9 +584,9 @@ int ide_config_cb2 (const pci_config_t *config)
 {
 	ob_ide_init(config->path,
 		    config->assigned[0] & ~0x0000000F,
-		    config->assigned[1] & ~0x0000000F,
+		    (config->assigned[1] & ~0x0000000F) + 2,
 		    config->assigned[2] & ~0x0000000F,
-		    config->assigned[3] & ~0x0000000F);
+		    (config->assigned[3] & ~0x0000000F) + 2);
 	return 0;
 }
 

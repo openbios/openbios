@@ -44,7 +44,7 @@ arch_init( void )
 	modules_init();
 #ifdef CONFIG_DRIVER_IDE
 	setup_timers();
-	ob_ide_init("/pci/pci-ata", 0x1f0, 0x3f4, 0x170, 0x374);
+	ob_ide_init("/pci/pci-ata", 0x1f0, 0x3f6, 0x170, 0x376);
 #endif
 	device_end();
 	bind_func("platform-boot", boot );

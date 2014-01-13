@@ -1372,9 +1372,9 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	u32 props[6];
 
 	io_ports[0] = io_port0;
-	ctl_ports[0] = ctl_port0 + 2;
+	ctl_ports[0] = ctl_port0;
 	io_ports[1] = io_port1;
-	ctl_ports[1] = ctl_port1 + 2;
+	ctl_ports[1] = ctl_port1;
 
 	for (i = 0; i < IDE_NUM_CHANNELS; i++, current_channel++) {
 

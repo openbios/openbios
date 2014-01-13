@@ -57,7 +57,7 @@ arch_init( void )
 #endif
 #ifdef CONFIG_DRIVER_IDE
 	setup_timers();
-	ob_ide_init("/pci/isa", 0x1f0, 0x3f4, 0x170, 0x374);
+	ob_ide_init("/pci/isa", 0x1f0, 0x3f6, 0x170, 0x376);
 #endif
 #ifdef CONFIG_DRIVER_FLOPPY
 	ob_floppy_init("/isa", "floppy0", 0x3f0, 0);
