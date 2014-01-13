@@ -599,7 +599,7 @@ phys_addr_t ofmem_retain( phys_addr_t phys, ucell size, ucell align )
                 " align=" FMT_ucellx "\n",
                 phys, size, align);
 
-	retain_phys = ofmem_claim_phys_( phys, size, align, 0, get_ram_size(), 0 );
+	retain_phys = ofmem_claim_phys_( phys, size, align, 0, get_ram_size(), 1 /* reverse */ );
 
 	/* Add to the retain_phys_range list */
 	retained->retain_phys_range[retained->numentries].next = NULL;
