@@ -247,15 +247,15 @@ static int
 handle_calls( prom_args_t *pb )
 {
 	int i, dstacksave = dstackcnt;
-    prom_uarg_t val;
+	prom_uarg_t val;
 
 #ifdef DEBUG_CIF
-    printk("%s %s ([" FMT_prom_arg "] -- [" FMT_prom_arg "])\n",
-           get_service(pb), arg2pointer(pb->args[0]), pb->nargs, pb->nret);
+	printk("%s %s ([" FMT_prom_arg "] -- [" FMT_prom_arg "])\n",
+		get_service(pb), arg2pointer(pb->args[0]), pb->nargs, pb->nret);
 #endif
 
-	for( i=pb->nargs-1; i>=0; i-- )
-		PUSH( pb->args[i] );
+	for (i = pb->nargs - 1; i >= 0; i--)
+		PUSH(pb->args[i]);
 
 	push_str(get_service(pb));
 	fword("client-call-iface");
@@ -264,28 +264,28 @@ handle_calls( prom_args_t *pb )
 	   catch result which is the first parameter below) */
 	POP();
 
-	for( i=0; i<pb->nret; i++ ) {
+	for (i = 0; i < pb->nret; i++) {
                 val = POP();
 		pb->args[pb->nargs + i] = val;
 
 		/* don't pop args if an exception occured */
-		if( !i && val )
+		if (!i && val)
 			break;
 	}
 
 #ifdef DEBUG_CIF
-    /* useful for debug but not necessarily an error */
-    if (i != pb->nret || dstackcnt != dstacksave) {
-        printk("%s '%s': possible argument error (" FMT_prom_arg "--" FMT_prom_arg ") got %d\n",
-               get_service(pb), arg2pointer(pb->args[0]),
-               pb->nargs - 2, pb->nret, i);
-    }
+	/* useful for debug but not necessarily an error */
+	if (i != pb->nret || dstackcnt != dstacksave) {
+		printk("%s '%s': possible argument error (" FMT_prom_arg "--" FMT_prom_arg ") got %d\n",
+			get_service(pb), arg2pointer(pb->args[0]),
+			pb->nargs - 2, pb->nret, i);
+	}
 
-    printk("handle_calls return:");
-    for (i = 0; i < pb->nret; i++) {
-        printk(" " FMT_prom_uargx, pb->args[pb->nargs + i]);
-    }
-    printk("\n");
+	printk("handle_calls return:");
+	for (i = 0; i < pb->nret; i++) {
+		printk(" " FMT_prom_uargx, pb->args[pb->nargs + i]);
+	}
+	printk("\n");
 #endif
 
 	dstackcnt = dstacksave;
@@ -298,7 +298,7 @@ of_client_interface( int *params )
 	prom_args_t *pb = (prom_args_t*)params;
 	int val, i, dstacksave;
 
-	if( pb->nargs < 0 || pb->nret < 0 ||
+	if (pb->nargs < 0 || pb->nret < 0 ||
             pb->nargs + pb->nret > PROM_MAX_ARGS)
 		return -1;
 
@@ -308,20 +308,20 @@ of_client_interface( int *params )
 
 	/* call-method exceptions are special */
 	if (!strcmp("call-method", get_service(pb)) || !strcmp("interpret", get_service(pb)))
-		return handle_calls( pb );
+		return handle_calls(pb);
 
 	dstacksave = dstackcnt;
-	for( i=pb->nargs-1; i>=0; i-- )
-		PUSH( pb->args[i] );
+	for (i = pb->nargs - 1; i >= 0; i--)
+		PUSH(pb->args[i]);
 
 	push_str(get_service(pb));
 	fword("client-iface");
 
-	if( (val=POP()) ) {
+	if (val=POP()) {
 		dstackcnt = dstacksave;
-		if( val == -1 )
+		if (val == -1)
 			printk("Unimplemented service %s ([" FMT_prom_arg "] -- [" FMT_prom_arg "])\n",
-			       get_service(pb), pb->nargs, pb->nret );
+			       get_service(pb), pb->nargs, pb->nret);
 #ifdef DEBUG_CIF
 		else
 			printk("ERROR!\n");
@@ -329,13 +329,13 @@ of_client_interface( int *params )
 		return -1;
 	}
 
-	for( i=0; i<pb->nret ; i++ )
+	for (i = 0; i < pb->nret ; i++)
 		pb->args[pb->nargs + i] = POP();
 
-	if( dstackcnt != dstacksave ) {
+	if (dstackcnt != dstacksave) {
 #ifdef DEBUG_CIF
 		printk("service %s: possible argument error (%d %d)\n",
-		       get_service(pb), i, dstackcnt - dstacksave );
+		       get_service(pb), i, dstackcnt - dstacksave);
 #endif
 		/* Some clients request less parameters than the CIF method
 		returns, e.g. getprop with OpenSolaris. Hence we drop any
