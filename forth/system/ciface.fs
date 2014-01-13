@@ -315,17 +315,12 @@ external
   outer-interpreter
 ;
 
-[IFDEF] CONFIG_PPC
-\ PowerPC Microprocessor CHRP binding
-\ 10.5.2. Client Interface
-
 ( cstring-method phandle -- missing )
 
 : test-method
 	swap dup cstrlen rot
 	find-method 0= if -1 else drop 0 then
 ;
-[THEN]
 
 finish-device
 device-end
