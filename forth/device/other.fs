@@ -174,7 +174,7 @@ defer (poke)
 \ Cease evaluating this FCode program.
 : end0 ( -- )
   true fcode-end !  
-  ;
+  ; immediate
 
 \ Cease evaluating this FCode program.
 : end1 ( -- )
