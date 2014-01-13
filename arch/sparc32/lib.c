@@ -59,14 +59,6 @@ unsigned int va_shift;
 unsigned long *l1;
 static unsigned long *context_table;
 
-static ucell *mem_reg = 0;
-static ucell *mem_avail = 0;
-static ucell *virt_avail = 0;
-
-static struct linux_mlist_v0 totphys[1];
-static struct linux_mlist_v0 totmap[1];
-static struct linux_mlist_v0 totavail[1];
-
 struct linux_mlist_v0 *ptphys;
 struct linux_mlist_v0 *ptmap;
 struct linux_mlist_v0 *ptavail;
@@ -200,55 +192,6 @@ ob_map_pages(void)
     ofmem_arch_map_pages(pa, va, size, ofmem_arch_default_translation_mode(pa));
 }
 
-static void
-update_memory_properties(void)
-{
-    /* Update the device tree memory properties from the master
-       totphys, totmap and totavail romvec arrays */
-    mem_reg[0] = 0;
-    mem_reg[1] = pointer2cell(totphys[0].start_adr);
-    mem_reg[2] = totphys[0].num_bytes;
-
-    virt_avail[0] = 0;
-    virt_avail[1] = 0;
-    virt_avail[2] = pointer2cell(totmap[0].start_adr);
-
-    mem_avail[0] = 0;
-    mem_avail[1] = pointer2cell(totavail[0].start_adr);
-    mem_avail[2] = totavail[0].num_bytes;
-}
-
-static void
-init_romvec_mem(void)
-{
-    ptphys = totphys;
-    ptmap = totmap;
-    ptavail = totavail;
-
-    /*
-     * Form memory descriptors.
-     */
-    totphys[0].theres_more = NULL;
-    totphys[0].start_adr = (char *) 0;
-    totphys[0].num_bytes = qemu_mem_size;
-
-    totavail[0].theres_more = NULL;
-    totavail[0].start_adr = (char *) 0;
-    totavail[0].num_bytes = va2pa((int)&_start) - PAGE_SIZE;
-
-    totmap[0].theres_more = NULL;
-    totmap[0].start_adr = &_start;
-    totmap[0].num_bytes = (unsigned long) &_iomem -
-        (unsigned long) &_start + PAGE_SIZE;
-
-    /* Pointers to device tree memory properties */
-    mem_reg = malloc(sizeof(ucell) * 3);
-    mem_avail = malloc(sizeof(ucell) * 3);
-    virt_avail = malloc(sizeof(ucell) * 3);
-
-    update_memory_properties();
-}
-
 char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
                     unsigned int size)
 {
@@ -325,8 +268,6 @@ ob_init_mmu(void)
     ucell *virtreg;
     phys_addr_t virtregsize;
     ofmem_t *ofmem = ofmem_arch_get_private();
-
-    init_romvec_mem();
 
     /* Find the phandles for the /memory and /virtual-memory nodes */
     push_str("/memory");

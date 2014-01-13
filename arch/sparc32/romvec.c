@@ -461,9 +461,9 @@ init_openprom(void)
     romvec0.pv_romvers = 3;
     romvec0.pv_plugin_revision = 2;
     romvec0.pv_printrev = 0x20019;
-    romvec0.pv_v0mem.v0_totphys = &ptphys;
-    romvec0.pv_v0mem.v0_prommap = &ptmap;
-    romvec0.pv_v0mem.v0_available = &ptavail;
+    romvec0.pv_v0mem.v0_totphys = NULL;
+    romvec0.pv_v0mem.v0_prommap = NULL;
+    romvec0.pv_v0mem.v0_available = NULL;
     romvec0.pv_nodeops = &nodeops0;
     romvec0.pv_bootstr = (void *)doublewalk;
     romvec0.pv_v0devops.v0_devopen = &obp_devopen_handler;
