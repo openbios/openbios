@@ -20,26 +20,18 @@ uint32_t cmdline_size;
 char boot_device;
 const void *romvec;
 
-void go(void)
+
+static void setup_romvec(void)
 {
-	ucell address, type, size;
-	int image_retval = 0, intprop, proplen, target, device;
+	/* SPARC32 is slightly unusual in that before invoking any loaders, a romvec array
+	   needs to be set up to pass certain parameters using a C struct. Hence this function
+	   extracts the relevant boot information and places it in obp_arg. */
+	
+	int intprop, proplen, target, device;
 	phandle_t chosen;
 	char *prop, *id, *name;
 	static char bootpathbuf[128], bootargsbuf[128], buf[128];
 
-	/* Get the entry point and the type (see forth/debugging/client.fs) */
-	feval("saved-program-state >sps.entry @");
-	address = POP();
-	feval("saved-program-state >sps.file-type @");
-	type = POP();
-	feval("saved-program-state >sps.file-size @");
-	size = POP();
-
-	/* SPARC32 is slightly unusual in that before invoking any loaders, a romvec array
-	   needs to be set up to pass certain parameters using a C struct. Hence this section
-	   extracts the relevant boot information and places it in obp_arg. */
-	
 	/* Get the stdin and stdout paths */
 	chosen = find_dev("/chosen");
 	intprop = get_int_property(chosen, "stdin", &proplen);
@@ -140,7 +132,24 @@ void go(void)
         	obp_arg.argv[1] = bootargsbuf;
 
 	}
-		
+}
+
+
+void go(void)
+{
+	ucell address, type, size;
+	int image_retval = 0;
+
+	/* Get the entry point and the type (see forth/debugging/client.fs) */
+	feval("saved-program-state >sps.entry @");
+	address = POP();
+	feval("saved-program-state >sps.file-type @");
+	type = POP();
+	feval("saved-program-state >sps.file-size @");
+	size = POP();
+
+	setup_romvec();
+
 	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
 
 	switch (type) {
