@@ -94,7 +94,6 @@ fcode_init_program(void)
 {
 	/* If the payload is Fcode then we execute it immediately */
 	ucell address;
-	uint8_t fcode_header[8];
 
 	fword("load-base");
 	address = POP();
@@ -104,7 +103,7 @@ fcode_init_program(void)
 		return;
 	}
 
-	PUSH(address + sizeof(fcode_header));
+	PUSH(address);
 	PUSH(1);
 	fword("byte-load");
 }
