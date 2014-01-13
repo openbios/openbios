@@ -876,6 +876,9 @@ int i82378_config_cb(const pci_config_t *config)
 #ifdef CONFIG_DRIVER_PC_KBD
     ob_pc_kbd_init(config->path, "8042", arch->io_base, 0x60ULL, 0);
 #endif
+#ifdef CONFIG_DRIVER_IDE
+    ob_ide_init(config->path, 0x1f0, 0x3f6, 0x170, 0x376);
+#endif
 
     return 0;
 }
