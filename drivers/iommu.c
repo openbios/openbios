@@ -158,8 +158,8 @@ ob_iommu_map_in(void)
     ucell size, virt;
 
     size = POP();
-    POP();
     phys = POP();
+    phys = (phys << 32) + POP();
 
     virt = ofmem_map_io(phys, size);
 

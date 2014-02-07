@@ -153,7 +153,7 @@ ob_tcx_init(unsigned int slot, const char *path)
     fword("new-device");
     PUSH(0);
     PUSH(0);
-    snprintf(buf, 6, "%d,0", slot);
+    snprintf(buf, 6, "%x,0", slot);
     push_str(buf);
     fword("set-args");
     feval("['] tcx-driver-fcode 2 cells + 1 byte-load");
@@ -268,7 +268,7 @@ sbus_probe_self(unsigned int slot, unsigned long offset)
 
     PUSH(0);
     PUSH(0);
-    snprintf(buf, 6, "%d,%ld", slot, offset);
+    snprintf(buf, 6, "%x,%lx", slot, offset);
     push_str(buf);
     fword("2dup");
     fword("probe-self-sbus");
