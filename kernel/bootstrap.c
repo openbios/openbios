@@ -513,11 +513,11 @@ static FILE *fopen_include(const char *fil)
 		if (ret != NULL) {
 
 #ifdef CONFIG_DEBUG_INTERPRETER
-			printk("Including '%s'\n", name );
+			printk("Including '%s'\n", fil);
 #endif
-                        srcfilenames[cursrc] = strdup(fil);
-			srclines [ cursrc ] = 1;
-			srcfiles [ cursrc++ ] = ret;
+			srcfilenames[cursrc] = strdup(fil);
+			srclines[cursrc] = 1;
+			srcfiles[cursrc++] = ret;
 
                         if (depfile) {
                                 fprintf(depfile, " %s", fullpath);
