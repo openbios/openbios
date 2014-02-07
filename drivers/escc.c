@@ -329,13 +329,13 @@ ob_zs_init(phys_addr_t base, uint64_t offset, int intr, int slave, int keyboard)
     fword("property");
 
     if (keyboard) {
-        PUSH(-1);
-        fword("encode-int");
+        PUSH(0);
+        PUSH(0);
         push_str("keyboard");
         fword("property");
 
-        PUSH(-1);
-        fword("encode-int");
+        PUSH(0);
+        PUSH(0);
         push_str("mouse");
         fword("property");
     }
