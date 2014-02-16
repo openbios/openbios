@@ -10,6 +10,12 @@
 #define CONFIG_SPARC64_PAGE_SIZE_8KB
 #endif
 
+/* NextStep bootloader on SPARC32 expects the a.out header directly
+   below load-base (0x4000) */
+#ifdef CONFIG_SPARC32
+#define AOUT_HEADER_COPY
+#endif 
+
 #include "libopenbios/sys_info.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/aout_load.h"
@@ -142,6 +148,11 @@ aout_load(struct sys_info *info, ihandle_t dev)
 
     debug("Loaded %lu bytes\n", size);
     debug("entry point is %#lx\n", start);
+
+#ifdef AOUT_HEADER_COPY
+    // Copy the a.out header just before start
+    memcpy((char *)(start - 0x20), &ehdr, 0x20);
+#endif
 
     // Initialise saved-program-state
     PUSH(addr_fixup(start));
