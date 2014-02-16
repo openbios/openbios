@@ -34,11 +34,9 @@
 #define PSR_VERS    0x0f000000         /* cpu-version field          */
 #define PSR_IMPL    0xf0000000         /* cpu-implementation field   */
 
-#ifdef __KERNEL__
-
-#ifndef __ASSEMBLY__
+#ifndef __ASSEMBLY
 /* Get the %psr register. */
-extern __inline__ unsigned int get_psr(void)
+static __inline__ unsigned int get_psr(void)
 {
 	unsigned int psr;
 	__asm__ __volatile__(
@@ -53,7 +51,7 @@ extern __inline__ unsigned int get_psr(void)
 	return psr;
 }
 
-extern __inline__ void put_psr(unsigned int new_psr)
+static __inline__ void put_psr(unsigned int new_psr)
 {
 	__asm__ __volatile__(
 		"wr	%0, 0x0, %%psr\n\t"
@@ -70,9 +68,9 @@ extern __inline__ void put_psr(unsigned int new_psr)
  * incur a trap.
  */
 
-extern unsigned int fsr_storage;
+static unsigned int fsr_storage;
 
-extern __inline__ unsigned int get_fsr(void)
+static __inline__ unsigned int get_fsr(void)
 {
 	unsigned int fsr = 0;
 
@@ -86,7 +84,5 @@ extern __inline__ unsigned int get_fsr(void)
 }
 
 #endif /* !(__ASSEMBLY__) */
-
-#endif /* (__KERNEL__) */
 
 #endif /* !(__LINUX_SPARC_PSR_H) */

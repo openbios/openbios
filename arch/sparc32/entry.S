@@ -7,6 +7,7 @@
  * $Id: head.S,v 1.12 2002/07/23 05:47:09 zaitcev Exp $
  */
 
+#define __ASSEMBLY
 #include "psr.h"
 #include "asm/asi.h"
 #include "asm/crs.h"

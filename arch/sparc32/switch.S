@@ -1,3 +1,4 @@
+#define __ASSEMBLY
 #include "psr.h"
 #include "asm/asi.h"
 #define ASI_BP ASI_M_BYPASS
