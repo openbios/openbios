@@ -26,14 +26,6 @@
 #define	PROMDEV_SCREEN	0		/* output to screen */
 #define	PROMDEV_TTYA	1		/* in/out to ttya */
 
-/* "NCPU" is an historical name that's now a bit of a misnomer.  The sun4m
- * architecture registers NCPU CPU-specific interrupts along with one
- * system-wide interrupt, regardless of the number of actual CPUs installed.
- * See the comment on "NCPU" at <http://stuff.mit.edu/afs/athena/astaff/
- * project/opssrc/sys.sunos/sun4m/devaddr.h>.
- */
-#define SUN4M_NCPU      4
-
 /* DECLARE data structures for the nodes.  */
 DECLARE_UNNAMED_NODE( ob_obio, INSTALL_OPEN, sizeof(int) );
 
@@ -262,13 +254,13 @@ ob_aux2_reset_init(uint64_t base, uint64_t offset, int intr)
 volatile struct sun4m_timer_regs *counter_regs;
 
 static void
-ob_counter_init(uint64_t base, unsigned long offset)
+ob_counter_init(uint64_t base, unsigned long offset, int ncpu)
 {
     int i;
 
     ob_new_obio_device("counter", NULL);
 
-    for (i = 0; i < SUN4M_NCPU; i++) {
+    for (i = 0; i < ncpu; i++) {
         PUSH(0);
         fword("encode-int");
         if (i != 0) fword("encode+");
@@ -300,7 +292,7 @@ ob_counter_init(uint64_t base, unsigned long offset)
     counter_regs->cpu_timers[0].l14_timer_limit = 0x9c4000;    /* see comment in obio.h */
     counter_regs->cpu_timers[0].cntrl = 1;
 
-    for (i = 0; i < SUN4M_NCPU; i++) {
+    for (i = 0; i < ncpu; i++) {
         PUSH((unsigned long)&counter_regs->cpu_timers[i]);
         fword("encode-int");
         if (i != 0)
@@ -318,13 +310,13 @@ ob_counter_init(uint64_t base, unsigned long offset)
 static volatile struct sun4m_intregs *intregs;
 
 static void
-ob_interrupt_init(uint64_t base, unsigned long offset)
+ob_interrupt_init(uint64_t base, unsigned long offset, int ncpu)
 {
     int i;
 
     ob_new_obio_device("interrupt", NULL);
 
-    for (i = 0; i < SUN4M_NCPU; i++) {
+    for (i = 0; i < ncpu; i++) {
         PUSH(0);
         fword("encode-int");
         if (i != 0) fword("encode+");
@@ -353,7 +345,7 @@ ob_interrupt_init(uint64_t base, unsigned long offset)
     intregs->clear = ~SUN4M_INT_MASKALL;
     intregs->cpu_intregs[0].clear = ~0x17fff;
 
-    for (i = 0; i < SUN4M_NCPU; i++) {
+    for (i = 0; i < ncpu; i++) {
         PUSH((unsigned long)&intregs->cpu_intregs[i]);
         fword("encode-int");
         if (i != 0)
@@ -491,7 +483,7 @@ NODE_METHODS(ob_obio) = {
 int
 ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
              unsigned long counter_offset, unsigned long intr_offset,
-             unsigned long aux1_offset, unsigned long aux2_offset,
+             int intr_ncpu, unsigned long aux1_offset, unsigned long aux2_offset,
              unsigned long mem_size)
 {
 
@@ -523,9 +515,9 @@ ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
     if (aux2_offset != (unsigned long) -1)
         ob_aux2_reset_init(slavio_base, aux2_offset, AUXIO2_INTR);
 
-    ob_counter_init(slavio_base, counter_offset);
+    ob_counter_init(slavio_base, counter_offset, intr_ncpu);
 
-    ob_interrupt_init(slavio_base, intr_offset);
+    ob_interrupt_init(slavio_base, intr_offset, intr_ncpu);
 
     ob_smp_init(mem_size);
 
