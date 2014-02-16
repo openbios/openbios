@@ -88,7 +88,7 @@ struct sun4m_timer_regs {
  * Registers of hardware timer in sun4m.
  */
 struct sun4m_timer_percpu {
-    volatile unsigned int l14_timer_limit; /* Initial value is 0x009c4000 */
+    volatile unsigned int l14_timer_limit; /* Initial value is 0x009c4000 = 10ms period*/
     volatile unsigned int l14_cur_count;
 };
 

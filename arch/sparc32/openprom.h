@@ -117,7 +117,7 @@ struct linux_romvec {
 	void (*pv_reboot)(char *bootstr);
 	void (*pv_printf)(__const__ char *fmt, ...);
 	void (*pv_abort)(void);
-	__volatile__ int *pv_ticks;
+	__volatile__ unsigned int *pv_ticks;
 	void (*pv_halt)(void);
 	void (**pv_synchook)(void);
 

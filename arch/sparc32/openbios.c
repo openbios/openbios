@@ -23,6 +23,7 @@
 #include "boot.h"
 #include "romvec.h"
 #include "openprom.h"
+#include "psr.h"
 #include "libopenbios/video.h"
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
@@ -916,6 +917,11 @@ arch_init( void )
         fword("find-device");
 
         setup_uuid();
+
+	/* Enable interrupts */
+	temp = get_psr();
+	temp = (temp & ~PSR_PIL) | (13 << 8); /* Enable CPU timer interrupt (level 14) */
+	put_psr(temp);
 }
 
 extern struct _console_ops arch_console_ops;
