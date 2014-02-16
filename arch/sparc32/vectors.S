@@ -208,9 +208,10 @@ irq_entry14:
         ld      [%l7 + %lo(counter_regs)], %l7
         ld      [%l7], %g0
         sethi   %hi(obp_ticks), %l7
-        ld      [%l7 + %lo(obp_ticks)], %l6
+        ld      [%l7 + %lo(obp_ticks)], %l7
+        ld      [%l7], %l6
         add     %l6, 10, %l6
-        st      %l6, [%l7 + %lo(obp_ticks)]
+        st      %l6, [%l7]
         jmp     %l1
          rett  %l2
 

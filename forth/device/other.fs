@@ -93,12 +93,25 @@ defer (poke)
  
 \ 5.3.7.3 Time
 
+[IFDEF] CONFIG_SPARC32
+
+\ OBP tick value updated by timer interrupt
+variable obp-ticks
+
+: get-msecs    ( -- n )
+  obp-ticks @
+  ;
+
+[ELSE]
+
 0 value dummy-msecs
 
 : get-msecs    ( -- n )
   dummy-msecs dup 1+ to dummy-msecs
   ;
-  
+
+[THEN]
+
 : ms    ( n -- )
   get-msecs +
   begin dup get-msecs < until

@@ -2,7 +2,7 @@
  * romvec main C function and handler declarations
  */
 
-extern volatile uint32_t obp_ticks;
+extern volatile uint32_t *obp_ticks;
 void *init_openprom(void);
 
 int obp_devopen(char *str);

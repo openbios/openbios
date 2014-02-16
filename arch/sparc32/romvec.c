@@ -449,7 +449,7 @@ void obp_fortheval_v2(char *str, int arg0, int arg1, int arg2, int arg3, int arg
   dstackcnt = dstacktmp;
 }
 
-volatile uint32_t obp_ticks;
+volatile uint32_t *obp_ticks;
 
 void *
 init_openprom(void)
@@ -482,9 +482,11 @@ init_openprom(void)
     romvec0.pv_printf = obp_printf_handler;
     romvec0.pv_abort = obp_abort_handler;
     
-    /* Reset the tick counter */
-    obp_ticks = 0;
-    romvec0.pv_ticks = &obp_ticks;
+    /* Point to the Forth obp-ticks variable and reset */
+    fword("obp-ticks");
+    obp_ticks = cell2pointer(POP());
+    *obp_ticks = 0;
+    romvec0.pv_ticks = obp_ticks;
     
     romvec0.pv_halt = obp_halt_handler;
     romvec0.pv_synchook = &sync_hook;
