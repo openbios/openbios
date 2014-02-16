@@ -229,14 +229,28 @@ char *obp_memalloc(char *va, unsigned int size, unsigned int align)
 char *obp_dumb_memalloc(char *va, unsigned int size)
 {
     unsigned long align = size;
+    phys_addr_t phys;
+    ucell virt;
     
     DPRINTF("obp_dumb_memalloc: virta 0x%x, sz %d\n", (unsigned int)va, size);    
     
     /* Solaris seems to assume that the returned value is physically aligned to size.
-       e.g. it is used for setting up page tables. Fortunately this is now handled by 
-       ofmem_claim_phys() above. */
+       e.g. it is used for setting up page tables. */
     
-    return obp_memalloc(va, size, align);
+    /* Claim physical memory */
+    phys = ofmem_claim_phys(-1, size, align);
+
+    /* Claim virtual memory - if va == NULL then we choose va address */
+    if (va == NULL) {
+        virt = ofmem_claim_virt((ucell)-1, size, align);        
+    } else {
+        virt = ofmem_claim_virt(pointer2cell(va), size, 0);
+    }
+
+    /* Map the memory */
+    ofmem_map(phys, virt, size, ofmem_arch_default_translation_mode(phys));
+
+    return cell2pointer(virt);
 }
 
 void obp_dumb_memfree(char *va, unsigned size)
