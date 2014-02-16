@@ -428,13 +428,20 @@ static ucell find_area( ucell align, ucell size, range_t *r,
 {
 	phys_addr_t base = min;
 	range_t *r2;
-	ucell old_align;
+	ucell old_align = align;
 	int i;
+
+	if( (align < PAGE_SIZE) ) {
+		
+		/* Minimum alignment is page size */
+		align = PAGE_SIZE;
+		
+		OFMEM_TRACE("warning: bad alignment " FMT_ucellx " rounded up to " FMT_ucellx "\n", old_align, align);
+	}
 
 	if( (align & (align-1)) ) {
 	
 		/* As per IEEE1275 specification, round up to the nearest power of 2 */
-		old_align = align;
 		if (old_align <= PAGE_SIZE) {
 			align = PAGE_SIZE;
 		} else {
@@ -447,8 +454,6 @@ static ucell find_area( ucell align, ucell size, range_t *r,
 		
 		OFMEM_TRACE("warning: bad alignment " FMT_ucellx " rounded up to " FMT_ucellx "\n", old_align, align);
 	}
-	if( !align )
-		align = PAGE_SIZE;
 
 	base = reverse ? max - size : min;
 	r2 = reverse ? NULL : r;
