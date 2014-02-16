@@ -142,8 +142,16 @@ void ofmem_arch_create_available_entry(phandle_t ph, ucell *availentry, phys_add
 /* Unmap a set of pages */
 void ofmem_arch_unmap_pages(ucell virt, ucell size)
 {
-    /* OFMEM re-maps the pages for us, so just ensure the TLB is in sync */
-    srmmu_flush_whole_tlb();
+	unsigned long pa;
+	ucell i;
+
+	for (i = 0; i < size; i += PAGE_SIZE) {
+		pa = find_pte(virt, 0);
+		*(uint32_t *)pa = 0;
+		virt += PAGE_SIZE;
+	}
+
+	srmmu_flush_whole_tlb(); 
 }
 
 /* Map a set of pages */
