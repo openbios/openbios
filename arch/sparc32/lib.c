@@ -239,10 +239,18 @@ char *obp_dumb_memalloc(char *va, unsigned int size)
     return obp_memalloc(va, size, align);
 }
 
-void obp_dumb_memfree(__attribute__((unused))char *va,
-                             __attribute__((unused))unsigned sz)
+void obp_dumb_memfree(char *va, unsigned size)
 {
-    DPRINTF("obp_dumb_memfree 0x%p (size %d)\n", va, sz);
+    phys_addr_t phys;
+    ucell cellmode;
+
+    DPRINTF("obp_dumb_memfree: virta 0x%x, sz %d\n", (unsigned int)va, size);
+
+    phys = ofmem_translate(pointer2cell(va), &cellmode);
+
+    ofmem_unmap(pointer2cell(va), size);
+    ofmem_release_virt(pointer2cell(va), size);
+    ofmem_release_phys(phys, size);
 }
 
 /* Data fault handling routines */
