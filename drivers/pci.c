@@ -893,11 +893,13 @@ static void ob_pci_add_properties(phandle_t phandle,
 	int status,id;
 	uint16_t vendor_id, device_id;
 	uint8_t rev;
+	uint8_t class_prog;
 	uint32_t class_code;
 
 	vendor_id = pci_config_read16(addr, PCI_VENDOR_ID);
 	device_id = pci_config_read16(addr, PCI_DEVICE_ID);
 	rev = pci_config_read8(addr, PCI_REVISION_ID);
+	class_prog = pci_config_read8(addr, PCI_CLASS_PROG);
 	class_code = pci_config_read16(addr, PCI_CLASS_DEVICE);
 
     if (pci_dev) {
@@ -925,7 +927,7 @@ static void ob_pci_add_properties(phandle_t phandle,
 	set_int_property(dev, "vendor-id", vendor_id);
 	set_int_property(dev, "device-id", device_id);
 	set_int_property(dev, "revision-id", rev);
-	set_int_property(dev, "class-code", class_code << 8);
+	set_int_property(dev, "class-code", class_code << 8 | class_prog);
 
 	if (config->irq_pin) {
 		OLDWORLD(set_int_property(dev, "AAPL,interrupts",
