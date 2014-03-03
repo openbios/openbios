@@ -108,12 +108,13 @@ external
   dup 0= if 0 else dup cstrlen then
 
   ( buf prev prev_len )
-  0 3 pick c!
   
   \ verify that prev exists (overkill...)
   dup if
     2dup r@ get-package-property if
-      r> 2drop 2drop -1 exit
+      r> 2drop drop
+      0 swap c!
+      -1 exit
     else
       2drop
     then
@@ -126,7 +127,8 @@ external
     dup 1+ -rot ci-strcpy drop 1
   else
     ( buf )
-    drop 0
+    0 swap c!
+    0
   then
 ;
 
