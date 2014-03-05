@@ -70,7 +70,7 @@
     2drop r> >dn.properties @
   else
     r> find-property dup if @ then
-    ?dup if >prop.next @ then
+    dup if >prop.next @ then
   then
 
   ?dup if
