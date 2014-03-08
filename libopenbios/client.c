@@ -261,15 +261,22 @@ handle_calls(prom_args_t *pb)
 	push_str(get_service(pb));
 	fword("client-call-iface");
 
+	/* Ignore client-call-iface return */
+	POP();
+
 	/* If the catch result is non-zero, restore stack and exit */
 	val = POP();
 	if (val) {
+		printk("%s %s failed with error " FMT_ucellx "\n", get_service(pb), arg2pointer(pb->args[0]), val);
 		dstackcnt = dstacksave;
 		return 0;
 	}
 
+	/* Store catch result */
+	pb->args[pb->nargs] = val;
+	
 	j = dstackcnt;
-	for (i = 0; i < pb->nret; i++, j--) {
+	for (i = 1; i < pb->nret; i++, j--) {
                 if (dstackcnt > dstacksave) {
 			pb->args[pb->nargs + i] = POP();
 		}
