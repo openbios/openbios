@@ -745,12 +745,12 @@ arch_of_init(void)
 
         /* model */
 
-        push_str("PowerMac2,1");
+        push_str("PowerMac3,1");
         fword("model");
 
         /* compatible */
 
-        push_str("PowerMac2,1");
+        push_str("PowerMac3,1");
         fword("encode-string");
         push_str("MacRISC");
         fword("encode-string");
