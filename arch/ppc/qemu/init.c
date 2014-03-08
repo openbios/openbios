@@ -241,32 +241,32 @@ cpu_generic_init(const struct cpudef *cpu)
 
     PUSH(cpu->dcache_size);
     fword("encode-int");
-    push_str("dcache-size");
+    push_str("d-cache-size");
     fword("property");
 
     PUSH(cpu->icache_size);
     fword("encode-int");
-    push_str("icache-size");
+    push_str("i-cache-size");
     fword("property");
 
     PUSH(cpu->dcache_sets);
     fword("encode-int");
-    push_str("dcache-sets");
+    push_str("d-cache-sets");
     fword("property");
 
     PUSH(cpu->icache_sets);
     fword("encode-int");
-    push_str("icache-sets");
+    push_str("i-cache-sets");
     fword("property");
 
     PUSH(cpu->dcache_block_size);
     fword("encode-int");
-    push_str("dcache-block-size");
+    push_str("d-cache-block-size");
     fword("property");
 
     PUSH(cpu->icache_block_size);
     fword("encode-int");
-    push_str("icache-block-size");
+    push_str("i-cache-block-size");
     fword("property");
 
     PUSH(fw_cfg_read_i32(FW_CFG_PPC_TBFREQ));
