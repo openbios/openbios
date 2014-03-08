@@ -189,7 +189,7 @@ static void dump_return(prom_args_t *pb)
 			memdump(arg2pointer(pb->args[2]), MIN(pb->args[3], pb->args[pb->nargs]));
 	} else if (strcmp(service, "nextprop") == 0) {
 		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
-		memdump(arg2pointer(pb->args[2]), pb->args[pb->nargs]);
+		memdump(arg2pointer(pb->args[2]), 32);
 	} else if (strcmp(service, "setprop") == 0) {
 		printk(FMT_prom_arg "\n", pb->args[pb->nargs]);
 	} else if (strcmp(service, "canon") == 0) {
