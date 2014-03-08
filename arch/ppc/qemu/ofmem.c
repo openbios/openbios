@@ -179,7 +179,7 @@ int ofmem_arch_get_translation_entry_size(void)
 
 /* Generate translation property entry for PPC.
  * According to the platform bindings for PPC
- * (http://playground.sun.com/1275/bindings/ppc/release/ppc-2_1.html#REF34579)
+ * (http://www.openfirmware.org/1275/bindings/ppc/release/ppc-2_1.html#REF34579)
  * a translation property entry has the following layout:
  *
  *      virtual address
