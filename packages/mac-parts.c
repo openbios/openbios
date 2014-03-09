@@ -92,9 +92,6 @@ macparts_open( macparts_info_t *di )
 		/* Detect if we are looking for the bootcode */
 		if (strcmp(argstr, "%BOOT") == 0) {
 		    want_bootcode = 1;
-		    feval("1 want-bootcode !");
-		} else {
-		    feval("0 want-bootcode !");
 		}
 	}
 
@@ -261,6 +258,11 @@ macparts_open( macparts_info_t *di )
 	    di->size_hi = size >> BITS;
 	    di->size_lo = size & (ucell) -1;
 
+	    /* If we're trying to execute bootcode then we're all done */
+	    if (want_bootcode) {
+	        goto out;
+	    }
+
 	    /* We have a valid partition - so probe for a filesystem at the current offset */
 	    DPRINTF("mac-parts: about to probe for fs\n");
 	    DPUSH( offs );
@@ -289,7 +291,7 @@ macparts_open( macparts_info_t *di )
 		
 		    /* If we have been asked to open a particular file, interpose the filesystem package with 
 		    the passed filename as an argument */
-		    if (!want_bootcode && strlen(argstr)) {
+		    if (strlen(argstr)) {
 			    push_str( argstr );
 			    PUSH_ph( ph );
 			    fword("interpose");

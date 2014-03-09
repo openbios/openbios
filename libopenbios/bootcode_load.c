@@ -12,13 +12,13 @@
 #define printf printk
 #define debug printk
 
-#define OLDWORLD_BOOTCODE_BASEADDR	(0x3f4000)
 
 int 
 bootcode_load(ihandle_t dev)
 {
     int retval = -1, count = 0, fd;
-    unsigned long bootcode, loadbase, offset;
+    unsigned long bootcode, loadbase, entry, size, offset;
+    ihandle_t bootcode_info;
 
     /* Mark the saved-program-state as invalid */
     feval("0 state-valid !");
@@ -28,18 +28,37 @@ bootcode_load(ihandle_t dev)
         goto out;
     }
 
+    /* If we don't have the get-bootcode-info word then we don't support
+       loading bootcode via %BOOT */
+    bootcode_info = find_ih_method("get-bootcode-info", dev);
+    if (!bootcode_info) {
+        goto out;
+    }
+    
     /* Default to loading at load-base */
     fword("load-base");
     loadbase = POP();
+    entry = loadbase;
+    size = 0;
     
 #ifdef CONFIG_PPC
-    /* ...except that QUIK (the only known user of %BOOT to date) is built
-       with a hard-coded address of 0x3f4000. Let's just use this for the
-       moment on both New World and Old World Macs, allowing QUIK to also
-       work under a New World Mac. If we find another user of %BOOT we can
-       rethink this later. PReP machines should be left unaffected. */
+    /*
+     * Apple OF does not honor load-base and instead uses pmBootLoad
+     * value from the boot partition descriptor.
+     *
+     * Tested with:
+     *   a debian image with QUIK installed
+     *   a debian image with iQUIK installed (https://github.com/andreiw/quik)
+     *   an IQUIK boot floppy
+     *   a NetBSD boot floppy (boots stage 2)
+     */
     if (is_apple()) {
-        loadbase = OLDWORLD_BOOTCODE_BASEADDR;
+        PUSH(bootcode_info);
+        fword("execute");
+
+        loadbase = POP();
+        entry = POP();
+        size = POP();
     }
 #endif
     
@@ -58,11 +77,16 @@ bootcode_load(ihandle_t dev)
     if (!count) {
         goto out;
     }
+
+    /* Use proper file size if we got it from bootcode info */
+    if (size == 0) {
+        size = offset;
+    }
     
     /* Initialise saved-program-state */
-    PUSH(loadbase);
+    PUSH(entry);
     feval("saved-program-state >sps.entry !");
-    PUSH(offset);
+    PUSH(size);
     feval("saved-program-state >sps.file-size !");
     feval("bootcode saved-program-state >sps.file-type !");
 

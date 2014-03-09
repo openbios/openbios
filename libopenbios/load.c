@@ -108,11 +108,13 @@ void load(ihandle_t dev)
 
 #ifdef CONFIG_LOADER_BOOTCODE
 	/* Check for a "raw" %BOOT bootcode payload */
-	feval("want-bootcode @");
-	valid = POP();
-	if (valid) {
-                bootcode_load(dev);
-	}
+	bootcode_load(dev);
+        feval("state-valid @");
+        valid = POP();
+        if (valid) {
+                feval("saved-program-state >sps.file-size @");
+                return;
+        }
 #endif
 
         /* Didn't load anything, so return zero size */
