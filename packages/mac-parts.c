@@ -35,6 +35,7 @@ typedef struct {
 	xt_t		seek_xt, read_xt;
 	ucell	        offs_hi, offs_lo;
         ucell	        size_hi, size_lo;
+	ucell		bootcode_addr, bootcode_entry;
 	unsigned int	blocksize;
 	phandle_t	filesystem_ph;
 } macparts_info_t;
@@ -237,8 +238,19 @@ macparts_open( macparts_info_t *di )
 	    size = (long long)__be32_to_cpu(par.pmPartBlkCnt) * bs;	
 	    
 	    if (want_bootcode) {
-		offs += (long long)__be32_to_cpu(par.pmLgBootStart) * bs;
+		    
+		/* If size == 0 then fail because we requested bootcode but it doesn't exist */
 		size = (long long)__be32_to_cpu(par.pmBootSize);
+		if (!size) {
+		    ret = 0;
+		    goto out;
+		}
+
+		/* Adjust seek position so 0 = start of bootcode */
+		offs += (long long)__be32_to_cpu(par.pmLgBootStart) * bs;
+
+		di->bootcode_addr = __be32_to_cpu(par.pmBootLoad);
+		di->bootcode_entry = __be32_to_cpu(par.pmBootEntry);
 	    }
 	    
 	    di->blocksize = (unsigned int)bs;	
@@ -326,6 +338,17 @@ macparts_get_info( macparts_info_t *di )
 	PUSH( di->size_hi );
 }
 
+/* ( -- size entry addr ) */
+static void
+macparts_get_bootcode_info( macparts_info_t *di )
+{
+	DPRINTF("macparts_get_bootcode_info");
+
+	PUSH( di->size_lo );
+	PUSH( di->bootcode_entry );
+	PUSH( di->bootcode_addr );
+}
+
 static void
 macparts_block_size( macparts_info_t *di )
 {
@@ -403,15 +426,16 @@ macparts_dir( macparts_info_t *di )
 }
 
 NODE_METHODS( macparts ) = {
-	{ "probe",	macparts_probe 		},
-	{ "open",	macparts_open 		},
-	{ "seek",	macparts_seek 		},
-	{ "read",	macparts_read 		},
-	{ "load",	macparts_load 		},
-	{ "dir",	macparts_dir 		},
-	{ "get-info",	macparts_get_info 	},
-	{ "block-size",	macparts_block_size 	},
-	{ NULL,		macparts_initialize	},
+	{ "probe",		macparts_probe	 		},
+	{ "open",		macparts_open 			},
+	{ "seek",		macparts_seek 			},
+	{ "read",		macparts_read 			},
+	{ "load",		macparts_load 			},
+	{ "dir",		macparts_dir 			},
+	{ "get-info",		macparts_get_info 		},
+	{ "get-bootcode-info",	macparts_get_bootcode_info	},
+	{ "block-size",		macparts_block_size 		},
+	{ NULL,			macparts_initialize		},
 };
 
 void
