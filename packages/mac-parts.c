@@ -286,6 +286,12 @@ macparts_open( macparts_info_t *di )
 		    goto out;
 	    } else {
 		    DPRINTF("mac-parts: no filesystem found on partition %d; bypassing misc-files interpose\n", parnum);
+		    
+		    /* Here we have a valid partition; however if we tried to pass in a file argument for a
+		       partition that doesn't contain a filesystem, then we must fail */
+		    if (strlen(argstr)) {
+			ret = 0;
+		    }
 	    }
 	}
 	    
