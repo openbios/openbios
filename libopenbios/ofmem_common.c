@@ -885,23 +885,18 @@ phys_addr_t ofmem_translate( ucell virt, ucell *mode )
 
 static void remove_range_( phys_addr_t ea, ucell size, range_t **r )
 {
-	range_t *cr;
+	range_t **t, *u;
 
-	/* Handle special case if we're removing the first entry */
-	if ((**r).start >= ea) {
-		cr = *r;
-		*r = (**r).next;
-		free(cr);
-
-		return;
+	for (t = r; *t; t = &(**t).next) {
+		if (ea >= (**t).start && ea + size <= (**t).start + (**t).size) {
+			OFMEM_TRACE("remove_range_ freeing range with addr=" FMT_plx
+					" size=" FMT_ucellx "\n", (**t).start, (**t).size);
+			u = *t;
+			*t = (**t).next;
+			free(u);
+			break;
+		}
 	}
-
-	for( ; *r && ((**r).next)->start < ea; r=&(**r).next ) {
-	}
-
-	cr = (**r).next;
-	(**r).next = cr->next;
-	free(cr);
 }
 
 static int remove_range( phys_addr_t ea, ucell size, range_t **r )
