@@ -791,7 +791,7 @@ int ofmem_map( phys_addr_t phys, ucell virt, ucell size, ucell mode )
 	if( (phys & (PAGE_SIZE - 1)) || (virt & (PAGE_SIZE - 1)) || (size & (PAGE_SIZE - 1)) ) {
 
 		OFMEM_TRACE("ofmem_map: Bad parameters ("
-				FMT_plx " " FMT_ucellX " " FMT_ucellX ")\n",
+				FMT_plx " " FMT_ucellx " " FMT_ucellx ")\n",
 				phys, virt, size );
 
 		phys &= PAGE_MASK;
