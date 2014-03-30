@@ -521,7 +521,7 @@ static phys_addr_t ofmem_claim_phys_( phys_addr_t phys, ucell size, ucell align,
 /* if align != 0, phys is ignored. Returns -1 on error */
 phys_addr_t ofmem_claim_phys( phys_addr_t phys, ucell size, ucell align )
 {
-    OFMEM_TRACE("ofmem_claim phys=" FMT_plx " size=" FMT_ucellx
+    OFMEM_TRACE("ofmem_claim_phys phys=" FMT_plx " size=" FMT_ucellx
                 " align=" FMT_ucellx "\n",
                 phys, size, align);
 
