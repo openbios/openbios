@@ -132,9 +132,15 @@ extern phandle_t s_phandle_mmu;
 #define PAGE_ALIGN(addr)  (((addr) + PAGE_SIZE - 1) & PAGE_MASK)
 
 #if defined(CONFIG_DEBUG_OFMEM)
-# define OFMEM_TRACE(fmt, ...) do { printk("OFMEM: " fmt, ## __VA_ARGS__); } while (0)
+    #define DEBUG_OFMEM 1
 #else
-# define OFMEM_TRACE(fmt, ...) do {} while(0)
+    #define DEBUG_OFMEM 0
 #endif
+
+#define OFMEM_TRACE(fmt, ...) do { \
+    if (DEBUG_OFMEM) { \
+        printk("OFMEM: " fmt, ## __VA_ARGS__); \
+    } \
+} while (0);
 
 #endif   /* _H_OFMEM */
