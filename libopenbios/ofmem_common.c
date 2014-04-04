@@ -887,6 +887,25 @@ static void remove_range_( phys_addr_t ea, ucell size, range_t **r )
 {
 	range_t **t, *u;
 
+	/* If not an exact match then split the range */
+	for (t = r; *t; t = &(**t).next) {
+		if (ea > (**t).start && ea < (**t).start + (**t).size - 1) {
+			u = (range_t*)malloc(sizeof(range_t));
+			u->start = ea;
+			u->size = size;
+			u->next = (**t).next;
+
+			OFMEM_TRACE("remove_range_ splitting range with addr=" FMT_plx
+					" size=" FMT_ucellx " -> addr=" FMT_plx " size=" FMT_ucellx ", "
+					"addr=" FMT_plx " size=" FMT_ucellx "\n",
+					(**t).start, (**t).size, (**t).start, (**t).size - size,
+					u->start, u->size);
+
+			(**t).size = (**t).size - size;
+			(**t).next = u;
+		}
+	}
+
 	for (t = r; *t; t = &(**t).next) {
 		if (ea >= (**t).start && ea + size <= (**t).start + (**t).size) {
 			OFMEM_TRACE("remove_range_ freeing range with addr=" FMT_plx
