@@ -442,15 +442,11 @@ static ucell find_area( ucell align, ucell size, range_t *r,
 	if( (align & (align-1)) ) {
 	
 		/* As per IEEE1275 specification, round up to the nearest power of 2 */
-		if (old_align <= PAGE_SIZE) {
-			align = PAGE_SIZE;
-		} else {
-			align--;
-			for (i = 1; i < sizeof(ucell) * 8; i<<=1) {
-				align |= align >> i;
-			}
-			align++;
+		align--;
+		for (i = 1; i < sizeof(ucell) * 8; i<<=1) {
+			align |= align >> i;
 		}
+		align++;
 		
 		OFMEM_TRACE("warning: bad alignment " FMT_ucellx " rounded up to " FMT_ucellx "\n", old_align, align);
 	}
