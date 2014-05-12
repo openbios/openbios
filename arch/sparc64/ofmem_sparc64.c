@@ -103,12 +103,12 @@ void ofmem_arch_create_translation_entry(ucell *transentry, translation_t *t)
 
 		virtual address
 		length
-		mode 
+		mode (valid TTE for start of translation region)
 	*/
 
 	transentry[0] = t->virt;
 	transentry[1] = t->size;
-	transentry[2] = t->mode;
+	transentry[2] = t->phys | t->mode | SPITFIRE_TTE_VALID;
 }
 
 /* Return the size of a memory available entry given the phandle in cells */
