@@ -366,7 +366,7 @@ void ofmem_init( void )
 	ofmem_walk_boot_map(remap_page_range);
 
         /* Map the memory */
-        ofmem_map_page_range(0, 0, qemu_mem_size, 0x36);
+        ofmem_map_page_range(PAGE_SIZE, PAGE_SIZE, qemu_mem_size, 0x36);
 
 	if (!(retained->magic == RETAIN_MAGIC)) {
 		OFMEM_TRACE("ofmem_init: no retained magic found, creating\n");
