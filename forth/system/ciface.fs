@@ -55,6 +55,17 @@ variable callback-function
   ." <" dup cstrlen dup 20 < if type else 2drop ." BAD" then ." >"
 ;
 
+: phandle-exists?  ( phandle -- found? )
+  false swap 0
+  begin iterate-tree ?dup while
+    ( found? find-ph current-ph )
+    over over = if
+      rot drop true -rot
+    then
+  repeat
+  drop
+;
+
 \ -------------------------------------------------------------
 \ public interface
 \ -------------------------------------------------------------
@@ -318,11 +329,15 @@ external
   outer-interpreter
 ;
 
-( cstring-method phandle -- missing )
-
-: test-method
-	swap dup cstrlen rot
-	find-method 0= if -1 else drop 0 then
+: test-method    ( cstring-method phandle -- missing? )
+  swap dup cstrlen rot
+  
+  \ Check for incorrect phandle
+  dup phandle-exists? false = if
+    -1 throw
+  then
+  
+  find-method 0= if -1 else drop 0 then
 ;
 
 finish-device
