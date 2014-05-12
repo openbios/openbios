@@ -15,6 +15,8 @@
  *          simple polling video/keyboard console functions
  * ****************************************************************** */
 
+#define SER_SIZE 8
+
 /*
  *  keyboard driver
  */
@@ -206,9 +208,20 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
     push_str("keyboard");
     fword("property");
 
-    PUSH(0);
+    PUSH((base + offset) >> 32);
     fword("encode-int");
+    PUSH((base + offset) & 0xffffffff);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(SER_SIZE);
+    fword("encode-int");
+    fword("encode+");
     push_str("reg");
+    fword("property");
+    
+    PUSH(offset);
+    fword("encode-int");
+    push_str("address");
     fword("property");
 
     chosen = find_dev("/chosen");
