@@ -561,6 +561,8 @@ static void init_memory(void)
     PUSH(virt + MEMORY_SIZE);
 }
 
+extern volatile uint64_t *obp_ticks_pointer;
+
 static void
 arch_init( void )
 {
@@ -571,6 +573,10 @@ arch_init( void )
 #endif
         nvconf_init();
         device_end();
+
+        /* Point to the Forth obp-ticks variable */
+        fword("obp-ticks");
+        obp_ticks_pointer = cell2pointer(POP());
 
 	bind_func("platform-boot", boot );
 	bind_func("(go)", go);
