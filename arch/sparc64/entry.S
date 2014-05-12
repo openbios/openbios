@@ -17,7 +17,7 @@
 
 #define PROM_ADDR 0x1fff0000000
 #define CFG_ADDR  0x1fe02000510
-#define HZ        10 * 1000 * 1000
+#define HZ        1 * 1000 * 1000
 #define TICK_INT_DIS 0x8000000000000000
 
         .globl	entry, _entry

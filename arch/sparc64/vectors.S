@@ -30,7 +30,7 @@
 #define PROM_ADDR 0x1fff0000000
 #define SER_ADDR 0x1fe020003f8
 #define TICK_INT_DIS 0x8000000000000000
-#define TICK_INTERVAL 10*1000*1000
+#define TICK_INTERVAL 1*1000*1000
 
         .section ".text.vectors", "ax"
         .align 16384
