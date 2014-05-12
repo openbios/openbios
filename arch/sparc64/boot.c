@@ -105,24 +105,26 @@ void boot(void)
             path = pop_fstr_copy();
 	}
 
-	param = strchr(path, ' ');
-	if(param) {
-		*param = '\0';
-		param++;
-	} else if (cmdline_size) {
-            param = (char *)qemu_cmdline;
-        } else {
-            push_str("boot-args");
-            push_str("/options");
-            fword("(find-dev)");
-            POP();
-            fword("get-package-property");
-            POP();
-            param = pop_fstr_copy();
-        }
-	
-	/* Invoke platform-specific Linux loader */
-	linux_load(&sys_info, path, param);
+        if (path) {
+            param = strchr(path, ' ');
+            if(param) {
+                *param = '\0';
+                param++;
+            } else if (cmdline_size) {
+                param = (char *)qemu_cmdline;
+            } else {
+                push_str("boot-args");
+                push_str("/options");
+                fword("(find-dev)");
+                POP();
+                fword("get-package-property");
+                POP();
+                param = pop_fstr_copy();
+            }
 
-	free(path);
+            /* Invoke platform-specific Linux loader */
+            linux_load(&sys_info, path, param);
+
+            free(path);
+        }
 }
