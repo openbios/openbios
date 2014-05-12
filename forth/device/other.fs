@@ -93,24 +93,21 @@ defer (poke)
  
 \ 5.3.7.3 Time
 
-[IFDEF] CONFIG_PPC
+\ Pointer to OBP tick value updated by timer interrupt
+variable obp-ticks
 
+\ Dummy implementation for platforms without a timer interrupt
 0 value dummy-msecs
 
 : get-msecs    ( -- n )
-  dummy-msecs dup 1+ to dummy-msecs
+  \ If obp-ticks pointer is set, use it. Otherwise fall back to
+  \ dummy implementation
+  obp-ticks @ 0<> if
+    obp-ticks @
+  else
+    dummy-msecs dup 1+ to dummy-msecs
+  then
   ;
-
-[ELSE]
-
-\ OBP tick value updated by timer interrupt
-variable obp-ticks
-
-: get-msecs    ( -- n )
-  obp-ticks @
-  ;
-
-[THEN]
 
 : ms    ( n -- )
   get-msecs +
