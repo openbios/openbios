@@ -215,14 +215,14 @@ int ofmem_arch_encode_physaddr(ucell *p, phys_addr_t value)
 ucell ofmem_arch_default_translation_mode( phys_addr_t phys )
 {
 	/* Writable, cacheable */
-	/* not privileged and not locked */
-	return SPITFIRE_TTE_CP | SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE;
+	/* Privileged and not locked */
+	return SPITFIRE_TTE_CP | SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE | SPITFIRE_TTE_PRIVILEGED;
 }
 
 ucell ofmem_arch_io_translation_mode( phys_addr_t phys )
 {
-	/* Writable, not privileged and not locked */
-	return SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE;
+	/* Writable, privileged and not locked */
+	return SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE | SPITFIRE_TTE_PRIVILEGED;
 }
 
 /* Architecture-specific OFMEM helpers */
