@@ -659,7 +659,7 @@ arch_of_init(void)
     char buf[64], qemu_uuid[16];
     const char *stdin_path, *stdout_path, *boot_path;
     uint32_t temp = 0;
-
+    char *boot_device;
     ofmem_t *ofmem = ofmem_arch_get_private();
 
     openbios_init();
@@ -867,23 +867,27 @@ arch_of_init(void)
     push_str("/options");
     fword("find-device");
 
-    uint16_t boot_device = fw_cfg_read_i16(FW_CFG_BOOT_DEVICE);
-    switch (boot_device) {
-        case 'c':
-            boot_path = "hd";
-            break;
-        default:
-        case 'd':
-            boot_path = "cd";
-            break;
-    }
+    /* Setup default boot devices (not overriding user settings) */
+    fword("boot-device");
+    boot_device = pop_fstr_copy();
+    if (boot_device && strcmp(boot_device, "disk") == 0) {
+        switch (fw_cfg_read_i16(FW_CFG_BOOT_DEVICE)) {
+            case 'c':
+                boot_path = "hd";
+                break;
+            default:
+            case 'd':
+                boot_path = "cd";
+                break;
+        }
 
-    /* Setup default boot devices */
-    snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt %s:,%%BOOT", boot_path, boot_path, boot_path);
-    push_str(buf);
-    fword("encode-string");
-    push_str("boot-device");
-    fword("property");
+        snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt %s:,%%BOOT", boot_path, boot_path, boot_path);
+        push_str(buf);
+        fword("encode-string");
+        push_str("boot-device");
+        fword("property");
+    }
+    free(boot_device);
 
     /* Set up other properties */
 
