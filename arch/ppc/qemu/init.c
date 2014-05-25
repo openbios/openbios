@@ -44,7 +44,7 @@ struct cpudef {
     int icache_size, dcache_size;
     int icache_sets, dcache_sets;
     int icache_block_size, dcache_block_size;
-    int clock_frequency;
+    int tlb_sets, tlb_size;
     void (*initfn)(const struct cpudef *cpu);
 };
 
@@ -269,6 +269,16 @@ cpu_generic_init(const struct cpudef *cpu)
     push_str("i-cache-block-size");
     fword("property");
 
+    PUSH(cpu->tlb_sets);
+    fword("encode-int");
+    push_str("tlb-sets");
+    fword("property");
+
+    PUSH(cpu->tlb_size);
+    fword("encode-int");
+    push_str("tlb-size");
+    fword("property");
+
     PUSH(fw_cfg_read_i32(FW_CFG_PPC_TBFREQ));
     fword("encode-int");
     push_str("timebase-frequency");
@@ -277,6 +287,11 @@ cpu_generic_init(const struct cpudef *cpu)
     PUSH(fw_cfg_read_i32(FW_CFG_PPC_CLOCKFREQ));
     fword("encode-int");
     push_str("clock-frequency");
+    fword("property");
+
+    PUSH(fw_cfg_read_i32(FW_CFG_PPC_BUSFREQ));
+    fword("encode-int");
+    push_str("bus-frequency");
     fword("property");
 
     push_str("running");
@@ -391,7 +406,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x07de2900,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_604_init,
     },
     { // XXX find out real values
@@ -403,7 +419,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x07de2900,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_604_init,
     },
     { // XXX find out real values
@@ -415,7 +432,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x07de2900,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_604_init,
     },
     { // XXX find out real values
@@ -427,7 +445,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x14dc9380,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_750_init,
     },
     {
@@ -439,7 +458,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x14dc9380,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_750_init,
     },
     { // XXX find out real values
@@ -451,7 +471,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x14dc9380,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_750_init,
     },
     { // XXX find out real values
@@ -463,7 +484,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x14dc9380,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_750_init,
     },
     { // XXX find out real values
@@ -475,7 +497,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x14dc9380,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_750_init,
     },
     { // XXX find out real values
@@ -487,7 +510,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x14dc9380,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_750_init,
     },
     {
@@ -499,7 +523,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x20,
         .dcache_block_size = 0x20,
-        .clock_frequency = 0x1dcd6500,
+        .tlb_sets = 0x40,
+        .tlb_size = 0x80,
         .initfn = cpu_g4_init,
     },
     {
@@ -511,7 +536,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x80,
         .dcache_block_size = 0x80,
-        .clock_frequency = 0x5f5e1000,
+        .tlb_sets = 0x100,
+        .tlb_size = 0x1000,
         .initfn = cpu_970_init,
     },
     { // XXX find out real values
@@ -523,7 +549,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x80,
         .icache_block_size = 0x80,
         .dcache_block_size = 0x80,
-        .clock_frequency = 0x1dcd6500,
+        .tlb_sets = 0x100,
+        .tlb_size = 0x1000,
         .initfn = cpu_970_init,
     },
     {
@@ -535,7 +562,8 @@ static const struct cpudef ppc_defs[] = {
         .dcache_sets = 0x40,
         .icache_block_size = 0x80,
         .dcache_block_size = 0x80,
-        .clock_frequency = 0x629b4940,
+        .tlb_sets = 0x100,
+        .tlb_size = 0x1000,
         .initfn = cpu_970_init,
     },
 };
