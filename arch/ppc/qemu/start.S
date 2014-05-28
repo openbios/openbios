@@ -280,20 +280,8 @@ GLOBL(__vectors):
 1:	nop			//
 	b	1b
 
-call_dsi_exception:
-	LOAD_REG_FUNC(r3, dsi_exception)
-	mtctr	r3
-	bctrl
-	b	exception_return
-
-call_isi_exception:
-	LOAD_REG_FUNC(r3, isi_exception)
-	mtctr	r3
-	bctrl
-	b	exception_return
-
-exception_return:
-	EXCEPTION_EPILOGUE
+VECTOR( 0x100, "SRE" ):
+        b       _entry
 
 trap_error:
 	lis	r1, 0x8000			/* r1=0x80000000 */
@@ -308,9 +296,6 @@ trap_error:
 	LOAD_REG_FUNC(r4, unexpected_excep)
 	mtctr r4
 	bctr
-
-VECTOR( 0x100, "SRE" ):
-        b       _entry
 
 ILLEGAL_VECTOR( 0x200 )
 
@@ -373,11 +358,20 @@ VECTOR( 0x2200, "ISI_64" ):
 
 real_dsi:
 	EXCEPTION_PREAMBLE
-	b	call_dsi_exception
+	LOAD_REG_FUNC(r3, dsi_exception)
+	mtctr	r3
+	bctrl
+	b exception_return
 
 real_isi:
 	EXCEPTION_PREAMBLE
-	b	call_isi_exception
+	LOAD_REG_FUNC(r3, isi_exception)
+	mtctr	r3
+	bctrl
+	b exception_return
+
+exception_return:
+	EXCEPTION_EPILOGUE
 
 GLOBL(__vectors_end):
 
