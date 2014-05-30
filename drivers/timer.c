@@ -79,15 +79,11 @@ void setup_timers(void)
 /*
  * TODO: pass via lb table
  */
-
-unsigned long get_timer_freq(void)
-{
-	return 10000000 / 4;
-}
+unsigned long timer_freq = 10000000 / 4;
 
 void udelay(unsigned int usecs)
 {
-	unsigned long ticksperusec = get_timer_freq() / 1000000;
+	unsigned long ticksperusec = timer_freq / 1000000;
 	_wait_ticks(ticksperusec * usecs);
 }
 

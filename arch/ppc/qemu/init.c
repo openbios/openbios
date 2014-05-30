@@ -220,6 +220,9 @@ push_physaddr(phys_addr_t value)
 #endif
 }
 
+/* From drivers/timer.c */
+extern unsigned long timer_freq;
+
 static void
 cpu_generic_init(const struct cpudef *cpu)
 {
@@ -279,7 +282,8 @@ cpu_generic_init(const struct cpudef *cpu)
     push_str("tlb-size");
     fword("property");
 
-    PUSH(fw_cfg_read_i32(FW_CFG_PPC_TBFREQ));
+    timer_freq = fw_cfg_read_i32(FW_CFG_PPC_TBFREQ);
+    PUSH(timer_freq);
     fword("encode-int");
     push_str("timebase-frequency");
     fword("property");
