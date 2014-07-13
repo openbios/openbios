@@ -27,20 +27,31 @@
 
 #define NW_IO_NVRAM_SIZE   0x00004000
 #define NW_IO_NVRAM_OFFSET 0xfff04000
-#define NW_IO_NVRAM_SHIFT  1
 
 #define IO_OPENPIC_SIZE    0x00040000
 #define IO_OPENPIC_OFFSET  0x00040000
 
 static char *nvram;
 
+static int macio_nvram_shift(void)
+{
+	int nvram_flat;
+
+        if (is_oldworld())
+                return OW_IO_NVRAM_SHIFT;
+
+	nvram_flat = fw_cfg_read_i32(FW_CFG_PPC_NVRAM_FLAT);
+	return nvram_flat ? 0 : 1;
+}
+
 int
 macio_get_nvram_size(void)
 {
+	int shift = macio_nvram_shift();
         if (is_oldworld())
-                return OW_IO_NVRAM_SIZE >> OW_IO_NVRAM_SHIFT;
+                return OW_IO_NVRAM_SIZE >> shift;
         else
-                return NW_IO_NVRAM_SIZE >> NW_IO_NVRAM_SHIFT;
+                return NW_IO_NVRAM_SIZE >> shift;
 }
 
 static unsigned long macio_nvram_offset(void)
@@ -123,12 +134,7 @@ void
 macio_nvram_put(char *buf)
 {
 	int i;
-        unsigned int it_shift;
-
-        if (is_oldworld())
-                it_shift = OW_IO_NVRAM_SHIFT;
-        else
-                it_shift = NW_IO_NVRAM_SHIFT;
+        unsigned int it_shift = macio_nvram_shift();
 
 	for (i=0; i< arch_nvram_size() ; i++)
 		nvram[i << it_shift] = buf[i];
@@ -142,12 +148,7 @@ void
 macio_nvram_get(char *buf)
 {
 	int i;
-        unsigned int it_shift;
-
-        if (is_oldworld())
-                it_shift = OW_IO_NVRAM_SHIFT;
-        else
-                it_shift = NW_IO_NVRAM_SHIFT;
+        unsigned int it_shift = macio_nvram_shift();
 
 	for (i=0; i< arch_nvram_size(); i++)
                 buf[i] = nvram[i << it_shift];
