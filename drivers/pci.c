@@ -414,6 +414,10 @@ static void pci_set_bus_range(const pci_config_t *config)
 	set_property(dev, "bus-range", (char *)props, 2 * sizeof(props[0]));
 }
 
+/* Convert device/irq pin to interrupt property */
+#define SUN4U_INTERRUPT(dev, irq_pin) \
+            ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
+
 static void pci_host_set_interrupt_map(const pci_config_t *config)
 {
 /* XXX We currently have a hook in the MPIC init code to fill in its handle.
@@ -454,19 +458,27 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 	set_property(dev, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
 #elif defined(CONFIG_SPARC64)
 	phandle_t dev = get_cur_dev();
-	uint32_t props[5];
+	uint32_t props[12];
+	int ncells, device, i;
 
-	props[0] = 0x000001fe;
-	props[1] = 0x020003f8;
-	props[2] = 1;
-	props[3] = find_dev("/");
-	props[4] = 0x2b;
-	set_property(dev, "interrupt-map", (char *)props, 5 * sizeof(props[0]));
+	/* Set interrupt-map for devices 4 (NE2000) and 5 (CMD646) */
+	ncells = 0;
+	for (i = 4; i <= 5; i++) {
+		device = i << 11;
 
-	props[0] = 0x000001ff;
-	props[1] = 0xffffffff;
-	props[2] = 3;
-	set_property(dev, "interrupt-map-mask", (char *)props, 3 * sizeof(props[0]));
+		ncells += pci_encode_phys_addr(props + ncells, 0, 0, device, 0, 0);
+		props[ncells++] = 1;
+		props[ncells++] = get_cur_dev();
+		props[ncells++] = SUN4U_INTERRUPT(device, 1);
+	}
+
+	set_property(dev, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
+
+	props[0] = 0x0000f800;
+	props[1] = 0x0;
+	props[2] = 0x0;
+	props[3] = 7;
+	set_property(dev, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
 #endif
 }
 
@@ -960,10 +972,7 @@ static void ob_pci_add_properties(phandle_t phandle,
 		OLDWORLD(set_int_property(dev, "AAPL,interrupts",
 					  config->irq_line));
 #if defined(CONFIG_SPARC64)
-                /* direct mapping bssnn (Bus, Slot, interrupt Number */
-                set_int_property(get_cur_dev(), "interrupts",
-                                 ((((config->dev >> 11) << 2)
-                                   + config->irq_pin - 1) & 0x1f));
+                set_int_property(dev, "interrupts", config->irq_pin);
 #else
 		NEWWORLD(set_int_property(dev, "interrupts", config->irq_pin));
 #endif
