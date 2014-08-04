@@ -192,10 +192,12 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
     push_str("reg");
     fword("property");
     
+#if !defined(CONFIG_SPARC64)
     PUSH(offset);
     fword("encode-int");
     push_str("address");
     fword("property");
+#endif
     
 #if defined(CONFIG_SPARC64)
     set_int_property(get_cur_dev(), "interrupts", 1);
