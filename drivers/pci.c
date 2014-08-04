@@ -841,10 +841,14 @@ int ebus_config_cb(const pci_config_t *config)
 {
 #ifdef CONFIG_DRIVER_EBUS
     phandle_t dev = get_cur_dev();
-    uint32_t props[5];
+    uint32_t props[12];
+    int ncells;
+    int i;
+    uint32_t mask;
+    int flags, space_code;
 
-    props[0] = 0x000001fe;
-    props[1] = 0x020003f8;
+    props[0] = 0x14;
+    props[1] = 0x3f8;
     props[2] = 1;
     props[3] = find_dev("/");
     props[4] = 0x2b;
@@ -855,14 +859,37 @@ int ebus_config_cb(const pci_config_t *config)
     props[2] = 3;
     set_property(dev, "interrupt-map-mask", (char *)props, 3 * sizeof(props[0]));
 
+    /* Build ranges property from the BARs */
+    ncells = 0;
+    for (i = 0; i < 6; i++) {
+        /* consider only bars with non-zero region size */
+        if (!config->sizes[i])
+            continue;
+
+        pci_decode_pci_addr(config->assigned[i],
+                            &flags, &space_code, &mask);
+
+        props[ncells++] = PCI_BASE_ADDR_0 + (i * sizeof(uint32_t));
+        props[ncells++] = 0x0;
+
+        ncells += pci_encode_phys_addr(props + ncells,
+                                       flags, space_code, config->dev,
+                                       PCI_BASE_ADDR_0 + (i * sizeof(uint32_t)),
+                                       0);
+
+        props[ncells++] = config->sizes[i];
+    }
+
+    set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
+
 #ifdef CONFIG_DRIVER_FLOPPY
     ob_floppy_init(config->path, "fdthree", 0x3f0ULL, 0);
 #endif
 #ifdef CONFIG_DRIVER_PC_SERIAL
-    ob_pc_serial_init(config->path, "su", arch->io_base, 0x3f8ULL, 0);
+    ob_pc_serial_init(config->path, "su", (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x3f8ULL, 0);
 #endif
 #ifdef CONFIG_DRIVER_PC_KBD
-    ob_pc_kbd_init(config->path, "kb_ps2", arch->io_base, 0x60ULL, 0);
+    ob_pc_kbd_init(config->path, "kb_ps2", (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x60ULL, 0);
 #endif
 #endif
     return 0;
