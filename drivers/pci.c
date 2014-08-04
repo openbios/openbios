@@ -1375,6 +1375,21 @@ static void ob_configure_pci_device(const char* parent_path,
     }
 }
 
+static void ob_pci_set_available(phandle_t host, unsigned long mem_base, unsigned long io_base)
+{
+    /* Create an available property for both memory and IO space */
+    uint32_t props[10];
+    int ncells;
+
+    ncells = 0;
+    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32, 0, 0, mem_base);
+    ncells += pci_encode_size(props + ncells, arch->mem_len - mem_base);
+    ncells += pci_encode_phys_addr(props + ncells, 0, IO_SPACE, 0, 0, io_base);
+    ncells += pci_encode_size(props + ncells, arch->io_len - io_base);
+
+    set_property(host, "available", (char *)props, ncells * sizeof(props[0]));
+}
+
 int ob_pci_init(void)
 {
     int bus, devnum, fn;
@@ -1382,7 +1397,7 @@ int ob_pci_init(void)
     unsigned long mem_base, io_base;
 
     pci_config_t config = {}; /* host bridge */
-    phandle_t phandle_host;
+    phandle_t phandle_host = 0;
 
     PCI_DPRINTF("Initializing PCI host bridge...\n");
 
@@ -1430,6 +1445,8 @@ int ob_pci_init(void)
         break;
     }
 
+    /* create available attributes for the PCI bridge */
+    ob_pci_set_available(phandle_host, mem_base, io_base);
 
     device_end();
 
