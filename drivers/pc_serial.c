@@ -142,22 +142,19 @@ pc_serial_close(void)
 static void
 pc_serial_open(unsigned long *address)
 {
-    int len;
-    phandle_t ph;
-    unsigned long *prop;
-
-    fword("my-self");
-    fword("ihandle>phandle");
-    ph = (phandle_t)POP();
-    prop = (unsigned long *)get_property(ph, "address", &len);
-    *address = *prop;
-
     RET ( -1 );
+}
+
+static void
+pc_serial_init(unsigned long *address)
+{
+    *address = POP();
 }
 
 DECLARE_UNNAMED_NODE(pc_serial, INSTALL_OPEN, sizeof(unsigned long));
 
 NODE_METHODS(pc_serial) = {
+    { "init",               pc_serial_init              },
     { "open",               pc_serial_open              },
     { "close",              pc_serial_close             },
     { "read",               pc_serial_read              },
@@ -176,6 +173,10 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
 
     push_str(nodebuff);
     fword("find-device");
+
+    PUSH(offset);
+    PUSH(find_package_method("init", get_cur_dev()));
+    fword("execute");
 
     push_str("serial");
     fword("device-type");
