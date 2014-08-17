@@ -565,6 +565,9 @@ static int sabre_configure(phandle_t dev)
                      sizeof(props[0]));
         set_property(dev, "#virtual-dma-addr-cells", (char *)props,
                      sizeof(props[0]));
+
+        set_property(dev, "no-streaming-cache", (char *)props, 0);
+
         props[0] = 0x000007f0;
         props[1] = 0x000007ee;
         props[2] = 0x000007ef;
