@@ -12,7 +12,8 @@ include config.fs
 \ -------------------------------------------------------------
 
 " /" find-device
-
+\ Apple calls the root node device-tree
+" device-tree" device-name
 [IFDEF] CONFIG_PPC64 2 [ELSE] 1 [THEN] encode-int " #address-cells" property
 1 encode-int " #size-cells" property
 h# 05f5e100 encode-int " clock-frequency" property
