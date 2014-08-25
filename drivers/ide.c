@@ -1526,6 +1526,10 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 	u32 props[8];
 	struct ide_channel *chan;
 
+	/* IDE ports on Macs are numbered from 3.
+	 * Also see comments in macio.c:openpic_init() */
+	current_channel = 3;
+
 	for (i = 0; i < nb_channels; i++, current_channel++) {
 
 		chan = malloc(sizeof(struct ide_channel));
@@ -1574,7 +1578,8 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 
 		dnode = find_dev(nodebuff);
 
-		set_property(dnode, "compatible", "heathrow-ata", 13);
+		set_property(dnode, "compatible", (is_oldworld() ?
+			     "heathrow-ata" : "keylargo-ata"), 13);
 
 		props[0] = 0x00000526;
 		props[1] = 0x00000085;

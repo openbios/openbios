@@ -136,7 +136,7 @@ macio_nvram_put(char *buf)
 	int i;
         unsigned int it_shift = macio_nvram_shift();
 
-	for (i=0; i< arch_nvram_size() ; i++)
+	for (i=0; i < arch_nvram_size(); i++)
 		nvram[i << it_shift] = buf[i];
 #ifdef DUMP_NVRAM
 	printk("new nvram:\n");
@@ -203,13 +203,16 @@ openpic_init(const char *path, phys_addr_t addr)
         target_node = find_dev("/pci/mac-io/escc/ch-b");
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/ata-1");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        target_node = find_dev("/pci/mac-io/ata-2");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
+        /* QEMU only emulates 2 of the 3 ata buses currently */
+        /* On a new world Mac these are not numbered but named by the
+         * ATA version they support. Thus we have: ata-3, ata-3, ata-4
+         * On g3beige they all called just ide.
+         * We take ata-3 and ata-4 which seems to work for both
+         * at least for clients we care about */
         target_node = find_dev("/pci/mac-io/ata-3");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        target_node = find_dev("/pci/mac-io/ata-4");
         set_int_property(target_node, "interrupt-parent", dnode);
 
         target_node = find_dev("/pci/mac-io/via-cuda");
@@ -312,7 +315,7 @@ ob_macio_keylargo_init(const char *path, phys_addr_t addr)
         /* The NewWorld NVRAM is not located in the MacIO device */
         macio_nvram_init("", 0);
         escc_init(path, addr);
-        macio_ide_init(path, addr, 3);
+        macio_ide_init(path, addr, 2);
         openpic_init(path, addr);
 	ob_unin_init();
 }
