@@ -80,3 +80,6 @@
   <option name="CONFIG_DRIVER_ESCC" type="boolean" value="true"/>
   <option name="CONFIG_DRIVER_FW_CFG" type="boolean" value="true"/>
   <option name="CONFIG_FW_CFG_ADDR" type="integer" value="0xf0000510"/>
+  <option name="CONFIG_DRIVER_USB" type="boolean" value="true"/>
+  <option name="CONFIG_DEBUG_USB" type="boolean" value="false"/>
+  <option name="CONFIG_USB_HID" type="boolean" value="true"/>

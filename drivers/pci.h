@@ -7,6 +7,7 @@
 #define PCI_COMMAND		0x04
 #define  PCI_COMMAND_IO		0x01
 #define  PCI_COMMAND_MEMORY	0x02
+#define  PCI_COMMAND_BUS_MASTER	0x04
 
 #define PCI_STATUS              0x06    /* 16 bits */
 #define  PCI_STATUS_CAP_LIST    0x10    /* Support Capability List */

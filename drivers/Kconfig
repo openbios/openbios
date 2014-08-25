@@ -36,4 +36,24 @@ config DEBUG_IDE
 	help
 	  Debug IDE driver 
 	
+config DRIVER_USB
+	bool "USB Support"
+	default n
+	help
+	  If you want to be able to use USB devices, enable this option.
+
+config DEBUG_USB
+	depends DRIVER_USB
+	bool "Debug USB driver"
+	default n
+	help
+	  Debug USB driver
+
+config USB_HID
+	depends DRIVER_USB
+	bool "USB driver for HID devices"
+	default n
+	help
+	  If you want to be able to use USB keyboard, enable this option.
+
 endmenu

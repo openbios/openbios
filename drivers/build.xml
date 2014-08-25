@@ -22,6 +22,10 @@
   <object source="pc_serial.c" condition="DRIVER_PC_SERIAL"/>
   <object source="escc.c" condition="DRIVER_ESCC"/>
   <object source="fw_cfg.c" condition="DRIVER_FW_CFG"/>
+  <object source="usb.c" condition="DRIVER_USB"/>
+  <object source="usbhid.c" condition="USB_HID"/>
+  <object source="usbohci.c" condition="DRIVER_USB"/>
+  <object source="usbohci_rh.c" condition="DRIVER_USB"/>
  </library>
 
  <dictionary name="openbios" target="forth">

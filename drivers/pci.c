@@ -34,6 +34,9 @@
 #include "cuda.h"
 #include "macio.h"
 #endif
+#ifdef CONFIG_DRIVER_USB
+#include "drivers/usb.h"
+#endif
 
 #if defined (CONFIG_DEBUG_PCI)
 # define PCI_DPRINTF(format, ...) printk(format, ## __VA_ARGS__)
@@ -922,6 +925,14 @@ int i82378_config_cb(const pci_config_t *config)
     ob_ide_init(config->path, 0x1f0, 0x3f6, 0x170, 0x376);
 #endif
 
+    return 0;
+}
+
+int usb_ohci_config_cb(const pci_config_t *config)
+{
+#ifdef CONFIG_DRIVER_USB
+    ob_usb_ohci_init(config->path, 0x80000000 | config->dev);
+#endif
     return 0;
 }
 

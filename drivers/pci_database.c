@@ -845,6 +845,24 @@ static const pci_subclass_t cpu_subclass[] = {
     },
 };
 
+static const pci_dev_t usb_devices[] = {
+#if defined(CONFIG_QEMU)
+    {
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_KEYL_USB,
+        "usb", "usb", NULL,
+	"pci106b,3f\0pciclass,0c0310\0",
+        1, 0, 0,
+        NULL, NULL,
+    },
+#endif
+    {
+        0xFFFF, 0xFFFF,
+        NULL, NULL, NULL, NULL,
+        -1, -1, -1,
+        NULL, NULL,
+    },
+};
+
 static const pci_iface_t usb_iface[] = {
     {
         0x00, "UHCI USB controller", NULL,
@@ -852,7 +870,7 @@ static const pci_iface_t usb_iface[] = {
     },
     {
         0x10, "OHCI USB controller", NULL,
-        NULL, NULL, NULL,
+        usb_devices, &usb_ohci_config_cb, NULL,
     },
     {
         0x20, "EHCI USB controller", NULL,

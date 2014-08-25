@@ -25,6 +25,7 @@
 #include "qemu/qemu.h"
 #include "libopenbios/ofmem.h"
 #include "arch/ppc/processor.h"
+#include "drivers/usb.h"
 
 /************************************************************************/
 /*	RTAS (run-time abstraction services)				*/
@@ -112,6 +113,7 @@ DECLARE_NODE( ciface, 0, 0, "+/openprom/client-services" );
 static void
 ciface_quiesce( unsigned long args[], unsigned long ret[] )
 {
+	usb_exit();
 #if 0
 	unsigned long msr;
 	/* This seems to be the correct thing to do - but I'm not sure */
