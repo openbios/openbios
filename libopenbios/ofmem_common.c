@@ -634,8 +634,8 @@ ucell ofmem_claim( ucell addr, ucell size, ucell align )
 	} else {
 		if( align < PAGE_SIZE )
 			align = PAGE_SIZE;
-		phys = ofmem_claim_phys_( addr, size, align, 0, ofmem_arch_get_phys_top(), 1 /* reverse */ );
-		virt = ofmem_claim_virt_( addr, size, align, 0, get_ram_size(), 1 /* reverse */ );
+		phys = ofmem_claim_phys_( -1, size, align, 0, ofmem_arch_get_phys_top(), 1 /* reverse */ );
+		virt = ofmem_claim_virt_( phys, size, 0, 0, 0, 0 );
 		if( phys == -1 || virt == -1 ) {
 			OFMEM_TRACE("ofmem_claim failed\n");
 			return -1;
