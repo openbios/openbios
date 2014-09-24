@@ -116,6 +116,20 @@ sparc64_reset_all(void)
         : : "r" (val), "r" (addr) : "memory");
 }
 
+/* PCI Target Address Space Register (see UltraSPARC IIi User's Manual
+  section 19.3.0.4) */
+#define PBM_PCI_TARGET_AS              0x2028
+#define PBM_PCI_TARGET_AS_CD_ENABLE    0x40
+
+static void
+sparc64_set_tas_register(unsigned long val)
+{
+    unsigned long addr = APB_SPECIAL_BASE + PBM_PCI_TARGET_AS;
+
+    asm("stxa %0, [%1] 0x15\n\t"
+        : : "r" (val), "r" (addr) : "memory");
+}
+
 static void cpu_generic_init(const struct cpudef *cpu, uint32_t clock_frequency)
 {
     unsigned long iu_version;
@@ -574,6 +588,10 @@ arch_init( void )
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI
         ob_pci_init();
+
+        /* Set TAS register to match the virtual-dma properties
+           set during sabre configure */
+        sparc64_set_tas_register(PBM_PCI_TARGET_AS_CD_ENABLE);
 #endif
         nvconf_init();
         device_end();
