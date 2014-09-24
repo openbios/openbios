@@ -92,7 +92,7 @@ h# 300000 constant tcx-off-thc-8
 h# 1000 constant /tcx-off-thc-24
 h# 81c constant /tcx-off-thc-8
 
-h# 700000 constant tcx-off-tec
+h# 701000 constant tcx-off-tec
 h# 1000 constant /tcx-off-tec
 
 h# 800000 constant tcx-off-dfb8
@@ -103,7 +103,7 @@ h# 400000 constant /tcx-off-dfb24-24
 h# 1 constant /tcx-off-dfb24-8
 
 h# 4000000 constant tcx-off-stip
-h# 400000 constant /tcx-off-stip-24
+h# 800000 constant /tcx-off-stip-24
 h# 1 constant /tcx-off-stip-8
 
 h# 6000000 constant tcx-off-blit
@@ -228,7 +228,11 @@ headerless
     fb-addr to frame-buffer-adr
     default-font set-font
 
-    frame-buffer-adr encode-int " address" property
+    \ Sun TCX adapters don't have an address property, but it is useful for
+    \ OpenBIOS developers. Unfortunately NetBSD SPARC32 has a bug that causes
+    \ it to fail initialising TCX if the address property is present; so work
+    \ around this by adding an underscore prefix
+    frame-buffer-adr encode-int " _address" property
 
     openbios-video-width openbios-video-height over char-width / over char-height /
     fb8-install
@@ -266,7 +270,7 @@ headerless
   openbios-video-width encode-int " width" property
   line-bytes encode-int " linebytes" property
 
-  5 encode-int 0 encode-int encode+ " intr" property
+  h# 39 encode-int 0 encode-int encode+ " intr" property
   5 encode-int " interrupts" property
 
   ['] qemu-tcx-driver-install is-install
