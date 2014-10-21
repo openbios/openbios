@@ -103,8 +103,7 @@ h# 400000 constant /tcx-off-dfb24-24
 h# 1 constant /tcx-off-dfb24-8
 
 h# 4000000 constant tcx-off-stip
-h# 800000 constant /tcx-off-stip-24
-h# 1 constant /tcx-off-stip-8
+h# 800000 constant /tcx-off-stip
 
 h# 6000000 constant tcx-off-blit
 h# 800000 constant /tcx-off-blit
@@ -129,7 +128,7 @@ h# 1 constant /tcx-off-rblit-8
   \ WARNING: order is important (at least to Solaris)
   tcx-off-dfb8 /tcx-off-dfb8 >tcx-reg-spec
   tcx-off-dfb24 /tcx-off-dfb24-8 >tcx-reg-spec encode+
-  tcx-off-stip /tcx-off-stip-8 >tcx-reg-spec encode+
+  tcx-off-stip /tcx-off-stip >tcx-reg-spec encode+
   tcx-off-blit /tcx-off-blit >tcx-reg-spec encode+
   tcx-off-rdfb32 /tcx-off-rdfb32-8 >tcx-reg-spec encode+
   tcx-off-rstip /tcx-off-rstip-8 >tcx-reg-spec encode+
@@ -147,7 +146,7 @@ h# 1 constant /tcx-off-rblit-8
   \ WARNING: order is important (at least to Solaris)
   tcx-off-dfb8 /tcx-off-dfb8 >tcx-reg-spec
   tcx-off-dfb24 /tcx-off-dfb24-24 >tcx-reg-spec encode+
-  tcx-off-stip /tcx-off-stip-24 >tcx-reg-spec encode+
+  tcx-off-stip /tcx-off-stip >tcx-reg-spec encode+
   tcx-off-blit /tcx-off-blit >tcx-reg-spec encode+
   tcx-off-rdfb32 /tcx-off-rdfb32-24 >tcx-reg-spec encode+
   tcx-off-rstip /tcx-off-rstip-24 >tcx-reg-spec encode+
