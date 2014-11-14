@@ -421,7 +421,7 @@ static void pci_set_bus_range(const pci_config_t *config)
 #define SUN4U_INTERRUPT(dev, irq_pin) \
             ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
 
-static void pci_host_set_interrupt_map(const pci_config_t *config)
+static void pci_host_set_interrupt_map(phandle_t dev)
 {
 /* XXX We currently have a hook in the MPIC init code to fill in its handle.
  *     If you want to have interrupt maps for your PCI host bus, add your
@@ -432,7 +432,6 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
  *     mechanism here.
  */
 #if defined(CONFIG_PPC)
-	phandle_t dev = get_cur_dev();
 	u32 props[7 * 8];
 	int i;
 
@@ -458,7 +457,6 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 
 	set_property(dev, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
 #elif defined(CONFIG_SPARC64)
-	phandle_t dev = get_cur_dev();
 	uint32_t props[12];
 	int ncells, device, i;
 
@@ -469,7 +467,7 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 
 		ncells += pci_encode_phys_addr(props + ncells, 0, 0, device, 0, 0);
 		props[ncells++] = 1;
-		props[ncells++] = get_cur_dev();
+		props[ncells++] = dev;
 		props[ncells++] = SUN4U_INTERRUPT(device, 1);
 	}
 
@@ -549,7 +547,7 @@ int host_config_cb(const pci_config_t *config)
 	//XXX this overrides "reg" property
 	pci_host_set_reg(get_cur_dev());
 	pci_host_set_ranges(config);
-	pci_host_set_interrupt_map(config);
+	pci_host_set_interrupt_map(get_cur_dev());
 
 	return 0;
 }
