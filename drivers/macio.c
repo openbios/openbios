@@ -162,7 +162,6 @@ macio_nvram_get(char *buf)
 static void
 openpic_init(const char *path, phys_addr_t addr)
 {
-        phandle_t target_node;
         phandle_t dnode;
         int props[2];
         char buf[128];
@@ -187,45 +186,6 @@ openpic_init(const char *path, phys_addr_t addr)
         set_int_property(dnode, "clock-frequency", 4166666);
 
         fword("finish-device");
-
-        u32 *interrupt_map;
-        int len, i;
-
-        /* patch in interrupt parent */
-        dnode = find_dev(buf);
-
-        target_node = find_dev("/pci/mac-io");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        target_node = find_dev("/pci/mac-io/escc/ch-a");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        target_node = find_dev("/pci/mac-io/escc/ch-b");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        /* QEMU only emulates 2 of the 3 ata buses currently */
-        /* On a new world Mac these are not numbered but named by the
-         * ATA version they support. Thus we have: ata-3, ata-3, ata-4
-         * On g3beige they all called just ide.
-         * We take ata-3 and ata-4 which seems to work for both
-         * at least for clients we care about */
-        target_node = find_dev("/pci/mac-io/ata-3");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        target_node = find_dev("/pci/mac-io/ata-4");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        target_node = find_dev("/pci/mac-io/via-cuda");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        target_node = find_dev("/pci");
-        set_int_property(target_node, "interrupt-parent", dnode);
-
-        interrupt_map = (u32 *)get_property(target_node, "interrupt-map", &len);
-        for (i = 0; i < 8; i++) {
-            interrupt_map[(i * 7) + PCI_INT_MAP_PIC_HANDLE] = (u32)dnode;
-        }
-        set_property(target_node, "interrupt-map", (char *)interrupt_map, len);
 }
 
 DECLARE_NODE(ob_macio, INSTALL_OPEN, sizeof(int), "Tmac-io");

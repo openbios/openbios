@@ -1436,6 +1436,57 @@ static void ob_pci_set_available(phandle_t host, unsigned long mem_base, unsigne
     set_property(host, "available", (char *)props, ncells * sizeof(props[0]));
 }
 
+static void ob_pci_host_set_interrupt_map(phandle_t host)
+{
+#if defined(CONFIG_PPC)
+    phandle_t dnode = 0;
+    phandle_t target_node;
+    u32 *interrupt_map;
+    int len, i;
+
+    /* Oldworld macs do interrupt maps differently */
+    if (!is_newworld())
+        return;
+
+    dnode = dt_iterate_type(0, "open-pic");
+    if (dnode) {
+        /* patch in openpic interrupt-parent properties */
+        target_node = find_dev("/pci/mac-io");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        target_node = find_dev("/pci/mac-io/escc/ch-a");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        target_node = find_dev("/pci/mac-io/escc/ch-b");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        /* QEMU only emulates 2 of the 3 ata buses currently */
+        /* On a new world Mac these are not numbered but named by the
+         * ATA version they support. Thus we have: ata-3, ata-3, ata-4
+         * On g3beige they all called just ide.
+         * We take ata-3 and ata-4 which seems to work for both
+         * at least for clients we care about */
+        target_node = find_dev("/pci/mac-io/ata-3");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        target_node = find_dev("/pci/mac-io/ata-4");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        target_node = find_dev("/pci/mac-io/via-cuda");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        target_node = find_dev("/pci");
+        set_int_property(target_node, "interrupt-parent", dnode);
+
+        interrupt_map = (u32 *)get_property(target_node, "interrupt-map", &len);
+        for (i = 0; i < 8; i++) {
+            interrupt_map[(i * 7) + PCI_INT_MAP_PIC_HANDLE] = (u32)dnode;
+        }
+        set_property(target_node, "interrupt-map", (char *)interrupt_map, len);
+    }
+#endif
+}
+
 int ob_pci_init(void)
 {
     int bus, devnum, fn;
@@ -1493,6 +1544,9 @@ int ob_pci_init(void)
 
     /* create available attributes for the PCI bridge */
     ob_pci_set_available(phandle_host, mem_base, io_base);
+
+    /* configure the host bridge interrupt map */
+    ob_pci_host_set_interrupt_map(phandle_host);
 
     device_end();
 
