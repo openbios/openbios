@@ -431,32 +431,7 @@ static void pci_host_set_interrupt_map(phandle_t dev)
  *     It would be great if someone clever could come up with a more universal
  *     mechanism here.
  */
-#if defined(CONFIG_PPC)
-	u32 props[7 * 8];
-	int i;
-
-	/* Oldworld macs do interrupt maps differently */
-	if(!is_newworld())
-		return;
-
-	for (i = 0; i < (7*8); i+=7) {
-		props[i+PCI_INT_MAP_PCI0] = 0;
-		props[i+PCI_INT_MAP_PCI1] = 0;
-		props[i+PCI_INT_MAP_PCI2] = 0;
-		props[i+PCI_INT_MAP_PCI_INT] = (i / 7) + 1; // starts at PINA=1
-		props[i+PCI_INT_MAP_PIC_HANDLE] = 0; // gets patched in later
-		props[i+PCI_INT_MAP_PIC_INT] = arch->irqs[i / 7];
-		props[i+PCI_INT_MAP_PIC_POL] = 3;
-	}
-	set_property(dev, "interrupt-map", (char *)props, 7 * 8 * sizeof(props[0]));
-
-	props[PCI_INT_MAP_PCI0] = 0;
-	props[PCI_INT_MAP_PCI1] = 0;
-	props[PCI_INT_MAP_PCI2] = 0;
-	props[PCI_INT_MAP_PCI_INT] = 0x7;
-
-	set_property(dev, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
-#elif defined(CONFIG_SPARC64)
+#if defined(CONFIG_SPARC64)
 	uint32_t props[12];
 	int ncells, device, i;
 
@@ -1440,9 +1415,9 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
 {
 #if defined(CONFIG_PPC)
     phandle_t dnode = 0;
+    u32 props[56];
     phandle_t target_node;
-    u32 *interrupt_map;
-    int len, i;
+    int i;
 
     /* Oldworld macs do interrupt maps differently */
     if (!is_newworld())
@@ -1478,11 +1453,24 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
         target_node = find_dev("/pci");
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        interrupt_map = (u32 *)get_property(target_node, "interrupt-map", &len);
-        for (i = 0; i < 8; i++) {
-            interrupt_map[(i * 7) + PCI_INT_MAP_PIC_HANDLE] = (u32)dnode;
+        /* openpic interrupt mapping */
+        for (i = 0; i < (7*8); i += 7) {
+            props[i + PCI_INT_MAP_PCI0] = 0;
+            props[i + PCI_INT_MAP_PCI1] = 0;
+            props[i + PCI_INT_MAP_PCI2] = 0;
+            props[i + PCI_INT_MAP_PCI_INT] = (i / 7) + 1; // starts at PINA=1
+            props[i + PCI_INT_MAP_PIC_HANDLE] = dnode;
+            props[i + PCI_INT_MAP_PIC_INT] = arch->irqs[i / 7];
+            props[i + PCI_INT_MAP_PIC_POL] = 3;
         }
-        set_property(target_node, "interrupt-map", (char *)interrupt_map, len);
+        set_property(host, "interrupt-map", (char *)props, 7 * 8 * sizeof(props[0]));
+
+        props[PCI_INT_MAP_PCI0] = 0;
+        props[PCI_INT_MAP_PCI1] = 0;
+        props[PCI_INT_MAP_PCI2] = 0;
+        props[PCI_INT_MAP_PCI_INT] = 0x7;
+
+        set_property(host, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
     }
 #endif
 }
