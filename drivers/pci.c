@@ -421,41 +421,6 @@ static void pci_set_bus_range(const pci_config_t *config)
 #define SUN4U_INTERRUPT(dev, irq_pin) \
             ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
 
-static void pci_host_set_interrupt_map(phandle_t dev)
-{
-/* XXX We currently have a hook in the MPIC init code to fill in its handle.
- *     If you want to have interrupt maps for your PCI host bus, add your
- *     architecture to the #if and make your bridge detect code fill in its
- *     handle too.
- *
- *     It would be great if someone clever could come up with a more universal
- *     mechanism here.
- */
-#if defined(CONFIG_SPARC64)
-	uint32_t props[12];
-	int ncells, device, i;
-
-	/* Set interrupt-map for devices 4 (NE2000) and 5 (CMD646) */
-	ncells = 0;
-	for (i = 4; i <= 5; i++) {
-		device = i << 11;
-
-		ncells += pci_encode_phys_addr(props + ncells, 0, 0, device, 0, 0);
-		props[ncells++] = 1;
-		props[ncells++] = dev;
-		props[ncells++] = SUN4U_INTERRUPT(device, 1);
-	}
-
-	set_property(dev, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
-
-	props[0] = 0x0000f800;
-	props[1] = 0x0;
-	props[2] = 0x0;
-	props[3] = 7;
-	set_property(dev, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
-#endif
-}
-
 static void pci_host_set_reg(phandle_t phandle)
 {
     phandle_t dev = phandle;
@@ -522,7 +487,6 @@ int host_config_cb(const pci_config_t *config)
 	//XXX this overrides "reg" property
 	pci_host_set_reg(get_cur_dev());
 	pci_host_set_ranges(config);
-	pci_host_set_interrupt_map(get_cur_dev());
 
 	return 0;
 }
@@ -1472,6 +1436,28 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
 
         set_property(host, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
     }
+#elif defined(CONFIG_SPARC64)
+    uint32_t props[12];
+    int ncells, device, i;
+
+    /* Set interrupt-map for devices 4 (NE2000) and 5 (CMD646) */
+    ncells = 0;
+    for (i = 4; i <= 5; i++) {
+        device = i << 11;
+
+        ncells += pci_encode_phys_addr(props + ncells, 0, 0, device, 0, 0);
+        props[ncells++] = 1;
+        props[ncells++] = host;
+        props[ncells++] = SUN4U_INTERRUPT(device, 1);
+    }
+
+    set_property(host, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
+
+    props[0] = 0x0000f800;
+    props[1] = 0x0;
+    props[2] = 0x0;
+    props[3] = 7;
+    set_property(host, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
 #endif
 }
 
