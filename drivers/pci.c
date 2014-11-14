@@ -436,11 +436,9 @@ static void pci_host_set_interrupt_map(const pci_config_t *config)
 	u32 props[7 * 8];
 	int i;
 
-#if defined(CONFIG_PPC)
 	/* Oldworld macs do interrupt maps differently */
 	if(!is_newworld())
 		return;
-#endif
 
 	for (i = 0; i < (7*8); i+=7) {
 		props[i+PCI_INT_MAP_PCI0] = 0;
