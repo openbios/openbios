@@ -417,10 +417,6 @@ static void pci_set_bus_range(const pci_config_t *config)
 	set_property(dev, "bus-range", (char *)props, 2 * sizeof(props[0]));
 }
 
-/* Convert device/irq pin to interrupt property */
-#define SUN4U_INTERRUPT(dev, irq_pin) \
-            ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
-
 static void pci_host_set_reg(phandle_t phandle)
 {
     phandle_t dev = phandle;
@@ -1375,13 +1371,18 @@ static void ob_pci_set_available(phandle_t host, unsigned long mem_base, unsigne
     set_property(host, "available", (char *)props, ncells * sizeof(props[0]));
 }
 
+/* Convert device/irq pin to interrupt property */
+#define SUN4U_INTERRUPT(dev, irq_pin) \
+            ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
+
 static void ob_pci_host_set_interrupt_map(phandle_t host)
 {
-#if defined(CONFIG_PPC)
     phandle_t dnode = 0;
-    u32 props[56];
-    phandle_t target_node;
+    u32 props[128];
     int i;
+
+#if defined(CONFIG_PPC)
+    phandle_t target_node;
 
     /* Oldworld macs do interrupt maps differently */
     if (!is_newworld())
@@ -1437,20 +1438,40 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
         set_property(host, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
     }
 #elif defined(CONFIG_SPARC64)
-    uint32_t props[12];
-    int ncells, device, i;
+    int ncells, len;
+    u32 *val, addr;
+    char *reg;
 
-    /* Set interrupt-map for devices 4 (NE2000) and 5 (CMD646) */
+    /* Set interrupt-map for PCI devices with an interrupt pin present */
     ncells = 0;
-    for (i = 4; i <= 5; i++) {
-        device = i << 11;
 
-        ncells += pci_encode_phys_addr(props + ncells, 0, 0, device, 0, 0);
-        props[ncells++] = 1;
-        props[ncells++] = host;
-        props[ncells++] = SUN4U_INTERRUPT(device, 1);
+    PUSH(host);
+    fword("child");
+    dnode = POP();
+    while (dnode) {
+        if (get_int_property(dnode, "interrupts", &len)) {
+            reg = get_property(dnode, "reg", &len);
+            if (reg) {
+                val = (u32 *)reg;
+
+                for (i = 0; i < (len / sizeof(u32)); i += 5) {
+                    addr = val[i];
+
+                    /* Device address is in 1st 32-bit word of encoded PCI address for config space */
+                    if (!(addr & 0x03000000)) {
+                        ncells += pci_encode_phys_addr(props + ncells, 0, 0, addr, 0, 0);
+                        props[ncells++] = 1;    /* always interrupt pin 1 for QEMU */
+                        props[ncells++] = host;
+                        props[ncells++] = SUN4U_INTERRUPT(addr, 1);
+                    }
+                }
+            }
+        }
+
+        PUSH(dnode);
+        fword("peer");
+        dnode = POP();
     }
-
     set_property(host, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
 
     props[0] = 0x0000f800;
