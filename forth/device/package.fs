@@ -49,6 +49,10 @@
 ;
 
 : child ( phandle.parent -- phandle.child )
+  \ Assume phandle == 0 indicates root node (not documented but similar
+  \ behaviour to "peer"). Used by some versions of Solaris (e.g. 9).
+  ?dup if else device-tree @ then
+
   >dn.child @
 ;
   
