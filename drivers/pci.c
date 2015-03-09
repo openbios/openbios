@@ -831,6 +831,26 @@ int ebus_config_cb(const pci_config_t *config)
 
     set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
 
+    /*  Build eeprom node */
+    fword("new-device");
+    PUSH(0x14);
+    fword("encode-int");
+    PUSH(0x2000);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x2000);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    push_str("mk48t59");
+    fword("model");
+
+    push_str("eeprom");
+    fword("device-name");
+    fword("finish-device");
+
 #ifdef CONFIG_DRIVER_FLOPPY
     ob_floppy_init(config->path, "fdthree", 0x3f0ULL, 0);
 #endif
