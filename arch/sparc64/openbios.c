@@ -27,21 +27,18 @@
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
-#define NVRAM_ADDR_LO 0x74
-#define NVRAM_ADDR_HI 0x75
-#define NVRAM_DATA    0x77
-
 #define APB_SPECIAL_BASE     0x1fe00000000ULL
 #define APB_MEM_BASE         0x1ff00000000ULL
 
 #define MEMORY_SIZE     (512*1024)      /* 512K ram for hosted system */
 
 // XXX
+#define NVRAM_BASE       0x2000
 #define NVRAM_SIZE       0x2000
 #define NVRAM_IDPROM     0x1fd8
 #define NVRAM_IDPROM_SIZE 32
 #define NVRAM_OB_START   (0)
-#define NVRAM_OB_SIZE    ((0x1fd0 - NVRAM_OB_START) & ~15)
+#define NVRAM_OB_SIZE    ((NVRAM_IDPROM - NVRAM_OB_START) & ~15)
 
 static uint8_t idprom[NVRAM_IDPROM_SIZE];
 
@@ -352,34 +349,22 @@ id_cpu(void)
     for (;;);
 }
 
-static uint8_t nvram_read_byte(uint16_t offset)
-{
-    outb(offset & 0xff, NVRAM_ADDR_LO);
-    outb(offset >> 8, NVRAM_ADDR_HI);
-    return inb(NVRAM_DATA);
-}
-
 static void nvram_read(uint16_t offset, char *buf, unsigned int nbytes)
 {
     unsigned int i;
 
-    for (i = 0; i < nbytes; i++)
-        buf[i] = nvram_read_byte(offset + i);
-}
-
-static void nvram_write_byte(uint16_t offset, uint8_t val)
-{
-    outb(offset & 0xff, NVRAM_ADDR_LO);
-    outb(offset >> 8, NVRAM_ADDR_HI);
-    outb(val, NVRAM_DATA);
+    for (i = 0; i < nbytes; i++) {
+        buf[i] = inb(NVRAM_BASE + offset + i);
+    }
 }
 
 static void nvram_write(uint16_t offset, const char *buf, unsigned int nbytes)
 {
     unsigned int i;
 
-    for (i = 0; i < nbytes; i++)
-        nvram_write_byte(offset + i, buf[i]);
+    for (i = 0; i < nbytes; i++) {
+        outb(buf[i], NVRAM_BASE + offset + i);
+    }
 }
 
 static uint8_t qemu_uuid[16];
