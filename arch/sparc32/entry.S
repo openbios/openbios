@@ -122,7 +122,44 @@ entry:
         or      %g3, %g4, %g1
         ! %g1 contains end of memory
 
+        ! Get kernel address from configuration device
+        ! NB: little endian format
+        mov     FW_CFG_KERNEL_ADDR, %g2
+        sub     %g5, 2, %g5
+        stha    %g2, [%g5] CFG_ASI
+        add     %g5, 2, %g5
+        lduba   [%g5] CFG_ASI, %g4
 
+        lduba   [%g5] CFG_ASI, %g3
+        sll     %g3, 8, %g3
+        or      %g3, %g4, %g4
+
+        lduba   [%g5] CFG_ASI, %g3
+        sll     %g3, 16, %g3
+        or      %g3, %g4, %g4
+
+        lduba   [%g5] CFG_ASI, %g3
+        sll     %g3, 24, %g3
+        or      %g3, %g4, %g4
+
+        ! If kernel address is set, don't clear from base of RAM in order to
+        ! leave the kernel image intact
+        mov     0, %g6
+        cmp     %g4, 0
+        beq     clear_mem
+         nop
+
+        ! Start from 16M
+        set     0x1000000, %g6
+
+clear_mem:
+        sta     %g0, [%g6] ASI_M_BYPASS
+        add     %g6, 0x4, %g6
+        cmp     %g6, %g1
+        bl      clear_mem
+         nop
+
+clear_done:
         ! Start of private memory in %g6
         set     0x2000, %g3
         sub     %g1, %g3, %g6
