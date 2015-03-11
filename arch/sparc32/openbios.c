@@ -865,8 +865,13 @@ arch_init( void )
         romvec = init_openprom();
 
 	kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
-	if (kernel_size)
+	if (kernel_size) {
 		kernel_image = fw_cfg_read_i32(FW_CFG_KERNEL_ADDR);
+
+		/* Mark the kernel memory as in use */
+		ofmem_claim_phys(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), 0);
+		ofmem_claim_virt(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), 0);
+	}
 
         kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
         if (kernel_cmdline) {
