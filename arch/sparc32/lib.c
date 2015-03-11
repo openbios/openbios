@@ -367,7 +367,7 @@ init_mmu_swift(void)
     for (i = 1; i < NCTX_SWIFT; i++) {
         context_table[i] = SRMMU_ET_INVALID;
     }
-    for (i = 0; i < 256; i += 4) {
+    for (i = 0; i < 256; i++) {
         l1[i] = SRMMU_ET_INVALID;
     }
 
