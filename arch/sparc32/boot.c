@@ -147,9 +147,6 @@ static void setup_romvec(void)
 		(**pp).start_adr = (char *)intprop_ptr[1];
 		(**pp).num_bytes = intprop_ptr[2];
 
-		printk("start_adr: %x\n", (int)(**pp).start_adr);
-		printk("num_bytes: %x\n", (**pp).num_bytes);
-
 		intprop_ptr += 3;
 	}
 
@@ -180,7 +177,7 @@ static void setup_romvec(void)
 			(**pp).num_bytes = (intprop_ptr[4] + intprop_ptr[5]) - (intprop_ptr[1] + intprop_ptr[2]);
 		} else {
 			/* Tail (size from top of virtual memory) */
-			(**pp).num_bytes = 0xffffffffUL - (intprop_ptr[1] + intprop_ptr[2]);
+			(**pp).num_bytes = 0xffffffffUL - (intprop_ptr[1] + intprop_ptr[2]) + 1;
 		}
 
 		intprop_ptr += 3;
