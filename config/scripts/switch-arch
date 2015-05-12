@@ -99,7 +99,13 @@ archname()
 
 select_prefix()
 {
-    for TARGET in ${1}-unknown-linux-gnu- ${1}-linux-gnu- ${1}-linux- ${1}-elf- ${1}-eabi-
+    TARGETS="${1}-unknown-linux-gnu- ${1}-linux-gnu- ${1}-linux- ${1}-elf- ${1}-eabi-"
+
+    if [ x"$CROSS_COMPILE" != "x" ]; then
+        TARGETS=$CROSS_COMPILE
+    fi
+
+    for TARGET in $TARGETS
     do
         if type ${TARGET}gcc > /dev/null 2>&1
         then
