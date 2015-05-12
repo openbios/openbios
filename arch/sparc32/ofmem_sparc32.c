@@ -30,6 +30,8 @@ static union {
 #define OFMEM      	(&s_ofmem_data.ofmem)
 #define TOP_OF_RAM 	(s_ofmem_data.memory + MEMSIZE)
 
+#define OFMEM_PHYS_RESERVED	0x1000000
+
 translation_t **g_ofmem_translations = &s_ofmem_data.ofmem.trans;
 
 extern uint32_t qemu_mem_size;
@@ -251,7 +253,7 @@ void ofmem_init( void )
 	ofmem_claim_virt(0, PAGE_SIZE, 0);
 	
 	/* Claim reserved physical addresses at top of RAM */
-	ofmem_claim_phys(ofmem_arch_get_phys_top(), s_ofmem_data.ofmem.ramsize - ofmem_arch_get_phys_top(), 0);
+	ofmem_claim_phys(s_ofmem_data.ofmem.ramsize - OFMEM_PHYS_RESERVED, OFMEM_PHYS_RESERVED, 0);
 	
 	/* Claim OpenBIOS reserved space */
 	ofmem_claim_virt(0xffd00000, 0x300000, 0);
