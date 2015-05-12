@@ -66,13 +66,6 @@ ucell ofmem_arch_get_virt_top(void)
 	return (ucell)OFMEM_VIRT_TOP;
 }
 
-phys_addr_t ofmem_arch_get_phys_top(void)
-{
-	ofmem_t *ofmem = ofmem_arch_get_private();
-
-	return (uintptr_t)ofmem->ramsize - 0x1000000;
-}
-
 ucell ofmem_arch_get_iomem_base(void)
 {
 	return pointer2cell(&_end);

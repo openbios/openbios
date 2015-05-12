@@ -117,13 +117,6 @@ ucell ofmem_arch_get_virt_top(void)
     return IO_BASE;
 }
 
-phys_addr_t ofmem_arch_get_phys_top(void)
-{
-    ofmem_t *ofmem = ofmem_arch_get_private();
-
-    return ofmem->ramsize;
-}
-
 void ofmem_arch_unmap_pages(ucell virt, ucell size)
 {
     /* kill page mappings in provided range */
