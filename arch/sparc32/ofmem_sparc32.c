@@ -249,5 +249,5 @@ void ofmem_init( void )
 	ofmem_claim_phys(s_ofmem_data.ofmem.ramsize - OFMEM_PHYS_RESERVED, OFMEM_PHYS_RESERVED, 0);
 	
 	/* Claim OpenBIOS reserved space */
-	ofmem_claim_virt(0xffd00000, 0x300000, 0);
+	ofmem_claim_virt(0xffd00000, 0x200000, 0);
 }
