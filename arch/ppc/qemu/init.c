@@ -680,6 +680,60 @@ static void ffilll(void)
     }   
 }
 
+/*
+ * adler32        ( adler buf len -- checksum )
+ *
+ * Adapted from Mark Adler's original implementation (zlib license)
+ *
+ * Both OS 9 and BootX require this word for payload validation.
+ */
+
+#define DO1(buf,i)  {s1 += buf[i]; s2 += s1;}
+#define DO2(buf,i)  DO1(buf,i); DO1(buf,i+1);
+#define DO4(buf,i)  DO2(buf,i); DO2(buf,i+2);
+#define DO8(buf,i)  DO4(buf,i); DO4(buf,i+4);
+#define DO16(buf)   DO8(buf,0); DO8(buf,8);
+
+static void adler32(void)
+{
+    uint32_t len = (uint32_t)POP();
+    char *buf = (char *)POP();
+    uint32_t adler = (uint32_t)POP();
+
+    if (buf == NULL) {
+        RET(-1);
+    }
+
+    uint32_t base = 65521;
+    uint32_t nmax = 5552;
+
+    uint32_t s1 = adler & 0xffff;
+    uint32_t s2 = (adler >> 16) & 0xffff;
+
+    uint32_t k;
+    while (len > 0) {
+        k = (len < nmax ? len : nmax);
+        len -= k;
+
+        while (k >= 16) {
+            DO16(buf);
+            buf += 16;
+            k -= 16;
+        }
+        if (k != 0) {
+            do {
+                s1 += *buf++;
+                s2 += s1;
+            } while (--k);
+        }
+
+        s1 %= base;
+        s2 %= base;
+    }
+
+    RET(s2 << 16 | s1);
+}
+
 void
 arch_of_init(void)
 {
@@ -945,6 +999,9 @@ arch_of_init(void)
 
     /* Implementation of filll word (required by BootX) */
     bind_func("filll", ffilll);
+
+    /* Implementation of adler32 word (required by OS 9, BootX) */
+    bind_func("adler32", adler32);
     
     bind_func("platform-boot", boot);
     bind_func("(go)", go);
