@@ -1006,7 +1006,7 @@ arch_of_init(void)
     bind_func("filll", ffilll);
 
     /* Implementation of adler32 word (required by OS 9, BootX) */
-    bind_func("adler32", adler32);
+    bind_func("(adler32)", adler32);
     
     bind_func("platform-boot", boot);
     bind_func("(go)", go);
