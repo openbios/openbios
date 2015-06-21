@@ -302,6 +302,11 @@ cpu_generic_init(const struct cpudef *cpu)
     fword("encode-string");
     push_str("state");
     fword("property");
+
+    PUSH(0x20);
+    fword("encode-int");
+    push_str("reservation-granule-size");
+    fword("property");
 }
 
 static void
