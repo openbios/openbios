@@ -99,23 +99,25 @@ archname()
 
 select_prefix()
 {
-    TARGETS="${1}-unknown-linux-gnu- ${1}-linux-gnu- ${1}-linux- ${1}-elf- ${1}-eabi-"
+    for target_arch ; do
+        TARGETS="${target_arch}-unknown-linux-gnu- ${target_arch}-linux-gnu- ${target_arch}-linux- ${target_arch}-elf- ${target_arch}-eabi-"
 
-    if [ x"$CROSS_COMPILE" != "x" ]; then
-        TARGETS=$CROSS_COMPILE
-    fi
+        if [ x"$CROSS_COMPILE" != "x" ]; then
+            TARGETS=$CROSS_COMPILE
+        fi
 
-    for TARGET in $TARGETS
-    do
-        if type ${TARGET}gcc > /dev/null 2>&1
-        then
+        for TARGET in $TARGETS
+        do
+            if type ${TARGET}gcc > /dev/null 2>&1
+            then
+                return
+            fi
+        done
+        if [ "$ARCH" = "$HOSTARCH" ]; then
             return
         fi
     done
-    if [ "$ARCH" = "$HOSTARCH" ]; then
-        return
-    fi
-    echo "ERROR: no ${1} cross-compiler found !" 1>&2
+    echo "ERROR: no $* cross-compiler found !" 1>&2
     exit 1
 }
 
@@ -251,7 +253,7 @@ for ARCH in $arch_list; do
         ;;
 
         ppc)
-        select_prefix powerpc
+        select_prefix powerpc powerpc64
         if [ "$unix" = "no" ]; then
             CFLAGS="-m32 -msoft-float -fno-builtin-bcopy -fno-builtin-log2"
             AS_FLAGS="-m32"
