@@ -380,7 +380,8 @@ powermgt_init(char *path)
 
 	ph = find_dev(buf);
 	set_property(ph, "device_type", "power-mgt", 10);
-	set_property(ph, "compatible", "power-mgt", 10);
+	set_property(ph, "mgt-kind", "min-consumption-pwm-led", strlen("min-consumption-pwm-led") + 1);
+	set_property(ph, "compatible", "cuda", strlen("cuda") + 1);
 }
 
 cuda_t *cuda_init (const char *path, phys_addr_t base)
