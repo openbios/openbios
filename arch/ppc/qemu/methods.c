@@ -114,6 +114,8 @@ static void
 ciface_quiesce( unsigned long args[], unsigned long ret[] )
 {
 	usb_exit();
+
+	ob_ide_quiesce();
 #if 0
 	unsigned long msr;
 	/* This seems to be the correct thing to do - but I'm not sure */

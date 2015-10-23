@@ -1488,6 +1488,28 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	return 0;
 }
 
+void ob_ide_quiesce(void)
+{
+	struct ide_channel *channel;
+	int i;
+
+	channel = channels;
+	while (channel) {
+		for (i = 0; i < 2; i++) {
+			struct ide_drive *drive = &channel->drives[i];
+
+			if (!drive->present)
+				continue;
+
+			ob_ide_select_drive(drive);
+			ob_ide_software_reset(drive);
+			ob_ide_device_type_check(drive);
+		}
+
+		channel = channel->next;
+	}
+}
+
 #if defined(CONFIG_DRIVER_MACIO)
 static unsigned char
 macio_ide_inb(struct ide_channel *chan, unsigned int port)
