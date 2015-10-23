@@ -380,12 +380,22 @@ ob_zs_init(phys_addr_t base, uint64_t offset, int intr, int slave, int keyboard)
 
 static void
 escc_add_channel(const char *path, const char *node, phys_addr_t addr,
-                 uint32_t offset)
+                 int esnum)
 {
     char buf[64], tty[32];
     phandle_t dnode, aliases;
-    int len;
-    cell props[2];
+
+    cell props[10];
+    int offset;
+    int legacy;
+
+    switch (esnum) {
+    case 2: offset = 1; legacy = 0; break;
+    case 3: offset = 0; legacy = 0; break;
+    case 4: offset = 1; legacy = 1; break;
+    case 5: offset = 0; legacy = 1; break;
+    default: return;
+    }
 
     /* add device */
 
@@ -411,16 +421,28 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     set_property(dnode, "device_type", "serial",
                  strlen("serial") + 1);
 
-    snprintf(buf, sizeof(buf), "ch-%s", node);
-    len = strlen(buf) + 1;
-    snprintf(buf + len, sizeof(buf) - len, "CHRP,es2");
-    set_property(dnode, "compatible", buf, len + 9);
+    snprintf(buf, sizeof(buf), "chrp,es%d", esnum);
+    set_property(dnode, "compatible", buf, 9);
 
-    props[0] = IO_ESCC_OFFSET + offset * 0x20;
-    props[1] = 0x00000020;
-    set_property(dnode, "reg", (char *)&props, 2 * sizeof(cell));
+    if (legacy) {
+        props[0] = IO_ESCC_LEGACY_OFFSET + offset * 0x4;
+        props[1] = 0x00000001;
+        props[2] = IO_ESCC_LEGACY_OFFSET + offset * 0x4 + 2;
+        props[3] = 0x00000001;
+        props[4] = IO_ESCC_LEGACY_OFFSET + offset * 0x4 + 6;
+        props[5] = 0x00000001;
+        set_property(dnode, "reg", (char *)&props, 6 * sizeof(cell));
+    } else {
+        props[0] = IO_ESCC_OFFSET + offset * 0x20;
+        props[1] = 0x00000020;
+        set_property(dnode, "reg", (char *)&props, 2 * sizeof(cell));
+    }
 
-    props[0] = addr + IO_ESCC_OFFSET + offset * 0x20;
+    if (legacy) {
+        props[0] = addr + IO_ESCC_LEGACY_OFFSET + offset * 0x4;
+    } else {
+        props[0] = addr + IO_ESCC_OFFSET + offset * 0x20;
+    }
     OLDWORLD(set_property(dnode, "AAPL,address",
             (char *)&props, 1 * sizeof(cell)));
 
@@ -430,13 +452,21 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
 
     props[0] = (0x24) + offset;
     props[1] = 0;
+    props[2] = 0;
     NEWWORLD(set_property(dnode, "interrupts",
-             (char *)&props, 2 * sizeof(cell)));
+             (char *)&props, 3 * sizeof(cell)));
 
     device_end();
 
-    uart_init_line((unsigned char*)addr + IO_ESCC_OFFSET + offset * 0x20,
-                   CONFIG_SERIAL_SPEED);
+    if (legacy) {
+        uart_init_line(
+                (unsigned char*)addr + IO_ESCC_LEGACY_OFFSET + offset * 0x4,
+                CONFIG_SERIAL_SPEED);
+    } else {
+        uart_init_line(
+                (unsigned char*)addr + IO_ESCC_OFFSET + offset * 0x20,
+                CONFIG_SERIAL_SPEED);
+    }
 }
 
 void
@@ -467,10 +497,34 @@ escc_init(const char *path, phys_addr_t addr)
 
     fword("finish-device");
 
-    escc_add_channel(buf, "a", addr, 1);
-    escc_add_channel(buf, "b", addr, 0);
+    escc_add_channel(buf, "a", addr, 2);
+    escc_add_channel(buf, "b", addr, 3);
 
     escc_serial_dev = (unsigned char *)addr + IO_ESCC_OFFSET +
                  (CONFIG_SERIAL_PORT ? 0 : 0x20);
+
+    push_str(path);
+    fword("find-device");
+    fword("new-device");
+
+    push_str("escc-legacy");
+    fword("device-name");
+
+    snprintf(buf, sizeof(buf), "%s/escc-legacy", path);
+
+    dnode = find_dev(buf);
+
+    set_int_property(dnode, "#address-cells", 1);
+    props[0] = __cpu_to_be32(IO_ESCC_LEGACY_OFFSET);
+    props[1] = __cpu_to_be32(IO_ESCC_LEGACY_SIZE);
+    set_property(dnode, "reg", (char *)&props, sizeof(props));
+    set_property(dnode, "device_type", "escc-legacy",
+                 strlen("escc-legacy") + 1);
+    set_property(dnode, "compatible", "chrp,es1", 9);
+
+    fword("finish-device");
+
+    escc_add_channel(buf, "a", addr, 4);
+    escc_add_channel(buf, "b", addr, 5);
 }
 #endif
