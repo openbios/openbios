@@ -45,6 +45,19 @@ longbits()
     fi
 }
 
+basearch()
+{
+    arch=$1
+    case $arch in
+    powerpc|ppc64|powerpc64)
+        echo ppc
+        ;;
+    *)
+        echo $arch
+        ;;
+    esac
+}
+
 crosscflags()
 {
     host=$1
@@ -95,6 +108,7 @@ archname()
 
 select_prefix()
 {
+    BASEARCH=$(basearch $ARCH)
     for target_arch ; do
         TARGETS="${target_arch}-unknown-linux-gnu- ${target_arch}-linux-gnu- ${target_arch}-linux- ${target_arch}-elf- ${target_arch}-eabi-"
 
@@ -109,7 +123,8 @@ select_prefix()
                 return
             fi
         done
-        if [ "$ARCH" = "$HOSTARCH" ]; then
+        if [ "$BASEARCH" = "$(basearch $HOSTARCH)" ]; then
+            TARGET=""
             return
         fi
     done
@@ -240,7 +255,6 @@ for ARCH in $arch_list; do
         esac
     done
 
-    BASEARCH=$ARCH
     case $ARCH in
         amd64)
         select_prefix x86_64
@@ -263,7 +277,6 @@ for ARCH in $arch_list; do
         select_prefix powerpc64
         CFLAGS="-Wa,-a64 -m64 -msoft-float -fno-builtin"
         AS_FLAGS="-Wa,-a64"
-        BASEARCH=ppc
         ;;
 
         sparc32)
