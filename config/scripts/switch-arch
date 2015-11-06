@@ -280,7 +280,7 @@ for ARCH in $arch_list; do
         ;;
 
         sparc32)
-        select_prefix sparc
+        select_prefix sparc sparc64
         CFLAGS="-Wa,-xarch=v8 -Wa,-32 -m32 -mcpu=supersparc -fno-builtin"
         AS_FLAGS="-Wa,-xarch=v8 -Wa,-32"
         ;;
