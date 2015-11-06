@@ -17,48 +17,44 @@ if [ x"$1" = x -o "$1" = "-help" ]; then
   exit 0
 fi
 
+is_bigendian()
+{
+    cpu=$1
+
+    if test "$cpu" = "powerpc" -o "$cpu" = "ppc" \
+        -o "$cpu" = "powerpc64" -o "$cpu" = "ppc64" \
+        -o "$cpu" = "mips" -o "$cpu" = "s390" \
+        -o "$cpu" = "sparc32" -o "$cpu" = "sparc64" \
+        -o "$cpu" = "m68k" -o "$cpu" = "armv4b"; then
+        echo yes
+    else
+        echo no
+    fi
+}
+
+longbits()
+{
+    cpu=$1
+    if test "$cpu" = "sparc64" -o "$cpu" = "ia64" \
+        -o "$cpu" = "amd64" -o "$cpu" = "x86_64" \
+        -o "$cpu" = "powerpc64" -o "$cpu" = "ppc64" \
+        -o "$cpu" = "alpha"; then
+        echo 64
+    else
+        echo 32
+    fi
+}
+
 crosscflags()
 {
     host=$1
     target=$2
 
-    if test "$host" = "powerpc" -o "$host" = "ppc" \
-        -o "$host" = "mips" -o "$host" = "s390" \
-        -o "$host" = "sparc32" -o "$host" = "sparc64" \
-        -o "$host" = "m68k" -o "$host" = "armv4b"; then
-        hostbigendian="yes"
-    else
-        hostbigendian="no"
-    fi
+    hostbigendian=$(is_bigendian $host)
+    hostlongbits=$(longbits $host)
 
-# host long bits test
-    if test "$host" = "sparc64" -o "$host" = "ia64" \
-        -o "$host" = "amd64" -o "$host" = "x86_64" \
-        -o "$host" = "alpha"; then
-        hostlongbits="64"
-    else
-        hostlongbits="32"
-    fi
-
-    if test "$target" = "powerpc" -o "$target" = "ppc" \
-        -o "$target" = "powerpc64" -o "$target" = "ppc64" \
-        -o "$target" = "mips" -o "$target" = "s390" \
-        -o "$target" = "sparc32" -o "$target" = "sparc64" \
-        -o "$target" = "m68k" -o "$target" = "armv4b"; then
-        targetbigendian="yes"
-    else
-        targetbigendian="no"
-    fi
-
-# target long bits test
-    if test "$target" = "sparc64" -o "$target" = "ia64" \
-        -o "$target" = "amd64"  -o "$target" = "x86_64" \
-        -o "$target" = "powerpc64" -o "$target" = "ppc64" \
-        -o "$target" = "alpha"; then
-        targetlongbits="64"
-    else
-        targetlongbits="32"
-    fi
+    targetbigendian=$(is_bigendian $target)
+    targetlongbits=$(longbits $target)
 
     if test "$targetbigendian" = "$hostbigendian"; then
         cflags="-USWAP_ENDIANNESS"
