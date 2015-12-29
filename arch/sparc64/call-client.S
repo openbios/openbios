@@ -148,9 +148,6 @@ restore_cpu_window_##type: \
 	.data
 	.align	8
 
-	.skip	16384
-openbios_stack:
-
 client_stack:
 	.xword	0
 client_tba:
@@ -200,8 +197,15 @@ sparc64_of_client_interface:
 	
 	SAVE_WINDOW_STATE(cif)
 
-	/* Move to OpenBIOS stack */
-	setx	openbios_stack - 2047 - 192, %g6, %g7
+	/* Move to OpenBIOS context stack */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g6
+	setx	0x2000, %g4, %g5
+	sub	%g6, %g5, %g6
+	stx	%g6, [%g7]
+	
+	setx	- 2047 - 192, %g6, %g7
+	add	%g1, %g7, %g7
 	mov	%g7, %sp
 
 	/* Call client inteface */
@@ -211,6 +215,9 @@ sparc64_of_client_interface:
 	/* Restore windows */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
+	setx	0x2000, %g4, %g5
+	add	%g1, %g5, %g1
+	stx	%g1, [%g7]
 	
 	/* Return value */
 	stx	%o0, [%g1 + 0x30]
