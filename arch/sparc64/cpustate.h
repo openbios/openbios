@@ -72,11 +72,15 @@
 	/* Get the number of windows in %g6 */ \
 	rdpr	%ver, %g6; \
 	and	%g6, 0xf, %g6; \
-	inc	%g6; \
+	\
+	mov     %g6, %g4; \
+	inc     %g4; \
+	\
+	/* Starting cwp in g7 */ \
+	rdpr    %cwp, %g7; \
 	\
 save_cpu_window_##type: \
-	deccc	%g6; \
-	wrpr	%g6, %cwp; \
+	wrpr    %g7, %cwp; \
 	stx	%l0, [%g5]; \
 	stx	%l1, [%g5 + 0x8]; \
 	stx	%l2, [%g5 + 0x10]; \
@@ -93,6 +97,9 @@ save_cpu_window_##type: \
 	stx	%i5, [%g5 + 0x68]; \
 	stx	%i6, [%g5 + 0x70]; \
 	stx	%i7, [%g5 + 0x78]; \
+	dec	%g7; \
+	and	%g7, %g6, %g7; \
+	subcc	%g4, 1, %g4; \
 	bne	save_cpu_window_##type; \
 	 add	%g5, 0x80, %g5; \
 	\
@@ -144,14 +151,18 @@ save_trap_state_##type: \
 	/* Get the number of windows in %g6 */ \
 	rdpr	%ver, %g6; \
 	and	%g6, 0xf, %g6; \
-	inc	%g6; \
+	\
+	mov	%g6, %g4; \
+	inc	%g4; \
+	\
+	/* Set starting window */ \
+	ldx	[%g1], %g7; \
 	\
 	/* Now iterate through all of the windows restoring all l and i registers */ \
 	add	%g1, 0x90, %g5; \
 	\
 restore_cpu_window_##type: \
-	deccc	%g6; \
-	wrpr	%g6, %cwp; \
+	wrpr	%g7, %cwp; \
 	ldx	[%g5], %l0; \
 	ldx	[%g5 + 0x8], %l1; \
 	ldx	[%g5 + 0x10], %l2; \
@@ -168,6 +179,9 @@ restore_cpu_window_##type: \
 	ldx	[%g5 + 0x68], %i5; \
 	ldx	[%g5 + 0x70], %i6; \
 	ldx	[%g5 + 0x78], %i7; \
+	dec	%g7; \
+	and	%g7, %g6, %g7; \
+	subcc	%g4, 1, %g4; \
 	bne	restore_cpu_window_##type; \
 	 add	%g5, 0x80, %g5; \
 	\
