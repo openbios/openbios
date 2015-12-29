@@ -24,6 +24,7 @@
  */
 
 #define __ASSEMBLY__
+#include "cpustate.h"
 #include "pstate.h"
 #include <asm/asi.h>
 #define ASI_BP ASI_PHYS_BYPASS_EC_E
@@ -327,206 +328,6 @@ fill_32bit:
         restored
         retry
 
-/*
- * SAVE_CPU_STATE and RESTORE_CPU_STATE are macros used to enable a context switch
- * to C to occur within the MMU I/D TLB miss handlers.
- *
- * Because these handlers are called on a TLB miss, we cannot use flushw to store
- * processor window state on the stack, as the memory areas used by each window's
- * stack pointer may not be in the TLB, causing recursive TLB miss traps.
- *
- * For this reason, we save window state by manually rotating the window registers
- * and saving their contents (along with other vital registers) into a special
- * tlb_handler_stack defined above which is guaranteed to be locked in the TLB, and
- * so won't cause issues with trap recursion.
- *
- * Once this process is complete, we remain in a TL=0, CWP=0 state (with IE=1 to allow
- * window fill/spill traps if required), switch to our safe tlb_handler_stack and 
- * invoke the miss handler.
- */
-
-#define SAVE_CPU_STATE(type) \
-	/* First save the various state registers */ \
-	rdpr	%cwp, %g7; \
-	stx	%g7, [%g1]; \
-	rdpr	%cansave, %g7; \
-	stx	%g7, [%g1 + 0x8]; \
-	rdpr	%canrestore, %g7; \
-	stx	%g7, [%g1 + 0x10]; \
-	rdpr	%otherwin, %g7; \
-	stx	%g7, [%g1 + 0x18]; \
-	rdpr	%wstate, %g7; \
-	stx	%g7, [%g1 + 0x20]; \
-	rdpr	%cleanwin, %g7; \
-	stx	%g7, [%g1 + 0x28]; \
-	rdpr	%pstate, %g7; \
-	stx	%g7, [%g1 + 0x30]; \
-	\
-	rd	%y, %g7; \
-	stx	%g7, [%g1 + 0x38]; \
-	rd	%fprs, %g7; \
-	stx	%g7, [%g1 + 0x40]; \
-	\
-	rdpr	%tl, %g7; \
-	stx	%g7, [%g1 + 0x48]; \
-	\
-	/* Trap state */ \
-	add	%g1, 0x50, %g5; \
-	mov	4, %g6; \
-	\
-save_trap_state_##type: \
-	deccc	%g6; \
-	wrpr	%g6, %tl; \
-	rdpr	%tpc, %g7; \
-	stx	%g7, [%g5]; \
-	rdpr	%tnpc, %g7; \
-	stx	%g7, [%g5 + 0x8]; \
-	rdpr	%tstate, %g7; \
-	stx	%g7, [%g5 + 0x10]; \
-	rdpr	%tt, %g7; \
-	stx	%g7, [%g5 + 0x18]; \
-	bne	save_trap_state_##type; \
-	 add	%g5, 0x20, %g5; \
-	\
-	/* For 4 trap levels with 4 registers, memory required is 
-	4*8*4 = 0x80 bytes */ \
-	\
-	/* Save the o registers */ \
-	stx	%o0, [%g1 + 0xd0]; \
-	stx	%o1, [%g1 + 0xd8]; \
-	stx	%o2, [%g1 + 0xe0]; \
-	stx	%o3, [%g1 + 0xe8]; \
-	stx	%o4, [%g1 + 0xf0]; \
-	stx	%o5, [%g1 + 0xf8]; \
-	stx	%o6, [%g1 + 0x100]; \
-	stx	%o7, [%g1 + 0x108]; \
-	\
-	/* Now iterate through all of the windows saving all l and i registers */ \
-	add	%g1, 0x110, %g5; \
-	\
-	/* Get the number of windows in %g6 */ \
-	rdpr	%ver, %g6; \
-	and	%g6, 0xf, %g6; \
-	inc	%g6; \
-	\
-save_cpu_window_##type: \
-	deccc	%g6; \
-	wrpr	%g6, %cwp; \
-	stx	%l0, [%g5]; \
-	stx	%l1, [%g5 + 0x8]; \
-	stx	%l2, [%g5 + 0x10]; \
-	stx	%l3, [%g5 + 0x18]; \
-	stx	%l4, [%g5 + 0x20]; \
-	stx	%l5, [%g5 + 0x28]; \
-	stx	%l6, [%g5 + 0x30]; \
-	stx	%l7, [%g5 + 0x38]; \
-	stx	%i0, [%g5 + 0x40]; \
-	stx	%i1, [%g5 + 0x48]; \
-	stx	%i2, [%g5 + 0x50]; \
-	stx	%i3, [%g5 + 0x58]; \
-	stx	%i4, [%g5 + 0x60]; \
-	stx	%i5, [%g5 + 0x68]; \
-	stx	%i6, [%g5 + 0x70]; \
-	stx	%i7, [%g5 + 0x78]; \
-	bne	save_cpu_window_##type; \
-	 add	%g5, 0x80, %g5; \
-	\
-	/* For 8 windows with 16 registers to save in the window, memory required
-	is 16*8*8 = 0x400 bytes */ \
-	\
-	/* Now we should be in window 0 so update the other window registers */ \
-	rdpr	%ver, %g6; \
-	and	%g6, 0xf, %g6; \
-	dec	%g6; \
-	wrpr	%g6, %cansave; \
-	\
-	wrpr	%g0, %cleanwin; \
-	wrpr	%g0, %canrestore; \
-	wrpr	%g0, %otherwin
-
-
-#define RESTORE_CPU_STATE(type) \
-	/* Get the number of windows in %g6 */ \
-	rdpr	%ver, %g6; \
-	and	%g6, 0xf, %g6; \
-	inc	%g6; \
-	\
-	/* Now iterate through all of the windows restoring all l and i registers */ \
-	add	%g1, 0x110, %g5; \
-	\
-restore_cpu_window_##type: \
-	deccc	%g6; \
-	wrpr	%g6, %cwp; \
-	ldx	[%g5], %l0; \
-	ldx	[%g5 + 0x8], %l1; \
-	ldx	[%g5 + 0x10], %l2; \
-	ldx	[%g5 + 0x18], %l3; \
-	ldx	[%g5 + 0x20], %l4; \
-	ldx	[%g5 + 0x28], %l5; \
-	ldx	[%g5 + 0x30], %l6; \
-	ldx	[%g5 + 0x38], %l7; \
-	ldx	[%g5 + 0x40], %i0; \
-	ldx	[%g5 + 0x48], %i1; \
-	ldx	[%g5 + 0x50], %i2; \
-	ldx	[%g5 + 0x58], %i3; \
-	ldx	[%g5 + 0x60], %i4; \
-	ldx	[%g5 + 0x68], %i5; \
-	ldx	[%g5 + 0x70], %i6; \
-	ldx	[%g5 + 0x78], %i7; \
-	bne	restore_cpu_window_##type; \
-	 add	%g5, 0x80, %g5; \
-	\
-	/* Restore the window registers to their original value */ \
-	ldx	[%g1], %g7; \
-	wrpr	%g7, %cwp; \
-	ldx	[%g1 + 0x8], %g7; \
-	wrpr	%g7, %cansave; \
-	ldx	[%g1 + 0x10], %g7; \
-	wrpr	%g7, %canrestore; \
-	ldx	[%g1 + 0x18], %g7; \
-	wrpr	%g7, %otherwin; \
-	ldx	[%g1 + 0x20], %g7; \
-	wrpr	%g7, %wstate; \
-	ldx	[%g1 + 0x28], %g7; \
-	wrpr	%g7, %cleanwin; \
-	ldx	[%g1 + 0x30], %g7; \
-	wrpr	%g7, %pstate; \
-	\
-	/* Restore the o registers */ \
-	ldx	[%g1 + 0xd0], %o0; \
-	ldx	[%g1 + 0xd8], %o1; \
-	ldx	[%g1 + 0xe0], %o2; \
-	ldx	[%g1 + 0xe8], %o3; \
-	ldx	[%g1 + 0xf0], %o4; \
-	ldx	[%g1 + 0xf8], %o5; \
-	ldx	[%g1 + 0x100], %o6; \
-	ldx	[%g1 + 0x108], %o7; \
-	\
-	/* Restore the trap state */ \
-	add	%g1, 0x50, %g5; \
-	mov	4, %g6; \
-	\
-restore_trap_state_##type: \
-	deccc	%g6; \
-	wrpr	%g6, %tl; \
-	ldx	[%g5], %g7; \
-	wrpr	%g7, %tpc; \
-	ldx	[%g5 + 0x8], %g7; \
-	wrpr	%g7, %tnpc; \
-	ldx	[%g5 + 0x10], %g7; \
-	wrpr	%g7, %tstate; \
-	ldx	[%g5 + 0x18], %g7; \
-	wrpr	%g7, %tt; \
-	bne	restore_trap_state_##type; \
-	 add	%g5, 0x20, %g5; \
-	\
-	ldx	[%g1 + 0x38], %g7; \
-	wr	%g7, 0, %y; \
-	ldx	[%g1 + 0x40], %g7; \
-	wr	%g7, 0, %fprs; \
-	ldx	[%g1 + 0x48], %g7; \
-	wrpr	%g7, %tl
-
 
         .globl reload_DMMU_tlb, reload_IMMU_tlb, bug
 
@@ -535,7 +336,7 @@ reload_DMMU_tlb:
 	/* Save CPU state to stack */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
-	add	%g1, -0x510, %g1
+	add	%g1, -CONTEXT_STATE_SIZE, %g1
 	stx	%g1, [%g7]
 	
 	SAVE_CPU_STATE(dtlb)
@@ -544,7 +345,7 @@ reload_DMMU_tlb:
 	   gcc to save its arguments when building with -O0) */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g6
-	setx	0x2000, %g4, %g5
+	setx	CONTEXT_STACK_SIZE, %g4, %g5
 	sub	%g6, %g5, %g6
 	stx	%g6, [%g7]
 	
@@ -568,7 +369,7 @@ reload_DMMU_tlb:
 	/* Restore CPU state from stack */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
-	setx	0x2000, %g4, %g5
+	setx	CONTEXT_STACK_SIZE, %g4, %g5
 	add	%g1, %g5, %g1
 	stx	%g1, [%g7]
 	
@@ -576,7 +377,7 @@ reload_DMMU_tlb:
 	
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
-	add	%g1, 0x510, %g1
+	add	%g1, CONTEXT_STATE_SIZE, %g1
 	stx	%g1, [%g7]
 	
         retry
@@ -586,7 +387,7 @@ reload_IMMU_tlb:
 	/* Save CPU state to stack */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
-	add	%g1, -0x510, %g1
+	add	%g1, -CONTEXT_STATE_SIZE, %g1
 	stx	%g1, [%g7]
 	
 	SAVE_CPU_STATE(itlb)
@@ -595,7 +396,7 @@ reload_IMMU_tlb:
 	   gcc to save its arguments when building with -O0) */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g6
-	setx	0x2000, %g4, %g5
+	setx	CONTEXT_STACK_SIZE, %g4, %g5
 	sub	%g6, %g5, %g6
 	stx	%g6, [%g7]
 	
@@ -619,7 +420,7 @@ reload_IMMU_tlb:
 	/* Restore CPU state from stack */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
-	setx	0x2000, %g4, %g5
+	setx	CONTEXT_STACK_SIZE, %g4, %g5
 	add	%g1, %g5, %g1
 	stx	%g1, [%g7]
 	
@@ -627,7 +428,7 @@ reload_IMMU_tlb:
 	
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
-	add	%g1, 0x510, %g1
+	add	%g1, CONTEXT_STATE_SIZE, %g1
 	stx	%g1, [%g7]
 
         retry
