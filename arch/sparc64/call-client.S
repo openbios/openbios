@@ -10,7 +10,6 @@
  */
 
 #define SAVE_WINDOW_STATE(type) \
-	setx	client_window, %g6, %g1; \
 	rdpr	%cwp, %g7; \
 	stx	%g7, [%g1]; \
 	rdpr	%cansave, %g7; \
@@ -85,8 +84,6 @@ save_cpu_window_##type: \
 
 
 #define RESTORE_WINDOW_STATE(type) \
-	setx	client_window, %g6, %g1; \
-	\
 	/* Get the number of windows in %g6 */ \
 	rdpr	%ver, %g6; \
 	and	%g6, 0xf, %g6; \
@@ -196,6 +193,11 @@ sparc64_of_client_interface:
 	stx	%sp, [%g7]
 
 	/* Save windows */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	add	%g1, -0x510, %g1
+	stx	%g1, [%g7]
+	
 	SAVE_WINDOW_STATE(cif)
 
 	/* Move to OpenBIOS stack */
@@ -206,12 +208,19 @@ sparc64_of_client_interface:
 	call of_client_interface
 	 ldx	[%g1 + 0x30], %o0
 
-	setx	client_window, %g6, %g1
-	stx	%o0, [%g1 + 0x30]
-
 	/* Restore windows */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	
+	/* Return value */
+	stx	%o0, [%g1 + 0x30]
+	
 	RESTORE_WINDOW_STATE(cif)
-
+	
+	add	%g1, 0x510, %g1
+	setx	_fcstack_ptr, %g6, %g7
+	stx	%g1, [%g7]
+	
 	/* Restore stack */
 	setx	client_stack, %g6, %g7
 	ldx	[%g7], %sp
