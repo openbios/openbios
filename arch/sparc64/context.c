@@ -40,6 +40,10 @@ static uint8_t image_stack[IMAGE_STACK_SIZE];
 /* Pointer to startup context (physical address) */
 unsigned long __boot_ctx;
 
+/* Pointer to Forth context stack */
+void *_fcstack_ptr = &_efcstack;
+
+
 /*
  * Main starter
  * This is the C function that runs first.
