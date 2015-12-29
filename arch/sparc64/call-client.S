@@ -176,15 +176,15 @@ client_window:
 sparc64_of_client_interface:
 
 	/* Save globals on callers stack */
-	add	%sp, -56, %sp
+	add	%sp, -248, %sp
 
-	stx	%g1, [%sp + 2047 + 0]
-	stx	%g2, [%sp + 2047 + 8]
-	stx	%g3, [%sp + 2047 + 16]
-	stx	%g4, [%sp + 2047 + 24]
-	stx	%g5, [%sp + 2047 + 32]
-	stx	%g6, [%sp + 2047 + 40]
-	stx	%g7, [%sp + 2047 + 48]
+	stx	%g1, [%sp + 2047 + 192]
+	stx	%g2, [%sp + 2047 + 200]
+	stx	%g3, [%sp + 2047 + 208]
+	stx	%g4, [%sp + 2047 + 216]
+	stx	%g5, [%sp + 2047 + 224]
+	stx	%g6, [%sp + 2047 + 232]
+	stx	%g7, [%sp + 2047 + 240]
 
 	/* Save client trap table */
 	setx	client_tba, %g6, %g7
@@ -222,15 +222,15 @@ sparc64_of_client_interface:
 	wrpr	%g6, %tba
 
 	/* Restore globals */
-	ldx	[%sp + 2047 + 0], %g1
-	ldx	[%sp + 2047 + 8], %g2
-	ldx	[%sp + 2047 + 16], %g3
-	ldx	[%sp + 2047 + 24], %g4
-	ldx	[%sp + 2047 + 32], %g5
-	ldx	[%sp + 2047 + 40], %g6
-	ldx	[%sp + 2047 + 48], %g7
+	ldx	[%sp + 2047 + 192], %g1
+	ldx	[%sp + 2047 + 200], %g2
+	ldx	[%sp + 2047 + 208], %g3
+	ldx	[%sp + 2047 + 216], %g4
+	ldx	[%sp + 2047 + 224], %g5
+	ldx	[%sp + 2047 + 232], %g6
+	ldx	[%sp + 2047 + 240], %g7
 
-	add	%sp, 56, %sp
+	add	%sp, 248, %sp
 
 	jmp	%o7+8
 	 nop
