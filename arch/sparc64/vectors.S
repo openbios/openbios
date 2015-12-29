@@ -355,11 +355,6 @@ fill_32bit:
  */
 
 #define SAVE_CPU_STATE(type) \
-	/* Set up our exception stack pointer in %g1 */ \
-	setx	tlb_handler_stack_pointer, %g7, %g6; \
-	ldx	[%g6], %g1; \
-	add	%g1, -0x510, %g1; \
-	\
 	/* First save the various state registers */ \
 	rdpr	%cwp, %g7; \
 	stx	%g7, [%g1]; \
@@ -456,18 +451,10 @@ save_cpu_window_##type: \
 	\
 	wrpr	%g0, %cleanwin; \
 	wrpr	%g0, %canrestore; \
-	wrpr	%g0, %otherwin; \
-	\
-	/* Update our exception stack pointer */ \
-	setx	tlb_handler_stack_pointer, %g7, %g6; \
-	stx	%g1, [%g6];
+	wrpr	%g0, %otherwin
 
 
 #define RESTORE_CPU_STATE(type) \
-	/* Set up our exception stack pointer in %g1 */ \
-	setx	tlb_handler_stack_pointer, %g7, %g6; \
-	ldx	[%g6], %g1; \
-	\
 	/* Get the number of windows in %g6 */ \
 	rdpr	%ver, %g6; \
 	and	%g6, 0xf, %g6; \
@@ -547,22 +534,24 @@ restore_trap_state_##type: \
 	ldx	[%g1 + 0x40], %g7; \
 	wr	%g7, 0, %fprs; \
 	ldx	[%g1 + 0x48], %g7; \
-	wrpr	%g7, %tl; \
-	\
-	/* Restore exception stack pointer to previous value */ \
-	setx	tlb_handler_stack_pointer, %g7, %g6; \
-	add	%g1, 0x510, %g1; \
-	stx	%g1, [%g6];
+	wrpr	%g7, %tl
 
 
         .globl reload_DMMU_tlb, reload_IMMU_tlb, bug
 
 reload_DMMU_tlb:
-
+	
+	/* Save CPU state to stack */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	add	%g1, -0x510, %g1
+	stx	%g1, [%g7]
+	
 	SAVE_CPU_STATE(dtlb)
 
 	/* Switch to TLB locked stack space (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
+	setx	tlb_handler_stack_top, %g6, %g1
 	add 	%g1, -STACK_BIAS - 192, %sp
 
 	/* Enable interrupts for window spill/fill traps */
@@ -577,17 +566,33 @@ reload_DMMU_tlb:
 	rdpr	%pstate, %g7
 	andn	%g7, PSTATE_IE, %g7
 	wrpr	%g7, %pstate
-
+	
+	/* Restore CPU state from stack */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	
 	RESTORE_CPU_STATE(dtlb)
-
+	
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	add	%g1, 0x510, %g1
+	stx	%g1, [%g7]
+	
         retry
 
 reload_IMMU_tlb:
-
+	
+	/* Save CPU state to stack */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	add	%g1, -0x510, %g1
+	stx	%g1, [%g7]
+	
 	SAVE_CPU_STATE(itlb)
 
 	/* Switch to TLB locked stack space (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
+	setx	tlb_handler_stack_top, %g6, %g1
 	add 	%g1, -STACK_BIAS - 192, %sp
 
 	/* Enable interrupts for window spill/fill traps */
@@ -602,8 +607,17 @@ reload_IMMU_tlb:
 	rdpr	%pstate, %g7
 	andn	%g7, PSTATE_IE, %g7
 	wrpr	%g7, %pstate
-
+	
+	/* Restore CPU state from stack */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	
 	RESTORE_CPU_STATE(itlb)
+	
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	add	%g1, 0x510, %g1
+	stx	%g1, [%g7]
 
         retry
 
