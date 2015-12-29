@@ -276,17 +276,8 @@ tl1_resv1f0:	BTRAPS(0x1f0) BTRAPS(0x1f8)
 
 	.section ".data"
 	.align 8
-	.globl tlb_handler_stack_top, tlb_handler_stack_pointer, obp_ticks_pointer
+	.globl obp_ticks_pointer
 
-	! Stack for the tlb MMU trap handlers
-tlb_handler_stack_bottom:
-	.skip 8192
-tlb_handler_stack_top:
-	.skip 8
-
-	! MMU trap handler stack pointer
-tlb_handler_stack_pointer:
-	.xword tlb_handler_stack_top
 
 	! Pointer to current tick value
 obp_ticks_pointer:
@@ -549,10 +540,17 @@ reload_DMMU_tlb:
 	
 	SAVE_CPU_STATE(dtlb)
 
-	/* Switch to TLB locked stack space (note we add an additional 192 bytes required for
+	/* Switch to 8K TLB locked OpenBIOS stack (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
-	setx	tlb_handler_stack_top, %g6, %g1
-	add 	%g1, -STACK_BIAS - 192, %sp
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g6
+	setx	0x2000, %g4, %g5
+	sub	%g6, %g5, %g6
+	stx	%g6, [%g7]
+	
+	setx	- 2047 - 192, %g6, %g7
+	add	%g1, %g7, %g7
+	mov	%g7, %sp
 
 	/* Enable interrupts for window spill/fill traps */
 	rdpr	%pstate, %g7
@@ -570,6 +568,9 @@ reload_DMMU_tlb:
 	/* Restore CPU state from stack */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
+	setx	0x2000, %g4, %g5
+	add	%g1, %g5, %g1
+	stx	%g1, [%g7]
 	
 	RESTORE_CPU_STATE(dtlb)
 	
@@ -590,10 +591,17 @@ reload_IMMU_tlb:
 	
 	SAVE_CPU_STATE(itlb)
 
-	/* Switch to TLB locked stack space (note we add an additional 192 bytes required for
+	/* Switch to 8K TLB locked OpenBIOS stack (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
-	setx	tlb_handler_stack_top, %g6, %g1
-	add 	%g1, -STACK_BIAS - 192, %sp
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g6
+	setx	0x2000, %g4, %g5
+	sub	%g6, %g5, %g6
+	stx	%g6, [%g7]
+	
+	setx	- 2047 - 192, %g6, %g7
+	add	%g1, %g7, %g7
+	mov	%g7, %sp
 
 	/* Enable interrupts for window spill/fill traps */
 	rdpr	%pstate, %g7
@@ -611,6 +619,9 @@ reload_IMMU_tlb:
 	/* Restore CPU state from stack */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
+	setx	0x2000, %g4, %g5
+	add	%g1, %g5, %g1
+	stx	%g1, [%g7]
 	
 	RESTORE_CPU_STATE(itlb)
 	
