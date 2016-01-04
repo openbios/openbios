@@ -1424,9 +1424,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
                 snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
                          current_channel);
-		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
-
-		dnode = find_dev(nodebuff);
+		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
 
 #if !defined(CONFIG_PPC) && !defined(CONFIG_SPARC64)
 		props[0]=14; props[1]=0;
@@ -1471,8 +1469,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
                         snprintf(nodebuff, sizeof(nodebuff),
                                  "%s/" DEV_NAME "/%s", path, current_channel,
                                  media);
-			REGISTER_NAMED_NODE(ob_ide, nodebuff);
-			dnode=find_dev(nodebuff);
+			REGISTER_NAMED_NODE_PHANDLE(ob_ide, nodebuff, dnode);
 			set_int_property(dnode, "reg", j);
 
 			/* create aliases */
@@ -1596,9 +1593,7 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 
                 snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
                          current_channel);
-		REGISTER_NAMED_NODE(ob_ide_ctrl, nodebuff);
-
-		dnode = find_dev(nodebuff);
+		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
 
 		set_property(dnode, "compatible", (is_oldworld() ?
 			     "heathrow-ata" : "keylargo-ata"), 13);
@@ -1694,8 +1689,7 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
                         snprintf(nodebuff, sizeof(nodebuff),
                                  "%s/" DEV_NAME "/%s", path, current_channel,
                                  media);
-			REGISTER_NAMED_NODE(ob_ide, nodebuff);
-			dnode = find_dev(nodebuff);
+			REGISTER_NAMED_NODE_PHANDLE(ob_ide, nodebuff, dnode);
 			set_int_property(dnode, "reg", j);
 
 			/* create aliases */
