@@ -1430,12 +1430,12 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
         /* On a new world Mac these are not numbered but named by the
          * ATA version they support. Thus we have: ata-3, ata-3, ata-4
          * On g3beige they all called just ide.
-         * We take ata-3 and ata-4 which seems to work for both
-         * at least for clients we care about */
-        target_node = find_dev("/pci/mac-io/ata-3");
+         * We take 2 x ata-3 buses which seems to work for
+         * at least the clients we care about */
+        target_node = find_dev("/pci/mac-io/ata-3@20000");
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/ata-4");
+        target_node = find_dev("/pci/mac-io/ata-3@21000");
         set_int_property(target_node, "interrupt-parent", dnode);
 
         target_node = find_dev("/pci/mac-io/via-cuda");

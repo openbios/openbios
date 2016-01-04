@@ -1542,10 +1542,10 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 	struct ide_channel *chan;
 
 	/* IDE ports on Macs are numbered from 3.
-	 * Also see comments in macio.c:openpic_init() */
+	 * Also see comments in pci.c:ob_pci_host_set_interrupt_map() */
 	current_channel = 3;
 
-	for (i = 0; i < nb_channels; i++, current_channel++) {
+	for (i = 0; i < nb_channels; i++) {
 
 		chan = malloc(sizeof(struct ide_channel));
 
@@ -1651,7 +1651,7 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 		OLDWORLD(set_property(dnode, "AAPL,address",
 				      (char *)&props, 2*sizeof(props[0])));
 
-		props[0] = 0;
+		props[0] = i;
 		set_property(dnode, "AAPL,bus-id", (char*)props,
 			 1 * sizeof(props[0]));
 		IDE_DPRINTF(DEV_NAME": [io ports 0x%lx]\n",
