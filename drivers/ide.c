@@ -1466,9 +1466,8 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 					break;
 			}
 			IDE_DPRINTF("%s]: %s\n", media, drive->model);
-                        snprintf(nodebuff, sizeof(nodebuff),
-                                 "%s/" DEV_NAME "/%s", path, current_channel,
-                                 media);
+			snprintf(nodebuff, sizeof(nodebuff), "%s/%s",
+				 get_path_from_ph(dnode), media);
 			REGISTER_NAMED_NODE_PHANDLE(ob_ide, nodebuff, dnode);
 			set_int_property(dnode, "reg", j);
 
@@ -1686,9 +1685,8 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 					break;
 			}
 			IDE_DPRINTF("%s]: %s\n", media, drive->model);
-                        snprintf(nodebuff, sizeof(nodebuff),
-                                 "%s/" DEV_NAME "/%s", path, current_channel,
-                                 media);
+			snprintf(nodebuff, sizeof(nodebuff), "%s/%s",
+				 get_path_from_ph(dnode), media);
 			REGISTER_NAMED_NODE_PHANDLE(ob_ide, nodebuff, dnode);
 			set_int_property(dnode, "reg", j);
 
