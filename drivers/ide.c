@@ -73,13 +73,13 @@ static inline void ide_add_channel(struct ide_channel *chan)
 	channels = chan;
 }
 
-static struct ide_channel *ide_seek_channel(const char *name)
+static struct ide_channel *ide_seek_channel(phandle_t ph)
 {
 	struct ide_channel *current;
 
 	current = channels;
 	while (current) {
-		if (!strcmp(current->name, name))
+		if (current->ph == ph)
 			return current;
 		current = current->next;
 	}
@@ -1247,11 +1247,10 @@ ob_ide_initialize(int *idx)
 static void
 ob_ide_open(int *idx)
 {
-	int ret=1, len;
+	int ret=1;
 	phandle_t ph;
 	struct ide_drive *drive;
 	struct ide_channel *chan;
-	char *idename;
 	int unit;
 
 	fword("my-unit");
@@ -1260,9 +1259,8 @@ ob_ide_open(int *idx)
 	fword("my-parent");
 	fword("ihandle>phandle");
 	ph=(phandle_t)POP();
-	idename=get_property(ph, "name", &len);
 
-	chan = ide_seek_channel(idename);
+	chan = ide_seek_channel(ph);
 	drive = &chan->drives[unit];
 	*(struct ide_drive **)idx = drive;
 
@@ -1380,9 +1378,6 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 		chan = malloc(sizeof(struct ide_channel));
 
-		snprintf(chan->name, sizeof(chan->name),
-			 DEV_NAME, current_channel);
-
 		chan->mmio = 0;
 
 		for (j = 0; j < 8; j++)
@@ -1425,6 +1420,8 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
                 snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
                          current_channel);
 		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
+
+		chan->ph = dnode;
 
 #if !defined(CONFIG_PPC) && !defined(CONFIG_SPARC64)
 		props[0]=14; props[1]=0;
@@ -1552,9 +1549,6 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 
 		chan = malloc(sizeof(struct ide_channel));
 
-		snprintf(chan->name, sizeof(chan->name),
-			 DEV_NAME, current_channel);
-
 		chan->mmio = addr + MACIO_IDE_OFFSET + i * MACIO_IDE_SIZE;
 
 		chan->obide_inb = macio_ide_inb;
@@ -1593,6 +1587,8 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
                 snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
                          current_channel);
 		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
+
+		chan->ph = dnode;
 
 		set_property(dnode, "compatible", (is_oldworld() ?
 			     "heathrow-ata" : "keylargo-ata"), 13);
