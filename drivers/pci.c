@@ -144,9 +144,16 @@ static void dump_reg_property(const char* description, int nreg, u32 *reg)
 }
 #endif
 
-static unsigned long pci_bus_addr_to_host_addr(uint32_t ba)
+static unsigned long pci_bus_addr_to_host_addr(int space, uint32_t ba)
 {
-    return arch->host_pci_base + (unsigned long)ba;
+    if (space == IO_SPACE) {
+        return arch->io_base + (unsigned long)ba;
+    } else if (space == MEMORY_SPACE_32) {
+        return arch->host_pci_base + (unsigned long)ba;
+    } else {
+        /* Return unaltered to aid debugging property values */
+        return (unsigned long)ba;
+    }
 }
 
 static void
@@ -347,16 +354,20 @@ ob_pci_map_in(int *idx)
 {
 	phys_addr_t phys;
 	uint32_t ba;
-	ucell size, virt;
+	ucell size, virt, tmp;
+	int space;
 
 	PCI_DPRINTF("ob_pci_bar_map_in idx=%p\n", idx);
 
 	size = POP();
-	POP();
+	tmp = POP();
 	POP();
 	ba = POP();
 
-	phys = pci_bus_addr_to_host_addr(ba);
+	/* Get the space from the pci-addr.hi */
+	space = ((tmp & PCI_RANGE_TYPE_MASK) >> 24);
+
+	phys = pci_bus_addr_to_host_addr(space, ba);
 
 #if defined(CONFIG_OFMEM)
 	ofmem_claim_phys(phys, size, 0);
@@ -753,13 +764,19 @@ int macio_keylargo_config_cb (const pci_config_t *config)
 int vga_config_cb (const pci_config_t *config)
 {
         unsigned long rom;
-        uint32_t rom_size, size;
+        uint32_t rom_size, size, mask;
+        int flags, space_code;
         phandle_t ph;
 
         if (config->assigned[0] != 0x00000000) {
             setup_video();
 
-            rom = pci_bus_addr_to_host_addr(config->assigned[1] & ~0x0000000F);
+            pci_decode_pci_addr(config->assigned[1],
+                &flags, &space_code, &mask);
+
+            rom = pci_bus_addr_to_host_addr(space_code,
+                                            config->assigned[1] & ~0x0000000F);
+
             rom_size = config->sizes[1];
 
             ph = get_cur_dev();
