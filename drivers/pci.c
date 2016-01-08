@@ -1428,9 +1428,11 @@ static void ob_pci_set_available(phandle_t host, unsigned long mem_base, unsigne
 
 static void ob_pci_host_set_interrupt_map(phandle_t host)
 {
-    phandle_t dnode = 0;
-    u32 props[128];
-    int i;
+    phandle_t dnode = 0, pci_childnode = 0;
+    u32 props[128], intno;
+    int i, ncells, len;
+    u32 *val, addr;
+    char *reg;
 
 #if defined(CONFIG_PPC)
     phandle_t target_node;
@@ -1474,69 +1476,60 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
 
         target_node = find_dev("/pci");
         set_int_property(target_node, "interrupt-parent", dnode);
-
-        /* openpic interrupt mapping */
-        for (i = 0; i < (7*8); i += 7) {
-            props[i + PCI_INT_MAP_PCI0] = 0;
-            props[i + PCI_INT_MAP_PCI1] = 0;
-            props[i + PCI_INT_MAP_PCI2] = 0;
-            props[i + PCI_INT_MAP_PCI_INT] = (i / 7) + 1; // starts at PINA=1
-            props[i + PCI_INT_MAP_PIC_HANDLE] = dnode;
-            props[i + PCI_INT_MAP_PIC_INT] = arch->irqs[i / 7];
-            props[i + PCI_INT_MAP_PIC_POL] = 3;
-        }
-        set_property(host, "interrupt-map", (char *)props, 7 * 8 * sizeof(props[0]));
-
-        props[PCI_INT_MAP_PCI0] = 0;
-        props[PCI_INT_MAP_PCI1] = 0;
-        props[PCI_INT_MAP_PCI2] = 0;
-        props[PCI_INT_MAP_PCI_INT] = 0x7;
-
-        set_property(host, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
     }
-#elif defined(CONFIG_SPARC64)
-    int ncells, len;
-    u32 *val, addr;
-    char *reg;
+#else
+    /* PCI host bridge is the default interrupt controller */
+    dnode = host;
+#endif
 
     /* Set interrupt-map for PCI devices with an interrupt pin present */
     ncells = 0;
 
     PUSH(host);
     fword("child");
-    dnode = POP();
-    while (dnode) {
-        if (get_int_property(dnode, "interrupts", &len)) {
-            reg = get_property(dnode, "reg", &len);
-            if (reg) {
+    pci_childnode = POP();
+    while (pci_childnode) {
+        intno = get_int_property(pci_childnode, "interrupts", &len);
+        if (len && intno) {
+            reg = get_property(pci_childnode, "reg", &len);
+            if (len && reg) {
                 val = (u32 *)reg;
 
                 for (i = 0; i < (len / sizeof(u32)); i += 5) {
                     addr = val[i];
 
                     /* Device address is in 1st 32-bit word of encoded PCI address for config space */
-                    if (!(addr & 0x03000000)) {
+                    if ((addr & PCI_RANGE_TYPE_MASK) == PCI_RANGE_CONFIG) {
+#ifdef CONFIG_SPARC64
                         ncells += pci_encode_phys_addr(props + ncells, 0, 0, addr, 0, 0);
-                        props[ncells++] = 1;    /* always interrupt pin 1 for QEMU */
-                        props[ncells++] = host;
-                        props[ncells++] = SUN4U_INTERRUPT(addr, 1);
+                        props[ncells++] = intno;
+                        props[ncells++] = dnode;
+                        props[ncells++] = SUN4U_INTERRUPT(addr, intno);
+#endif
+
+#ifdef CONFIG_PPC
+                        ncells += pci_encode_phys_addr(props + ncells, 0, 0, addr, 0, 0);
+                        props[ncells++] = intno;
+                        props[ncells++] = dnode;
+                        props[ncells++] = arch->irqs[intno - 1];
+                        props[ncells++] = 3;
+#endif
                     }
                 }
             }
         }
 
-        PUSH(dnode);
+        PUSH(pci_childnode);
         fword("peer");
-        dnode = POP();
+        pci_childnode = POP();
     }
     set_property(host, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
 
     props[0] = 0x0000f800;
     props[1] = 0x0;
     props[2] = 0x0;
-    props[3] = 7;
+    props[3] = 0x7;
     set_property(host, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
-#endif
 }
 
 int ob_pci_init(void)
