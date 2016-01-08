@@ -460,13 +460,18 @@ static void pci_host_set_ranges(const pci_config_t *config)
 	int ncells;
 
 	ncells = 0;
-	/* first encode PCI configuration space */
-	{
-	    ncells += pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
+	
+#ifdef CONFIG_SPARC64
+        /* While configuration space isn't mentioned in the IEEE-1275 PCI
+           bindings, it appears in the PCI host bridge ranges property in
+           real device trees. Hence we disable this range for all host
+           bridges except for SPARC, particularly as it causes Darwin/OS X
+           to incorrectly calculated PCI memory space ranges on PPC. */
+	ncells += pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
                      config->dev, 0, 0);
         ncells += host_encode_phys_addr(props + ncells, arch->cfg_addr);
         ncells += pci_encode_size(props + ncells, arch->cfg_len);
-	}
+#endif
 
 	if (arch->io_base) {
 	    ncells += pci_encode_phys_addr(props + ncells, 0, IO_SPACE,
