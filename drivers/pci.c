@@ -340,7 +340,7 @@ ob_pci_encode_unit(int *idx)
 	        ss, dev, fn, buf);
 }
 
-/* ( pci-addr.lo pci-addr.hi size -- virt ) */
+/* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
 
 static void
 ob_pci_map_in(int *idx)
@@ -352,6 +352,7 @@ ob_pci_map_in(int *idx)
 	PCI_DPRINTF("ob_pci_bar_map_in idx=%p\n", idx);
 
 	size = POP();
+	POP();
 	POP();
 	ba = POP();
 
