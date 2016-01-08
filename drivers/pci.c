@@ -597,13 +597,18 @@ static void pci_set_AAPL_address(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
 	cell props[7];
-	int ncells, i;
+	uint32_t mask;
+	int ncells, i, flags, space_code;
 
 	ncells = 0;
 	for (i = 0; i < 6; i++) {
 		if (!config->assigned[i] || !config->sizes[i])
 			continue;
-		props[ncells++] = config->assigned[i] & ~0x0000000F;
+		pci_decode_pci_addr(config->assigned[i],
+				    &flags, &space_code, &mask);
+
+		props[ncells++] = pci_bus_addr_to_host_addr(space_code,
+					config->assigned[i] & ~mask);
 	}
 	if (ncells)
 		set_property(dev, "AAPL,address", (char *)props,
