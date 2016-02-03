@@ -265,7 +265,8 @@ for ARCH in $arch_list; do
         ppc)
         select_prefix powerpc powerpc64
         if [ "$unix" = "no" ]; then
-            CFLAGS="-m32 -msoft-float -fno-builtin-bcopy -fno-builtin-log2"
+            # 604 cpu includes support for PReP as well as Mac
+            CFLAGS="-m32 -mcpu=604 -msoft-float -fno-builtin-bcopy -fno-builtin-log2"
             AS_FLAGS="-m32"
         else
             CFLAGS="-fno-builtin"
@@ -275,7 +276,9 @@ for ARCH in $arch_list; do
 
         ppc64)
         select_prefix powerpc64
-        CFLAGS="-Wa,-a64 -m64 -msoft-float -fno-builtin"
+
+        # 970 cpu is used in all 64-bit Macs but disable altivec
+        CFLAGS="-mcpu=970 -mno-altivec -Wa,-a64 -m64 -msoft-float -fno-builtin"
         AS_FLAGS="-Wa,-a64"
         ;;
 
