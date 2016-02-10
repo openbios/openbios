@@ -359,9 +359,11 @@ hash_page_64(unsigned long ea, phys_addr_t phys, ucell mode)
             found = 1;
 
     /* otherwise use a free slot */
-    for (i = 0; !found && i < 8; i++)
-        if (!pp[i].v)
-            found = 1;
+    if (!found) {
+        for (i = 0; !found && i < 8; i++)
+            if (!pp[i].v)
+                found = 1;
+    }
 
     /* out of slots, just evict one */
     if (!found)
@@ -414,9 +416,11 @@ hash_page_32(unsigned long ea, phys_addr_t phys, ucell mode)
             found = 1;
 
     /* otherwise use a free slot */
-    for (i = 0; !found && i < 8; i++)
-        if (!pp[i].v)
-            found = 1;
+    if (!found) {
+        for (i = 0; !found && i < 8; i++)
+            if (!pp[i].v)
+                found = 1;
+    }
 
     /* out of slots, just evict one */
     if (!found)
