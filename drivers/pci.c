@@ -1500,19 +1500,20 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
 
                     /* Device address is in 1st 32-bit word of encoded PCI address for config space */
                     if ((addr & PCI_RANGE_TYPE_MASK) == PCI_RANGE_CONFIG) {
-#ifdef CONFIG_SPARC64
+#if defined(CONFIG_SPARC64)
                         ncells += pci_encode_phys_addr(props + ncells, 0, 0, addr, 0, 0);
                         props[ncells++] = intno;
                         props[ncells++] = dnode;
                         props[ncells++] = SUN4U_INTERRUPT(addr, intno);
-#endif
-
-#ifdef CONFIG_PPC
+#elif defined(CONFIG_PPC)
                         ncells += pci_encode_phys_addr(props + ncells, 0, 0, addr, 0, 0);
                         props[ncells++] = intno;
                         props[ncells++] = dnode;
                         props[ncells++] = arch->irqs[intno - 1];
                         props[ncells++] = 3;
+#else
+                        /* Keep compiler quiet */
+                        dnode = dnode;
 #endif
                     }
                 }
