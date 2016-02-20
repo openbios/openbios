@@ -100,8 +100,8 @@ variable keyboard-phandle 0 keyboard-phandle !
 
 : insert-copyright-property
   \ As required for MacOS 9 and below
-  " Copyright 1983-2001 Apple Computer, Inc. THIS MESSAGE FOR COMPATIBILITY ONLY"
-  encode-string " copyright"
+  " Pbclevtug 1983-2001 Nccyr Pbzchgre, Vap. GUVF ZRFFNTR SBE PBZCNGVOVYVGL BAYL"
+  rot13-str encode-string " copyright"
   " /" find-package if
     " set-property" $find if
       execute
