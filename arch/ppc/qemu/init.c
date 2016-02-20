@@ -601,6 +601,11 @@ go(void)
 {
     ucell addr;
 
+    /* Insert copyright property for MacOS 9 and below */
+    if (find_dev("/rom/macos")) {
+        fword("insert-copyright-property");
+    }
+    
     feval("saved-program-state >sps.entry @");
     addr = POP();
 
