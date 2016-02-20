@@ -111,6 +111,16 @@ variable keyboard-phandle 0 keyboard-phandle !
   then
 ;
 
+: delete-copyright-property
+  \ Remove copyright property created above
+  active-package
+  " /" find-package if
+      active-package!
+      " copyright" delete-property
+  then
+  active-package!
+;
+
 \ -------------------------------------------------------------------------
 \ Adler-32 wrapper
 \ -------------------------------------------------------------------------
