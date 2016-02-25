@@ -386,6 +386,7 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     phandle_t dnode, aliases;
 
     cell props[10];
+    ucell offset;
     int index;
     int legacy;
     int reg_offsets[2][2][3] = {
@@ -438,28 +439,20 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     set_property(dnode, "compatible", buf, 9);
 
     if (legacy) {
-        props[0] = IO_ESCC_LEGACY_OFFSET + reg_offsets[legacy][index][0];
-        props[1] = 0x1;
-        props[2] = IO_ESCC_LEGACY_OFFSET + reg_offsets[legacy][index][1];
-        props[3] = 0x1;
-        props[4] = IO_ESCC_LEGACY_OFFSET + reg_offsets[legacy][index][2];
-        props[5] = 0x1;
-        set_property(dnode, "reg", (char *)&props, 6 * sizeof(cell));
+        offset = IO_ESCC_LEGACY_OFFSET;
     } else {
-        props[0] = IO_ESCC_OFFSET + reg_offsets[legacy][index][0];
-        props[1] = 0x1;
-        props[2] = IO_ESCC_OFFSET + reg_offsets[legacy][index][1];
-        props[3] = 0x1;
-        props[4] = IO_ESCC_OFFSET + reg_offsets[legacy][index][2];
-        props[5] = 0x1;
-        set_property(dnode, "reg", (char *)&props, 6 * sizeof(cell));
+        offset = IO_ESCC_OFFSET;
     }
 
-    if (legacy) {
-        props[0] = addr + IO_ESCC_LEGACY_OFFSET + index * 0x4;
-    } else {
-        props[0] = addr + IO_ESCC_OFFSET + index * 0x20;
-    }
+    props[0] = offset + reg_offsets[legacy][index][0];
+    props[1] = 0x1;
+    props[2] = offset + reg_offsets[legacy][index][1];
+    props[3] = 0x1;
+    props[4] = offset + reg_offsets[legacy][index][2];
+    props[5] = 0x1;
+    set_property(dnode, "reg", (char *)&props, 6 * sizeof(cell));
+
+    props[0] = addr + offset + reg_offsets[legacy][index][0];
     OLDWORLD(set_property(dnode, "AAPL,address",
             (char *)&props, 1 * sizeof(cell)));
 
@@ -475,15 +468,8 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
 
     device_end();
 
-    if (legacy) {
-        uart_init_line(
-                (unsigned char*)addr + IO_ESCC_LEGACY_OFFSET + index * 0x4,
-                CONFIG_SERIAL_SPEED);
-    } else {
-        uart_init_line(
-                (unsigned char*)addr + IO_ESCC_OFFSET + index * 0x20,
-                CONFIG_SERIAL_SPEED);
-    }
+    uart_init_line((unsigned char*)addr + offset + reg_offsets[legacy][index][0],
+                   CONFIG_SERIAL_SPEED);
 }
 
 void
