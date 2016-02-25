@@ -389,6 +389,14 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     ucell offset;
     int index;
     int legacy;
+    
+    int dbdma_offsets[2][2] = {
+        /* ch-b */
+        { 0x6, 0x7 },
+        /* ch-a */
+        { 0x4, 0x5 }
+    };
+    
     int reg_offsets[2][2][3] = {
         {
             /* ch-b */
@@ -450,7 +458,11 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     props[3] = 0x1;
     props[4] = offset + reg_offsets[legacy][index][2];
     props[5] = 0x1;
-    set_property(dnode, "reg", (char *)&props, 6 * sizeof(cell));
+    props[6] = 0x8000 + dbdma_offsets[index][0] * 0x100;
+    props[7] = 0x100;
+    props[8] = 0x8000 + dbdma_offsets[index][1] * 0x100;
+    props[9] = 0x100;
+    set_property(dnode, "reg", (char *)&props, 10 * sizeof(cell));
 
     props[0] = addr + offset + reg_offsets[legacy][index][0];
     OLDWORLD(set_property(dnode, "AAPL,address",
