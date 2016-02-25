@@ -466,6 +466,8 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     NEWWORLD(set_property(dnode, "interrupts",
              (char *)&props, 3 * sizeof(cell)));
 
+    set_int_property(dnode, "slot-names", 0);
+
     device_end();
 
     uart_init_line((unsigned char*)addr + offset + reg_offsets[legacy][index][0],
