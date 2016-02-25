@@ -388,7 +388,20 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     cell props[10];
     int index;
     int legacy;
-
+    int reg_offsets[2][2][3] = {
+        {
+            /* ch-b */
+            { 0x00, 0x10, 0x40 },
+            /* ch-a */
+            { 0x20, 0x30, 0x50 }
+        },{
+            /* legacy ch-b */
+            { 0x0, 0x2, 0x8 },
+            /* legacy ch-a */
+            { 0x4, 0x6, 0xa }
+        }
+    };
+    
     switch (esnum) {
         case 2: index = 1; legacy = 0; break;
         case 3: index = 0; legacy = 0; break;
@@ -425,17 +438,21 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     set_property(dnode, "compatible", buf, 9);
 
     if (legacy) {
-        props[0] = IO_ESCC_LEGACY_OFFSET + index * 0x4;
-        props[1] = 0x00000001;
-        props[2] = IO_ESCC_LEGACY_OFFSET + index * 0x4 + 2;
-        props[3] = 0x00000001;
-        props[4] = IO_ESCC_LEGACY_OFFSET + index * 0x4 + 6;
-        props[5] = 0x00000001;
+        props[0] = IO_ESCC_LEGACY_OFFSET + reg_offsets[legacy][index][0];
+        props[1] = 0x1;
+        props[2] = IO_ESCC_LEGACY_OFFSET + reg_offsets[legacy][index][1];
+        props[3] = 0x1;
+        props[4] = IO_ESCC_LEGACY_OFFSET + reg_offsets[legacy][index][2];
+        props[5] = 0x1;
         set_property(dnode, "reg", (char *)&props, 6 * sizeof(cell));
     } else {
-        props[0] = IO_ESCC_OFFSET + index * 0x20;
-        props[1] = 0x00000020;
-        set_property(dnode, "reg", (char *)&props, 2 * sizeof(cell));
+        props[0] = IO_ESCC_OFFSET + reg_offsets[legacy][index][0];
+        props[1] = 0x1;
+        props[2] = IO_ESCC_OFFSET + reg_offsets[legacy][index][1];
+        props[3] = 0x1;
+        props[4] = IO_ESCC_OFFSET + reg_offsets[legacy][index][2];
+        props[5] = 0x1;
+        set_property(dnode, "reg", (char *)&props, 6 * sizeof(cell));
     }
 
     if (legacy) {
@@ -446,13 +463,13 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     OLDWORLD(set_property(dnode, "AAPL,address",
             (char *)&props, 1 * sizeof(cell)));
 
-    props[0] = 0x00000010 - index;
+    props[0] = 0x10 - index;
     OLDWORLD(set_property(dnode, "AAPL,interrupts",
             (char *)&props, 1 * sizeof(cell)));
 
     props[0] = (0x24) + index;
-    props[1] = 0;
-    props[2] = 0;
+    props[1] = 0x0;
+    props[2] = 0x0;
     NEWWORLD(set_property(dnode, "interrupts",
              (char *)&props, 3 * sizeof(cell)));
 
