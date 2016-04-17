@@ -514,6 +514,7 @@ escc_init(const char *path, phys_addr_t addr)
     set_property(dnode, "device_type", "escc",
                  strlen("escc") + 1);
     set_property(dnode, "compatible", "escc\0CHRP,es0", 14);
+    set_property(dnode, "ranges", "", 0);
 
     fword("finish-device");
 
@@ -541,6 +542,7 @@ escc_init(const char *path, phys_addr_t addr)
     set_property(dnode, "device_type", "escc-legacy",
                  strlen("escc-legacy") + 1);
     set_property(dnode, "compatible", "chrp,es1", 9);
+    set_property(dnode, "ranges", "", 0);
 
     fword("finish-device");
 
