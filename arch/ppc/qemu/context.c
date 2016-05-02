@@ -32,6 +32,7 @@ void __exit_context(void); /* assembly routine */
 
 unsigned int start_elf(unsigned long entry_point, unsigned long param);
 void entry(void);
+void of_client_callback(void);
 
 /*
  * Main context structure
@@ -116,8 +117,22 @@ unsigned int start_elf(unsigned long entry_point, unsigned long param)
 {
     struct context *ctx;
 
+    /* According to IEEE 1275, PPC bindings:
+     *
+     *    MSR = FP, ME + (DR|IR)
+     *    r1 = stack (32 K + 32 bytes link area above)
+     *    r5 = client interface handler
+     *    r6 = address of client program arguments (unused)
+     *    r7 = length of client program arguments (unused)
+     *
+     *      Yaboot and Linux use r3 and r4 for initrd address and size
+     */
+    
     ctx = init_context(image_stack, sizeof image_stack, 1);
     ctx->pc = entry_point;
+    ctx->regs[REG_R5] = (unsigned long)of_client_callback;
+    ctx->regs[REG_R6] = 0;
+    ctx->regs[REG_R7] = 0;
     ctx->param[0] = param;
    
     ctx = switch_to(ctx);

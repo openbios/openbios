@@ -35,6 +35,7 @@
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
 #include "arch/ppc/processor.h"
+#include "context.h"
 
 #define UUID_FMT "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"
 
@@ -595,6 +596,7 @@ id_cpu(void)
 }
 
 static void go(void);
+unsigned int start_elf(unsigned long entry_point, unsigned long param);
 
 static void
 go(void)
@@ -609,7 +611,7 @@ go(void)
     feval("saved-program-state >sps.entry @");
     addr = POP();
 
-    call_elf(0, 0, addr);
+    start_elf((unsigned long)addr, 0);
 }
 
 static void kvm_of_init(void)
