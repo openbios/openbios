@@ -183,6 +183,7 @@
 	$(call quiet-command,$(STRIP) $@.nostrip -o $@,"  STRIP $(TARGET_DIR)$@")</rule>
   <object source="qemu/start.S"/>
   <object source="qemu/switch.S"/>
+  <object source="qemu/context.c"/>
   <object source="timebase.S"/>
   <external-object source="libqemu.a"/>
   <external-object source="libbootstrap.a"/>

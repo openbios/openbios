@@ -482,7 +482,7 @@ real_entry:
 #endif
 
 	bl	BRANCH_LABEL(setup_mmu)
-	bl	BRANCH_LABEL(entry)
+	bl	BRANCH_LABEL(__switch_context_nosave)
 1:	nop
 	b	1b
 
