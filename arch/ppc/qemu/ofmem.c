@@ -482,6 +482,36 @@ isi_exception(void)
     hash_page(nip, phys, mode);
 }
 
+/*
+ * Power ISA 2.x has deleted the rfi instruction and rfid shoud be
+ * used instead on cpus following this instruction set or later.
+ *
+ * OpenBIOS 32bits is compiled to use rfi. But, when it runs on a
+ * Power ISA 2.x cpu (a 970 for instance), we need to replace the rfi
+ * instructions with rfid in the vectors' memory section. Else we
+ * won't go any futher than the first exception ...
+ */
+#define RFI     0x4c000064
+#define RFID    0x4c000024
+
+extern char __vectors[];
+extern char __vectors_end[];
+
+static void patch_rfi(void)
+{
+    uint32_t* ptr;
+    uint32_t* vec_start = (uint32_t*) 0x100UL;
+    uint32_t* vec_end = (uint32_t*) (__vectors_end - __vectors);
+
+    if (!is_ppc64())
+        return;
+
+    for (ptr = vec_start; ptr != vec_end; ptr++)  {
+        if (*ptr == RFI)
+            *ptr = RFID;
+    }
+    flush_icache_range((char*) vec_start , (char*) vec_end);
+}
 
 /************************************************************************/
 /*	init / cleanup							*/
@@ -535,6 +565,8 @@ setup_mmu(unsigned long ramsize)
     ofmem->ramsize = ramsize;
 
     memcpy((void *)get_rom_base(), (void *)OF_CODE_START, OF_CODE_SIZE);
+
+    patch_rfi();
 
     /* Enable MMU */
 
