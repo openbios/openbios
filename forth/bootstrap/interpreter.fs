@@ -165,7 +165,9 @@ defer outer-interpreter
   over + over do 
     i c@ 0a = if 
       i over - 
+      rot >r
       (evaluate)
+      r>
       i 1+ 
     then 
   loop 
