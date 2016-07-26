@@ -122,7 +122,7 @@ CREDITS
 -------
 OpenBIOS was developed by Stefan Reinauer, Samuel Rydh and Patrick Mauritz.
 The OpenBIOS IDE driver was written by Jens Axboe.
-For license details on this piece of software, see Documentation/COPYING.
+For license details on this piece of software, see the file COPYING.
 
 
 If you have patches, questions, comments, feel free to contact the OpenBIOS
