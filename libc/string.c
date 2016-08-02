@@ -349,10 +349,7 @@ int memcmp(const void * cs,const void * ct,size_t count)
 char *
 strdup( const char *str )
 {
-	char *p;
-	if( !str )
-		return NULL;
-	p = malloc( strlen(str) + 1 );
+	char *p = malloc( strlen(str) + 1 );
 	strcpy( p, str );
 	return p;
 }
