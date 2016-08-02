@@ -774,41 +774,45 @@ int macio_keylargo_config_cb (const pci_config_t *config)
 int vga_config_cb (const pci_config_t *config)
 {
         unsigned long rom;
-        uint32_t rom_size, size, mask;
-        int flags, space_code;
+        uint32_t rom_size, size, bar;
         phandle_t ph;
 
         if (config->assigned[0] != 0x00000000) {
             setup_video();
 
-            pci_decode_pci_addr(config->assigned[1],
-                &flags, &space_code, &mask);
+            if (config->assigned[6]) {
+                    rom = pci_bus_addr_to_host_addr(MEMORY_SPACE_32,
+                                                    config->assigned[6] & ~0x0000000F);
+                    rom_size = config->sizes[6];
 
-            rom = pci_bus_addr_to_host_addr(space_code,
-                                            config->assigned[1] & ~0x0000000F);
+                    bar = pci_config_read32(config->dev, PCI_ROM_ADDRESS);
+                    bar |= PCI_ROM_ADDRESS_ENABLE;
+                    pci_config_write32(config->dev, PCI_COMMAND, bar);
+                    ph = get_cur_dev();
 
-            rom_size = config->sizes[1];
+                    if (rom_size >= 8) {
+                            const char *p;
 
-            ph = get_cur_dev();
-
-            if (rom_size >= 8) {
-                const char *p;
-
-                p = (const char *)rom;
-                if (p[0] == 'N' && p[1] == 'D' && p[2] == 'R' && p[3] == 'V') {
-                    size = *(uint32_t*)(p + 4);
-                    set_property(ph, "driver,AAPL,MacOS,PowerPC", p + 8, size);
-                }
+                            p = (const char *)rom;
+                            if (p[0] == 'N' && p[1] == 'D' && p[2] == 'R' && p[3] == 'V') {
+                                    size = *(uint32_t*)(p + 4);
+                                    set_property(ph, "driver,AAPL,MacOS,PowerPC",
+                                                 p + 8, size);
+                            } else if (p[0] == 'J' && p[1] == 'o' &&
+                                       p[2] == 'y' && p[3] == '!') {
+                                    set_property(ph, "driver,AAPL,MacOS,PowerPC",
+                                                 p, rom_size);
+                            }
+                    }
             }
-
-            /* Currently we don't read FCode from the hardware but execute it directly */
+            /* Currently we don't read FCode from the hardware but execute
+             * it directly */
             feval("['] vga-driver-fcode 2 cells + 1 byte-load");
 
 #ifdef CONFIG_MOL
-	    /* Install special words for Mac On Linux */
-	    molvideo_init();
+            /* Install special words for Mac On Linux */
+            molvideo_init();
 #endif
-
         }
 
 	return 0;
