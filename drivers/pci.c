@@ -1510,7 +1510,7 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
                         props[ncells++] = intno;
                         props[ncells++] = dnode;
                         props[ncells++] = arch->irqs[intno - 1];
-                        props[ncells++] = 3;
+                        props[ncells++] = 1;
 #else
                         /* Keep compiler quiet */
                         dnode = dnode;

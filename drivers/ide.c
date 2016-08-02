@@ -1630,7 +1630,7 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 			props[2] = 0x00000000;
 			break;
 		}
-		props[1] = 0x00000000; /* XXX level triggered on real hw */
+		props[1] = 0x00000001;
 		props[3] = 0x00000000;
 		NEWWORLD(set_property(dnode, "interrupts",
 			     (char *)&props, 4*sizeof(props[0])));
