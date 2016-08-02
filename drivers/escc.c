@@ -405,9 +405,9 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
             { 0x20, 0x30, 0x50 }
         },{
             /* legacy ch-b */
-            { 0x0, 0x2, 0x8 },
+            { 0x0, 0x4, 0x8 },
             /* legacy ch-a */
-            { 0x4, 0x6, 0xa }
+            { 0x2, 0x6, 0xa }
         }
     };
     
