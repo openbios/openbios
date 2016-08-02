@@ -927,11 +927,11 @@ arch_of_init(void)
     if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
         if (is_apple()) {
             if (CONFIG_SERIAL_PORT) {
-                stdin_path = "scca";
-                stdout_path = "scca";
-            } else {
                 stdin_path = "sccb";
                 stdout_path = "sccb";
+            } else {
+                stdin_path = "scca";
+                stdout_path = "scca";
             }
         } else {
             stdin_path = "ttya";
