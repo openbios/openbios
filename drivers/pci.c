@@ -1029,10 +1029,9 @@ static void ob_pci_add_properties(phandle_t phandle,
 	}
 
 	pci_set_assigned_addresses(phandle, config, num_bars);
-	
-	if (is_apple()) {
+
+	if (is_apple() && is_oldworld())
 		pci_set_AAPL_address(config);
-	}
 
 	PCI_DPRINTF("\n");
 }
