@@ -202,6 +202,7 @@ extern const pci_arch_t *arch;
 
 #define PCI_VENDOR_ID_REALTEK            0x10ec
 #define PCI_DEVICE_ID_REALTEK_RTL8029    0x8029
+#define PCI_DEVICE_ID_REALTEK_RTL8139    0x8139
 
 #define PCI_VENDOR_ID_QEMU               0x1234
 #define PCI_DEVICE_ID_QEMU_VGA           0x1111

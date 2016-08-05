@@ -129,6 +129,12 @@ static const pci_dev_t eth_devices[] = {
         NULL, "ethernet",
     },
     {
+        PCI_VENDOR_ID_REALTEK, PCI_DEVICE_ID_REALTEK_RTL8139,
+        NULL, "rtl8139",   "RTL8139 PCI",  "pci10ec,8139\0",
+        0, 0, 0,
+        NULL, "ethernet",
+    },
+    {
         /* Virtio-network controller */
         PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_DEVICE_ID_VIRTIO_NET,
         NULL, "virtio-net", NULL,
