@@ -567,6 +567,21 @@ int eth_config_cb (const pci_config_t *config)
         return 0;
 }
 
+int rtl8139_config_cb(const pci_config_t *config)
+{
+#ifdef CONFIG_PPC
+	/* Apple's OF seemingly enables bus mastering on some cards by
+	 * default, which means that some buggy drivers forget to
+	 * explicitly set it (OS X, MorphOS). Mimic this behaviour so
+	 * that these buggy drivers work under emulation. */
+	if (is_apple()) {
+		ob_pci_enable_bus_master(config);
+	}
+#endif
+
+	return eth_config_cb(config);
+}
+
 static inline void pci_decode_pci_addr(pci_addr addr, int *flags,
 				       int *space_code, uint32_t *mask)
 {
