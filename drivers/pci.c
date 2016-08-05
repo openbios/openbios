@@ -923,6 +923,18 @@ int usb_ohci_config_cb(const pci_config_t *config)
     return 0;
 }
 
+void ob_pci_enable_bus_master(const pci_config_t *config)
+{
+	/* Enable bus mastering for the PCI device */
+	uint16_t cmd;
+	pci_addr addr = PCI_ADDR(
+		PCI_BUS(config->dev), PCI_DEV(config->dev), PCI_FN(config->dev));
+
+	cmd = pci_config_read16(addr, PCI_COMMAND);
+	cmd |= PCI_COMMAND_BUS_MASTER;
+	pci_config_write16(addr, PCI_COMMAND, cmd);
+}
+
 static void ob_pci_add_properties(phandle_t phandle,
                                   pci_addr addr, const pci_dev_t *pci_dev,
                                   const pci_config_t *config, int num_bars)

@@ -55,3 +55,5 @@ static inline int pci_compat_len(const pci_dev_t *dev)
 extern const pci_dev_t *pci_find_device(uint8_t class, uint8_t subclass,
 					uint8_t iface, uint16_t vendor,
 					uint16_t product);
+
+extern void ob_pci_enable_bus_master(const pci_config_t *config);
