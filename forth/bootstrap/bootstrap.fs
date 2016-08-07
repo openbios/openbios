@@ -428,6 +428,7 @@ variable leaves 0 leaves !
 : 1- 1 - ;
 : 2+ 2 + ;
 : 2- 2 - ;
+: 4+ 4 + ;
 : even 1+ -2 and ;
 : bounds over + swap ;
 
