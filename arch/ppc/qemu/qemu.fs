@@ -73,7 +73,8 @@ variable keyboard-phandle 0 keyboard-phandle !
   keyboard-phandle @ if
     active-package
     " /aliases" find-device
-    keyboard-phandle @ get-package-path
+    keyboard-phandle @ get-package-path 2dup
+    encode-string " kbd" property
     encode-string " keyboard" property
     active-package!  
   then
