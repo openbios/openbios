@@ -11,6 +11,7 @@
 #include "psr.h"
 #include "asm/asi.h"
 #include "asm/crs.h"
+#include "cpustate.h"
 #define NO_QEMU_PROTOS
 #define NO_OPENBIOS_PROTOS
 #include "arch/common/fw_cfg.h"
@@ -30,7 +31,7 @@
 
 #define WRITE_PAUSE    nop; nop; nop; /* Have to do this after %wim/%psr chg */
 
-        .globl	entry, _entry
+        .globl	entry, _entry, nwindows
 
 	.section ".text", "ax"
 	.align	8
@@ -69,6 +70,9 @@
 	 * Bottom
 	 */
 
+nwindows:
+        .word 0
+        
 /*
  * Entry point
  * We start execution from here.
@@ -460,6 +464,9 @@ highmem:
         wr      %g1, 0x0, %wim                  ! make window 1 invalid
         WRITE_PAUSE
 
+        set     nwindows, %g2                   ! store nwindows
+        st      %g3, [%g2]
+        
         cmp     %g3, 0x7
         bne     1f
          nop
@@ -490,8 +497,21 @@ highmem:
         wr	%g3, PSR_ET, %psr
         WRITE_PAUSE
 
-        set     0, %fp
-        call    __switch_context_nosave
+        /* Set up a default context */
+        set     __context, %g1
+        ld      [%g1], %g1
+        
+        SAVE_CPU_GENERAL_STATE(entry)
+        SAVE_CPU_WINDOW_STATE(entry)
+        
+        /* Set up local stack pointer */
+        set     _estack - 0x40, %sp
+        
+        /* And for the main context */
+        add     %sp, -0x260, %g2 
+        st      %g2, [%g1 + 0x48]
+
+        call    __switch_context
          nop
 
         /* We get here when the main context switches back to

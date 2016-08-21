@@ -3,11 +3,11 @@
 
 struct context {
     /* General registers */
-    uint32_t regs[32];
+    uint32_t regs[148];
     uint32_t pc;
     uint32_t npc;
-#define REG_O0 8
-#define REG_SP 14
+#define REG_O0 12
+#define REG_SP 18
 #define SP_LOC(ctx) (&(ctx)->regs[REG_SP])
     /* Flags */
     /* Optional stack contents */

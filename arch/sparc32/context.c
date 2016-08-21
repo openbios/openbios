@@ -24,7 +24,6 @@ void __exit_context(void); /* assembly routine */
  * to start us up.
  */
 static struct context main_ctx = {
-    .regs[REG_SP] = (uint32_t) &_estack - 96,
     .pc = (uint32_t) start_main,
     .npc = (uint32_t) start_main + 4,
     .return_addr = (uint32_t) __exit_context,
@@ -32,7 +31,7 @@ static struct context main_ctx = {
 
 /* This is used by assembly routine to load/store the context which
  * it is to switch/switched.  */
-struct context *__context = &main_ctx;
+struct context * volatile __context = &main_ctx;
 
 /* Stack for loaded ELF image */
 static uint8_t image_stack[IMAGE_STACK_SIZE];
@@ -66,7 +65,8 @@ init_context(uint8_t *stack, uint32_t stack_size, int num_params)
 
     ctx = (struct context *)
 	(stack + stack_size - (sizeof(*ctx) + num_params*sizeof(uint32_t)));
-    memset(ctx, 0, sizeof(*ctx));
+    /* Use valid window state from startup */
+    memcpy(ctx, &main_ctx, sizeof(struct context));
 
     /* Fill in reasonable default for flat memory model */
     ctx->regs[REG_SP] = virt_to_phys(SP_LOC(ctx));
@@ -106,7 +106,7 @@ unsigned int start_elf(unsigned long entry_point, unsigned long param)
 
     ctx = init_context(image_stack, sizeof image_stack, 1);
     ctx->pc = entry_point;
-    ctx->param[0] = param;
+    ctx->regs[REG_O0] = param;
 
     ctx = switch_to(ctx);
     return ctx->regs[REG_O0];
