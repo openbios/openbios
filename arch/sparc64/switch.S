@@ -1,5 +1,6 @@
 #include "pstate.h"
 #include <asm/asi.h>
+#include "cpustate.h"
 #define ASI_BP ASI_M_BYPASS
 #define REGWIN_SZ   0x40
 
@@ -22,47 +23,36 @@
  * this routine to get back to the original context.
  */
 
-/* XXX: totally bogus for sparc, need to save and restore all windows */
 __switch_context:
-
 	/* make sure caller's windows are on caller's stack */
 	flushw;
 
 	/* Save everything in current stack */
-
-	setx	__context, %g2, %g1
-        stx     %g3, [%g1 + 24]
-        stx     %g4, [%g1 + 32]
-        stx     %g5, [%g1 + 40]
-        stx     %g6, [%g1 + 48]
-        stx     %g7, [%g1 + 56]
-
-        stx     %o0, [%g1 + 64]
-        stx     %o1, [%g1 + 72]
-        stx     %o2, [%g1 + 80]
-        stx     %o3, [%g1 + 88]
-        stx     %o4, [%g1 + 96]
-        stx     %o5, [%g1 + 104]
-        stx     %o6, [%g1 + 112]
-        stx     %o7, [%g1 + 120]
-
-        stx     %l0, [%g1 + 128]
-        stx     %l1, [%g1 + 136]
-        stx     %l2, [%g1 + 144]
-        stx     %l3, [%g1 + 152]
-        stx     %l4, [%g1 + 160]
-        stx     %l5, [%g1 + 168]
-        stx     %l6, [%g1 + 176]
-        stx     %l7, [%g1 + 184]
-
-        stx     %i0, [%g1 + 192]
-        stx     %i1, [%g1 + 200]
-        stx     %i2, [%g1 + 208]
-        stx     %i3, [%g1 + 216]
-        stx     %i4, [%g1 + 224]
-        stx     %i5, [%g1 + 232]
-        stx     %i6, [%g1 + 240]
-        stx     %i7, [%g1 + 248]
+	stx	%g1, [%sp + 2047 - 0x500 + 0x30]
+	stx	%g2, [%sp + 2047 - 0x500 + 0x38]
+	stx	%g3, [%sp + 2047 - 0x500 + 0x40]
+	stx	%g4, [%sp + 2047 - 0x500 + 0x48]
+	stx	%g5, [%sp + 2047 - 0x500 + 0x50]
+	stx	%g6, [%sp + 2047 - 0x500 + 0x58]
+	stx	%g7, [%sp + 2047 - 0x500 + 0x60]
+	
+	mov	%sp, %g1
+	add     %g1, 2047 - 0x500, %g1
+	
+	/* Return PC value */
+	mov	%o7, %g2
+	add	%g2, 0x8, %g2
+	stx	%g2, [%g1 + 0x4d0]
+	
+	SAVE_CPU_STATE(switch)
+	
+	/* swap context */
+	setx	__context, %g2, %g3
+	ldx     [%g3], %g2
+	stx	%g1, [%g3]
+	mov	%g2, %g1
+	
+	ba	__set_context
 
 __switch_context_nosave:
 	/* Interrupts are not allowed... */
@@ -72,53 +62,28 @@ __switch_context_nosave:
 	 */
 	setx	__context, %g2, %g1
         ldx     [%g1], %g1
-        ldx     [%g1 + 16], %g2
-        ldx     [%g1 + 24], %g3
-        ldx     [%g1 + 32], %g4
-        ldx     [%g1 + 40], %g5
-        ldx     [%g1 + 48], %g6
-        ldx     [%g1 + 56], %g7
+        
+__set_context:
+	RESTORE_CPU_STATE(switch)
+	
+	/* Restore globals */
+	mov	%g1, %g2
+	add	%g2, 0x30, %g2
+	stx	%g2, [%sp + 2047 - 8]
+	
+	ldx	[%g1 + 0x38], %g2
+	ldx	[%g1 + 0x40], %g3
+	ldx	[%g1 + 0x48], %g4 
+	ldx	[%g1 + 0x50], %g5 
+	ldx	[%g1 + 0x58], %g6
+	ldx	[%g1 + 0x60], %g7
 
-        ldx     [%g1 + 64], %o0
-        ldx     [%g1 + 72], %o1
-        ldx     [%g1 + 80], %o2
-        ldx     [%g1 + 88], %o3
-        ldx     [%g1 + 96], %o4
-        ldx     [%g1 + 104], %o5
-        ldx     [%g1 + 112], %o6
-        ldx     [%g1 + 120], %o7
-
-        ldx     [%g1 + 128], %l0
-        ldx     [%g1 + 136], %l1
-        ldx     [%g1 + 144], %l2
-        ldx     [%g1 + 152], %l3
-        ldx     [%g1 + 160], %l4
-        ldx     [%g1 + 168], %l5
-        ldx     [%g1 + 176], %l6
-        ldx     [%g1 + 184], %l7
-
-        ldx     [%g1 + 192], %i0
-        ldx     [%g1 + 200], %i1
-        ldx     [%g1 + 208], %i2
-        ldx     [%g1 + 216], %i3
-        ldx     [%g1 + 224], %i4
-        ldx     [%g1 + 232], %i5
-        ldx     [%g1 + 240], %i6
-        ldx     [%g1 + 248], %i7
-
-        ldx     [%g1 + 256], %g1
-       	/* Finally, load new %pc */
-        jmp     %g1
-         clr    %g1
+	/* Finally, load new %pc */
+	ldx     [%g1 + 0x4d0], %g1
+	jmpl    %g1, %o7
+         ldx    [%sp + 2047 - 8], %g1
 
 __exit_context:
 	/* Get back to the original context */
-	call	__switch_context
-	 nop
-
-	/* We get here if the other context attempt to switch to this
-	 * dead context. This should not happen. */
-
-halt:
-	b	halt
+	ba	__switch_context
 	 nop

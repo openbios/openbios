@@ -11,6 +11,7 @@
 #include <asm/asi.h>
 #include "pstate.h"
 #include "lsu.h"
+#include "cpustate.h"
 #define NO_QEMU_PROTOS
 #define NO_OPENBIOS_PROTOS
 #include "arch/common/fw_cfg.h"
@@ -264,6 +265,20 @@ lowmem:
         /* Finally, turn on traps so that we can call c-code. */
 	wrpr    %g0, (PSTATE_PRIV|PSTATE_PEF|PSTATE_IE), %pstate
 
+        /* Set up a default context */
+        setx    __context, %g2, %g1
+        ldx     [%g1], %g1
+        
+        SAVE_CPU_GENERAL_STATE(entry)
+        SAVE_CPU_WINDOW_STATE(entry)
+        
+        /* Set up local stack pointer */
+        setx    _estack - 2047, %o2, %sp
+        
+        /* And for the main context */
+        add	%sp, - 192 - 0x500, %g2 
+        stx	%g2, [%g1 + 0xa0]
+
         ! 100 Hz timer
         setx    TICK_INT_DIS, %g2, %g1
         rd      %tick, %g2
@@ -276,7 +291,7 @@ lowmem:
          * Main context is statically defined in C.
          */
 
-        call    __switch_context_nosave
+        call    __switch_context
          nop
 
         /* We get here when the main context switches back to

@@ -24,7 +24,6 @@ void __exit_context(void); /* assembly routine */
  * to start us up.
  */
 static struct context main_ctx = {
-    .regs[REG_SP] = (uint64_t) &_estack - STACK_BIAS - 96,
     .pc = (uint64_t) start_main,
     .npc = (uint64_t) start_main + 4,
     .return_addr = (uint64_t) __exit_context,
@@ -76,7 +75,8 @@ init_context(uint8_t *stack, uint64_t stack_size, int num_params)
 
     ctx = (struct context *)
 	(stack_top - ALIGN_SIZE(sizeof(*ctx) + num_params*sizeof(uint64_t), sizeof(uint64_t)));
-    memset(ctx, 0, sizeof(*ctx));
+    /* Use valid window state from startup */
+    memcpy(ctx, &main_ctx, sizeof(struct context));
 
     /* Fill in reasonable default for flat memory model */
     ctx->regs[REG_SP] = virt_to_phys(stack_top - STACK_BIAS - 192);
@@ -95,7 +95,7 @@ struct context *switch_to(struct context *ctx)
     save = __context;
     __context = ctx;
     //asm ("pushl %cs; call __switch_context");
-    asm ("call __switch_context_nosave; nop");
+    asm ("call __switch_context; nop");
     ret = __context;
     __context = (struct context *)save;
     return ret;
