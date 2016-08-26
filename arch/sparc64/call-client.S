@@ -14,6 +14,8 @@
 	.data
 	.align	8
 
+client_context:
+	.xword	0
 client_stack:
 	.xword	0
 client_tba:
@@ -84,6 +86,13 @@ sparc64_of_client_interface:
 	
 	RESET_CPU_WINDOW_STATE(cif)
 	
+	/* Update __context to point to saved area */
+	setx	__context, %g6, %g7
+	ldx	[%g7], %g3
+	setx	client_context, %g4, %g5
+	stx	%g3, [%g5]
+	stx	%g1, [%g7]
+	
 	/* Move to OpenBIOS context stack */
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g6
@@ -108,6 +117,12 @@ sparc64_of_client_interface:
 	
 	/* Return value */
 	stx	%o0, [%g1 + 0x70]
+	
+	/* Restore __context */
+	setx	client_context, %g4, %g5
+	ldx	[%g5], %g3
+	setx	__context, %g6, %g7
+	stx	%g3, [%g7]
 	
 	RESTORE_CPU_STATE(cif)
 	
