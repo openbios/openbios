@@ -12,7 +12,7 @@
 #include "autoconf.h"
 
 /* State size for context (see below) */
-#define CONTEXT_STATE_SIZE 0x510
+#define CONTEXT_STATE_SIZE 0x550
 
 /* Stack size for context (allocated inline of the context stack) */
 #define CONTEXT_STACK_SIZE 0x2000
@@ -58,26 +58,28 @@
 	rdpr	%cleanwin, %g7; \
 	stx	%g7, [%g1 + 0x28]; \
 	\
-	stx	%o0, [%g1 + 0x30]; \
-	stx	%o1, [%g1 + 0x38]; \
-	stx	%o2, [%g1 + 0x40]; \
-	stx	%o3, [%g1 + 0x48]; \
-	stx	%o4, [%g1 + 0x50]; \
-	stx	%o5, [%g1 + 0x58]; \
-	stx	%o6, [%g1 + 0x60]; \
-	stx	%o7, [%g1 + 0x68]; \
+	/* %g1-%g7 stored at 0x30 - 0x68 */ \
+	\
+	stx	%o0, [%g1 + 0x70]; \
+	stx	%o1, [%g1 + 0x78]; \
+	stx	%o2, [%g1 + 0x80]; \
+	stx	%o3, [%g1 + 0x88]; \
+	stx	%o4, [%g1 + 0x90]; \
+	stx	%o5, [%g1 + 0x98]; \
+	stx	%o6, [%g1 + 0xa0]; \
+	stx	%o7, [%g1 + 0xa8]; \
 	\
 	rdpr	%pstate, %g7; \
-	stx	%g7, [%g1 + 0x70]; \
+	stx	%g7, [%g1 + 0xb0]; \
 	rd	%y, %g7; \
-	stx	%g7, [%g1 + 0x78]; \
+	stx	%g7, [%g1 + 0xb8]; \
 	rd	%fprs, %g7; \
-	stx	%g7, [%g1 + 0x80]; \
+	stx	%g7, [%g1 + 0xc0]; \
 	rdpr    %tl, %g7; \
-	stx     %g7, [%g1 + 0x88]; \
+	stx     %g7, [%g1 + 0xc8]; \
 	\
 	/* Now iterate through all of the windows saving all l and i registers */ \
-	add	%g1, 0x90, %g5; \
+	add	%g1, 0xd0, %g5; \
 	\
 	/* Get the number of windows in %g6 */ \
 	rdpr	%ver, %g6; \
@@ -129,7 +131,7 @@ save_cpu_window_##type: \
 	
 #define SAVE_CPU_TRAP_STATE(type) \
 	/* Save trap state into context at %g1 */ \
-	add	%g1, 0x490, %g5; \
+	add	%g1, 0x4d0, %g5; \
 	mov	4, %g6; \
 	\
 save_trap_state_##type: \
@@ -169,7 +171,7 @@ save_trap_state_##type: \
 	ldx	[%g1], %g7; \
 	\
 	/* Now iterate through all of the windows restoring all l and i registers */ \
-	add	%g1, 0x90, %g5; \
+	add	%g1, 0xd0, %g5; \
 	\
 restore_cpu_window_##type: \
 	wrpr	%g7, %cwp; \
@@ -209,26 +211,28 @@ restore_cpu_window_##type: \
 	ldx	[%g1 + 0x28], %g7; \
 	wrpr	%g7, %cleanwin; \
 	\
-	ldx	[%g1 + 0x30], %o0; \
-	ldx	[%g1 + 0x38], %o1; \
-	ldx	[%g1 + 0x40], %o2; \
-	ldx	[%g1 + 0x48], %o3; \
-	ldx	[%g1 + 0x50], %o4; \
-	ldx	[%g1 + 0x58], %o5; \
-	ldx	[%g1 + 0x60], %o6; \
-	ldx	[%g1 + 0x68], %o7; \
+	/* %g1-%g7 stored at 0x30 - 0x68 */ \
 	\
-	ldx	[%g1 + 0x70], %g7; \
+	ldx	[%g1 + 0x70], %o0; \
+	ldx	[%g1 + 0x78], %o1; \
+	ldx	[%g1 + 0x80], %o2; \
+	ldx	[%g1 + 0x88], %o3; \
+	ldx	[%g1 + 0x90], %o4; \
+	ldx	[%g1 + 0x98], %o5; \
+	ldx	[%g1 + 0xa0], %o6; \
+	ldx	[%g1 + 0xa8], %o7; \
+	\
+	ldx	[%g1 + 0xb0], %g7; \
 	wrpr	%g7, %pstate; \
-	ldx	[%g1 + 0x78], %g7; \
+	ldx	[%g1 + 0xb8], %g7; \
 	wr	%g7, 0, %y; \
-	ldx	[%g1 + 0x80], %g7; \
+	ldx	[%g1 + 0xc0], %g7; \
 	wr	%g7, 0, %fprs; \
 
 
 #define RESTORE_CPU_TRAP_STATE(type) \
 	/* Restore trap state from context at %g1 */ \
-	add	%g1, 0x490, %g5; \
+	add	%g1, 0x4d0, %g5; \
 	mov	4, %g6; \
 	\
 restore_trap_state_##type: \
@@ -245,7 +249,7 @@ restore_trap_state_##type: \
 	bne	restore_trap_state_##type; \
 	 add	%g5, 0x20, %g5; \
 	\
-	ldx	[%g1 + 0x88], %g7; \
+	ldx	[%g1 + 0xc8], %g7; \
 	wrpr	%g7, %tl
 
 /* Restore all state from context at %g1 */

@@ -76,7 +76,7 @@ sparc64_of_client_interface:
 
 	/* Call client inteface */
 	call of_client_interface
-	 ldx	[%g1 + 0x30], %o0
+	 ldx	[%g1 + 0x70], %o0
 
 	/* Restore windows */
 	setx	_fcstack_ptr, %g6, %g7
@@ -86,7 +86,7 @@ sparc64_of_client_interface:
 	stx	%g1, [%g7]
 	
 	/* Return value */
-	stx	%o0, [%g1 + 0x30]
+	stx	%o0, [%g1 + 0x70]
 	
 	RESTORE_CPU_WINDOW_STATE(cif)
 	
