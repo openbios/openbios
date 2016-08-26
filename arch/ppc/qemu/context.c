@@ -7,6 +7,7 @@
 #include "kernel/kernel.h"
 #include "context.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/initprogram.h"
 #include "libopenbios/sys_info.h"
 
 #define MAIN_STACK_SIZE 16384
@@ -98,6 +99,41 @@ init_context(uint8_t *stack, uint32_t stack_size, int num_params)
     return ctx;
 }
 
+/* init-program */
+int
+arch_init_program(void)
+{
+    volatile struct context *ctx = __context;
+    ucell entry, param;
+    
+    /* According to IEEE 1275, PPC bindings:
+     *
+     *    MSR = FP, ME + (DR|IR)
+     *    r1 = stack (32 K + 32 bytes link area above)
+     *    r5 = client interface handler
+     *    r6 = address of client program arguments (unused)
+     *    r7 = length of client program arguments (unused)
+     *
+     *      Yaboot and Linux use r3 and r4 for initrd address and size
+     */
+
+    ctx->regs[REG_R5] = (unsigned long)of_client_callback;
+    ctx->regs[REG_R6] = 0;
+    ctx->regs[REG_R7] = 0;
+
+    /* Set param */
+    feval("load-state >ls.param @");
+    param = POP();
+    ctx->param[0] = param;
+    
+    /* Set entry point */
+    feval("load-state >ls.entry @");
+    entry = POP();
+    ctx->pc = entry;
+
+    return 0;
+}
+
 /* Switch to another context. */
 struct context *switch_to(struct context *ctx)
 {
@@ -125,23 +161,8 @@ unsigned int start_elf(unsigned long entry_point, unsigned long param)
 {
     volatile struct context *ctx = __context;
 
-    /* According to IEEE 1275, PPC bindings:
-     *
-     *    MSR = FP, ME + (DR|IR)
-     *    r1 = stack (32 K + 32 bytes link area above)
-     *    r5 = client interface handler
-     *    r6 = address of client program arguments (unused)
-     *    r7 = length of client program arguments (unused)
-     *
-     *      Yaboot and Linux use r3 and r4 for initrd address and size
-     */
+    arch_init_program();
 
-    ctx->pc = entry_point;
-    ctx->regs[REG_R5] = (unsigned long)of_client_callback;
-    ctx->regs[REG_R6] = 0;
-    ctx->regs[REG_R7] = 0;
-    ctx->param[0] = param;
-   
     ctx = switch_to((struct context *)ctx);
     return ctx->regs[REG_R3];
 }
