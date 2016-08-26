@@ -5,6 +5,8 @@
 
 #include "config.h"
 #include "kernel/kernel.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/initprogram.h"
 #include "segment.h"
 #include "context.h"
 
@@ -86,6 +88,16 @@ init_context(uint8_t *stack, uint32_t stack_size, int num_params)
 	(stack + stack_size - (sizeof(*ctx) + num_params*sizeof(uint32_t)));
     memset(ctx, 0, sizeof(*ctx));
 
+    return ctx;
+}
+
+/* init-program */
+int
+arch_init_program(void)
+{
+    struct context volatile *ctx = __context;
+    ucell type, entry, param;
+    
     /* Fill in reasonable default for flat memory model */
     ctx->gdt_base = virt_to_phys(gdt);
     ctx->gdt_limit = GDT_LIMIT;
@@ -97,8 +109,26 @@ init_context(uint8_t *stack, uint32_t stack_size, int num_params)
     ctx->ss = FLAT_DS;
     ctx->esp = virt_to_phys(ESP_LOC(ctx));
     ctx->return_addr = virt_to_phys(__exit_context);
+    
+    /* Set param */
+    feval("load-state >ls.param @");
+    param = POP();
+    ctx->param[0] = param;
 
-    return ctx;
+    /* Only elf-boot type has a param */
+    feval("load-state >ls.file-type @");
+    type = POP();
+    if (type == 0) {
+        ctx->eax = 0xe1fb007;
+        ctx->ebx = param;
+    }
+
+    /* Set entry point */
+    feval("load-state >ls.entry @");
+    entry = POP();
+    ctx->eip = entry;
+
+    return 0;
 }
 
 /* Switch to another context. */
@@ -116,15 +146,15 @@ struct context *switch_to(struct context *ctx)
     return ret;
 }
 
-/* Start ELF Boot image */
+/* Start ELF image */
 uint32_t start_elf(uint32_t entry_point, uint32_t param)
 {
     volatile struct context *ctx = __context;
 
-    ctx->eip = entry_point;
-    ctx->param[0] = param;
-    ctx->eax = 0xe1fb007;
-    ctx->ebx = param;
+    PUSH(param);
+    feval("load-state >ls.param !");
+
+    arch_init_program();
 
     ctx = switch_to((struct context *)ctx);
     return ctx->eax;
