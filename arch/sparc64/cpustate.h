@@ -9,11 +9,21 @@
  *
  */
 
+#include "autoconf.h"
+
 /* State size for context (see below) */
 #define CONTEXT_STATE_SIZE 0x510
 
 /* Stack size for context (allocated inline of the context stack) */
 #define CONTEXT_STACK_SIZE 0x2000
+
+/* %cwp save/restore direction */
+#if defined(CONFIG_QEMU)
+    /* QEMU SPARCv9 %cwp save/restore direction is reversed compared to real hardware */
+    #define CWP_DIRECTION -1
+#else
+    #define CWP_DIRECTION  1
+#endif
 
 /*
  * SAVE_CPU_STATE and RESTORE_CPU_STATE are macros used to enable a context switch
@@ -97,7 +107,7 @@ save_cpu_window_##type: \
 	stx	%i5, [%g5 + 0x68]; \
 	stx	%i6, [%g5 + 0x70]; \
 	stx	%i7, [%g5 + 0x78]; \
-	dec	%g7; \
+	add	%g7, CWP_DIRECTION, %g7; \
 	and	%g7, %g6, %g7; \
 	subcc	%g4, 1, %g4; \
 	bne	save_cpu_window_##type; \
@@ -179,7 +189,7 @@ restore_cpu_window_##type: \
 	ldx	[%g5 + 0x68], %i5; \
 	ldx	[%g5 + 0x70], %i6; \
 	ldx	[%g5 + 0x78], %i7; \
-	dec	%g7; \
+	add	%g7, CWP_DIRECTION, %g7; \
 	and	%g7, %g6, %g7; \
 	subcc	%g4, 1, %g4; \
 	bne	restore_cpu_window_##type; \
