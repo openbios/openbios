@@ -36,15 +36,13 @@ client_window:
 sparc64_of_client_interface:
 
 	/* Save globals on callers stack */
-	add	%sp, -248, %sp
-
-	stx	%g1, [%sp + 2047 + 192]
-	stx	%g2, [%sp + 2047 + 200]
-	stx	%g3, [%sp + 2047 + 208]
-	stx	%g4, [%sp + 2047 + 216]
-	stx	%g5, [%sp + 2047 + 224]
-	stx	%g6, [%sp + 2047 + 232]
-	stx	%g7, [%sp + 2047 + 240]
+	stx	%g1, [%sp + 2047 - 248 + 192]
+	stx	%g2, [%sp + 2047 - 248 + 200]
+	stx	%g3, [%sp + 2047 - 248 + 208]
+	stx	%g4, [%sp + 2047 - 248 + 216]
+	stx	%g5, [%sp + 2047 - 248 + 224]
+	stx	%g6, [%sp + 2047 - 248 + 232]
+	stx	%g7, [%sp + 2047 - 248 + 240]
 
 	/* Save client trap table */
 	setx	client_tba, %g6, %g7
@@ -62,19 +60,19 @@ sparc64_of_client_interface:
 	stx	%g1, [%g7]
 	
 	/* Save globals */
-	ldx	[%sp + 2047 + 192], %g7
+	ldx	[%sp + 2047 - 248 + 192], %g7
 	stx	%g7, [%g1 + 0x30]
-	ldx	[%sp + 2047 + 200], %g7
+	ldx	[%sp + 2047 - 248 + 200], %g7
 	stx	%g7, [%g1 + 0x38]
-	ldx	[%sp + 2047 + 208], %g7
+	ldx	[%sp + 2047 - 248 + 208], %g7
 	stx	%g7, [%g1 + 0x40]
-	ldx	[%sp + 2047 + 216], %g7
+	ldx	[%sp + 2047 - 248 + 216], %g7
 	stx	%g7, [%g1 + 0x48]
-	ldx	[%sp + 2047 + 224], %g7
+	ldx	[%sp + 2047 - 248 + 224], %g7
 	stx	%g7, [%g1 + 0x50]
-	ldx	[%sp + 2047 + 232], %g7
+	ldx	[%sp + 2047 - 248 + 232], %g7
 	stx	%g7, [%g1 + 0x58]
-	ldx	[%sp + 2047 + 240], %g7
+	ldx	[%sp + 2047 - 248 + 240], %g7
 	stx	%g7, [%g1 + 0x60]
 	
 	SAVE_CPU_WINDOW_STATE(cif)
@@ -127,8 +125,6 @@ sparc64_of_client_interface:
 	ldx	[%g1 + 0x58], %g6
 	ldx	[%g1 + 0x60], %g7 
 	ldx	[%g1 + 0x30], %g1
-
-	add	%sp, 248, %sp
 
 	jmp	%o7+8
 	 nop
