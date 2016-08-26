@@ -116,8 +116,10 @@ save_cpu_window_##type: \
 	 add	%g5, 0x80, %g5; \
 	\
 	/* For 8 windows with 16 registers to save in the window, memory required \
-	is 16*8*8 = 0x400 bytes */ \
-	\
+	is 16*8*8 = 0x400 bytes */
+
+#define RESET_CPU_WINDOW_STATE(type) \
+	wrpr	%g0, %cwp; \
 	/* Now we should be in window 0 so update the other window registers */ \
 	rdpr	%ver, %g6; \
 	and	%g6, 0xf, %g6; \

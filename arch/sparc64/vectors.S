@@ -340,7 +340,9 @@ reload_DMMU_tlb:
 	stx	%g1, [%g7]
 	
 	SAVE_CPU_STATE(dtlb)
-
+	
+	RESET_CPU_WINDOW_STATE(dtlb)
+	
 	/* Switch to 8K TLB locked OpenBIOS stack (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
 	setx	_fcstack_ptr, %g6, %g7
@@ -391,7 +393,9 @@ reload_IMMU_tlb:
 	stx	%g1, [%g7]
 	
 	SAVE_CPU_STATE(itlb)
-
+	
+	RESET_CPU_WINDOW_STATE(itlb)
+	
 	/* Switch to 8K TLB locked OpenBIOS stack (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
 	setx	_fcstack_ptr, %g6, %g7
