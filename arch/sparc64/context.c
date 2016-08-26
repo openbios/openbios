@@ -6,6 +6,8 @@
 #include "config.h"
 #include "kernel/kernel.h"
 #include "context.h"
+#include "libopenbios/bindings.h"
+#include "libopenbios/initprogram.h"
 #include "libopenbios/sys_info.h"
 #include "boot.h"
 #include "openbios.h"
@@ -72,6 +74,8 @@ static uint64_t ALIGN_SIZE(uint64_t x, uint64_t a)
     return (x + a - 1) & ~(a-1);
 }
 
+#define CTX_OFFSET(n) ALIGN_SIZE(sizeof(struct context) + n * sizeof(uint64_t), sizeof(uint64_t))
+
 /* Setup a new context using the given stack.
  */
 struct context *
@@ -80,16 +84,41 @@ init_context(uint8_t *stack, uint64_t stack_size, int num_params)
     struct context *ctx;
     uint8_t *stack_top = stack + stack_size;
 
-    ctx = (struct context *)
-	(stack_top - ALIGN_SIZE(sizeof(*ctx) + num_params*sizeof(uint64_t), sizeof(uint64_t)));
+    ctx = (struct context *)(stack_top - CTX_OFFSET(num_params));
     /* Use valid window state from startup */
     memcpy(ctx, &main_ctx, sizeof(struct context));
 
     /* Fill in reasonable default for flat memory model */
-    ctx->regs[REG_SP] = virt_to_phys(stack_top - STACK_BIAS - 192);
     ctx->return_addr = virt_to_phys(__exit_context);
 
     return ctx;
+}
+
+/* init-program */
+extern uint64_t sparc64_of_client_interface;
+
+int
+arch_init_program(void)
+{
+    volatile struct context *ctx = __context;
+    ucell entry, param;
+
+    ctx->regs[REG_O0] = 0;
+    ctx->regs[REG_O0+4] = (uint64_t)&sparc64_of_client_interface;
+    ctx->regs[REG_SP] = (uint64_t)malloc(IMAGE_STACK_SIZE) + IMAGE_STACK_SIZE - CTX_OFFSET(0) - STACK_BIAS;
+
+    /* Set param */
+    feval("load-state >ls.param @");
+    param = POP();
+    ctx->param[0] = param;
+
+    /* Set entry point */
+    feval("load-state >ls.entry @");
+    entry = POP();
+    ctx->pc = entry;
+    ctx->npc = entry+4;
+
+    return 0;
 }
 
 /* Switch to another context. */
@@ -113,13 +142,13 @@ uint64_t start_elf(uint64_t entry_point, uint64_t param)
 {
     volatile struct context *ctx = __context;
 
-    ctx->pc = entry_point;
-    ctx->param[0] = param;
-    //ctx->eax = 0xe1fb007;
-    //ctx->ebx = param;
+    PUSH(param);
+    feval("load-state >ls.param !");
+
+    arch_init_program();
 
     ctx = switch_to((struct context *)ctx);
-    //return ctx->eax;
+
     return 0;
 }
 
@@ -128,10 +157,7 @@ uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler)
 {
     volatile struct context *ctx = __context;
 
-    ctx->pc  = entry_point;
-    ctx->npc = entry_point+4;
-    ctx->regs[REG_O0] = 0;
-    ctx->regs[REG_O0+4] = cif_handler;
+    arch_init_program();
 
     ctx = switch_to((struct context *)ctx);
 
