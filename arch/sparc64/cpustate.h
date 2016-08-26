@@ -126,13 +126,15 @@ save_cpu_window_##type: \
 	\
 	wrpr	%g0, %cleanwin; \
 	wrpr	%g0, %canrestore; \
-	wrpr	%g0, %otherwin; \
+	wrpr	%g0, %otherwin;
 
-	
 #define SAVE_CPU_TRAP_STATE(type) \
 	/* Save trap state into context at %g1 */ \
 	add	%g1, 0x4e0, %g5; \
 	mov	4, %g6; \
+	\
+	/* Save current trap level */ \
+	rdpr	%tl, %g4; \
 	\
 save_trap_state_##type: \
 	deccc	%g6; \
@@ -149,7 +151,10 @@ save_trap_state_##type: \
 	 add	%g5, 0x20, %g5; \
 	\
 	/* For 4 trap levels with 4 registers, memory required is \
-	4*8*4 = 0x80 bytes */
+	4*8*4 = 0x80 bytes */ \
+	\
+	/* Switch back to original trap level */ \
+	wrpr	%g4, %tl;
 
 /* Save all state into context at %g1 */
 #define SAVE_CPU_STATE(type) \
