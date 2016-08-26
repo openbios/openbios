@@ -80,7 +80,7 @@ sparc64_of_client_interface:
 	add	%g7, 8, %g7
 	stx	%g7, [%g1 + 0x4d0]
 	
-	SAVE_CPU_WINDOW_STATE(cif)
+	SAVE_CPU_STATE(cif)
 
 	/* Move to OpenBIOS context stack */
 	setx	_fcstack_ptr, %g6, %g7
@@ -107,7 +107,7 @@ sparc64_of_client_interface:
 	/* Return value */
 	stx	%o0, [%g1 + 0x70]
 	
-	RESTORE_CPU_WINDOW_STATE(cif)
+	RESTORE_CPU_STATE(cif)
 	
 	add	%g1, CONTEXT_STATE_SIZE, %g5
 	setx	_fcstack_ptr, %g6, %g7
