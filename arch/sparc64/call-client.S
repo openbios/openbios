@@ -61,6 +61,22 @@ sparc64_of_client_interface:
 	add	%g1, -CONTEXT_STATE_SIZE, %g1
 	stx	%g1, [%g7]
 	
+	/* Save globals */
+	ldx	[%sp + 2047 + 192], %g7
+	stx	%g7, [%g1 + 0x30]
+	ldx	[%sp + 2047 + 200], %g7
+	stx	%g7, [%g1 + 0x38]
+	ldx	[%sp + 2047 + 208], %g7
+	stx	%g7, [%g1 + 0x40]
+	ldx	[%sp + 2047 + 216], %g7
+	stx	%g7, [%g1 + 0x48]
+	ldx	[%sp + 2047 + 224], %g7
+	stx	%g7, [%g1 + 0x50]
+	ldx	[%sp + 2047 + 232], %g7
+	stx	%g7, [%g1 + 0x58]
+	ldx	[%sp + 2047 + 240], %g7
+	stx	%g7, [%g1 + 0x60]
+	
 	SAVE_CPU_WINDOW_STATE(cif)
 
 	/* Move to OpenBIOS context stack */
@@ -90,9 +106,9 @@ sparc64_of_client_interface:
 	
 	RESTORE_CPU_WINDOW_STATE(cif)
 	
-	add	%g1, CONTEXT_STATE_SIZE, %g1
+	add	%g1, CONTEXT_STATE_SIZE, %g5
 	setx	_fcstack_ptr, %g6, %g7
-	stx	%g1, [%g7]
+	stx	%g5, [%g7]
 	
 	/* Restore stack */
 	setx	client_stack, %g6, %g7
@@ -104,13 +120,13 @@ sparc64_of_client_interface:
 	wrpr	%g6, %tba
 
 	/* Restore globals */
-	ldx	[%sp + 2047 + 192], %g1
-	ldx	[%sp + 2047 + 200], %g2
-	ldx	[%sp + 2047 + 208], %g3
-	ldx	[%sp + 2047 + 216], %g4
-	ldx	[%sp + 2047 + 224], %g5
-	ldx	[%sp + 2047 + 232], %g6
-	ldx	[%sp + 2047 + 240], %g7
+	ldx	[%g1 + 0x38], %g2
+	ldx	[%g1 + 0x40], %g3
+	ldx	[%g1 + 0x48], %g4 
+	ldx	[%g1 + 0x50], %g5 
+	ldx	[%g1 + 0x58], %g6
+	ldx	[%g1 + 0x60], %g7 
+	ldx	[%g1 + 0x30], %g1
 
 	add	%sp, 248, %sp
 
