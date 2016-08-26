@@ -65,10 +65,10 @@ int forth_load(ihandle_t dev)
 
     // Initialise saved-program-state
     PUSH((ucell)forthtext);
-    feval("saved-program-state >sps.entry !");
+    feval("load-state >ls.entry !");
     PUSH((ucell)forthsize);
-    feval("saved-program-state >sps.file-size !");
-    feval("forth saved-program-state >sps.file-type !");
+    feval("load-state >ls.file-size !");
+    feval("forth load-state >ls.file-type !");
 
     feval("-1 state-valid !");
 

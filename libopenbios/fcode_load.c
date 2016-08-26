@@ -75,12 +75,12 @@ fcode_load(ihandle_t dev)
     debug("Loaded %lu bytes\n", size);
     debug("entry point is %#lx\n", start);
     
-    // Initialise saved-program-state
+    // Initialise load-state
     PUSH(start);
-    feval("saved-program-state >sps.entry !");
+    feval("load-state >ls.entry !");
     PUSH(size);
-    feval("saved-program-state >sps.file-size !");
-    feval("fcode saved-program-state >sps.file-type !");
+    feval("load-state >ls.file-size !");
+    feval("fcode load-state >ls.file-type !");
 
     feval("-1 state-valid !");
 

@@ -17,12 +17,12 @@
 
 \ 7.6.2    Program download and execute
 
-struct ( saved-program-state )
-  /n field >sps.entry
-  /n field >sps.file-size
-  /n field >sps.file-type
-constant saved-program-state.size
-create saved-program-state saved-program-state.size allot
+struct ( load-state )
+  /n field >ls.entry
+  /n field >ls.file-size
+  /n field >ls.file-type
+constant load-state.size
+create load-state load-state.size allot
 
 variable state-valid
 0 state-valid !
@@ -34,8 +34,7 @@ variable file-size
 : load-size file-size @ ;
 
 
-\ File types identified by (init-program)
-
+\ File types identified by (load-state)
 0  constant elf-boot
 1  constant elf
 2  constant bootinfo

@@ -136,12 +136,12 @@ xcoff_init_program(void)
 
 	DPRINTF("XCOFF entry point: %x\n", *(uint32_t*)ahdr->entry);
 
-	// Initialise saved-program-state
+	// Initialise load-state
 	PUSH(*(uint32_t*)(uintptr_t)ahdr->entry);
-	feval("saved-program-state >sps.entry !");
+	feval("load-state >ls.entry !");
 	PUSH(total_size);
-	feval("saved-program-state >sps.file-size !");
-	feval("xcoff saved-program-state >sps.file-type !");
+	feval("load-state >ls.file-size !");
+	feval("xcoff load-state >ls.file-type !");
 
 	feval("-1 state-valid !");
 }

@@ -25,11 +25,11 @@ void go(void)
 	int image_retval = 0;
 
 	/* Get the entry point and the type (see forth/debugging/client.fs) */
-	feval("saved-program-state >sps.entry @");
+	feval("load-state >ls.entry @");
 	address = POP();
-	feval("saved-program-state >sps.file-type @");
+	feval("load-state >ls.file-type @");
 	type = POP();
-	feval("saved-program-state >sps.file-size @");
+	feval("load-state >ls.file-size @");
 	size = POP();
 
 	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);

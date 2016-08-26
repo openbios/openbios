@@ -83,12 +83,12 @@ bootcode_load(ihandle_t dev)
         size = offset;
     }
     
-    /* Initialise saved-program-state */
+    /* Initialise load-state */
     PUSH(entry);
-    feval("saved-program-state >sps.entry !");
+    feval("load-state >ls.entry !");
     PUSH(size);
-    feval("saved-program-state >sps.file-size !");
-    feval("bootcode saved-program-state >sps.file-type !");
+    feval("load-state >ls.file-size !");
+    feval("bootcode load-state >ls.file-type !");
 
     feval("-1 state-valid !");
 

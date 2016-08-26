@@ -71,7 +71,7 @@ void load(ihandle_t dev)
         feval("state-valid @");
         valid = POP();
         if (valid) {
-                feval("saved-program-state >sps.file-size @");
+                feval("load-state >ls.file-size @");
                 return;
         }
 #endif
@@ -81,7 +81,7 @@ void load(ihandle_t dev)
         feval("state-valid @");
         valid = POP();
         if (valid) {
-                feval("saved-program-state >sps.file-size @");
+                feval("load-state >ls.file-size @");
                 return;
         }
 #endif
@@ -91,7 +91,7 @@ void load(ihandle_t dev)
         feval("state-valid @");
         valid = POP();
         if (valid) {
-                feval("saved-program-state >sps.file-size @");
+                feval("load-state >ls.file-size @");
                 return;
         }
 #endif
@@ -101,7 +101,7 @@ void load(ihandle_t dev)
         feval("state-valid @");
         valid = POP();
         if (valid) {
-                feval("saved-program-state >sps.file-size @");
+                feval("load-state >ls.file-size @");
                 return;
         }
 #endif
@@ -112,7 +112,7 @@ void load(ihandle_t dev)
         feval("state-valid @");
         valid = POP();
         if (valid) {
-                feval("saved-program-state >sps.file-size @");
+                feval("load-state >ls.file-size @");
                 return;
         }
 #endif

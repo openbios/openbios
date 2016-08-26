@@ -156,10 +156,10 @@ aout_load(struct sys_info *info, ihandle_t dev)
 
     // Initialise saved-program-state
     PUSH(addr_fixup(start));
-    feval("saved-program-state >sps.entry !");
+    feval("load-state >ls.entry !");
     PUSH(size);
-    feval("saved-program-state >sps.file-size !");
-    feval("aout saved-program-state >sps.file-type !");
+    feval("load-state >ls.file-size !");
+    feval("aout load-state >ls.file-type !");
 
     feval("-1 state-valid !");
 

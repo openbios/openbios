@@ -441,9 +441,9 @@ elf_load(struct sys_info *info, ihandle_t dev, const char *cmdline, void **boot_
        ELF */
     if (boot_notes) {
         *boot_notes = (void *)virt_to_phys(build_boot_notes(info, cmdline));
-        feval("elf-boot saved-program-state >sps.file-type !");
+        feval("elf-boot load-state >ls.file-type !");
     } else {
-        feval("elf saved-program-state >sps.file-type !");
+        feval("elf load-state >ls.file-type !");
     }
 
     //debug("current time: %lu\n", currticks());
@@ -452,9 +452,9 @@ elf_load(struct sys_info *info, ihandle_t dev, const char *cmdline, void **boot_
 
     // Initialise saved-program-state
     PUSH(addr_fixup(ehdr.e_entry));
-    feval("saved-program-state >sps.entry !");
+    feval("load-state >ls.entry !");
     PUSH(file_size);
-    feval("saved-program-state >sps.file-size !");
+    feval("load-state >ls.file-size !");
 
     feval("-1 state-valid !");
 
@@ -526,12 +526,12 @@ elf_init_program(void)
 #endif
 	}
 
-	// Initialise saved-program-state
+	// Initialise load-state
 	PUSH(ehdr->e_entry);
-	feval("saved-program-state >sps.entry !");
+	feval("load-state >ls.entry !");
 	PUSH(total_size);
-	feval("saved-program-state >sps.file-size !");
-	feval("elf saved-program-state >sps.file-type !");
+	feval("load-state >ls.file-size !");
+	feval("elf load-state >ls.file-type !");
 
 	feval("-1 state-valid !");
 }

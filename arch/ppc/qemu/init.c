@@ -608,7 +608,7 @@ go(void)
         fword("insert-copyright-property");
     }
     
-    feval("saved-program-state >sps.entry @");
+    feval("load-state >ls.entry @");
     addr = POP();
 
     start_elf((unsigned long)addr, 0);
