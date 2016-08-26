@@ -21,6 +21,7 @@ struct ( load-state )
   /n field >ls.entry
   /n field >ls.file-size
   /n field >ls.file-type
+  /n field >ls.param
 constant load-state.size
 create load-state load-state.size allot
 
