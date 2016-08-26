@@ -45,6 +45,9 @@ static struct context main_ctx __attribute__((section (".initctx"))) = {
  * it is to switch/switched.  */
 struct context *__context = &main_ctx;
 
+/* Client program context */
+static struct context *client_ctx;
+
 /* Stack for loaded ELF image */
 static uint8_t image_stack[IMAGE_STACK_SIZE];
 
@@ -64,6 +67,11 @@ static void start_main(void)
     __boot_ctx = virt_to_phys(__context);
 
     init_exceptions();
+
+    /* Set up client context */
+    client_ctx = init_context(image_stack, sizeof image_stack, 1);
+    __context = client_ctx;
+
     /* Start the real fun */
     retval = openbios();
 
@@ -117,14 +125,13 @@ struct context *switch_to(struct context *ctx)
 /* Start ELF Boot image */
 unsigned int start_elf(unsigned long entry_point, unsigned long param)
 {
-    struct context *ctx;
+    volatile struct context *ctx = __context;
 
-    ctx = init_context(image_stack, sizeof image_stack, 1);
     ctx->eip = entry_point;
     ctx->param[0] = param;
     ctx->eax = 0xe1fb007;
     ctx->ebx = param;
 
-    ctx = switch_to(ctx);
+    ctx = switch_to((struct context *)ctx);
     return ctx->eax;
 }

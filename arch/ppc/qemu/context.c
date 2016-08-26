@@ -6,6 +6,7 @@
 #include "config.h"
 #include "kernel/kernel.h"
 #include "context.h"
+#include "libopenbios/bindings.h"
 #include "libopenbios/sys_info.h"
 
 #define MAIN_STACK_SIZE 16384
@@ -49,6 +50,9 @@ static struct context main_ctx = {
  * it is to switch/switched.  */
 struct context * volatile __context = &main_ctx;
 
+/* Client program context */
+static struct context *client_ctx;
+
 /* Stack for loaded ELF image */
 static uint8_t image_stack[IMAGE_STACK_SIZE];
 
@@ -65,6 +69,10 @@ static void start_main(void)
      * We have to keep it in physical address since we will relocate. */
     __boot_ctx = virt_to_phys(__context);
 
+    /* Set up client context */
+    client_ctx = init_context(image_stack, sizeof image_stack, 1);
+    __context = client_ctx;
+    
     /* Start the real fun */
     entry();
 
@@ -115,7 +123,7 @@ struct context *switch_to(struct context *ctx)
 /* Start ELF Boot image */
 unsigned int start_elf(unsigned long entry_point, unsigned long param)
 {
-    struct context *ctx;
+    volatile struct context *ctx = __context;
 
     /* According to IEEE 1275, PPC bindings:
      *
@@ -127,14 +135,13 @@ unsigned int start_elf(unsigned long entry_point, unsigned long param)
      *
      *      Yaboot and Linux use r3 and r4 for initrd address and size
      */
-    
-    ctx = init_context(image_stack, sizeof image_stack, 1);
+
     ctx->pc = entry_point;
     ctx->regs[REG_R5] = (unsigned long)of_client_callback;
     ctx->regs[REG_R6] = 0;
     ctx->regs[REG_R7] = 0;
     ctx->param[0] = param;
    
-    ctx = switch_to(ctx);
+    ctx = switch_to((struct context *)ctx);
     return ctx->regs[REG_R3];
 }

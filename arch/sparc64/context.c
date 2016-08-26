@@ -33,6 +33,9 @@ static struct context main_ctx = {
  * it is to switch/switched.  */
 struct context * volatile __context = &main_ctx;
 
+/* Client program context */
+static struct context *client_ctx;
+
 /* Stack for loaded ELF image */
 static uint8_t image_stack[IMAGE_STACK_SIZE];
 
@@ -52,6 +55,10 @@ static void start_main(void)
     /* Save startup context, so we can refer to it later.
      * We have to keep it in physical address since we will relocate. */
     __boot_ctx = virt_to_phys(__context);
+
+    /* Set up client context */
+    client_ctx = init_context(image_stack, sizeof image_stack, 1);
+    __context = client_ctx;
 
     /* Start the real fun */
     openbios();
@@ -104,15 +111,14 @@ struct context *switch_to(struct context *ctx)
 /* Start ELF Boot image */
 uint64_t start_elf(uint64_t entry_point, uint64_t param)
 {
-    struct context *ctx;
+    volatile struct context *ctx = __context;
 
-    ctx = init_context(image_stack, sizeof image_stack, 1);
     ctx->pc = entry_point;
     ctx->param[0] = param;
     //ctx->eax = 0xe1fb007;
     //ctx->ebx = param;
 
-    ctx = switch_to(ctx);
+    ctx = switch_to((struct context *)ctx);
     //return ctx->eax;
     return 0;
 }
@@ -120,15 +126,14 @@ uint64_t start_elf(uint64_t entry_point, uint64_t param)
 /* Start client image */
 uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler)
 {
-    struct context *ctx;
+    volatile struct context *ctx = __context;
 
-    ctx = init_context(image_stack, sizeof image_stack, 0);
     ctx->pc  = entry_point;
     ctx->npc = entry_point+4;
     ctx->regs[REG_O0] = 0;
     ctx->regs[REG_O0+4] = cif_handler;
 
-    ctx = switch_to(ctx);
+    ctx = switch_to((struct context *)ctx);
 
     return 0;
 }
