@@ -43,6 +43,18 @@
  * invoke the miss handler.
  */
 
+#define SAVE_CPU_GENERAL_STATE(type) \
+	/* Save generate state into context at %g1 */ \
+	rdpr	%pstate, %g7; \
+	stx	%g7, [%g1 + 0xb0]; \
+	rd	%y, %g7; \
+	stx	%g7, [%g1 + 0xb8]; \
+	rd	%fprs, %g7; \
+	stx	%g7, [%g1 + 0xc0]; \
+	rdpr    %tl, %g7; \
+	stx     %g7, [%g1 + 0xc8];
+
+
 #define SAVE_CPU_WINDOW_STATE(type) \
 	/* Save window state into context at %g1 */ \
 	rdpr	%cwp, %g7; \
@@ -68,15 +80,6 @@
 	stx	%o5, [%g1 + 0x98]; \
 	stx	%o6, [%g1 + 0xa0]; \
 	stx	%o7, [%g1 + 0xa8]; \
-	\
-	rdpr	%pstate, %g7; \
-	stx	%g7, [%g1 + 0xb0]; \
-	rd	%y, %g7; \
-	stx	%g7, [%g1 + 0xb8]; \
-	rd	%fprs, %g7; \
-	stx	%g7, [%g1 + 0xc0]; \
-	rdpr    %tl, %g7; \
-	stx     %g7, [%g1 + 0xc8]; \
 	\
 	/* Now iterate through all of the windows saving all l and i registers */ \
 	add	%g1, 0xd0, %g5; \
@@ -160,10 +163,21 @@ save_trap_state_##type: \
 
 /* Save all state into context at %g1 */
 #define SAVE_CPU_STATE(type) \
+	SAVE_CPU_GENERAL_STATE(type); \
 	SAVE_CPU_WINDOW_STATE(type); \
 	SAVE_CPU_TRAP_STATE(type);
 
 
+#define RESTORE_CPU_GENERAL_STATE(type) \
+	/* Restore general state from context at %g1 */ \
+	ldx	[%g1 + 0xb0], %g7; \
+	wrpr	%g7, %pstate; \
+	ldx	[%g1 + 0xb8], %g7; \
+	wr	%g7, 0, %y; \
+	ldx	[%g1 + 0xc0], %g7; \
+	wr	%g7, 0, %fprs;
+	
+	
 #define RESTORE_CPU_WINDOW_STATE(type) \
 	/* Restore window state from context at %g1 */ \
 	\
@@ -227,14 +241,7 @@ restore_cpu_window_##type: \
 	ldx	[%g1 + 0x90], %o4; \
 	ldx	[%g1 + 0x98], %o5; \
 	ldx	[%g1 + 0xa0], %o6; \
-	ldx	[%g1 + 0xa8], %o7; \
-	\
-	ldx	[%g1 + 0xb0], %g7; \
-	wrpr	%g7, %pstate; \
-	ldx	[%g1 + 0xb8], %g7; \
-	wr	%g7, 0, %y; \
-	ldx	[%g1 + 0xc0], %g7; \
-	wr	%g7, 0, %fprs; \
+	ldx	[%g1 + 0xa8], %o7;
 
 
 #define RESTORE_CPU_TRAP_STATE(type) \
@@ -261,5 +268,6 @@ restore_trap_state_##type: \
 
 /* Restore all state from context at %g1 */
 #define RESTORE_CPU_STATE(type) \
+	RESTORE_CPU_GENERAL_STATE(type); \
 	RESTORE_CPU_WINDOW_STATE(type); \
 	RESTORE_CPU_TRAP_STATE(type);
