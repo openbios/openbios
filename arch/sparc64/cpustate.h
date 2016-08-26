@@ -12,7 +12,7 @@
 #include "autoconf.h"
 
 /* State size for context (see below) */
-#define CONTEXT_STATE_SIZE 0x550
+#define CONTEXT_STATE_SIZE 0x560
 
 /* Stack size for context (allocated inline of the context stack) */
 #define CONTEXT_STACK_SIZE 0x2000
@@ -131,7 +131,7 @@ save_cpu_window_##type: \
 	
 #define SAVE_CPU_TRAP_STATE(type) \
 	/* Save trap state into context at %g1 */ \
-	add	%g1, 0x4d0, %g5; \
+	add	%g1, 0x4e0, %g5; \
 	mov	4, %g6; \
 	\
 save_trap_state_##type: \
@@ -232,7 +232,7 @@ restore_cpu_window_##type: \
 
 #define RESTORE_CPU_TRAP_STATE(type) \
 	/* Restore trap state from context at %g1 */ \
-	add	%g1, 0x4d0, %g5; \
+	add	%g1, 0x4e0, %g5; \
 	mov	4, %g6; \
 	\
 restore_trap_state_##type: \

@@ -75,6 +75,11 @@ sparc64_of_client_interface:
 	ldx	[%sp + 2047 - 248 + 240], %g7
 	stx	%g7, [%g1 + 0x60]
 	
+	/* Save %pc */
+	mov	%o7, %g7
+	add	%g7, 8, %g7
+	stx	%g7, [%g1 + 0x4d0]
+	
 	SAVE_CPU_WINDOW_STATE(cif)
 
 	/* Move to OpenBIOS context stack */
@@ -116,15 +121,17 @@ sparc64_of_client_interface:
 	setx	client_tba, %g6, %g7
 	ldx	[%g7], %g6
 	wrpr	%g6, %tba
-
+	
+	/* Restore %pc */
+	ldx	[%g1 + 0x4d0], %o7
+	
 	/* Restore globals */
 	ldx	[%g1 + 0x38], %g2
 	ldx	[%g1 + 0x40], %g3
 	ldx	[%g1 + 0x48], %g4 
 	ldx	[%g1 + 0x50], %g5 
 	ldx	[%g1 + 0x58], %g6
-	ldx	[%g1 + 0x60], %g7 
-	ldx	[%g1 + 0x30], %g1
-
-	jmp	%o7+8
-	 nop
+	ldx	[%g1 + 0x60], %g7
+	
+	jmp	%o7
+	 ldx	[%g1 + 0x30], %g1
