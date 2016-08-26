@@ -17,6 +17,7 @@
 #ifndef _H_INITPROGRAM
 #define _H_INITPROGRAM
 
+extern int	arch_init_program(void);
 extern void	init_program(void);
 
 #endif   /* _H_INITPROGRAM */
