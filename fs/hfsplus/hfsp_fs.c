@@ -233,8 +233,6 @@ hfsp_files_open( hfsp_info_t *mi )
 		int *p = (int*)&(mi->vol)->vol.finder_info[0];
 		int cnid = p[0];
 		/* printk(" p[0] = %x, p[3] = %x, p[5] = %x\n", p[0], p[3], p[5] ); */
-		if( p[0] == p[5] && p[3] )
-			cnid = p[3];
 		if( record_init_cnid(&(mi->hfspfile->rec), &(mi->vol)->catalog, cnid) )
 			RET ( 0 );
 		path += 2;
