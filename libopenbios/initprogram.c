@@ -102,3 +102,36 @@ void init_forth_context(void)
 	feval("load-state >ls.file-size @");
 	fword("eval2");
 }
+
+void go(void)
+{
+	ucell address, type;
+	int image_retval = 0;
+
+	/* Get the entry point and the type (see forth/debugging/client.fs) */
+	feval("load-state >ls.entry @");
+	address = POP();
+	feval("load-state >ls.file-type @");
+	type = POP();
+
+	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
+
+	switch (type) {
+		default:
+			/* Start native binary */
+			image_retval = start_elf((unsigned long)address);
+			break;
+
+		case 0x10:
+			/* Start Fcode image */
+			image_retval = start_elf((unsigned long)&init_fcode_context);
+			break;
+
+		case 0x11:
+			/* Start Forth image */
+			image_retval = start_elf((unsigned long)&init_forth_context);
+			break;
+	}
+
+	printk("Image returned with return value %#x\n", image_retval);
+}

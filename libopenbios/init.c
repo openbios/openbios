@@ -24,4 +24,7 @@ openbios_init( void )
 {
 	// Bind the C implementation of (init-program) into Forth
 	bind_func("(init-program)", init_program);
+	
+	// Bind the C implementation of (go) into Forth
+	bind_func("(go)", go);
 }

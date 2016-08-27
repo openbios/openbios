@@ -586,7 +586,6 @@ arch_init( void )
         obp_ticks_pointer = cell2pointer(POP());
 
 	bind_func("platform-boot", boot );
-	bind_func("(go)", go);
 }
 
 unsigned long isa_io_base;

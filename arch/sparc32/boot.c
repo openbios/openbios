@@ -24,7 +24,7 @@ const void *romvec;
 
 static struct linux_mlist_v0 *totphyslist, *availlist, *prommaplist;
 
-static void setup_romvec(void)
+void setup_romvec(void)
 {
 	/* SPARC32 is slightly unusual in that before invoking any loaders, a romvec array
 	   needs to be set up to pass certain parameters using a C struct. Hence this function
@@ -188,52 +188,6 @@ static void setup_romvec(void)
 	((struct linux_romvec *)romvec)->pv_v0mem.v0_totphys = &totphyslist;
 	((struct linux_romvec *)romvec)->pv_v0mem.v0_available = &availlist;
 	((struct linux_romvec *)romvec)->pv_v0mem.v0_prommap = &prommaplist;
-}
-
-
-void go(void)
-{
-	ucell address, type;
-	int image_retval = 0;
-
-	/* Get the entry point and the type (see forth/debugging/client.fs) */
-	feval("load-state >ls.entry @");
-	address = POP();
-	feval("load-state >ls.file-type @");
-	type = POP();
-
-	setup_romvec();
-
-	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
-
-	switch (type) {
-		case 0x0:
-			/* Start ELF boot image */
-			image_retval = start_elf((unsigned long)address);
-			break;
-
-		case 0x1:
-			/* Start ELF image */
-			image_retval = start_elf((unsigned long)address);
-			break;
-
-		case 0x5:
-			/* Start a.out image */
-			image_retval = start_elf((unsigned long)address);
-			break;
-
-		case 0x10:
-			/* Start Fcode image */
-			image_retval = start_elf((unsigned long)&init_fcode_context);
-			break;
-
-		case 0x11:
-			/* Start Forth image */
-			image_retval = start_elf((unsigned long)&init_forth_context);
-			break;
-	}
-
-	printk("Image returned with return value %#x\n", image_retval);
 }
 
 

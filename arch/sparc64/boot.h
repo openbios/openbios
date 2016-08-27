@@ -16,7 +16,6 @@ extern uint64_t qemu_cmdline;
 extern uint64_t cmdline_size;
 extern char boot_device;
 extern void boot(void);
-extern void go(void);
 
 // sys_info.c
 extern uint64_t qemu_mem_size;

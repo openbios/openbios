@@ -12,7 +12,7 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 // boot.c
 extern const char *bootpath;
 extern void boot(void);
-extern void go(void);
+extern void setup_romvec(void);
 
 // sys_info.c
 extern unsigned int qemu_mem_size;

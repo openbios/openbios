@@ -15,49 +15,6 @@
 #include "libopenbios/sys_info.h"
 #include "boot.h"
 
-void go(void)
-{
-	ucell address, type;
-	int image_retval = 0;
-
-	/* Get the entry point and the type (see forth/debugging/client.fs) */
-	feval("load-state >ls.entry @");
-	address = POP();
-	feval("load-state >ls.file-type @");
-	type = POP();
-
-	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
-
-	switch (type) {
-		case 0x0:
-			/* Start ELF boot image */
-			image_retval = start_elf(address);
-			break;
-
-		case 0x1:
-			/* Start ELF image */
-			image_retval = start_elf(address);
-			break;
-
-		case 0x5:
-			/* Start a.out image */
-			image_retval = start_elf(address);
-			break;
-
-		case 0x10:
-			/* Start Fcode image */
-			image_retval = start_elf((unsigned long)&init_fcode_context);
-			break;
-
-		case 0x11:
-			/* Start Forth image */
-			image_retval = start_elf((unsigned long)&init_forth_context);
-			break;
-	}
-
-	printk("Image returned with return value %#x\n", image_retval);
-}
-
 
 void boot(void)
 {

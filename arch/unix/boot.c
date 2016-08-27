@@ -10,6 +10,7 @@
 
 void boot(void);
 void *load_elf(char *spec);
+unsigned int start_elf(unsigned long address);
 
 void
 *load_elf(char *spec)
@@ -82,3 +83,10 @@ boot( void )
 	else
 		printk("failed.\n");
 }
+
+unsigned int
+start_elf(unsigned long address)
+{
+	return 0;
+}
+

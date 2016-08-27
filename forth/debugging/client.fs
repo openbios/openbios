@@ -204,18 +204,22 @@ variable file-size
 ;
 
 : go    ( -- )
-  state-valid @ not if
+  state-valid @ 0= if
     s" No valid state has been set by load or init-program" type cr
     exit 
   then
 
-  \ Call the architecture-specific code to launch the client image
-  s" (go)" $find if
+  \ Call any architecture-specific code
+  s" (arch-go)" $find if
     execute
   else
-    ." go is not yet implemented"
     2drop
-  then
+  then  
+
+  \ go
+  s" (go)" $find if
+    execute
+  then  
   ;
 
 

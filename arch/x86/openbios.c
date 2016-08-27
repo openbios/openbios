@@ -73,7 +73,6 @@ arch_init( void )
 #endif
 	device_end();
 	bind_func("platform-boot", boot );
-	bind_func("(go)", go );
 }
 
 extern struct _console_ops arch_console_ops;

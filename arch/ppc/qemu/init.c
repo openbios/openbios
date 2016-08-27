@@ -595,23 +595,15 @@ id_cpu(void)
     }
 }
 
-static void go(void);
-unsigned int start_elf(unsigned long entry_point);
+static void arch_go(void);
 
 static void
-go(void)
+arch_go(void)
 {
-    ucell addr;
-
     /* Insert copyright property for MacOS 9 and below */
     if (find_dev("/rom/macos")) {
         fword("insert-copyright-property");
     }
-    
-    feval("load-state >ls.entry @");
-    addr = POP();
-
-    start_elf((unsigned long)addr);
 }
 
 static void kvm_of_init(void)
@@ -1016,5 +1008,5 @@ arch_of_init(void)
     bind_func("(adler32)", adler32);
     
     bind_func("platform-boot", boot);
-    bind_func("(go)", go);
+    bind_func("(arch-go)", arch_go);
 }

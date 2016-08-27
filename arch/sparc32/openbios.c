@@ -915,7 +915,7 @@ arch_init( void )
 	device_end();
 	
 	bind_func("platform-boot", boot );
-	bind_func("(go)", go );
+	bind_func("(arch-go)", setup_romvec );
 	
 	/* Set up other properties */
         push_str("/chosen");
