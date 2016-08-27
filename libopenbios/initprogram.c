@@ -83,3 +83,22 @@ void init_program(void)
 #endif
 
 }
+
+void init_fcode_context(void)
+{
+	/* Execute FCode payload */
+	printk("Evaluating FCode...\n");
+	fword("load-base");
+	PUSH(1);
+	fword("byte-load");
+}
+
+
+void init_forth_context(void)
+{
+	/* Execute Forth payload */
+	printk("Evaluating Forth...\n");
+	fword("load-base");
+	feval("load-state >ls.file-size @");
+	fword("eval2");
+}

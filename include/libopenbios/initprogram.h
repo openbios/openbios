@@ -20,4 +20,7 @@
 extern int	arch_init_program(void);
 extern void	init_program(void);
 
+void init_fcode_context(void);
+void init_forth_context(void);
+
 #endif   /* _H_INITPROGRAM */
