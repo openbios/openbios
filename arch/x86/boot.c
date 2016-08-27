@@ -31,29 +31,27 @@ void go(void)
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
-			image_retval = start_elf(address, (uint32_t)&elf_boot_notes);
+			image_retval = start_elf(address);
 			break;
 
 		case 0x1:
 			/* Start ELF image */
-			image_retval = start_elf(address, (uint32_t)NULL);
+			image_retval = start_elf(address);
 			break;
 
 		case 0x5:
 			/* Start a.out image */
-			image_retval = start_elf(address, (uint32_t)NULL);
+			image_retval = start_elf(address);
 			break;
 
 		case 0x10:
 			/* Start Fcode image */
-			image_retval = start_elf((unsigned long)&init_fcode_context,
-                                                 (uint32_t)NULL);
+			image_retval = start_elf((unsigned long)&init_fcode_context);
 			break;
 
 		case 0x11:
 			/* Start Forth image */
-			image_retval = start_elf((unsigned long)&init_forth_context,
-                                                 (uint32_t)NULL);
+			image_retval = start_elf((unsigned long)&init_forth_context);
 			break;
 	}
 

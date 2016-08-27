@@ -596,7 +596,7 @@ id_cpu(void)
 }
 
 static void go(void);
-unsigned int start_elf(unsigned long entry_point, unsigned long param);
+unsigned int start_elf(unsigned long entry_point);
 
 static void
 go(void)
@@ -611,7 +611,7 @@ go(void)
     feval("load-state >ls.entry @");
     addr = POP();
 
-    start_elf((unsigned long)addr, 0);
+    start_elf((unsigned long)addr);
 }
 
 static void kvm_of_init(void)

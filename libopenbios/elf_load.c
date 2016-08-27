@@ -442,6 +442,8 @@ elf_load(struct sys_info *info, ihandle_t dev, const char *cmdline, void **boot_
     if (boot_notes) {
         *boot_notes = (void *)virt_to_phys(build_boot_notes(info, cmdline));
         feval("elf-boot load-state >ls.file-type !");
+        PUSH((ucell)*boot_notes);
+        feval("elf-boot load-state >ls.param !");
     } else {
         feval("elf load-state >ls.file-type !");
     }

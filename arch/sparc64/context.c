@@ -138,12 +138,9 @@ struct context *switch_to(struct context *ctx)
 }
 
 /* Start ELF Boot image */
-uint64_t start_elf(uint64_t entry_point, uint64_t param)
+unsigned int start_elf(unsigned long entry_point)
 {
     volatile struct context *ctx = __context;
-
-    PUSH(param);
-    feval("load-state >ls.param !");
 
     arch_init_program();
 

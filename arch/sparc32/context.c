@@ -129,7 +129,7 @@ struct context *switch_to(struct context *ctx)
 }
 
 /* Start ELF Boot image */
-unsigned int start_elf(unsigned long entry_point, unsigned long param)
+unsigned int start_elf(unsigned long entry_point)
 {
     volatile struct context *ctx = __context;;
 

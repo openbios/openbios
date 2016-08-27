@@ -11,7 +11,7 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 
 // context.c
 extern struct context * volatile __context;
-unsigned int start_elf(unsigned long entry_point, unsigned long param);
+unsigned int start_elf(unsigned long entry_point);
 
 // boot.c
 extern const char *bootpath;

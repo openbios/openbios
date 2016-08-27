@@ -32,7 +32,7 @@
 static void start_main(void); /* forward decl. */
 void __exit_context(void); /* assembly routine */
 
-unsigned int start_elf(unsigned long entry_point, unsigned long param);
+unsigned int start_elf(unsigned long entry_point);
 void entry(void);
 void of_client_callback(void);
 
@@ -157,7 +157,7 @@ struct context *switch_to(struct context *ctx)
 }
 
 /* Start ELF Boot image */
-unsigned int start_elf(unsigned long entry_point, unsigned long param)
+unsigned int start_elf(unsigned long entry_point)
 {
     volatile struct context *ctx = __context;
 

@@ -36,7 +36,7 @@ void go(void)
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
-			image_retval = start_elf(address, (uint64_t)&elf_boot_notes);
+			image_retval = start_elf(address);
 			break;
 
 		case 0x1:

@@ -209,35 +209,27 @@ void go(void)
 	switch (type) {
 		case 0x0:
 			/* Start ELF boot image */
-			image_retval = start_elf((unsigned long)address,
-                                                 (unsigned long)romvec);
-
+			image_retval = start_elf((unsigned long)address);
 			break;
 
 		case 0x1:
 			/* Start ELF image */
-			image_retval = start_elf((unsigned long)address,
-                                                 (unsigned long)romvec);
-
+			image_retval = start_elf((unsigned long)address);
 			break;
 
 		case 0x5:
 			/* Start a.out image */
-			image_retval = start_elf((unsigned long)address,
-                                                 (unsigned long)romvec);
-
+			image_retval = start_elf((unsigned long)address);
 			break;
 
 		case 0x10:
 			/* Start Fcode image */
-			image_retval = start_elf((unsigned long)&init_fcode_context,
-                                                 (unsigned long)romvec);
+			image_retval = start_elf((unsigned long)&init_fcode_context);
 			break;
 
 		case 0x11:
 			/* Start Forth image */
-			image_retval = start_elf((unsigned long)&init_forth_context,
-                                                 (unsigned long)romvec);
+			image_retval = start_elf((unsigned long)&init_forth_context);
 			break;
 	}
 
@@ -250,6 +242,11 @@ void boot(void)
 	/* Boot preloaded kernel */
         if (kernel_size) {
             printk("[sparc] Kernel already loaded\n");
-            start_elf(kernel_image, (unsigned long)romvec);
+
+            PUSH(kernel_image);
+            feval("load-state >ls.entry !");
+
+            arch_init_program();
+            start_elf(kernel_image);
         }
 }
