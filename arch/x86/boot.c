@@ -11,12 +11,13 @@
 #include "libopenbios/bindings.h"
 #include "arch/common/nvram.h"
 #include "libc/diskio.h"
+#include "libopenbios/initprogram.h"
 #include "libopenbios/sys_info.h"
 #include "boot.h"
 
 void go(void)
 {
-	ucell address, type, size;
+	ucell address, type;
 	int image_retval = 0;
 
 	/* Get the entry point and the type (see forth/debugging/client.fs) */
@@ -24,8 +25,6 @@ void go(void)
 	address = POP();
 	feval("load-state >ls.file-type @");
 	type = POP();
-	feval("load-state >ls.file-size @");
-	size = POP();
 
 	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
 
@@ -47,19 +46,14 @@ void go(void)
 
 		case 0x10:
 			/* Start Fcode image */
-			printk("Evaluating FCode...\n");
-			PUSH(address);
-			PUSH(1);
-			fword("byte-load");
-			image_retval = 0;
+			image_retval = start_elf((unsigned long)&init_fcode_context,
+                                                 (uint32_t)NULL);
 			break;
 
 		case 0x11:
 			/* Start Forth image */
-			PUSH(address);
-			PUSH(size);
-			fword("eval2");
-			image_retval = 0;
+			image_retval = start_elf((unsigned long)&init_forth_context,
+                                                 (uint32_t)NULL);
 			break;
 	}
 
