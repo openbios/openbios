@@ -8,6 +8,7 @@
 #include "drivers/drivers.h"
 #include "libc/diskio.h"
 #include "libc/vsprintf.h"
+#include "libopenbios/initprogram.h"
 #include "libopenbios/ofmem.h"
 #include "libopenbios/sys_info.h"
 #include "openprom.h"
@@ -192,7 +193,7 @@ static void setup_romvec(void)
 
 void go(void)
 {
-	ucell address, type, size;
+	ucell address, type;
 	int image_retval = 0;
 
 	/* Get the entry point and the type (see forth/debugging/client.fs) */
@@ -200,8 +201,6 @@ void go(void)
 	address = POP();
 	feval("load-state >ls.file-type @");
 	type = POP();
-	feval("load-state >ls.file-size @");
-	size = POP();
 
 	setup_romvec();
 
@@ -231,19 +230,14 @@ void go(void)
 
 		case 0x10:
 			/* Start Fcode image */
-			printk("Evaluating FCode...\n");
-			PUSH(address);
-			PUSH(1);
-			fword("byte-load");
-			image_retval = 0;
+			image_retval = start_elf((unsigned long)&init_fcode_context,
+                                                 (unsigned long)romvec);
 			break;
 
 		case 0x11:
 			/* Start Forth image */
-			PUSH(address);
-			PUSH(size);
-			fword("eval2");
-			image_retval = 0;
+			image_retval = start_elf((unsigned long)&init_forth_context,
+                                                 (unsigned long)romvec);
 			break;
 	}
 
