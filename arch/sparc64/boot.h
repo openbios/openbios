@@ -12,7 +12,6 @@ int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 // context.c
 extern struct context * volatile __context;
 unsigned int start_elf(unsigned long entry_point);
-uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler);
 
 // boot.c
 extern uint64_t kernel_image;

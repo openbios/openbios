@@ -148,15 +148,3 @@ unsigned int start_elf(unsigned long entry_point)
 
     return 0;
 }
-
-/* Start client image */
-uint64_t start_client_image(uint64_t entry_point, uint64_t cif_handler)
-{
-    volatile struct context *ctx = __context;
-
-    arch_init_program();
-
-    ctx = switch_to((struct context *)ctx);
-
-    return 0;
-}
