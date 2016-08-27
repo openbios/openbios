@@ -32,7 +32,6 @@
 static void start_main(void); /* forward decl. */
 void __exit_context(void); /* assembly routine */
 
-unsigned int start_elf(unsigned long entry_point);
 void entry(void);
 void of_client_callback(void);
 

@@ -17,6 +17,9 @@
 #ifndef _H_INITPROGRAM
 #define _H_INITPROGRAM
 
+extern struct context * volatile __context;
+extern unsigned int start_elf(unsigned long address);
+
 extern int	arch_init_program(void);
 extern void	init_program(void);
 

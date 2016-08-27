@@ -9,10 +9,6 @@
 /* linux_load.c */
 int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 
-/* context.c */
-extern struct context *__context;
-unsigned int start_elf(unsigned long entry_point);
-
 /* boot.c */
 extern void boot(void);
 extern void go(void);

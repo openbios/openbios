@@ -45,7 +45,7 @@ static struct context main_ctx __attribute__((section (".initctx"))) = {
 
 /* This is used by assembly routine to load/store the context which
  * it is to switch/switched.  */
-struct context *__context = &main_ctx;
+struct context * volatile __context = &main_ctx;
 
 /* Client program context */
 static struct context *client_ctx;
