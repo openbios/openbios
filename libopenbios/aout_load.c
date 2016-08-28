@@ -10,15 +10,10 @@
 #define CONFIG_SPARC64_PAGE_SIZE_8KB
 #endif
 
-/* NextStep bootloader on SPARC32 expects the a.out header directly
-   below load-base (0x4000) */
-#ifdef CONFIG_SPARC32
-#define AOUT_HEADER_COPY
-#endif 
-
 #include "libopenbios/sys_info.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/aout_load.h"
+#include "libopenbios/initprogram.h"
 #include "libc/diskio.h"
 #define printf printk
 #define debug printk
@@ -85,7 +80,7 @@ aout_load(struct sys_info *info, ihandle_t dev)
 
     /* Mark the saved-program-state as invalid */
     feval("0 state-valid !");
-
+    
     fd = open_ih(dev);
     if (fd == -1) {
 	goto out;
@@ -123,15 +118,16 @@ aout_load(struct sys_info *info, ihandle_t dev)
     fword("load-base");
     start = POP(); // N_TXTADDR(ehdr);
 
+    memcpy((void *)start, &ehdr, sizeof(ehdr));
+    
     if (!check_mem_ranges(info, start, size))
 	goto out;
 
     printf("Loading a.out %s...\n", image_name ? image_name : "image");
-
     seek_io(fd, offset + N_TXTOFF(ehdr));
 
     if (N_MAGIC(ehdr) == NMAGIC) {
-        if ((size_t)read_io(fd, (void *)start, ehdr.a_text) != ehdr.a_text) {
+        if ((size_t)read_io(fd, (void *)(start + N_TXTOFF(ehdr)), ehdr.a_text) != ehdr.a_text) {
             printf("Can't read program text segment (size 0x" FMT_aout_ehdr ")\n", ehdr.a_text);
             goto out;
         }
@@ -140,7 +136,7 @@ aout_load(struct sys_info *info, ihandle_t dev)
             goto out;
         }
     } else {
-        if ((size_t)read_io(fd, (void *)start, size) != size) {
+        if ((size_t)read_io(fd, (void *)(start + N_TXTOFF(ehdr)), size) != size) {
             printf("Can't read program (size 0x" FMT_sizet ")\n", size);
             goto out;
         }
@@ -149,19 +145,10 @@ aout_load(struct sys_info *info, ihandle_t dev)
     debug("Loaded %lu bytes\n", size);
     debug("entry point is %#lx\n", start);
 
-#ifdef AOUT_HEADER_COPY
-    // Copy the a.out header just before start
-    memcpy((char *)(start - 0x20), &ehdr, 0x20);
-#endif
-
     // Initialise saved-program-state
-    PUSH(addr_fixup(start));
-    feval("load-state >ls.entry !");
     PUSH(size);
     feval("load-state >ls.file-size !");
     feval("aout load-state >ls.file-type !");
-
-    feval("-1 state-valid !");
 
 out:
     close_io(fd);
@@ -171,6 +158,21 @@ out:
 void 
 aout_init_program(void)
 {
-	// Currently not implemented
-	feval("0 state-valid !");
+    ucell start, size;
+    
+    // Relocate a.out text down from load-base to load-base - header. This
+    // is similar to what OBP does and is needed for NextStep.
+    fword("load-base");
+    start = POP();
+    feval("load-state >ls.file-size @");
+    size = POP();
+    
+    memmove((char *)start - sizeof(struct exec), (char *)start, size);
+    
+    PUSH(start);
+    feval("load-state >ls.entry !");
+    
+    arch_init_program();
+    
+    feval("-1 state-valid !");
 }

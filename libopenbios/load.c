@@ -17,6 +17,7 @@
 #include "config.h"
 #include "kernel/kernel.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/initprogram.h"
 #include "libopenbios/sys_info.h"
 #include "libopenbios/load.h"
 
@@ -50,11 +51,14 @@ void load(ihandle_t dev)
 {
 	/* Invoke the loaders on the specified device */
 	char *param;
-	ucell valid;
+	ucell valid = 0;
 
 	/* TODO: Currently the internal loader APIs use load-base directly, so
 	   drop the address */
 	POP();
+
+	/* Temporarily keep compiler quiet during transition */
+	valid = valid;
 
 #ifdef CONFIG_LOADER_ELF
 
@@ -77,12 +81,9 @@ void load(ihandle_t dev)
 #endif
 
 #ifdef CONFIG_LOADER_AOUT
-	aout_load(&sys_info, dev);
-        feval("state-valid @");
-        valid = POP();
-        if (valid) {
-                feval("load-state >ls.file-size @");
-                return;
+	if (aout_load(&sys_info, dev) != LOADER_NOT_SUPPORT) {
+            feval("load-state >ls.file-size @");
+            return;
         }
 #endif
 
