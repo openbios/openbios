@@ -85,12 +85,9 @@ void load(ihandle_t dev)
 #endif
 
 #ifdef CONFIG_LOADER_FCODE
-	fcode_load(dev);
-        feval("state-valid @");
-        valid = POP();
-        if (valid) {
-                feval("load-state >ls.file-size @");
-                return;
+	if (fcode_load(dev) != LOADER_NOT_SUPPORT) {
+            feval("load-state >ls.file-size @");
+            return;
         }
 #endif
 
