@@ -51,14 +51,10 @@ void load(ihandle_t dev)
 {
 	/* Invoke the loaders on the specified device */
 	char *param;
-	ucell valid = 0;
 
 	/* TODO: Currently the internal loader APIs use load-base directly, so
 	   drop the address */
 	POP();
-
-	/* Temporarily keep compiler quiet during transition */
-	valid = valid;
 
 #ifdef CONFIG_LOADER_ELF
 
@@ -92,12 +88,9 @@ void load(ihandle_t dev)
 #endif
 
 #ifdef CONFIG_LOADER_FORTH
-	forth_load(dev);
-        feval("state-valid @");
-        valid = POP();
-        if (valid) {
-                feval("load-state >ls.file-size @");
-                return;
+	if (forth_load(dev) != LOADER_NOT_SUPPORT) {
+            feval("load-state >ls.file-size @");
+            return;
         }
 #endif
 

@@ -9,6 +9,7 @@
 #include "config.h"
 #include "kernel/kernel.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/initprogram.h"
 #include "libopenbios/sys_info.h"
 #include "libc/diskio.h"
 #include "libopenbios/forth_load.h"
@@ -16,7 +17,6 @@
 #define debug printk
 
 static int fd;
-static char *forthtext=NULL;
 
 int is_forth(char *forth)
 {
@@ -27,6 +27,7 @@ int forth_load(ihandle_t dev)
 {
     char magic[2];
     unsigned long forthsize;
+    ucell *forthtext;
     int retval = -1;
 
     /* Mark the saved-program-state as invalid */
@@ -52,37 +53,36 @@ int forth_load(ihandle_t dev)
     /* Calculate the file size by seeking to the end of the file */
     seek_io(fd, -1);
     forthsize = tell(fd);
-    forthtext = malloc(forthsize+1);
     seek_io(fd, 0);
 
+    fword("load-base");
+    forthtext = (void *)POP();
+    
     printk("Loading forth source ...");
     if ((size_t)read_io(fd, forthtext, forthsize) != forthsize) {
 	printk("Can't read forth text\n");
 	goto out;
     }
-    forthtext[forthsize]=0;
+    forthtext[(forthsize / sizeof(ucell)) + 1]=0;
     printk("ok\n");
 
     // Initialise saved-program-state
-    PUSH((ucell)forthtext);
-    feval("load-state >ls.entry !");
     PUSH((ucell)forthsize);
     feval("load-state >ls.file-size !");
     feval("forth load-state >ls.file-type !");
 
-    feval("-1 state-valid !");
-
-    retval=0;
-
 out:
-    //if (forthtext)
-    //	free(forthtext);
     return retval;
 }
 
 void 
 forth_init_program(void)
 {
-	// Currently not implemented
-	feval("0 state-valid !");
+    /* Use trampoline context to execute Forth */
+    PUSH((ucell)&init_forth_context);
+    feval("load-state >ls.entry !");
+    
+    arch_init_program();
+    
+    feval("-1 state-valid !");
 }
