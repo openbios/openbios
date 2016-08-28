@@ -109,12 +109,9 @@ void load(ihandle_t dev)
 
 #ifdef CONFIG_LOADER_BOOTCODE
 	/* Check for a "raw" %BOOT bootcode payload */
-	bootcode_load(dev);
-        feval("state-valid @");
-        valid = POP();
-        if (valid) {
-                feval("load-state >ls.file-size @");
-                return;
+	if (bootcode_load(dev) != LOADER_NOT_SUPPORT) {
+            feval("load-state >ls.file-size @");
+            return;
         }
 #endif
 

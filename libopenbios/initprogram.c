@@ -24,6 +24,7 @@
 #include "libopenbios/aout_load.h"
 #endif
 
+#include "libopenbios/bootcode_load.h"
 #include "libopenbios/bootinfo_load.h"
 #include "libopenbios/elf_load.h"
 #include "libopenbios/fcode_load.h"
@@ -43,6 +44,13 @@ void init_program(void)
 #ifdef CONFIG_LOADER_AOUT
 	if (is_aout((struct exec *)cell2pointer(addr))) {
 		aout_init_program();
+		return;
+	}
+#endif
+
+#ifdef CONFIG_LOADER_BOOTCODE
+	if (is_bootcode((char *)cell2pointer(addr))) {
+		bootcode_init_program();
 		return;
 	}
 #endif

@@ -18,5 +18,7 @@
 #define _H_BOOTCODELOAD
 
 extern int bootcode_load(ihandle_t dev);
+int is_bootcode(char *addr);
+void bootcode_init_program(void);
 
 #endif   /* _H__H_BOOTCODELOAD */
