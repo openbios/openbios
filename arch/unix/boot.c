@@ -5,12 +5,12 @@
 #include "config.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/elf_load.h"
+#include "libopenbios/initprogram.h"
 #include "arch/common/nvram.h"
 #include "libc/diskio.h"
 
 void boot(void);
 void *load_elf(char *spec);
-unsigned int start_elf(unsigned long address);
 
 void
 *load_elf(char *spec)
@@ -90,3 +90,8 @@ start_elf(unsigned long address)
 	return 0;
 }
 
+int
+arch_init_program(void)
+{
+	return 0;
+}

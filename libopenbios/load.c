@@ -71,12 +71,9 @@ void load(ihandle_t dev)
 	POP();
 	param = pop_fstr_copy();
 
-	elf_load(&sys_info, dev, param, &elf_boot_notes);
-        feval("state-valid @");
-        valid = POP();
-        if (valid) {
-                feval("load-state >ls.file-size @");
-                return;
+	if (elf_load(&sys_info, dev, param, &elf_boot_notes) != LOADER_NOT_SUPPORT) {
+            feval("load-state >ls.file-size @");
+            return;
         }
 #endif
 

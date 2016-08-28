@@ -11,6 +11,7 @@
 #include "libopenbios/sys_info.h"
 #include "libopenbios/ipchecksum.h"
 #include "libopenbios/bindings.h"
+#include "libopenbios/initprogram.h"
 #include "libopenbios/ofmem.h"
 #define printf printk
 #define debug printk
@@ -453,13 +454,10 @@ elf_load(struct sys_info *info, ihandle_t dev, const char *cmdline, void **boot_
     debug("entry point is " FMT_elf "\n", addr_fixup(ehdr.e_entry));
 
     // Initialise saved-program-state
-    PUSH(addr_fixup(ehdr.e_entry));
-    feval("load-state >ls.entry !");
     PUSH(file_size);
     feval("load-state >ls.file-size !");
-
-    feval("-1 state-valid !");
-
+    feval("elf load-state >ls.file-type !");
+    
 out:
     close_io(fd);
     if (phdr)
@@ -483,7 +481,6 @@ elf_init_program(void)
 	uintptr_t tmp;
 
 	/* TODO: manage ELF notes section */
-	feval("0 state-valid !");
 	feval("load-base");
 	base = (char*)cell2pointer(POP());
 
@@ -531,9 +528,8 @@ elf_init_program(void)
 	// Initialise load-state
 	PUSH(ehdr->e_entry);
 	feval("load-state >ls.entry !");
-	PUSH(total_size);
-	feval("load-state >ls.file-size !");
-	feval("elf load-state >ls.file-type !");
-
+	
+	arch_init_program();
+	
 	feval("-1 state-valid !");
 }
