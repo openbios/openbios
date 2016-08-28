@@ -124,22 +124,7 @@ void go(void)
 
 	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
 
-	switch (type) {
-		default:
-			/* Start native binary */
-			image_retval = start_elf((unsigned long)address);
-			break;
-
-		case 0x10:
-			/* Start Fcode image */
-			image_retval = start_elf((unsigned long)&init_fcode_context);
-			break;
-
-		case 0x11:
-			/* Start Forth image */
-			image_retval = start_elf((unsigned long)&init_forth_context);
-			break;
-	}
+	image_retval = start_elf((unsigned long)address);
 
 	printk("Image returned with return value %#x\n", image_retval);
 }
