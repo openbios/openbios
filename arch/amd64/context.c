@@ -147,11 +147,9 @@ struct context *switch_to(struct context *ctx)
 }
 
 /* Start ELF image */
-unsigned int start_elf(unsigned long entry_point)
+unsigned int start_elf(void)
 {
     volatile struct context *ctx = __context;
-
-    arch_init_program();
 
     ctx = switch_to((struct context *)ctx);
     return ctx->eax;

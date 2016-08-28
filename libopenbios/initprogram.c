@@ -124,7 +124,7 @@ void go(void)
 
 	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
 
-	image_retval = start_elf((unsigned long)address);
+	image_retval = start_elf();
 
 	printk("Image returned with return value %#x\n", image_retval);
 }

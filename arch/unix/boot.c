@@ -85,7 +85,7 @@ boot( void )
 }
 
 unsigned int
-start_elf(unsigned long address)
+start_elf(void)
 {
 	return 0;
 }

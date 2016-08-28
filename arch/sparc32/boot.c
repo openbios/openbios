@@ -201,6 +201,6 @@ void boot(void)
             feval("load-state >ls.entry !");
 
             arch_init_program();
-            start_elf(kernel_image);
+            start_elf();
         }
 }
