@@ -37,6 +37,10 @@
 #include "libopenbios/forth_load.h"
 #endif
 
+#ifdef CONFIG_LOADER_XCOFF
+#include "libopenbios/xcoff_load.h"
+#endif
+
 #ifdef CONFIG_LOADER_BOOTCODE
 #include "libopenbios/bootcode_load.h"
 #endif
@@ -89,6 +93,13 @@ void load(ihandle_t dev)
 
 #ifdef CONFIG_LOADER_FORTH
 	if (forth_load(dev) != LOADER_NOT_SUPPORT) {
+            feval("load-state >ls.file-size @");
+            return;
+        }
+#endif
+
+#ifdef CONFIG_LOADER_XCOFF
+	if (xcoff_load(dev) != LOADER_NOT_SUPPORT) {
             feval("load-state >ls.file-size @");
             return;
         }

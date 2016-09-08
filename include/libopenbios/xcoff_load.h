@@ -21,7 +21,7 @@
 #include "libopenbios/sys_info.h"
 
 extern int is_xcoff(COFF_filehdr_t *fhdr);
-extern int xcoff_load(struct sys_info *info, const char *filename);
+extern int xcoff_load(ihandle_t dev);
 extern void xcoff_init_program(void);
 
 #endif   /* _H_XCOFFLOAD */
