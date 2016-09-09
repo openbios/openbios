@@ -773,13 +773,15 @@ int macio_keylargo_config_cb (const pci_config_t *config)
 
 int vga_config_cb (const pci_config_t *config)
 {
+#ifdef CONFIG_PPC
         unsigned long rom;
         uint32_t rom_size, size, bar;
         phandle_t ph;
-
+#endif
         if (config->assigned[0] != 0x00000000) {
             setup_video();
 
+#ifdef CONFIG_PPC
             if (config->assigned[6]) {
                     rom = pci_bus_addr_to_host_addr(MEMORY_SPACE_32,
                                                     config->assigned[6] & ~0x0000000F);
@@ -805,6 +807,8 @@ int vga_config_cb (const pci_config_t *config)
                             }
                     }
             }
+#endif
+
             /* Currently we don't read FCode from the hardware but execute
              * it directly */
             feval("['] vga-driver-fcode 2 cells + 1 byte-load");
