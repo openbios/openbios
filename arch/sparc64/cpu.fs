@@ -3,9 +3,10 @@ include config.fs
 \ SPARC64 trap registers
 
 : %tl-c saved-context h# c8 + @ ;
+: %tba saved-context h# 4e0 + @ ;
 
 : tl-offset ( level -- offset )
-  h# 20 * h# 4e0 h# 60 +  swap - ;
+  h# 20 * h# 4f0 h# 60 +  swap - ;
 ;
 
 : %tpc ( level -- n ) tl-offset saved-context + @ ;
@@ -15,6 +16,7 @@ include config.fs
 
 : .trap-registers
   cr
+  s" %tba: " type %tba u. cr
   s" %tl-c: " type %tl-c u. cr
   s" %tpc: " type %tl-c %tpc u. cr
   s" %tnpc: " type %tl-c %tnpc u. cr

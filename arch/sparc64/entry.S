@@ -269,8 +269,7 @@ lowmem:
         setx    __context, %g2, %g1
         ldx     [%g1], %g1
         
-        SAVE_CPU_GENERAL_STATE(entry)
-        SAVE_CPU_WINDOW_STATE(entry)
+        SAVE_CPU_STATE(entry)
         
         /* Set up local stack pointer */
         setx    _estack - 2047, %o2, %sp

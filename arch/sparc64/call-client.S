@@ -18,8 +18,6 @@ client_context:
 	.xword	0
 client_stack:
 	.xword	0
-client_tba:
-	.xword	0
 client_window:
 	.skip	2048
 
@@ -45,11 +43,6 @@ sparc64_of_client_interface:
 	stx	%g5, [%sp + 2047 - 248 + 224]
 	stx	%g6, [%sp + 2047 - 248 + 232]
 	stx	%g7, [%sp + 2047 - 248 + 240]
-
-	/* Save client trap table */
-	setx	client_tba, %g6, %g7
-	rdpr	%tba, %g6
-	stx	%g6, [%g7]
 
 	/* Save existing stack */
 	setx	client_stack, %g6, %g7
@@ -133,11 +126,6 @@ sparc64_of_client_interface:
 	/* Restore stack */
 	setx	client_stack, %g6, %g7
 	ldx	[%g7], %sp
-
-	/* Restore client trap table */
-	setx	client_tba, %g6, %g7
-	ldx	[%g7], %g6
-	wrpr	%g6, %tba
 	
 	/* Restore %pc */
 	ldx	[%g1 + 0x4d0], %o7

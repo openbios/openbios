@@ -10,6 +10,8 @@
 #include "libopenbios/openbios.h"
 #include "libopenbios/bindings.h"
 #include "libopenbios/console.h"
+#include "context.h"
+#include "libopenbios/initprogram.h"
 #include "drivers/drivers.h"
 #include "dict.h"
 #include "arch/common/nvram.h"
@@ -89,17 +91,16 @@ struct cpudef {
   ( addr -- ? )
 */
 
-extern volatile uint64_t client_tba;
-
 static void
 set_trap_table(void)
 {
     unsigned long addr;
+    volatile struct context *ctx = __context;
 
     addr = POP();
 
-    /* Update client_tba to be updated on CIF exit */
-    client_tba = addr;
+    /* Update %tba to be updated on exit */
+    ctx->tba = (uint64_t)addr;
 }
 
 /* Reset control register is defined in 17.2.7.3 of US IIi User Manual */

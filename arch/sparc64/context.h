@@ -11,7 +11,9 @@ struct context {
 #define REG_O0 14
 #define REG_SP 20
 #define SP_LOC(ctx) (&(ctx)->regs[REG_SP])
-    uint64_t tregs[20];
+    uint64_t tba;
+    uint64_t _pad;
+    uint64_t tregs[16];
     /* Flags */
     /* Optional stack contents */
     uint64_t return_addr;
