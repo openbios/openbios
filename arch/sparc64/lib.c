@@ -282,6 +282,13 @@ itlb_miss_handler(void)
 	}
 }
 
+void
+prom_debug_handler(void)
+{
+	/* Execute the current debugger-hook */
+	feval("debugger-hook");
+}
+
 /*
   3.6.5 map
   ( phys.lo ... phys.hi virt size mode -- )

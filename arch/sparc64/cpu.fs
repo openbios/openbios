@@ -154,5 +154,12 @@ include config.fs
   .globals .locals
 ;
 
+\ Debugger support
+defer debugger-hook
+
+: init-debugger-hook ( xt )
+  dup to debugger-hook
+;
+
 \ Used by Milax
 variable warning

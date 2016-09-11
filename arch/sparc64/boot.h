@@ -27,3 +27,4 @@ void cls(void);
 
 // lib.c
 void ob_mmu_init(const char *cpuname, uint64_t ram_size);
+void prom_debug_handler(void);

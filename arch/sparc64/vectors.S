@@ -182,7 +182,11 @@ tl0_resv130:	BTRAPS(0x130) BTRAPS(0x138)
 tl0_resv140:	BTRAPS(0x140) BTRAPS(0x148)
 tl0_resv150:	BTRAPS(0x150) BTRAPS(0x158)
 tl0_resv160:	BTRAPS(0x160) BTRAPS(0x168)
-tl0_resv170:	BTRAPS(0x170) BTRAPS(0x178)
+tl0_resv170:	BTRAPS(0x170) BTRAPS4(0x178)
+		BTRAP(0x17c)
+		TRAP_HANDLER(prom_debug)    ! 0x17d : debugger
+		TRAP_HANDLER(prom_debug)    ! 0x17e : debugger breakpoint
+		BTRAP(0x17f)
 tl0_resv180:	BTRAPS(0x180) BTRAPS(0x188)
 tl0_resv190:	BTRAPS(0x190) BTRAPS(0x198)
 tl0_resv1a0:	BTRAPS(0x1a0) BTRAPS(0x1a8)
@@ -265,7 +269,11 @@ tl1_resv130:	BTRAPS(0x130) BTRAPS(0x138)
 tl1_resv140:	BTRAPS(0x140) BTRAPS(0x148)
 tl1_resv150:	BTRAPS(0x150) BTRAPS(0x158)
 tl1_resv160:	BTRAPS(0x160) BTRAPS(0x168)
-tl1_resv170:	BTRAPS(0x170) BTRAPS(0x178)
+tl1_resv170:	BTRAPS(0x170) BTRAPS4(0x178)
+		BTRAP(0x17c)
+		TRAP_HANDLER(prom_debug)    ! 0x17d : debugger
+		TRAP_HANDLER(prom_debug)    ! 0x17e : debugger breakpoint
+		BTRAP(0x17f)
 tl1_resv180:	BTRAPS(0x180) BTRAPS(0x188)
 tl1_resv190:	BTRAPS(0x190) BTRAPS(0x198)
 tl1_resv1a0:	BTRAPS(0x1a0) BTRAPS(0x1a8)
@@ -506,6 +514,116 @@ reload_IMMU_tlb:
 	stx	%g1, [%g7]
 	
 	retry
+
+
+        .globl prom_debug_handler
+
+prom_debug:
+
+	/* Make sure all windows are on the stack */
+	flushw
+	
+	rdpr	%tl, %g7
+	rdpr	%tpc, %g6
+	rdpr	%tnpc, %g5
+
+	/* Save CPU state to stack */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	add	%g1, -CONTEXT_STATE_SIZE, %g1
+	stx	%g1, [%g7]
+
+	SAVE_CPU_STATE(prom_debug)
+
+	RESET_CPU_WINDOW_STATE(prom_debug)
+
+	/* Switch to ordinary globals, saving to context */
+	mov	%g1, %o1
+	rdpr	%pstate, %o2
+	andn	%o2, PSTATE_AG, %o2
+	wrpr	%o2, %pstate
+	
+	stx	%g1, [%o1 + 0x30]
+	stx	%g2, [%o1 + 0x38]
+	stx	%g3, [%o1 + 0x40]
+	stx	%g4, [%o1 + 0x48]
+	stx	%g5, [%o1 + 0x50]
+	stx	%g6, [%o1 + 0x58]
+	stx	%g7, [%o1 + 0x60]
+	
+	/* Copy context back to %g1 */
+	mov	%o1, %g1
+	
+	/* Update __context to point to saved area */
+	setx	__context, %g6, %g7
+	ldx	[%g7], %g3
+	setx	debug_context, %g4, %g5
+	stx	%g3, [%g5]
+	stx	%g1, [%g7]
+
+	/* Switch to TLB locked OpenBIOS stack space (note we add an additional 192 bytes required for
+	   gcc to save its arguments when building with -O0) */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g6
+	setx	CONTEXT_STACK_SIZE, %g4, %g5
+	sub	%g6, %g5, %g6
+	stx	%g6, [%g7]
+
+	setx	- 2047 - 192, %g6, %g7
+	add	%g1, %g7, %g7
+	mov	%g7, %sp
+
+	/* Enable interrupts for window spill/fill traps */
+	rdpr	%pstate, %g7
+	or	%g7, PSTATE_IE, %g7
+	wrpr	%g7, %pstate
+	
+	call	prom_debug_handler
+	 nop
+	
+	/* Disable interrupts */
+	rdpr	%pstate, %g7
+	andn	%g7, PSTATE_IE, %g7
+	wrpr	%g7, %pstate
+	
+	/* Restore CPU state from stack */
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	setx	CONTEXT_STACK_SIZE, %g4, %g5
+	add	%g1, %g5, %g1
+	stx	%g1, [%g7]
+	
+	/* Restore ordinary globals, switch back to alternate globals */
+	mov	%g1, %o1
+	rdpr	%pstate, %o2
+	or	%o2, PSTATE_AG, %o2
+	
+	ldx	[%o1 + 0x30], %g1
+	ldx	[%o1 + 0x38], %g2
+	ldx	[%o1 + 0x40], %g3
+	ldx	[%o1 + 0x48], %g4 
+	ldx	[%o1 + 0x50], %g5 
+	ldx	[%o1 + 0x58], %g6
+	ldx	[%o1 + 0x60], %g7
+	
+	wrpr	%o2, %pstate
+	mov	%o1, %g1
+	
+	RESTORE_CPU_STATE(prom_debug)
+	
+	/* Restore __context */
+	setx	debug_context, %g4, %g5
+	ldx	[%g5], %g3
+	setx	__context, %g6, %g7
+	stx	%g3, [%g7]
+
+	setx	_fcstack_ptr, %g6, %g7
+	ldx	[%g7], %g1
+	add	%g1, CONTEXT_STATE_SIZE, %g1
+	stx	%g1, [%g7]
+	
+	done
+
 
 softint_irq_tl1:
 softint_irq:
