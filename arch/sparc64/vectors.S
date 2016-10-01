@@ -284,6 +284,10 @@ tl1_resv1f0:	BTRAPS(0x1f0) BTRAPS(0x1f8)
 obp_ticks_pointer:
 	.xword 0
 
+	! Saved context state
+debug_context:
+	.xword 0
+
         .section ".text", "ax"
 
 spill_32bit:
@@ -343,6 +347,23 @@ reload_DMMU_tlb:
 	
 	RESET_CPU_WINDOW_STATE(dtlb)
 	
+	/* Switch to ordinary globals, saving to context */
+	mov	%g1, %o1
+	rdpr	%pstate, %o2
+	andn	%o2, PSTATE_MG, %o2
+	wrpr	%o2, %pstate
+	
+	stx	%g1, [%o1 + 0x30]
+	stx	%g2, [%o1 + 0x38]
+	stx	%g3, [%o1 + 0x40]
+	stx	%g4, [%o1 + 0x48]
+	stx	%g5, [%o1 + 0x50]
+	stx	%g6, [%o1 + 0x58]
+	stx	%g7, [%o1 + 0x60]
+	
+	/* Copy context back to %g1 */
+	mov	%o1, %g1
+	
 	/* Switch to 8K TLB locked OpenBIOS stack (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
 	setx	_fcstack_ptr, %g6, %g7
@@ -375,6 +396,22 @@ reload_DMMU_tlb:
 	add	%g1, %g5, %g1
 	stx	%g1, [%g7]
 	
+	/* Restore ordinary globals, switch back to memory globals */
+	mov	%g1, %o1
+	rdpr	%pstate, %o2
+	or	%o2, PSTATE_MG, %o2
+
+	ldx	[%o1 + 0x30], %g1
+	ldx	[%o1 + 0x38], %g2
+	ldx	[%o1 + 0x40], %g3
+	ldx	[%o1 + 0x48], %g4 
+	ldx	[%o1 + 0x50], %g5 
+	ldx	[%o1 + 0x58], %g6
+	ldx	[%o1 + 0x60], %g7
+	
+	wrpr	%o2, %pstate
+	mov	%o1, %g1
+	
 	RESTORE_CPU_STATE(dtlb)
 	
 	setx	_fcstack_ptr, %g6, %g7
@@ -382,7 +419,7 @@ reload_DMMU_tlb:
 	add	%g1, CONTEXT_STATE_SIZE, %g1
 	stx	%g1, [%g7]
 	
-        retry
+	retry
 
 reload_IMMU_tlb:
 	
@@ -395,6 +432,23 @@ reload_IMMU_tlb:
 	SAVE_CPU_STATE(itlb)
 	
 	RESET_CPU_WINDOW_STATE(itlb)
+	
+	/* Switch to ordinary globals, saving to context */
+	mov	%g1, %o1
+	rdpr	%pstate, %o2
+	andn	%o2, PSTATE_MG, %o2
+	wrpr	%o2, %pstate
+	
+	stx	%g1, [%o1 + 0x30]
+	stx	%g2, [%o1 + 0x38]
+	stx	%g3, [%o1 + 0x40]
+	stx	%g4, [%o1 + 0x48]
+	stx	%g5, [%o1 + 0x50]
+	stx	%g6, [%o1 + 0x58]
+	stx	%g7, [%o1 + 0x60]
+	
+	/* Copy context back to %g1 */
+	mov	%o1, %g1
 	
 	/* Switch to 8K TLB locked OpenBIOS stack (note we add an additional 192 bytes required for
 	   gcc to save its arguments when building with -O0) */
@@ -428,14 +482,30 @@ reload_IMMU_tlb:
 	add	%g1, %g5, %g1
 	stx	%g1, [%g7]
 	
+	/* Restore ordinary globals, switch back to memory globals */
+	mov	%g1, %o1
+	rdpr	%pstate, %o2
+	or	%o2, PSTATE_MG, %o2
+
+	ldx	[%o1 + 0x30], %g1
+	ldx	[%o1 + 0x38], %g2
+	ldx	[%o1 + 0x40], %g3
+	ldx	[%o1 + 0x48], %g4 
+	ldx	[%o1 + 0x50], %g5 
+	ldx	[%o1 + 0x58], %g6
+	ldx	[%o1 + 0x60], %g7
+	
+	wrpr	%o2, %pstate
+	mov	%o1, %g1
+	
 	RESTORE_CPU_STATE(itlb)
 	
 	setx	_fcstack_ptr, %g6, %g7
 	ldx	[%g7], %g1
 	add	%g1, CONTEXT_STATE_SIZE, %g1
 	stx	%g1, [%g7]
-
-        retry
+	
+	retry
 
 softint_irq_tl1:
 softint_irq:
