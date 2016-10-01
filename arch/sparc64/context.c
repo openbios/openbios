@@ -127,7 +127,7 @@ struct context *switch_to(struct context *ctx)
     volatile struct context *save;
     struct context *ret;
 
-    debug("switching to new context: entry point %#llx stack 0x%016llx\n", ctx->pc, ctx->regs[REG_SP]);
+    //debug("switching to new context: entry point %#llx stack 0x%016llx\n", ctx->pc, ctx->regs[REG_SP]);
     save = __context;
     __context = ctx;
     //asm ("pushl %cs; call __switch_context");
