@@ -113,18 +113,6 @@ void init_forth_context(void)
 
 void go(void)
 {
-	ucell address, type;
-	int image_retval = 0;
-
-	/* Get the entry point and the type (see forth/debugging/client.fs) */
-	feval("load-state >ls.entry @");
-	address = POP();
-	feval("load-state >ls.file-type @");
-	type = POP();
-
-	printk("\nJumping to entry point " FMT_ucellx " for type " FMT_ucellx "...\n", address, type);
-
-	image_retval = start_elf();
-
-	printk("Image returned with return value %#x\n", image_retval);
+	/* Switch to the current context */
+	start_elf();
 }
