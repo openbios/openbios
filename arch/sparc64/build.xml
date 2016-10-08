@@ -1,6 +1,7 @@
 <build condition="SPARC64">
 
  <dictionary name="openbios-sparc64" init="openbios">
+  <object source="cpu.fs" target="forth"/>
   <object source="tree.fs" target="forth"/>
   <object source="init.fs" target="forth"/>
   <object source="QEMU,VGA.bin" target="fcode" condition="DRIVER_VGA"/>
