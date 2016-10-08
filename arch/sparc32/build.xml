@@ -1,6 +1,7 @@
 <build condition="SPARC32">
 
  <dictionary name="openbios-sparc32" init="openbios">
+  <object source="cpu.fs" target="forth"/>
   <object source="tree.fs" target="forth"/>
   <object source="init.fs" target="forth"/>
   <object source="QEMU,tcx.bin" target="fcode" condition="DRIVER_SBUS"/>
