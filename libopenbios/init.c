@@ -22,6 +22,10 @@
 void
 openbios_init( void )
 {
+	// Bind the saved program state context into Forth
+	PUSH(pointer2cell((void *)&__context));
+	feval("['] __context cell+ !");
+
 	// Bind the C implementation of (init-program) into Forth
 	bind_func("(init-program)", init_program);
 	

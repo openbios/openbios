@@ -1,5 +1,11 @@
 \ 7.6 Client Program Debugging command group
 
+\ Saved program state context
+variable __context
+0 __context !
+
+: saved-context __context @ @ ;
+
 
 \ 7.6.1    Registers display
 
