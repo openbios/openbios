@@ -193,7 +193,7 @@ __set_context:
 	
 	/* r4, r1 */
 	PPC_LL  r1,  STKOFF(r4)
-	PPC_LL  r4,  (STKOFF + 8 * ULONG_SIZE)(r4)
+	PPC_LL  r4,  (STKOFF + 9 * ULONG_SIZE)(r4)
 	
 	LOAD_REG_IMMEDIATE(r0, MSR_FP | MSR_ME | MSR_DR | MSR_IR)
 	MTMSRD(r0)
