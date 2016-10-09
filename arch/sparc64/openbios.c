@@ -128,6 +128,135 @@ sparc64_set_tas_register(unsigned long val)
         : : "r" (val), "r" (addr) : "memory");
 }
 
+/* space?@ and and space?! words */
+static uint8_t
+sparc64_asi_loadb(uint8_t asi, unsigned long address)
+{
+    uint8_t asi_save;
+    uint8_t ret = 0;
+    
+    __asm__ __volatile__("rd %%asi, %0" : "=r" (asi_save));
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi));
+    
+    __asm__ __volatile__("ldub [%1], %0"
+        : "=r" (ret)
+        : "r" (address));
+    
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi_save));
+    
+    return ret;
+}
+
+/* spacec@ */
+static void
+spacec_read(void)
+{
+    uint8_t ret;
+    
+    uint8_t asi = POP();
+    ucell address = POP();
+    
+    ret = sparc64_asi_loadb(asi, address);
+    
+    PUSH(ret);
+}
+
+static uint16_t
+sparc64_asi_loadw(uint8_t asi, unsigned long address)
+{
+    uint8_t asi_save;
+    uint16_t ret;
+    
+    __asm__ __volatile__("rd %%asi, %0" : "=r" (asi_save));
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi));
+    
+    __asm__ __volatile__("lduw [%1], %0"
+        : "=r" (ret)
+        : "r" (address));
+    
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi_save));
+    
+    return ret;
+}
+
+/* spacew@ */
+static void
+spacew_read(void)
+{
+    uint16_t ret;
+    
+    uint8_t asi = POP();
+    ucell address = POP();
+    
+    ret = sparc64_asi_loadw(asi, address);
+    
+    PUSH(ret);
+}
+
+static uint32_t
+sparc64_asi_loadl(uint8_t asi, unsigned long address)
+{
+    uint8_t asi_save;
+    uint32_t ret;
+    
+    __asm__ __volatile__("rd %%asi, %0" : "=r" (asi_save));
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi));
+
+    __asm__ __volatile__("ld [%1], %0"
+        : "=r" (ret)
+        : "r" (address));
+    
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi_save));
+    
+    return ret;
+}
+
+/* spacel@ */
+static void
+spacel_read(void)
+{
+    uint32_t ret;
+    
+    uint8_t asi = POP();
+    ucell address = POP();
+    
+    ret = sparc64_asi_loadl(asi, address);
+    
+    PUSH(ret);
+}
+
+static uint64_t
+sparc64_asi_loadx(uint8_t asi, unsigned long address)
+{
+    uint8_t asi_save;
+    uint64_t ret = 0;
+    
+    __asm__ __volatile__("rd %%asi, %0" : "=r" (asi_save));
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi));
+    
+    __asm__ __volatile__("ldx [%1], %0"
+        : "=r" (ret)
+        : "r" (address));
+    
+    __asm__ __volatile__("wr %0, 0, %%asi" : : "r" (asi_save));
+    
+    return ret;
+}
+
+/* spacex@ */
+static void
+spacex_read(void)
+{
+    uint64_t ret;
+    
+    uint8_t asi = POP();
+    ucell address = POP();
+    
+    ret = sparc64_asi_loadx(asi, address);
+    
+    PUSH(ret);
+}
+
 static void cpu_generic_init(const struct cpudef *cpu, uint32_t clock_frequency)
 {
     unsigned long iu_version;
@@ -585,6 +714,12 @@ arch_init( void )
         /* Point to the Forth obp-ticks variable */
         fword("obp-ticks");
         obp_ticks_pointer = cell2pointer(POP());
+
+        /* Bind to space?@ functions */
+        bind_func("spacec@", spacec_read);
+        bind_func("spacew@", spacew_read);
+        bind_func("spacel@", spacel_read);
+        bind_func("spacex@", spacex_read);
 
 	bind_func("platform-boot", boot );
 }
