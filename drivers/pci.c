@@ -846,6 +846,8 @@ int ebus_config_cb(const pci_config_t *config)
     int i;
     uint32_t mask;
     int flags, space_code;
+    ucell virt;
+    phys_addr_t io_phys_base = 0;
 
     props[0] = 0x14;
     props[1] = 0x3f8;
@@ -878,6 +880,11 @@ int ebus_config_cb(const pci_config_t *config)
                                        config->assigned[i] & ~mask);
 
         props[ncells++] = config->sizes[i];
+
+        /* Store base of IO space for NVRAM */
+        if (io_phys_base == 0x0 && space_code == IO_SPACE) {
+            io_phys_base = pci_bus_addr_to_host_addr(space_code, config->assigned[i] & ~mask);
+        }
     }
 
     set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
@@ -898,6 +905,13 @@ int ebus_config_cb(const pci_config_t *config)
     push_str("mk48t59");
     fword("model");
 
+    /* OpenSolaris (e.g. Milax) requires the RTC to be pre-mapped by the PROM */
+    virt = ofmem_map_io(io_phys_base + 0x2000, 0x2000);
+    PUSH(virt);
+    fword("encode-int");
+    push_str("address");
+    fword("property");
+    
     push_str("eeprom");
     fword("device-name");
     fword("finish-device");
