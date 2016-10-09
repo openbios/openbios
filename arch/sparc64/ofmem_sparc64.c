@@ -67,14 +67,12 @@ ucell ofmem_arch_get_virt_top(void)
 
 ucell ofmem_arch_get_iomem_base(void)
 {
-	/* Currently unused */
-	return 0;
+	return (ucell)&_iomem;
 }
 
 ucell ofmem_arch_get_iomem_top(void)
 {
-	/* Currently unused */
-	return 0;
+	return (ucell)&_iomem + 0x8000;
 }
 
 retain_t *ofmem_arch_get_retained(void)

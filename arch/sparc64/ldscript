@@ -61,7 +61,7 @@ SECTIONS
 	_estack = .;
     }
 
-    . = ALIGN(4096);
+    . = ALIGN(8192);
     _end = .;
     _iomem = _end + IOMEM_SIZE;
 
