@@ -350,7 +350,7 @@ static void ofmem_update_translations( void )
 	ofmem_update_memory_available(s_phandle_memory, ofmem->phys_range, 
 			&phys_range_prop, &phys_range_prop_size, &phys_range_prop_used, get_ram_size() - 1);
 	ofmem_update_memory_available(s_phandle_mmu, ofmem->virt_range, 
-			&virt_range_prop, &virt_range_prop_size, &virt_range_prop_used, (ucell)-1);
+			&virt_range_prop, &virt_range_prop_size, &virt_range_prop_used, ofmem_arch_get_virt_top() - 1);
 	ofmem_update_mmu_translations();
 }
 
