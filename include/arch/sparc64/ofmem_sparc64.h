@@ -16,6 +16,8 @@
 
 #include "libopenbios/ofmem.h"
 
+#define OFMEM_VIRT_TOP 0xff000000
+
 #define PAGE_SIZE_4M   (4 * 1024 * 1024)
 #define PAGE_SIZE_512K (512 * 1024)
 #define PAGE_SIZE_64K  (64 * 1024)
