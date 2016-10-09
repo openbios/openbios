@@ -38,6 +38,7 @@
 /* translation table entry bits */
 #define SPITFIRE_TTE_WRITABLE   0x02
 #define SPITFIRE_TTE_PRIVILEGED 0x04
+#define SPITFIRE_TTE_EFFECT     0x08
 #define SPITFIRE_TTE_CV         0x10
 #define SPITFIRE_TTE_CP         0x20
 #define SPITFIRE_TTE_LOCKED     0x40

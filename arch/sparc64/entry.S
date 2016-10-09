@@ -148,7 +148,7 @@ entry:
         srlx    %g5, 19, %g6			! %g6 = # of 512k .bss pages
 	set	0xc0000000, %g3
 	sllx	%g3, 32, %g3
-	or	%g3, 0x76, %g3
+	or	%g3, 0x7e, %g3
 	! valid, 512k, locked, cacheable(I/E/C), priv, writable
 	set	48, %g7
 1:	stxa	%g4, [%g7] ASI_DMMU		! vaddr = _data + N * 0x80000, ctx=0
@@ -173,7 +173,7 @@ entry:
 1:      stxa	%g4, [%g7] ASI_DMMU		! vaddr = _rodata, ctx=0
 	set	0xc0000000, %g3
 	sllx	%g3, 32, %g3
-	or	%g3, 0x74, %g3
+	or	%g3, 0x7c, %g3
 	or	%l2, %g3, %g3
 	! valid, 512k, locked, cacheable(I/E/C), priv
 	! paddr = _rodata + N * 0x10000
@@ -197,7 +197,7 @@ entry:
 1:      stxa	%g4, [%g7] ASI_IMMU		! vaddr = _start, ctx=0
 	set	0xc0000000, %g3
 	sllx	%g3, 32, %g3
-	or	%g3, 0x74, %g3
+	or	%g3, 0x7c, %g3
 	or	%l2, %g3, %g3
 	! valid, 512k, locked, cacheable(I/E/C), priv
 	! paddr = _start + N * 0x80000

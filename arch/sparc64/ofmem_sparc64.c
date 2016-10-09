@@ -213,7 +213,7 @@ ucell ofmem_arch_default_translation_mode( phys_addr_t phys )
 ucell ofmem_arch_io_translation_mode( phys_addr_t phys )
 {
 	/* Writable, privileged and not locked */
-	return SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE | SPITFIRE_TTE_PRIVILEGED;
+	return SPITFIRE_TTE_CV | SPITFIRE_TTE_WRITABLE | SPITFIRE_TTE_PRIVILEGED | SPITFIRE_TTE_EFFECT;
 }
 
 /* Architecture-specific OFMEM helpers */
