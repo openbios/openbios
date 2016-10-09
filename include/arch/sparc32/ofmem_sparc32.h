@@ -17,7 +17,7 @@
 #include "libopenbios/ofmem.h"
 
 #define OF_CODE_START 0xffd00000
-#define OFMEM_VIRT_TOP 0xfe000000
+#define OFMEM_VIRT_TOP 0xffff0000
 
 struct mem;
 extern struct mem cdvmem;

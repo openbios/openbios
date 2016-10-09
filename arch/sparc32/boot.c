@@ -178,7 +178,7 @@ void setup_romvec(void)
 			(**pp).num_bytes = (intprop_ptr[4] + intprop_ptr[5]) - (intprop_ptr[1] + intprop_ptr[2]);
 		} else {
 			/* Tail (size from top of virtual memory) */
-			(**pp).num_bytes = 0xffffffffUL - (intprop_ptr[1] + intprop_ptr[2]) + 1;
+			(**pp).num_bytes = ofmem_arch_get_virt_top() - 1 - (intprop_ptr[1] + intprop_ptr[2]) + 1;
 		}
 
 		intprop_ptr += 3;
