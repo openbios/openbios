@@ -90,6 +90,8 @@ start_elf(void)
 	return 0;
 }
 
+struct context * volatile __context;
+
 int
 arch_init_program(void)
 {
