@@ -60,7 +60,7 @@ NODE_METHODS( usb_kbd ) = {
 	{ "read",               keyboard_read		},
 };
 
-#ifdef CONFIG_USB_DEBUG
+#ifdef CONFIG_DEBUG_USB
 static const char *boot_protos[3] = { "(none)", "keyboard", "mouse" };
 #endif
 typedef enum { hid_proto_boot = 0, hid_proto_report = 1 } hid_proto;

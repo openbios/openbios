@@ -555,7 +555,7 @@ usb_detach_device(hci_t *controller, int devno)
 int
 usb_attach_device(hci_t *controller, int hubaddress, int port, int speed)
 {
-#ifdef CONFIG_USB_DEBUG
+#ifdef CONFIG_DEBUG_USB
 	static const char* speeds[] = { "full", "low", "high" };
 	usb_debug ("%sspeed device\n", (speed <= 2) ? speeds[speed] : "invalid value - no");
 #endif
