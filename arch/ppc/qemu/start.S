@@ -482,6 +482,12 @@ real_entry:
 #endif
 
 	bl	BRANCH_LABEL(setup_mmu)
+
+	/* load stack pointer into context */
+	LOAD_REG_IMMEDIATE(r4, __context)
+	PPC_LL  r4, 0(r4)
+	PPC_STL r1, (2 * ULONG_SIZE)(r4)
+
 	bl	BRANCH_LABEL(__switch_context_nosave)
 1:	nop
 	b	1b

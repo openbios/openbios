@@ -41,7 +41,6 @@ void of_client_callback(void);
  * to start us up.
  */
 static struct context main_ctx = {
-    .sp = (unsigned long) &_estack - SAVE_SPACE,
     .pc = (unsigned long) start_main,
     .return_addr = (unsigned long) __exit_context,
 };
