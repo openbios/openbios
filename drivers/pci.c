@@ -671,10 +671,7 @@ static void ob_pci_reload_device_path(phandle_t phandle, pci_config_t *config)
 {
     /* since "name" and "reg" are now assigned
        we need to reload current node name */
-
-    PUSH(phandle);
-    fword("get-package-path");
-    char *new_path = pop_fstr_copy();
+    char *new_path = get_path_from_ph(phandle);
     if (new_path) {
         if (0 != strcmp(config->path, new_path)) {
             PCI_DPRINTF("\n=== CHANGED === package path old=%s new=%s\n",
