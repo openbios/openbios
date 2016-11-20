@@ -1557,7 +1557,7 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
                         ncells += pci_encode_phys_addr(props + ncells, 0, 0, addr, 0, 0);
                         props[ncells++] = intno;
                         props[ncells++] = dnode;
-                        props[ncells++] = arch->irqs[intno - 1];
+                        props[ncells++] = arch->irqs[((intno - 1) + (addr >> 11)) & 3];
                         props[ncells++] = 1;
 #else
                         /* Keep compiler quiet */
