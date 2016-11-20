@@ -1481,27 +1481,35 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
 
 #if defined(CONFIG_PPC)
     phandle_t target_node;
+    char *path, buf[256];
 
     /* Oldworld macs do interrupt maps differently */
     if (!is_newworld())
         return;
 
+    PCI_DPRINTF("setting up interrupt map for host %x\n", host);
     dnode = dt_iterate_type(0, "open-pic");
-    if (dnode) {
+    path = get_path_from_ph(host);
+    if (dnode && path) {
         /* patch in openpic interrupt-parent properties */
-        target_node = find_dev("/pci/mac-io");
+        snprintf(buf, sizeof(buf), "%s/mac-io", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/escc/ch-a");
+        snprintf(buf, sizeof(buf), "%s/mac-io/escc/ch-a", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/escc/ch-b");
+        snprintf(buf, sizeof(buf), "%s/mac-io/escc/ch-b", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/escc-legacy/ch-a");
+        snprintf(buf, sizeof(buf), "%s/mac-io/escc-legacy/ch-a", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/escc-legacy/ch-b");
+        snprintf(buf, sizeof(buf), "%s/mac-io/escc-legacy/ch-b", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
         /* QEMU only emulates 2 of the 3 ata buses currently */
@@ -1510,16 +1518,19 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
          * On g3beige they all called just ide.
          * We take 2 x ata-3 buses which seems to work for
          * at least the clients we care about */
-        target_node = find_dev("/pci/mac-io/ata-3@20000");
+        snprintf(buf, sizeof(buf), "%s/mac-io/ata-3@20000", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/ata-3@21000");
+        snprintf(buf, sizeof(buf), "%s/mac-io/ata-3@21000", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci/mac-io/via-cuda");
+        snprintf(buf, sizeof(buf), "%s/mac-io/via-cuda", path);
+        target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
-        target_node = find_dev("/pci");
+        target_node = find_dev(path);
         set_int_property(target_node, "interrupt-parent", dnode);
     }
 #else
