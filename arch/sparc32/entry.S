@@ -179,7 +179,7 @@ clear_done:
          nop
 
         ! Calculate SMP table location
-	set	0x1f0c, %g2
+        set     0x1f0c, %g2
         add     %g6, %g2, %g2                 ! valid?
         lda     [%g2] ASI_M_BYPASS, %g7
         sta     %g0, [%g2] ASI_M_BYPASS
@@ -205,45 +205,12 @@ skip_table:
         blu     ss2
          nop
 
-        ! Ok, this is SS-5
-
-        tst     %g7
-        bz      first_cpu
+        ! Ok, this is SS-5, uniprocessor
+        ba      first_cpu
          nop
 
-        ! Clear softints used for SMP CPU startup
-        set     PHYS_JJ_INTR0 + 0x04, %g1
-        sll     %g2, 12, %g2
-        add     %g1, %g2, %g2
-        set     0xffffffff, %g1
-        sta     %g1, [%g2] ASI_M_BYPASS         ! clear softints
-        add     %g2, 4, %g2
-        sta     %g0, [%g2] ASI_M_BYPASS         ! clear softints
-
-load_ctx:
-        ! SMP init, jump to user specified address
-	set	0x1f04, %g5
-        add     %g6, %g5, %g5                 ! ctxtbl
-        lda     [%g5] ASI_M_BYPASS, %g2
-        sta     %g0, [%g5] ASI_M_BYPASS
-        set     AC_M_CTPR, %g1
-        sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
-	set	0x1f00, %g5
-        add     %g6, %g5, %g5                 ! ctx
-        lda     [%g5] ASI_M_BYPASS, %g2
-        sta     %g0, [%g5] ASI_M_BYPASS
-        set     AC_M_CXR, %g1
-        sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
-	set	0x1f08, %g5
-        add     %g6, %g5, %g5                 ! entry
-        lda     [%g5] ASI_M_BYPASS, %g2
-        sta     %g0, [%g5] ASI_M_BYPASS
-        set     1, %g1
-        jmp     %g2                             ! jump to kernel
-         sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
-
 ss10:
-        ! Ok, this is SS-10 or SS-600MP
+        ! Ok, this is SS-10/20 or SS-600MP
         tst     %g7
         bz      first_cpu
          nop
@@ -255,8 +222,29 @@ ss10:
         set     0xffffffff, %g1
         sta     %g1, [%g2] ASI_M_CTL            ! clear softints
         add     %g2, 4, %g2
-        b       load_ctx
-         sta    %g0, [%g2] ASI_M_CTL            ! clear softints
+        sta     %g0, [%g2] ASI_M_CTL            ! clear softints
+
+load_ctx:
+        ! SMP init, jump to user specified address
+        set     0x1f04, %g5
+        add     %g6, %g5, %g5                 ! ctxtbl
+        lda     [%g5] ASI_M_BYPASS, %g2
+        sta     %g0, [%g5] ASI_M_BYPASS
+        set     AC_M_CTPR, %g1
+        sta     %g2, [%g1] ASI_M_MMUREGS        ! set ctx table ptr
+        set     0x1f00, %g5
+        add     %g6, %g5, %g5                 ! ctx
+        lda     [%g5] ASI_M_BYPASS, %g2
+        sta     %g0, [%g5] ASI_M_BYPASS
+        set     AC_M_CXR, %g1
+        sta     %g2, [%g1] ASI_M_MMUREGS        ! set context
+        set     0x1f08, %g5
+        add     %g6, %g5, %g5                 ! entry
+        lda     [%g5] ASI_M_BYPASS, %g2
+        sta     %g0, [%g5] ASI_M_BYPASS
+        set     1, %g1
+        jmp     %g2                             ! jump to kernel
+         sta    %g1, [%g0] ASI_M_MMUREGS        ! enable mmu
 
 ss2:
         ! Ok, this is SS-2
