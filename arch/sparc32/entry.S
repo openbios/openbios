@@ -126,6 +126,17 @@ entry:
         or      %g3, %g4, %g1
         ! %g1 contains end of memory
 
+        ! Get CPU number
+        ! XXX: not all CPUs should have MXCC
+        set     0x1c00f00, %g2
+        ldda    [%g2] ASI_CONTROL, %g2
+        srl     %g3, 24, %g7
+        subcc   %g7, 8, %g7
+
+        ! Only the first CPU clears memory
+        bnz     clear_done
+         nop
+
         ! Get kernel address from configuration device
         ! NB: little endian format
         mov     FW_CFG_KERNEL_ADDR, %g2
@@ -168,23 +179,6 @@ clear_done:
         set     0x2000, %g3
         sub     %g1, %g3, %g6
 
-        ! Check if this is the boot CPU and skip SMP table check if yes
-        ! XXX: not all CPUs should have MXCC
-        set     0x1c00f00, %g2
-        ldda    [%g2] ASI_CONTROL, %g2
-        srl     %g3, 24, %g7
-        sub     %g7, 8, %g7
-        tst     %g7
-        bz      skip_table
-         nop
-
-        ! Calculate SMP table location
-        set     0x1f0c, %g2
-        add     %g6, %g2, %g2                 ! valid?
-        lda     [%g2] ASI_M_BYPASS, %g7
-        sta     %g0, [%g2] ASI_M_BYPASS
-
-skip_table:
         ! Get machine ID from configuration device
         mov     FW_CFG_MACHINE_ID, %g2
         sub     %g5, 2, %g5
@@ -217,14 +211,13 @@ ss10:
 
         ! Clear softints used for SMP CPU startup
         set     PHYS_SS10_INTR0 + 0x04, %g1
-        sll     %g2, 12, %g2
+        sll     %g7, 12, %g2
         add     %g1, %g2, %g2
         set     0xffffffff, %g1
         sta     %g1, [%g2] ASI_M_CTL            ! clear softints
         add     %g2, 4, %g2
         sta     %g0, [%g2] ASI_M_CTL            ! clear softints
 
-load_ctx:
         ! SMP init, jump to user specified address
         set     0x1f04, %g5
         add     %g6, %g5, %g5                 ! ctxtbl
