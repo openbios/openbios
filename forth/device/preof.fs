@@ -14,7 +14,7 @@
 \ reserved to avoid confusion.
 
 : non-implemented 
-  ." Non-implemented historical or pre-Open Firmware FCode occured." cr 
+  ." Non-implemented historical or pre-Open Firmware FCode occurred." cr 
   end0
   ;
 

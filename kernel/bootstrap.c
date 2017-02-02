@@ -571,7 +571,7 @@ void exception(cell no)
 		printk("no such device.\n");
 		break;
 	default:
-		printk("error %" FMT_CELL_d " occured.\n", no);
+		printk("error %" FMT_CELL_d " occurred.\n", no);
 	}
 	exit(1);
 }
@@ -1059,7 +1059,7 @@ static void new_dictionary(const char *source)
 	interpret_source((char *)source);
 
         if (verbose || errors > 0) {
-                printk("interpretion finished. %d errors occured.\n",
+                printk("interpretion finished. %d errors occurred.\n",
                        errors);
         }
 }

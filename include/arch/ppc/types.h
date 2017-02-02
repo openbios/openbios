@@ -36,7 +36,7 @@ typedef long            intptr_t;
 #define PRIX64 "llX"
 #endif
 
-/* endianess */
+/* endianness */
 #include "autoconf.h"
 
 /* physical address */
