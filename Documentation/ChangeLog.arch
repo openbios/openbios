@@ -620,7 +620,7 @@
       openbios--main--1.0--patch-18
 
      * fix bug in output of strings. Strings were cut off when 0 bytes
-       occured, in a C manner. Now detok prints correct forth strings.
+       occurred, in a C manner. Now detok prints correct forth strings.
        Thanks to Arti Itra <a.itra@ieee.org> for reporting this.
     
      * free string after printing it.
@@ -770,7 +770,7 @@
     Revision:
       openbios--main--1.0--patch-9
 
-    this should fix issue 20. Switch all endianess handling to use
+    this should fix issue 20. Switch all endianness handling to use
     CONFIG_LITTLE_ENDIAN/CONFIG_BIG_ENDIAN
     
     

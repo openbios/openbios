@@ -219,7 +219,7 @@ static uint32_t load_linux_header(struct linux_header *hdr)
 static void
 init_linux_params(struct linux_params *params, struct linux_header *hdr)
 {
-    debug("Setting up paramters at %#lx\n", virt_to_phys(params));
+    debug("Setting up parameters at %#lx\n", virt_to_phys(params));
     memset(params, 0, sizeof *params);
 
     /* Copy some useful values from header */

@@ -219,7 +219,7 @@ static ssize_t bios_write(struct file *file, const char *buffer, size_t count, l
 
 	    if (flash_ready_poll(addr,offset+writeoffs+flashchips[fn].pagesize-1,
 				 clipboard[writeoffs+flashchips[fn].pagesize-1])) {
-	      printk (KERN_ERR "BIOS: Error occured, please repeat write operation.\n");
+	      printk (KERN_ERR "BIOS: Error occurred, please repeat write operation.\n");
 	    }
 	    flash_command(addr, 0xf0);
 	    
