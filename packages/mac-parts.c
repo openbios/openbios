@@ -158,32 +158,31 @@ macparts_open( macparts_info_t *di )
 
 			DPRINTF("found partition %d type: %s with status %x\n", i, par.pmPartType, __be32_to_cpu(par.pmPartStatus));
 
+			/* Unfortunately Apple's OF implementation doesn't follow the OF PowerPC CHRP bindings
+			* and instead will brute-force boot the first valid partition it finds with a
+			* type of either "Apple_Boot", "Apple_HFS" or "DOS_FAT_". Here we store the id
+			* of the first partition that matches these criteria to use as a fallback later
+			* if required. */
+			if (apple_parnum == -1 &&
+				(strcmp(par.pmPartType, "Apple_Boot") == 0 || 
+				strcmp(par.pmPartType, "Apple_Bootstrap") == 0 || 
+				strcmp(par.pmPartType, "Apple_HFS") == 0 ||
+				strcmp(par.pmPartType, "DOS_FAT_") == 0)) {
+				apple_parnum = i;
+				
+				DPRINTF("Located Apple OF fallback partition %d\n", apple_parnum);
+			}
+				
 			/* If we have a valid, allocated and readable partition... */
 			if( (__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
-			(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
-			(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
-
-				/* Unfortunately Apple's OF implementation doesn't follow the OF PowerPC CHRP bindings
-				 * and instead will brute-force boot the first valid partition it finds with a
-				 * type of either "Apple_Boot", "Apple_HFS" or "DOS_FAT_". Here we store the id
-				 * of the first partition that matches these criteria to use as a fallback later
-				 * if required. */
-				
-				if (apple_parnum == -1 &&
-				    (strcmp(par.pmPartType, "Apple_Boot") == 0 || 
-				    strcmp(par.pmPartType, "Apple_Bootstrap") == 0 || 
-				    strcmp(par.pmPartType, "Apple_HFS") == 0 ||
-				    strcmp(par.pmPartType, "DOS_FAT_") == 0)) {
-					apple_parnum = i;
-					
-					DPRINTF("Located Apple OF fallback partition %d\n", apple_parnum);
-				}
+				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
+				(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable) ) {
 				
 				/* If the partition is also bootable and the pmProcessor field matches "PowerPC" (insensitive
 				 * match), then according to the CHRP bindings this is our chosen partition */
 				for (j = 0; j < strlen(par.pmProcessor); j++) {
 				    par.pmProcessor[j] = tolower(par.pmProcessor[j]);
-				}				
+				}
 				
 				if ((__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsBootValid) &&
 				    strcmp(par.pmProcessor, "powerpc") == 0) {
@@ -225,8 +224,7 @@ macparts_open( macparts_info_t *di )
 	    if(! ((__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsValid) &&
 			(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsAllocated) &&
 			(__be32_to_cpu(par.pmPartStatus) & kPartitionAUXIsReadable)) ) {
-		DPRINTF("Partition %d is not valid, allocated and readable\n", parnum);
-		goto out;
+		DPRINTF("WARNING: Partition %d is not valid, allocated and readable\n", parnum);
 	    }
 	    
 	    ret = -1;
@@ -235,7 +233,6 @@ macparts_open( macparts_info_t *di )
 	    size = (long long)__be32_to_cpu(par.pmPartBlkCnt) * bs;	
 	    
 	    if (want_bootcode) {
-		    
 		/* If size == 0 then fail because we requested bootcode but it doesn't exist */
 		size = (long long)__be32_to_cpu(par.pmBootSize);
 		if (!size) {
