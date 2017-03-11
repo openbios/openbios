@@ -1202,9 +1202,9 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, int num_regs, int rom_bar,
                  unsigned long *mem_base, unsigned long *io_base)
 
 {
-        uint32_t omask;
+        uint32_t omask, mask;
         uint16_t cmd;
-        int reg;
+        int reg, flags, space_code;
         pci_addr config_addr;
 
         ob_pci_configure_irq(addr, config);
@@ -1216,6 +1216,14 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, int num_regs, int rom_bar,
                 ob_pci_configure_bar(addr, config, reg, config_addr,
                                      &omask, mem_base,
                                      io_base);
+
+                /* Ignore 64-bit BAR MSBs (always map in 32-bit space) */
+                pci_decode_pci_addr(config->assigned[reg],
+                                    &flags, &space_code, &mask);
+
+                if (space_code == MEMORY_SPACE_64) {
+                    reg++;
+                }
         }
 
         if (rom_bar) {
