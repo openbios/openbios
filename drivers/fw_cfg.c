@@ -9,25 +9,37 @@
 static volatile uint16_t *fw_cfg_cmd;
 static volatile uint8_t *fw_cfg_data;
 
-void
-fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
+static void
+fw_cfg_read_bytes(char *buf, unsigned int nbytes)
 {
     unsigned int i;
 
-    *fw_cfg_cmd = cmd;
     for (i = 0; i < nbytes; i++)
         buf[i] = *fw_cfg_data;
 }
-#else
-// XXX depends on PCI bus location, should be removed
+
 void
 fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
 {
+    *fw_cfg_cmd = cmd;
+    fw_cfg_read_bytes(buf, nbytes);
+}
+#else
+// XXX depends on PCI bus location, should be removed
+static void
+fw_cfg_read_bytes(char *buf, unsigned int nbytes)
+{
     unsigned int i;
 
-    outw(cmd, CONFIG_FW_CFG_ADDR);
     for (i = 0; i < nbytes; i++)
         buf[i] = inb(CONFIG_FW_CFG_ADDR + 1);
+}
+
+void
+fw_cfg_read(uint16_t cmd, char *buf, unsigned int nbytes)
+{
+    outw(cmd, CONFIG_FW_CFG_ADDR);
+    fw_cfg_read_bytes(buf, nbytes);
 }
 #endif
 
