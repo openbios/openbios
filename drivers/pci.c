@@ -49,7 +49,7 @@
 /* DECLARE data structures for the nodes.  */
 
 DECLARE_UNNAMED_NODE( ob_pci_bus_node, INSTALL_OPEN, 2*sizeof(int) );
-DECLARE_UNNAMED_NODE( ob_pci_simple_node, INSTALL_OPEN, 2*sizeof(int) );
+DECLARE_UNNAMED_NODE( ob_pci_simple_node, 0, 2*sizeof(int) );
 DECLARE_UNNAMED_NODE( ob_pci_empty_node, 0, 2*sizeof(int) );
 
 const pci_arch_t *arch;
@@ -399,7 +399,6 @@ NODE_METHODS(ob_pci_bus_node) = {
 };
 
 NODE_METHODS(ob_pci_simple_node) = {
-	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
 };
@@ -1400,11 +1399,8 @@ static void ob_configure_pci_device(const char* parent_path,
             REGISTER_NAMED_NODE_PHANDLE(ob_pci_bus_node, config.path, phandle);
         }
         break;
-    case PCI_CLASS_DISPLAY:
-	REGISTER_NAMED_NODE_PHANDLE(ob_pci_empty_node, config.path, phandle);
-	break;
     default:
-        REGISTER_NAMED_NODE_PHANDLE(ob_pci_simple_node, config.path, phandle);
+        REGISTER_NAMED_NODE_PHANDLE(ob_pci_empty_node, config.path, phandle);
         break;
     }
 
@@ -1440,6 +1436,11 @@ static void ob_configure_pci_device(const char* parent_path,
     if (pci_dev && pci_dev->config_cb) {
         //activate_device(config.path);
         pci_dev->config_cb(&config);
+    }
+
+    /* if devices haven't supplied open/close words then supply them with simple defaults */
+    if (!find_package_method("open", phandle) && !find_package_method("close", phandle)) {
+        REGISTER_NODE_METHODS(ob_pci_simple_node, config.path);
     }
 
     /* device is configured so we may move it out of scope */
