@@ -336,6 +336,7 @@ s" -1"       s" real-size"            int-config
 s" 4000000"  s" load-base"          int-config
 s" -1"       s" virt-base"            int-config
 s" -1"       s" virt-size"            int-config
+s" true"     s" vga-ndrv?"            bool-config
 [THEN]
 
 [IFDEF] CONFIG_X86
