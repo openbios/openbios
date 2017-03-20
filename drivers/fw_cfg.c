@@ -115,6 +115,29 @@ fw_cfg_read_file(const char *filename, uint32_t *size)
     return NULL;
 }
 
+//
+// ( fname fnamelen -- buf buflen -1 | 0 )
+//
+
+void
+forth_fw_cfg_read_file(void)
+{
+    char *filename = pop_fstr_copy();
+    char *buffer;
+    uint32_t size;
+
+    buffer = fw_cfg_read_file(filename, &size);
+    if (buffer) {
+        PUSH(pointer2cell(buffer));
+        PUSH(size);
+        PUSH(-1);
+
+        return;
+    }
+
+    PUSH(0);
+}
+
 void
 fw_cfg_init(void)
 {

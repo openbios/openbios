@@ -97,3 +97,11 @@ arch_init_program(void)
 {
 	return 0;
 }
+
+void forth_fw_cfg_read_file(void);
+
+void
+forth_fw_cfg_read_file(void)
+{
+	return;
+}

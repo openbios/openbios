@@ -100,6 +100,7 @@ typedef struct FWCfgFiles {
 
 unsigned int fw_cfg_find_file(const char *filename, uint16_t *select, uint32_t *size);
 char *fw_cfg_read_file(const char *filename, uint32_t *size);
+void forth_fw_cfg_read_file(void);
 #endif /* NO_OPENBIOS_PROTOS */
 
 #endif
