@@ -85,6 +85,21 @@ uint64_t fw_cfg_read_i64(uint16_t cmd);
 uint32_t fw_cfg_read_i32(uint16_t cmd);
 uint16_t fw_cfg_read_i16(uint16_t cmd);
 void fw_cfg_init(void);
+
+typedef struct FWCfgFile {
+    uint32_t  size;        /* file size */
+    uint16_t  select;      /* write this to 0x510 to read it */
+    uint16_t  reserved;
+    char      name[56];
+} FWCfgFile;
+
+typedef struct FWCfgFiles {
+    uint32_t  count;
+    FWCfgFile f[];
+} FWCfgFiles;
+
+unsigned int fw_cfg_find_file(const char *filename, uint16_t *select, uint32_t *size);
+char *fw_cfg_read_file(const char *filename, uint32_t *size);
 #endif /* NO_OPENBIOS_PROTOS */
 
 #endif

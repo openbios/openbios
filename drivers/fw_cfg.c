@@ -73,6 +73,48 @@ fw_cfg_read_i16(uint16_t cmd)
     return __le16_to_cpu(buf);
 }
 
+uint32_t
+fw_cfg_find_file(const char *filename, uint16_t *select, uint32_t *size)
+{
+    FWCfgFile f;
+    unsigned int i;
+    uint32_t buf, count;
+
+    /* Unusually all FW_CFG_FILE_DIR fields are BE */
+    fw_cfg_read(FW_CFG_FILE_DIR, (char *)&buf, sizeof(uint32_t));
+    count = __be32_to_cpu(buf);
+
+    for (i = 0; i < count; i++) {
+        fw_cfg_read_bytes((char *)&f, sizeof(f));
+
+        if (!strcmp(f.name, filename)) {
+            *select = __be16_to_cpu(f.select);
+            *size = __be32_to_cpu(f.size);
+
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+char *
+fw_cfg_read_file(const char *filename, uint32_t *size)
+{
+    uint16_t cmd;
+    uint32_t nbytes;
+    char *buf;
+
+    if (fw_cfg_find_file(filename, &cmd, &nbytes)) {
+        buf = malloc(nbytes);
+        fw_cfg_read(cmd, buf, nbytes);
+        *size = nbytes;
+        return buf;
+    }
+
+    return NULL;
+}
+
 void
 fw_cfg_init(void)
 {
