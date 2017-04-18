@@ -196,15 +196,25 @@ char *obp_dumb_mmap(char *va, int which_io, unsigned int pa,
                     unsigned int size)
 {
     uint64_t mpa = ((uint64_t)which_io << 32) | (uint64_t)pa;
+    ucell virt;
 
-    ofmem_arch_map_pages(mpa, (unsigned long)va, size, ofmem_arch_default_translation_mode(mpa));
-    return va;
+    DPRINTF("obp_dumb_mmap: virta 0x%x, phys 0x%x, size %d\n", (unsigned int)va, pa, size);
+
+    /* Claim virtual memory */
+    virt = ofmem_claim_virt(pointer2cell(va), size, 0);
+
+    /* Map memory */
+    ofmem_map(mpa, virt, size, ofmem_arch_default_translation_mode(mpa));
+
+    return cell2pointer(virt);
 }
 
-void obp_dumb_munmap(__attribute__((unused)) char *va,
-                     __attribute__((unused)) unsigned int size)
+void obp_dumb_munmap(char *va, unsigned int size)
 {
     DPRINTF("obp_dumb_munmap: virta 0x%x, sz %d\n", (unsigned int)va, size);
+
+    ofmem_unmap(pointer2cell(va), size);
+    ofmem_release_virt(pointer2cell(va), size);
 }
 
 char *obp_memalloc(char *va, unsigned int size, unsigned int align)
