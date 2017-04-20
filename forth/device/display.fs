@@ -386,7 +386,7 @@ defer fb8-invertrect
   to foreground-color to background-color
 
   \ setup palette
-  10101 ['] color-palette cell+ ff 0 do
+  10101 ['] color-palette cell+ 100 0 do
     dup 2 pick i * swap ! cell+
   loop 2drop
 
@@ -394,7 +394,7 @@ defer fb8-invertrect
   ffffcc ['] color-palette cell+ fe cells + !
 
   \ load palette onto the hardware
-  ['] color-palette cell+ ff 0 do
+  ['] color-palette cell+ 100 0 do
     dup @ ff0000 and d# 16 rshift
     1 pick @ ff00 and d# 8 rshift
     2 pick @ ff and
