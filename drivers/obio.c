@@ -1,7 +1,7 @@
 /*
  *   OpenBIOS Sparc OBIO driver
  *
- *   (C) 2004 Stefan Reinauer <stepan@openbios.org>
+ *   (C) 2004 Stefan Reinauer
  *   (C) 2005 Ed Schouten <ed@fxq.nl>
  *
  *   This program is free software; you can redistribute it and/or

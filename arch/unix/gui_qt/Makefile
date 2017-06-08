@@ -1,7 +1,7 @@
 #
 # Makefile of QT user interface for OpenBIOS
 # 
-#  (C) 2004 Stefan Reinauer <stepan@openbios.org>
+#  (C) 2004 Stefan Reinauer
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

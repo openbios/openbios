@@ -7,7 +7,7 @@
  *
  *
  *   Copyright (C) 2003, 2004 Samuel Rydh (samuel@ibrium.se)
- *                            Stefan Reinauer (stepan@openbios.org)
+ *                            Stefan Reinauer
  *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License

@@ -2,7 +2,7 @@
  *   OpenBIOS polled ide driver
  *
  *   Copyright (C) 2004 Jens Axboe <axboe@suse.de>
- *   Copyright (C) 2005 Stefan Reinauer <stepan@openbios.org>
+ *   Copyright (C) 2005 Stefan Reinauer
  *
  *   Credit goes to Hale Landis for his excellent ata demo software
  *   OF node handling and some fixes by Stefan Reinauer

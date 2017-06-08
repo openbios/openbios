@@ -7,7 +7,7 @@
  *  This program is part of a free implementation of the IEEE 1275-1994 
  *  Standard for Boot (Initialization Configuration) Firmware.
  *
- *  Copyright (C) 1998-2004  Stefan Reinauer, <stepan@openbios.org>
+ *  Copyright (C) 1998-2004  Stefan Reinauer
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ static __init int bios_init(void)
 
 #ifdef MODULE
 MODULE_PARM(write,"i");
-MODULE_AUTHOR("Stefan Reinauer <stepan@openbios.org>");
+MODULE_AUTHOR("Stefan Reinauer <stefan.reinauer@coreboot.org>");
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,4,10)
 MODULE_LICENSE("GPL");
 #endif

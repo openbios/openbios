@@ -93,7 +93,7 @@ void FrameBufferWidget::about()
 	QMessageBox::about( this, "About OpenBIOS",
 			  "              Welcome to OpenBIOS 1.01\n"
 			  "  IEEE 1275-1994 Open Firmware implementation\n\n"
-			  "written by Stefan Reinauer <stepan@openbios.org>\n\n"
+			  "written by Stefan Reinauer\n\n"
 			  "                http://www.openbios.org/\n");
 }
 

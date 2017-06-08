@@ -3,7 +3,7 @@
  *
  *	block device emulation for unix hosts
  *
- *   Copyright (C) 2004 Stefan Reinauer <stepan@openbios.org>
+ *   Copyright (C) 2004 Stefan Reinauer
  *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License

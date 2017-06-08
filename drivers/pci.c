@@ -4,7 +4,7 @@
  *   This driver is compliant to the
  *   PCI bus binding to IEEE 1275-1994 Rev 2.1
  *
- *   (C) 2004 Stefan Reinauer <stepan@openbios.org>
+ *   (C) 2004 Stefan Reinauer
  *   (C) 2005 Ed Schouten <ed@fxq.nl>
  *
  *   Some parts from OpenHackWare-0.4, Copyright (c) 2004-2005 Jocelyn Mayer

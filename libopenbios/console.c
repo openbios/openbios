@@ -3,7 +3,7 @@
  *
  *      Simple text console
  *
- *   Copyright (C) 2005 Stefan Reinauer <stepan@openbios.org>
+ *   Copyright (C) 2005 Stefan Reinauer
  *   Copyright (C) 2013 Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
  *
  *   This program is free software; you can redistribute it and/or

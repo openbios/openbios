@@ -211,7 +211,7 @@ int plugin_pci_init(void)
 }
 
 /* plugin meta information available for the plugin loader */
-PLUGIN_AUTHOR       ("Stefan Reinauer <stepan@openbios.org>")
+PLUGIN_AUTHOR       ("Stefan Reinauer <stefan.reinauer@coreboot.org>")
 PLUGIN_DESCRIPTION  ("Generic PCI Device Emulation")
 PLUGIN_LICENSE      ("GPL v2")
 

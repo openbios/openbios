@@ -1,19 +1,7 @@
 NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE!
 
-/dev/bios is obsolete and no longer under development. Please adapt all 
-changes to the "flashrom" utility of LinuxBIOS. This utility can be found
-at LinuxBIOSv2/utils/flashrom in the LinuxBIOS v2 repository. LinuxBIOS
-is available at http://www.linuxbios.org/
-
-I'm also looking for volunteers to port all features available in /dev/bios
-to flashrom so /dev/bios can be dropped from the OpenBIOS tree. These features
-include
-
-- block information about flash chips
-- block wise writing of flash chips
-- lots of supported flash chips and vendors.
-
-If you have questions, contact Stefan Reinauer <stepan@coresystems.de>
+/dev/bios is obsolete and no longer under development.
+Please use the flashrom utility instead: https://www.flashrom.org/
 
 NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE! NOTE!
 
@@ -59,7 +47,7 @@ One word before you read ahead: This is still alpha software and
 writing to your flash roms may destroy them. So if you notice anything
 strange, don't even think about going on, but write some mail to:
 
-		Stefan Reinauer <stepan@openbios.org>
+		Stefan Reinauer <stefan.reinauer@coreboot.org>
 
 Please note that I am not responsible in any way for what you
 do with this code or for what this code does with your computer.
@@ -252,5 +240,5 @@ If you want to help this project, send me
  * any comments
  * any ideas
 
-			Stefan Reinauer <stepan@openbios.org>
+			Stefan Reinauer <stefan.reinauer@coreboot.org>
 

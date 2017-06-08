@@ -94,7 +94,7 @@ int plugin_qt_init(void)
 	return 0;
 }
 
-PLUGIN_AUTHOR("Stefan Reinauer <stepan@openbios.org>")
+PLUGIN_AUTHOR("Stefan Reinauer <stefan.reinauer@coreboot.org>")
 PLUGIN_DESCRIPTION("QT gui plugin emulating framebuffer device")
 PLUGIN_LICENSE("GPL v2")
 PLUGIN_DEPENDENCIES("pci")
