@@ -47,6 +47,22 @@ fcode-version3
 : ioc! ioc!-xt execute ;
 : iow! iow!-xt execute ;
 
+" le-w!" (find-xt) value le-w!-xt
+
+: le-w! le-w!-xt execute ;
+
+\
+\ PCI
+\
+
+" pci-bar>pci-addr" (find-xt) value pci-bar>pci-addr-xt
+: pci-bar>pci-addr pci-bar>pci-addr-xt execute ;
+
+h# 10 constant cfg-bar0    \ Framebuffer BAR
+h# 18 constant cfg-bar2    \ QEMU MMIO ioport BAR
+-1 value fb-addr
+-1 value mmio-addr
+
 \
 \ VGA registers
 \
@@ -55,12 +71,22 @@ h# 3c0 constant vga-addr
 h# 3c8 constant dac-write-addr
 h# 3c9 constant dac-data-addr
 
+defer vga-ioc!
+
+: vga-legacy-ioc!  ( val addr )
+  ioc! 
+;
+
+: vga-mmio-ioc!  ( val addr )
+  h# 3c0 - h# 400 + mmio-addr + c!
+;
+
 : vga-color!  ( r g b index -- )
   \ Set the VGA colour registers
-  dac-write-addr ioc! rot
-  2 >> dac-data-addr ioc! swap
-  2 >> dac-data-addr ioc!
-  2 >> dac-data-addr ioc!
+  dac-write-addr vga-ioc! rot
+  2 >> dac-data-addr vga-ioc! swap
+  2 >> dac-data-addr vga-ioc!
+  2 >> dac-data-addr vga-ioc!
 ;
 
 \
@@ -86,9 +112,15 @@ h# 1 constant VBE_DISPI_ENABLED
 \ Bochs VBE register writes
 \
 
-: vbe-iow!  ( val addr -- )
+defer vbe-iow!
+
+: vbe-legacy-iow!  ( val addr -- )
   h# 1ce iow!
   h# 1d0 iow!
+;
+
+: vbe-mmio-iow!  ( val addr -- )
+  1 lshift h# 500 + mmio-addr + cr .s cr le-w!
 ;
 
 \
@@ -96,7 +128,7 @@ h# 1 constant VBE_DISPI_ENABLED
 \
 
 : vbe-init  ( -- )
-  h# 0 vga-addr ioc!    \ Enable blanking
+  h# 0 vga-addr vga-ioc!    \ Enable blanking
   VBE_DISPI_DISABLED VBE_DISPI_INDEX_ENABLE vbe-iow!
   h# 0 VBE_DISPI_INDEX_X_OFFSET vbe-iow!
   h# 0 VBE_DISPI_INDEX_Y_OFFSET vbe-iow!
@@ -104,19 +136,13 @@ h# 1 constant VBE_DISPI_ENABLED
   openbios-video-height VBE_DISPI_INDEX_YRES vbe-iow!
   depth-bits VBE_DISPI_INDEX_BPP vbe-iow!
   VBE_DISPI_ENABLED VBE_DISPI_INDEX_ENABLE vbe-iow!
-  h# 0 vga-addr ioc!
-  h# 20 vga-addr ioc!   \ Disable blanking
+  h# 0 vga-addr vga-ioc!
+  h# 20 vga-addr vga-ioc!   \ Disable blanking
 ;
 
 \
-\ PCI
+\ PCI BAR mapping
 \
-
-" pci-bar>pci-addr" (find-xt) value pci-bar>pci-addr-xt
-: pci-bar>pci-addr pci-bar>pci-addr-xt execute ;
-
-h# 10 constant cfg-bar0    \ Framebuffer BAR
--1 value fb-addr
 
 : map-fb ( -- )
   cfg-bar0 pci-bar>pci-addr if   \ ( pci-addr.lo pci-addr.mid pci-addr.hi size )
@@ -124,6 +150,32 @@ h# 10 constant cfg-bar0    \ Framebuffer BAR
     to fb-addr
   then
 ;
+
+: map-mmio ( -- )
+  cfg-bar2 pci-bar>pci-addr if   \ ( pci-addr.lo pci-addr.mid pci-addr.hi size )
+    " pci-map-in" $call-parent
+    to mmio-addr
+  then
+;
+
+\
+\ Legacy IO port or QEMU MMIO accesses
+\
+\ legacy: use standard VGA ioport registers
+\ MMIO: use QEMU PCI MMIO VGA registers
+\
+\ If building for QEMU, default to MMIO access since it allows
+\ programming of the VGA card regardless of its position in the
+\ PCI topology
+\
+
+[IFDEF] CONFIG_QEMU
+['] vga-mmio-ioc! to vga-ioc!
+['] vbe-mmio-iow! to vbe-iow!
+[ELSE]
+['] vga-legacy-ioc! to vga-ioc!
+['] vbe-legacy-iow! to vbe-iow!
+[THEN]
 
 \
 \ Publically visible words
@@ -181,6 +233,7 @@ headerless
 \
 
 : qemu-vga-driver-install ( -- )
+  map-mmio vbe-init
   fb-addr -1 = if
     map-fb fb-addr to frame-buffer-adr
     default-font set-font
@@ -193,8 +246,6 @@ headerless
 ;
 
 : qemu-vga-driver-init
-
-  vbe-init
   openbios-video-width encode-int " width" property
   openbios-video-height encode-int " height" property
   depth-bits encode-int " depth" property
