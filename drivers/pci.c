@@ -1262,6 +1262,8 @@ static void ob_configure_pci_bridge(pci_addr addr,
                                     unsigned long *io_base,
                                     int primary_bus, pci_config_t *config)
 {
+    phandle_t ph;
+
     config->primary_bus = primary_bus;
     pci_config_write8(addr, PCI_PRIMARY_BUS, config->primary_bus);
 
@@ -1273,6 +1275,11 @@ static void ob_configure_pci_bridge(pci_addr addr,
 
     PCI_DPRINTF("scanning new pci bus %u under bridge %s\n",
             config->secondary_bus, config->path);
+
+    /* Temporarily add bus-range property to allow the secondary bus to
+       determine its bus num */
+    ph = find_dev(config->path);
+    set_int_property(ph, "bus-range", *bus_num);
 
     /* make pci bridge parent device, prepare for recursion */
 
