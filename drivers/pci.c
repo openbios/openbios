@@ -1283,6 +1283,8 @@ static void ob_configure_pci_bridge(pci_addr addr,
                                     unsigned long *io_base,
                                     int primary_bus, pci_config_t *config)
 {
+    unsigned long old_mem_base, old_io_base, io_scan_limit;
+    uint16_t cmd;
     phandle_t ph;
 
     config->primary_bus = primary_bus;
@@ -1302,6 +1304,30 @@ static void ob_configure_pci_bridge(pci_addr addr,
     ph = find_dev(config->path);
     set_int_property(ph, "bus-range", *bus_num);
 
+    /* Always expose the legacy ioports on the first PCI bridge. If we
+       must have legacy devices behind a PCI bridge then they must be
+       on the first one discovered to ensure that the ioports will work. */
+    if (*io_base < 0x1000) {
+        *io_base = 0x0;
+    }
+
+    /* Align mem_base up to nearest MB, io_base up to nearest 4K */
+    old_mem_base = (*mem_base + 0xfffff - 1) & ~(0xfffff - 1);
+    *mem_base = old_mem_base;
+    old_io_base = (*io_base + 0xfff - 1) & ~(0xfff - 1);
+    *io_base = old_io_base;
+
+    /* Set the base limit registers */
+    pci_config_write16(addr, PCI_MEMORY_BASE, ((*mem_base >> 16) & ~(0xf)));
+    pci_config_write8(addr, PCI_IO_BASE, ((*io_base >> 8) & ~(0xf)));
+
+    /* Always ensure legacy ioports are accessible during enumeration.
+       Some drivers (e.g. IDE) will attempt ioport access as part of
+       the configuration process, so we allow them during the secondary
+       bus scan and then set the correct IO limit below. */
+    io_scan_limit = *io_base + (0xffff - *io_base);
+    pci_config_write8(addr, PCI_IO_LIMIT, (io_scan_limit >> 8) & ~(0xf));
+
     /* make pci bridge parent device, prepare for recursion */
 
     ob_scan_pci_bus(bus_num, mem_base, io_base,
@@ -1314,6 +1340,24 @@ static void ob_configure_pci_bridge(pci_addr addr,
     PCI_DPRINTF("bridge %s PCI bus primary=%d secondary=%d subordinate=%d\n",
             config->path, config->primary_bus, config->secondary_bus,
             config->subordinate_bus);
+
+    /* Align mem_base up to nearest MB, io_base up to nearest 4K */
+    *mem_base = (*mem_base + 0xfffff - 1) & ~(0xfffff - 1);
+    *io_base = (*io_base + 0xfff - 1) & ~(0xfff - 1);
+
+    /* Set the limit registers */
+    pci_config_write16(addr, PCI_MEMORY_LIMIT, (((*mem_base - 1) >> 16) & ~(0xf)));
+    pci_config_write8(addr, PCI_IO_LIMIT, (((*io_base - 1) >> 8) & ~(0xf)));
+
+    /* Disable unused address spaces */
+    cmd = pci_config_read16(addr, PCI_COMMAND);
+    if (*mem_base == old_mem_base) {
+        pci_config_write16(addr, PCI_COMMAND, (cmd & ~PCI_COMMAND_MEMORY));
+    }
+
+    if (*io_base == old_io_base) {
+        pci_config_write16(addr, PCI_COMMAND, (cmd & ~PCI_COMMAND_IO));
+    }
 
     pci_set_bus_range(config);
 }

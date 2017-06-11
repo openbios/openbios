@@ -46,6 +46,11 @@
 #define PCI_BASE_ADDR_4		0x20
 #define PCI_BASE_ADDR_5		0x24
 
+#define PCI_IO_BASE		0x1c
+#define PCI_IO_LIMIT		0x1d
+#define PCI_MEMORY_BASE		0x20
+#define PCI_MEMORY_LIMIT	0x22
+
 #define PCI_SUBSYSTEM_VENDOR_ID 0x2c
 #define PCI_SUBSYSTEM_ID        0x2e
 
