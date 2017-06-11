@@ -181,7 +181,7 @@ ob_pci_decode_unit(int *idx)
 	ucell hi, mid, lo;
 	const char *arg = pop_fstr_copy();
 	int dev, fn, reg, ss, n, p, t;
-	int bus = 0;		/* no information */
+	int bus, len;
 	char *ptr;
 
 	PCI_DPRINTF("ob_pci_decode_unit idx=%p\n", idx);
@@ -272,6 +272,8 @@ ob_pci_decode_unit(int *idx)
 		mid = 0;
 	}
 	free((char*)arg);
+
+	bus = get_int_property(get_cur_dev(), "bus-range", &len);
 
 	hi = n | p | t | (ss << 24) | (bus << 16) | (dev << 11) | (fn << 8) | reg;
 
