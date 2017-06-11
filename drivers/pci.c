@@ -401,13 +401,22 @@ NODE_METHODS(ob_pci_bus_node) = {
 	{ "pci-map-in",		ob_pci_bus_map_in	},
 };
 
+/* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
+
+static void
+ob_pci_bridge_map_in(int *idx)
+{
+	/* As per the IEEE-1275 PCI specification, chain up to the parent */
+	call_parent_method("pci-map-in");
+}
+
 NODE_METHODS(ob_pci_bridge_node) = {
 	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
 	{ "decode-unit",	ob_pci_decode_unit	},
 	{ "encode-unit",	ob_pci_encode_unit	},
-	{ "pci-map-in",		ob_pci_bus_map_in	},
+	{ "pci-map-in",		ob_pci_bridge_map_in	},
 };
 
 NODE_METHODS(ob_pci_simple_node) = {
