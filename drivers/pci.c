@@ -353,7 +353,7 @@ ob_pci_encode_unit(int *idx)
 /* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
 
 static void
-ob_pci_map_in(int *idx)
+ob_pci_bus_map_in(int *idx)
 {
 	phys_addr_t phys;
 	uint32_t ba;
@@ -398,7 +398,7 @@ NODE_METHODS(ob_pci_bus_node) = {
 	{ "close",		ob_pci_close		},
 	{ "decode-unit",	ob_pci_decode_unit	},
 	{ "encode-unit",	ob_pci_encode_unit	},
-	{ "pci-map-in",		ob_pci_map_in		},
+	{ "pci-map-in",		ob_pci_bus_map_in	},
 };
 
 NODE_METHODS(ob_pci_bridge_node) = {
@@ -407,7 +407,7 @@ NODE_METHODS(ob_pci_bridge_node) = {
 	{ "close",		ob_pci_close		},
 	{ "decode-unit",	ob_pci_decode_unit	},
 	{ "encode-unit",	ob_pci_encode_unit	},
-	{ "pci-map-in",		ob_pci_map_in		},
+	{ "pci-map-in",		ob_pci_bus_map_in	},
 };
 
 NODE_METHODS(ob_pci_simple_node) = {
