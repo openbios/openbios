@@ -49,6 +49,7 @@
 /* DECLARE data structures for the nodes.  */
 
 DECLARE_UNNAMED_NODE( ob_pci_bus_node, INSTALL_OPEN, 2*sizeof(int) );
+DECLARE_UNNAMED_NODE( ob_pci_bridge_node, INSTALL_OPEN, 2*sizeof(int) );
 DECLARE_UNNAMED_NODE( ob_pci_simple_node, 0, 2*sizeof(int) );
 DECLARE_UNNAMED_NODE( ob_pci_empty_node, 0, 2*sizeof(int) );
 
@@ -392,6 +393,15 @@ ob_pci_map_in(int *idx)
 }
 
 NODE_METHODS(ob_pci_bus_node) = {
+	{ NULL,			ob_pci_initialize	},
+	{ "open",		ob_pci_open		},
+	{ "close",		ob_pci_close		},
+	{ "decode-unit",	ob_pci_decode_unit	},
+	{ "encode-unit",	ob_pci_encode_unit	},
+	{ "pci-map-in",		ob_pci_map_in		},
+};
+
+NODE_METHODS(ob_pci_bridge_node) = {
 	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
@@ -1405,7 +1415,7 @@ static void ob_configure_pci_device(const char* parent_path,
     switch (class) {
     case PCI_BASE_CLASS_BRIDGE:
         if (subclass != PCI_SUBCLASS_BRIDGE_HOST) {
-            REGISTER_NAMED_NODE_PHANDLE(ob_pci_bus_node, config.path, phandle);
+            REGISTER_NAMED_NODE_PHANDLE(ob_pci_bridge_node, config.path, phandle);
         }
         break;
     default:
