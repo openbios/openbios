@@ -1552,21 +1552,17 @@ static void ob_pci_set_available(phandle_t host, unsigned long mem_base, unsigne
 #define SUN4U_INTERRUPT(dev, irq_pin) \
             ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
 
-static void ob_pci_host_set_interrupt_map(phandle_t host)
+static phandle_t ob_pci_host_set_interrupt_map(phandle_t host)
 {
-    phandle_t dnode = 0, pci_childnode = 0;
-    u32 props[128], intno;
-    int i, ncells, len;
-    u32 *val, addr;
-    char *reg;
-
 #if defined(CONFIG_PPC)
-    phandle_t target_node;
+    /* Set the host bridge interrupt map, returning the phandle
+       of the interrupt controller */
+    phandle_t dnode, target_node;
     char *path, buf[256];
 
     /* Oldworld macs do interrupt maps differently */
     if (!is_newworld())
-        return;
+        return 0;
 
     PCI_DPRINTF("setting up interrupt map for host %x\n", host);
     dnode = dt_iterate_type(0, "open-pic");
@@ -1613,16 +1609,29 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
 
         target_node = find_dev(path);
         set_int_property(target_node, "interrupt-parent", dnode);
+
+        return dnode;
     }
-#else
-    /* PCI host bridge is the default interrupt controller */
-    dnode = host;
 #endif
 
-    /* Set interrupt-map for PCI devices with an interrupt pin present */
-    ncells = 0;
+    return host;
+}
 
-    PUSH(host);
+static void ob_pci_bus_set_interrupt_map(phandle_t pcibus, phandle_t dnode)
+{
+    /* Set interrupt-map for PCI devices with an interrupt pin present */
+    phandle_t pci_childnode = 0;
+    u32 props[128], intno;
+    int i, ncells = 0, len;
+    u32 *val, addr;
+    char *reg;
+    
+    /* If no destination node specified, do nothing */
+    if (dnode == 0) {
+        return;
+    }
+
+    PUSH(pcibus);
     fword("child");
     pci_childnode = POP();
     while (pci_childnode) {
@@ -1661,13 +1670,13 @@ static void ob_pci_host_set_interrupt_map(phandle_t host)
         fword("peer");
         pci_childnode = POP();
     }
-    set_property(host, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
+    set_property(pcibus, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
 
     props[0] = 0x0000f800;
     props[1] = 0x0;
     props[2] = 0x0;
     props[3] = 0x7;
-    set_property(host, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
+    set_property(pcibus, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
 }
 
 int ob_pci_init(void)
@@ -1677,7 +1686,7 @@ int ob_pci_init(void)
     unsigned long mem_base, io_base;
 
     pci_config_t config = {}; /* host bridge */
-    phandle_t phandle_host = 0;
+    phandle_t phandle_host = 0, intc;
 
     PCI_DPRINTF("Initializing PCI host bridge...\n");
 
@@ -1729,7 +1738,8 @@ int ob_pci_init(void)
     ob_pci_set_available(phandle_host, mem_base, io_base);
 
     /* configure the host bridge interrupt map */
-    ob_pci_host_set_interrupt_map(phandle_host);
+    intc = ob_pci_host_set_interrupt_map(phandle_host);
+    ob_pci_bus_set_interrupt_map(phandle_host, intc);
 
     device_end();
 
