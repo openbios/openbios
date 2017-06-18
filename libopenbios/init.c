@@ -28,8 +28,10 @@ openbios_init( void )
 	PUSH(pointer2cell((void *)&__context));
 	feval("['] __context cell+ !");
 	
+#if defined(CONFIG_DRIVER_FW_CFG)
 	// Bind the Forth fw_cfg file interface
 	bind_func("fw-cfg-read-file", forth_fw_cfg_read_file);
+#endif
 	
 	// Bind the C implementation of (init-program) into Forth
 	bind_func("(init-program)", init_program);
