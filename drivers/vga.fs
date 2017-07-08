@@ -233,7 +233,9 @@ headerless
 \
 
 : qemu-vga-driver-install ( -- )
-  map-mmio vbe-init
+  mmio-addr -1 = if
+    map-mmio vbe-init
+  then
   fb-addr -1 = if
     map-fb fb-addr to frame-buffer-adr
     default-font set-font
