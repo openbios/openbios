@@ -1,6 +1,13 @@
 #ifndef _H_PCI
 #define _H_PCI
 
+enum {
+	CONFIGURATION_SPACE = 0,
+	IO_SPACE = 1,
+	MEMORY_SPACE_32 = 2,
+	MEMORY_SPACE_64 = 3,
+};
+
 typedef uint32_t pci_addr;
 
 typedef struct pci_range_t pci_range_t;

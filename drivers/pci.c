@@ -59,13 +59,6 @@ const pci_arch_t *arch;
 #define IS_PREFETCHABLE		0x40000000
 #define IS_ALIASED		0x20000000
 
-enum {
-	CONFIGURATION_SPACE = 0,
-	IO_SPACE = 1,
-	MEMORY_SPACE_32 = 2,
-	MEMORY_SPACE_64 = 3,
-};
-
 static int encode_int32_cells(int num_cells, u32 *prop, ucell val)
 {
     int i = 0;
