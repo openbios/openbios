@@ -34,8 +34,6 @@ struct pci_arch_t {
 	unsigned long mem_len;
 	unsigned long io_base;
 	unsigned long io_len;
-	unsigned long rbase;
-	unsigned long rlen;
 	pci_range_t host_ranges[4];
 	uint8_t irqs[4];
 };
