@@ -1774,7 +1774,7 @@ static void ob_pci_bus_set_interrupt_map(phandle_t pcibus, phandle_t dnode,
     }
     set_property(pcibus, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
 
-    props[0] = 0x0000f800;
+    props[0] = 0x00fff800;
     props[1] = 0x0;
     props[2] = 0x0;
     props[3] = 0x7;
