@@ -1772,13 +1772,16 @@ static void ob_pci_bus_set_interrupt_map(phandle_t pcibus, phandle_t dnode,
         fword("peer");
         pci_childnode = POP();
     }
-    set_property(pcibus, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
 
-    props[0] = 0x00fff800;
-    props[1] = 0x0;
-    props[2] = 0x0;
-    props[3] = 0x7;
-    set_property(pcibus, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
+    if (ncells) {
+        set_property(pcibus, "interrupt-map", (char *)props, ncells * sizeof(props[0]));
+
+        props[0] = 0x00fff800;
+        props[1] = 0x0;
+        props[2] = 0x0;
+        props[3] = 0x7;
+        set_property(pcibus, "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
+    }
 }
 
 int ob_pci_init(void)
