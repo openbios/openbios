@@ -3,6 +3,15 @@
 
 typedef uint32_t pci_addr;
 
+typedef struct pci_range_t pci_range_t;
+
+struct pci_range_t {
+	unsigned int type;
+	unsigned long childaddr;
+	unsigned long parentaddr;
+	unsigned long len;
+};
+
 typedef struct pci_arch_t pci_arch_t;
 
 struct pci_arch_t {
@@ -20,6 +29,7 @@ struct pci_arch_t {
 	unsigned long io_len;
 	unsigned long rbase;
 	unsigned long rlen;
+	pci_range_t host_ranges[4];
 	uint8_t irqs[4];
 };
 
