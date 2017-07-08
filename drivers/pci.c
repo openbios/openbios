@@ -470,41 +470,24 @@ static void pci_host_set_ranges(const pci_config_t *config)
 {
 	phandle_t dev = get_cur_dev();
 	u32 props[32];
-	int ncells;
-
-	ncells = 0;
+	int ncells = 0;
+	pci_range_t range;
+	int i;
 	
-#ifdef CONFIG_SPARC64
-        /* While configuration space isn't mentioned in the IEEE-1275 PCI
-           bindings, it appears in the PCI host bridge ranges property in
-           real device trees. Hence we disable this range for all host
-           bridges except for SPARC, particularly as it causes Darwin/OS X
-           to incorrectly calculated PCI memory space ranges on PPC. */
-	ncells += pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
-                     0, 0, 0);
-        ncells += host_encode_phys_addr(props + ncells, arch->cfg_addr);
-        ncells += pci_encode_size(props + ncells, arch->cfg_len);
-#endif
-
-	if (arch->io_base) {
-	    ncells += pci_encode_phys_addr(props + ncells, 0, IO_SPACE,
-				     0, 0, 0);
-        ncells += host_encode_phys_addr(props + ncells, arch->io_base);
-        ncells += pci_encode_size(props + ncells, arch->io_len);
+	for (i = 0; i < 4; i++) {
+		range = arch->host_ranges[i];
+	    
+		/* End of range list reached */
+		if (range.type == 0x0 && range.len == 0x0) {
+			break;
+		}
+	
+		ncells += pci_encode_phys_addr(props + ncells, 0, range.type,
+						0, 0, range.parentaddr);
+		ncells += host_encode_phys_addr(props + ncells, range.childaddr);
+		ncells += pci_encode_size(props + ncells, range.len);
 	}
-	if (arch->rbase) {
-	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
-				     0, 0, 0);
-        ncells += host_encode_phys_addr(props + ncells, arch->rbase);
-        ncells += pci_encode_size(props + ncells, arch->rlen);
-	}
-	if (arch->pci_mem_base) {
-	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
-				     0, 0, arch->pci_mem_base);
-        ncells += host_encode_phys_addr(props + ncells, arch->host_pci_base +
-				     arch->pci_mem_base);
-	ncells += pci_encode_size(props + ncells, arch->mem_len);
-	}
+	
 	set_property(dev, "ranges", (char *)props, ncells * sizeof(props[0]));
 }
 

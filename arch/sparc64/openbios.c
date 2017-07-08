@@ -67,7 +67,7 @@ static const struct hwdef hwdefs[] = {
             .host_ranges = {
                 { .type = CONFIGURATION_SPACE, .parentaddr = 0, .childaddr = APB_SPECIAL_BASE + 0x1000000ULL, .len = 0x2000000 },
                 { .type = IO_SPACE, .parentaddr = 0, .childaddr = APB_SPECIAL_BASE + 0x2000000ULL, .len = 0x10000 },
-                { .type = MEMORY_SPACE_32, .parentaddr = 0, .childaddr = APB_MEM_BASE + 0x100000ULL, .len = 0x10000000 },
+                { .type = MEMORY_SPACE_32, .parentaddr = 0x100000, .childaddr = APB_MEM_BASE + 0x100000ULL, .len = 0x10000000 },
                 { .type = 0, .parentaddr = 0, .childaddr = 0, .len = 0 }
             },
             .irqs = { 0, 1, 2, 3 },
