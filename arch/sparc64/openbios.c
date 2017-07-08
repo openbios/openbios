@@ -58,14 +58,14 @@ static const struct hwdef hwdefs[] = {
             .cfg_addr = APB_SPECIAL_BASE + 0x1000000ULL, // PCI bus configuration space
             .cfg_data = APB_MEM_BASE,                    // PCI bus memory space
             .cfg_base = APB_SPECIAL_BASE,
-            .cfg_len = 0x2000000,
+            .cfg_len = 0x1000000,
             .host_pci_base = APB_MEM_BASE,
             .pci_mem_base = 0x100000, /* avoid VGA at 0xa0000 */
             .mem_len = 0xf0000000,
             .io_base = APB_SPECIAL_BASE + 0x2000000ULL, // PCI Bus I/O space
             .io_len = 0x1000000,
             .host_ranges = {
-                { .type = CONFIGURATION_SPACE, .parentaddr = 0, .childaddr = APB_SPECIAL_BASE + 0x1000000ULL, .len = 0x2000000 },
+                { .type = CONFIGURATION_SPACE, .parentaddr = 0, .childaddr = APB_SPECIAL_BASE + 0x1000000ULL, .len = 0x1000000 },
                 { .type = IO_SPACE, .parentaddr = 0, .childaddr = APB_SPECIAL_BASE + 0x2000000ULL, .len = 0x1000000 },
                 { .type = MEMORY_SPACE_32, .parentaddr = 0, .childaddr = APB_MEM_BASE, .len = 0xf0000000 },
                 { .type = 0, .parentaddr = 0, .childaddr = 0, .len = 0 }
