@@ -488,26 +488,26 @@ static void pci_host_set_ranges(const pci_config_t *config)
            bridges except for SPARC, particularly as it causes Darwin/OS X
            to incorrectly calculated PCI memory space ranges on PPC. */
 	ncells += pci_encode_phys_addr(props + ncells, 0, CONFIGURATION_SPACE,
-                     config->dev, 0, 0);
+                     0, 0, 0);
         ncells += host_encode_phys_addr(props + ncells, arch->cfg_addr);
         ncells += pci_encode_size(props + ncells, arch->cfg_len);
 #endif
 
 	if (arch->io_base) {
 	    ncells += pci_encode_phys_addr(props + ncells, 0, IO_SPACE,
-				     config->dev, 0, 0);
+				     0, 0, 0);
         ncells += host_encode_phys_addr(props + ncells, arch->io_base);
         ncells += pci_encode_size(props + ncells, arch->io_len);
 	}
 	if (arch->rbase) {
 	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
-				     config->dev, 0, 0);
+				     0, 0, 0);
         ncells += host_encode_phys_addr(props + ncells, arch->rbase);
         ncells += pci_encode_size(props + ncells, arch->rlen);
 	}
 	if (arch->pci_mem_base) {
 	    ncells += pci_encode_phys_addr(props + ncells, 0, MEMORY_SPACE_32,
-				     config->dev, 0, arch->pci_mem_base);
+				     0, 0, arch->pci_mem_base);
         ncells += host_encode_phys_addr(props + ncells, arch->host_pci_base +
 				     arch->pci_mem_base);
 	ncells += pci_encode_size(props + ncells, arch->mem_len);
