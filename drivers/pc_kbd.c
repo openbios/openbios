@@ -190,8 +190,41 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
 {
     phandle_t chosen, aliases;
     char nodebuff[128];
+    
+    push_str(path);
+    fword("find-device");
 
-    snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
+    fword("new-device");
+    
+    push_str("8042");
+    fword("device-type");
+
+    push_str("8042");
+    fword("device-name");
+    
+    PUSH((base + offset) >> 32);
+    fword("encode-int");
+    PUSH((base + offset) & 0xffffffff);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(SER_SIZE);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");    
+
+    chosen = get_cur_dev();
+    set_int_property(chosen, "#address-cells", 1);
+    set_int_property(chosen, "#size-cells", 0);
+    
+    PUSH(intr);
+    fword("encode-int");
+    push_str("interrupts");
+    fword("property");
+    
+    fword("finish-device");
+    
+    snprintf(nodebuff, sizeof(nodebuff), "%s/8042/%s", path, dev_name);
     REGISTER_NAMED_NODE(pc_kbd, nodebuff);
 
     push_str(nodebuff);
@@ -203,27 +236,21 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
     push_str("serial");
     fword("device-type");
 
+    PUSH(0);
+    fword("encode-int");
+    push_str("reg");
+    fword("property");
+    
     PUSH(-1);
     fword("encode-int");
     push_str("keyboard");
     fword("property");
 
-    PUSH((base + offset) >> 32);
-    fword("encode-int");
-    PUSH((base + offset) & 0xffffffff);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(SER_SIZE);
-    fword("encode-int");
-    fword("encode+");
-    push_str("reg");
-    fword("property");
-    
     PUSH(offset);
     fword("encode-int");
     push_str("address");
     fword("property");
-
+ 
     chosen = find_dev("/chosen");
     push_str(nodebuff);
     fword("open-dev");
