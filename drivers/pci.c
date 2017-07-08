@@ -504,6 +504,17 @@ static int sabre_configure(phandle_t dev)
 {
         uint32_t props[28];
 
+        /* Sabre has a custom reg property from the default */
+        props[0] = 0x1fe;
+        props[1] = 0x0;
+        props[2] = 0x0;
+        props[3] = 0x10000;
+        props[4] = 0x1fe;
+        props[5] = 0x1000000;
+        props[6] = 0x0;
+        props[7] = 0x100;
+        set_property(dev, "reg", (char *)props, 8 * sizeof(props[0]));
+
         props[0] = 0xc0000000;
         props[1] = 0x20000000;
         set_property(dev, "virtual-dma", (char *)props, 2 * sizeof(props[0]));
