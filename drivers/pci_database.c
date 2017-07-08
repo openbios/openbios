@@ -371,7 +371,7 @@ static const pci_dev_t PCIbrg_devices[] = {
         PCI_VENDOR_ID_SUN, PCI_DEVICE_ID_SUN_SIMBA, NULL,
         "pci", "SUNW,simba", "pci108e,5000\0pciclass,060400\0",
         3, 2, 1,
-        bridge_config_cb, NULL,
+        simba_config_cb, NULL,
     },
     {
         0xFFFF, 0xFFFF,

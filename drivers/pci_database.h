@@ -36,6 +36,7 @@ extern int vga_config_cb(const pci_config_t *config);
 extern int host_config_cb(const pci_config_t *config);
 extern int sabre_config_cb(const pci_config_t *config);
 extern int bridge_config_cb(const pci_config_t *config);
+extern int simba_config_cb(const pci_config_t *config);
 extern int ebus_config_cb(const pci_config_t *config);
 extern int i82378_config_cb(const pci_config_t *config);
 extern int usb_ohci_config_cb(const pci_config_t *config);
