@@ -866,12 +866,21 @@ int ebus_config_cb(const pci_config_t *config)
     ucell virt;
     phys_addr_t io_phys_base = 0;
 
+    /* Serial */
     props[0] = 0x14;
     props[1] = 0x3f8;
     props[2] = 1;
     props[3] = find_dev("/");
     props[4] = 0x2b;
-    set_property(dev, "interrupt-map", (char *)props, 5 * sizeof(props[0]));
+    
+    /* PS2 keyboard */
+    props[5] = 0x14;
+    props[6] = 0x60;
+    props[7] = 1;
+    props[8] = find_dev("/");
+    props[9] = 0x29;
+    
+    set_property(dev, "interrupt-map", (char *)props, 10 * sizeof(props[0]));
 
     props[0] = 0x000001ff;
     props[1] = 0xffffffff;
@@ -940,7 +949,7 @@ int ebus_config_cb(const pci_config_t *config)
     ob_pc_serial_init(config->path, "su", (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x3f8ULL, 0);
 #endif
 #ifdef CONFIG_DRIVER_PC_KBD
-    ob_pc_kbd_init(config->path, "kb_ps2", (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x60ULL, 0);
+    ob_pc_kbd_init(config->path, "kb_ps2", (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x60ULL, 1);
 #endif
 #endif
     return 0;
