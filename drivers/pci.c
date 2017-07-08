@@ -949,7 +949,7 @@ int ebus_config_cb(const pci_config_t *config)
     ob_pc_serial_init(config->path, "su", (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x3f8ULL, 0);
 #endif
 #ifdef CONFIG_DRIVER_PC_KBD
-    ob_pc_kbd_init(config->path, "kb_ps2", (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x60ULL, 1);
+    ob_pc_kbd_init(config->path, "kb_ps2", NULL, (PCI_BASE_ADDR_1 | 0ULL) << 32, 0x60ULL, 1, 0);
 #endif
 #endif
     return 0;
@@ -961,7 +961,7 @@ int i82378_config_cb(const pci_config_t *config)
     ob_pc_serial_init(config->path, "serial", arch->io_base, 0x3f8ULL, 0);
 #endif
 #ifdef CONFIG_DRIVER_PC_KBD
-    ob_pc_kbd_init(config->path, "8042", arch->io_base, 0x60ULL, 0);
+    ob_pc_kbd_init(config->path, "8042", NULL, arch->io_base, 0x60ULL, 0, 0);
 #endif
 #ifdef CONFIG_DRIVER_IDE
     ob_ide_init(config->path, 0x1f0, 0x3f6, 0x170, 0x376);

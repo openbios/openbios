@@ -185,8 +185,8 @@ NODE_METHODS(pc_kbd) = {
 };
 
 void
-ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
-               uint64_t offset, int intr)
+ob_pc_kbd_init(const char *path, const char *kdev_name, const char *mdev_name,
+               uint64_t base, uint64_t offset, int kintr, int mintr)
 {
     phandle_t chosen, aliases;
     char nodebuff[128];
@@ -210,6 +210,19 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
     PUSH(SER_SIZE);
     fword("encode-int");
     fword("encode+");
+    
+    if (mdev_name != NULL) {
+        PUSH((base + offset) >> 32);
+        fword("encode-int");
+        fword("encode+");
+        PUSH((base + offset) & 0xffffffff);
+        fword("encode-int");
+        fword("encode+");
+        PUSH(SER_SIZE);
+        fword("encode-int");
+        fword("encode+");
+    }
+    
     push_str("reg");
     fword("property");    
 
@@ -217,20 +230,28 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
     set_int_property(chosen, "#address-cells", 1);
     set_int_property(chosen, "#size-cells", 0);
     
-    PUSH(intr);
+    PUSH(kintr);
     fword("encode-int");
+
+    if (mdev_name != NULL) {
+        PUSH(mintr);
+        fword("encode-int");
+        fword("encode+");
+    }
+
     push_str("interrupts");
     fword("property");
     
     fword("finish-device");
     
-    snprintf(nodebuff, sizeof(nodebuff), "%s/8042/%s", path, dev_name);
+    /* Keyboard */
+    snprintf(nodebuff, sizeof(nodebuff), "%s/8042/%s", path, kdev_name);
     REGISTER_NAMED_NODE(pc_kbd, nodebuff);
 
     push_str(nodebuff);
     fword("find-device");
 
-    push_str(dev_name);
+    push_str(kdev_name);
     fword("device-name");
 
     push_str("serial");
@@ -260,4 +281,36 @@ ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
     set_property(aliases, "keyboard", nodebuff, strlen(nodebuff) + 1);
 
     pc_kbd_controller_cmd(0x60, 0x40); // Write mode command, translated mode
+    
+    /* Mouse (optional) */
+    if (mdev_name != NULL) {
+        snprintf(nodebuff, sizeof(nodebuff), "%s/8042", path);
+        push_str(nodebuff);
+        fword("find-device");
+
+        fword("new-device");
+
+        push_str(mdev_name);
+        fword("device-name");
+
+        push_str("mouse");
+        fword("device-type");
+
+        PUSH(1);
+        fword("encode-int");
+        push_str("reg");
+        fword("property");
+
+        PUSH(-1);
+        fword("encode-int");
+        push_str("mouse");
+        fword("property");
+    
+        PUSH(offset);
+        fword("encode-int");
+        push_str("address");
+        fword("property");
+
+        fword("finish-device");
+    }
 }

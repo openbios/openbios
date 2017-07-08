@@ -99,8 +99,8 @@ int ob_floppy_init(const char *path, const char *dev_name,
                    unsigned long io_base, unsigned long mmio_base);
 #endif
 #ifdef CONFIG_DRIVER_PC_KBD
-void ob_pc_kbd_init(const char *path, const char *dev_name, uint64_t base,
-                    uint64_t offset, int intr);
+void ob_pc_kbd_init(const char *path, const char *kdev_name, const char *mdev_name,
+                    uint64_t base, uint64_t offset, int kintr, int mintr);
 int pc_kbd_dataready(void);
 unsigned char pc_kbd_readdata(void);
 #endif
