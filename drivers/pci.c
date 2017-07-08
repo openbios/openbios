@@ -1703,7 +1703,7 @@ static void ob_pci_host_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 
 #elif defined(CONFIG_SPARC64)
 
 /* Convert device/irq pin to interrupt property */
-#define SUN4U_INTERRUPT(dev, irq_pin) \
+#define SUN4U_PCIAINTERRUPT(dev, irq_pin) \
             ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
             
 static phandle_t ob_pci_host_set_interrupt_map(phandle_t host)
@@ -1713,10 +1713,13 @@ static phandle_t ob_pci_host_set_interrupt_map(phandle_t host)
            
 static void ob_pci_host_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 addr, u32 intno)
 {
+    /* Note: this can be removed when the Simba bridges are in place
+       as it is impossible to physically plug hardware into the PCI
+       root bus */
     *ncells += pci_encode_phys_addr(props + *ncells, 0, 0, addr, 0, 0);
     props[(*ncells)++] = intno;
     props[(*ncells)++] = dnode;
-    props[(*ncells)++] = SUN4U_INTERRUPT(addr, intno);
+    props[(*ncells)++] = SUN4U_PCIAINTERRUPT(addr, intno);
 }
 
 #else
