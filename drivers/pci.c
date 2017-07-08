@@ -1263,6 +1263,39 @@ static void ob_scan_pci_bus(int *bus_num, unsigned long *mem_base,
 	}
 }
 
+#if defined(CONFIG_SPARC64)
+static void ob_scan_sabre_pci_bus(int *bus_num, unsigned long *mem_base,
+                            unsigned long *io_base, const char *path,
+                            int bus)
+{
+	int devnum, fn, is_multi;
+
+	PCI_DPRINTF("\nScanning sabre bus %d at %s...\n", bus, path);
+	
+	/* Horrible sabre hack: the PCI bridge with the on-board devices
+	   is located at devfn (1,1) so if we use the standard scan function
+	   we end up with our ioports not mapped at io_base == 0x0 which
+	   breaks many assumptions in OpenBIOS. Hence do a custom scan for
+	   sabre which does things in the right order. */
+	for (devnum = 0; devnum < 32; devnum++) {
+		is_multi = 0;
+		
+		if (devnum == 1) {
+			ob_configure_pci_device(path, bus_num, mem_base, io_base,
+				bus, 1, 1, &is_multi);
+			
+			ob_configure_pci_device(path, bus_num, mem_base, io_base,
+				bus, 1, 0, &is_multi);
+		} else {
+			for (fn = 0; fn==0 || (is_multi && fn<8); fn++) {
+				ob_configure_pci_device(path, bus_num, mem_base, io_base,
+					bus, devnum, fn, &is_multi);
+			}
+		}
+	}
+}
+#endif
+
 static void ob_configure_pci_bridge(pci_addr addr,
                                     int *bus_num, unsigned long *mem_base,
                                     unsigned long *io_base,
@@ -1314,10 +1347,23 @@ static void ob_configure_pci_bridge(pci_addr addr,
     pci_config_write8(addr, PCI_IO_LIMIT, (io_scan_limit >> 8) & ~(0xf));
 
     /* make pci bridge parent device, prepare for recursion */
+    
+#if defined(CONFIG_SPARC64)
+    /* Horrible hack for sabre */
+    int vid = pci_config_read16(addr, PCI_VENDOR_ID);
+    int did = pci_config_read16(addr, PCI_DEVICE_ID);
 
+    if (vid == PCI_VENDOR_ID_SUN && did == PCI_DEVICE_ID_SUN_SABRE) {
+        ob_scan_sabre_pci_bus(bus_num, mem_base, io_base,
+                        config->path, config->secondary_bus);       
+    } else {
+        ob_scan_pci_bus(bus_num, mem_base, io_base,
+                        config->path, config->secondary_bus);
+    }
+#else
     ob_scan_pci_bus(bus_num, mem_base, io_base,
                     config->path, config->secondary_bus);
-
+#endif
     /* bus scan updates *bus_num to last revealed pci bus number */
     config->subordinate_bus = *bus_num;
     pci_config_write8(addr, PCI_SUBORDINATE_BUS, config->subordinate_bus);
