@@ -1312,11 +1312,31 @@ static void ob_scan_pci_bus(int *bus_num, unsigned long *mem_base,
 }
 
 #if defined(CONFIG_SPARC64)
+
+/* Convert device/irq pin to interrupt property */
+#define SUN4U_PCIAINTERRUPT(dev, irq_pin) \
+            ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
+            
+#define SUN4U_PCIBINTERRUPT(dev, irq_pin) \
+            ((0x10 + (((dev >> 11) << 2) + irq_pin - 1)) & 0x1f)
+
+static void ob_pci_simbaB_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 addr, u32 intno)
+{
+    *ncells += pci_encode_phys_addr(props + *ncells, 0, 0, addr, 0, 0);
+    props[(*ncells)++] = intno;
+    props[(*ncells)++] = dnode;
+    props[(*ncells)++] = SUN4U_PCIBINTERRUPT(addr, intno);
+}
+
+static void ob_pci_bus_set_interrupt_map(phandle_t pcibus, phandle_t dnode,
+              void (*func)(ucell dnode, u32 *props, int *ncells, u32 addr, u32 intno));
+
 static void ob_scan_sabre_pci_bus(int *bus_num, unsigned long *mem_base,
                             unsigned long *io_base, const char *path,
                             int bus)
 {
 	int devnum, fn, is_multi;
+	phandle_t ph;
 
 	PCI_DPRINTF("\nScanning sabre bus %d at %s...\n", bus, path);
 	
@@ -1332,8 +1352,11 @@ static void ob_scan_sabre_pci_bus(int *bus_num, unsigned long *mem_base,
 			ob_configure_pci_device(path, bus_num, mem_base, io_base,
 				bus, 1, 1, &is_multi);
 			
-			ob_configure_pci_device(path, bus_num, mem_base, io_base,
+			ph = ob_configure_pci_device(path, bus_num, mem_base, io_base,
 				bus, 1, 0, &is_multi);
+			
+			/* Set up pciB interrupt map */
+                        ob_pci_bus_set_interrupt_map(ph, find_dev("/pci"), ob_pci_simbaB_bus_interrupt);
 		} else {
 			for (fn = 0; fn==0 || (is_multi && fn<8); fn++) {
 				ob_configure_pci_device(path, bus_num, mem_base, io_base,
@@ -1703,10 +1726,6 @@ static void ob_pci_host_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 
 }
 
 #elif defined(CONFIG_SPARC64)
-
-/* Convert device/irq pin to interrupt property */
-#define SUN4U_PCIAINTERRUPT(dev, irq_pin) \
-            ((((dev >> 11) << 2) + irq_pin - 1) & 0x1f)
             
 static phandle_t ob_pci_host_set_interrupt_map(phandle_t host)
 {
