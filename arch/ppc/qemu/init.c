@@ -108,6 +108,11 @@ static const pci_arch_t known_arch[] = {
         .io_len = 0x00010000,
         .rbase = 0x00000000,
         .rlen = 0x00400000,
+        .host_ranges = {
+            { .type = IO_SPACE, .parentaddr = 0, .childaddr = 0x80000000, .len = 0x00010000 },
+            { .type = MEMORY_SPACE_32, .parentaddr = 0, .childaddr = 0xc0100000, .len = 0x10000000 },
+            { .type = 0, .parentaddr = 0, .childaddr = 0, .len = 0 }
+         },
         .irqs = { 9, 11, 9, 11 }
     },
     [ARCH_MAC99] = {
@@ -125,6 +130,11 @@ static const pci_arch_t known_arch[] = {
         .io_len = 0x00800000,
         .rbase = 0x00000000,
         .rlen = 0x01000000,
+        .host_ranges = {
+            { .type = IO_SPACE, .parentaddr = 0, .childaddr = 0xf2000000, .len = 0x00800000 },
+            { .type = MEMORY_SPACE_32, .parentaddr = 0x80000000, .childaddr = 0x80000000, .len = 0x10000000 },
+            { .type = 0, .parentaddr = 0, .childaddr = 0, .len = 0 }
+         },
         .irqs = { 0x1b, 0x1c, 0x1d, 0x1e }
     },
     [ARCH_MAC99_U3] = {
@@ -142,6 +152,11 @@ static const pci_arch_t known_arch[] = {
         .io_len = 0x00800000,
         .rbase = 0x00000000,
         .rlen = 0x01000000,
+        .host_ranges = {
+            { .type = IO_SPACE, .parentaddr = 0, .childaddr = 0xf2000000, .len = 0x00800000 },
+            { .type = MEMORY_SPACE_32, .parentaddr = 0x80000000, .childaddr = 0x80000000, .len = 0x10000000 },
+            { .type = 0, .parentaddr = 0, .childaddr = 0, .len = 0 }
+         },
         .irqs = { 0x1b, 0x1c, 0x1d, 0x1e }
     },
     [ARCH_HEATHROW] = {
@@ -159,6 +174,12 @@ static const pci_arch_t known_arch[] = {
         .io_len = 0x00800000,
         .rbase = 0xfd000000,
         .rlen = 0x01000000,
+        .host_ranges = {
+            { .type = IO_SPACE, .parentaddr = 0, .childaddr = 0xfe000000, .len = 0x00800000 },
+            { .type = MEMORY_SPACE_32, .parentaddr = 0, .childaddr = 0xfd000000, .len = 0x01000000 },
+            { .type = MEMORY_SPACE_32, .parentaddr = 0x80000000, .childaddr = 0x80000000, .len = 0x10000000 },
+            { .type = 0, .parentaddr = 0, .childaddr = 0, .len = 0 }
+         },
         .irqs = { 21, 22, 23, 24 }
     },
 };
