@@ -555,6 +555,9 @@ int bridge_config_cb(const pci_config_t *config)
 
 int simba_config_cb(const pci_config_t *config)
 {
+    u32 props[128];
+    int ncells = 0;
+
     bridge_config_cb(config);
 
     /* Configure the simba ranges as per the mostly undocumented
@@ -576,6 +579,25 @@ int simba_config_cb(const pci_config_t *config)
 
         /* MEM: 0x1ff20000000-0x1ff5fffffff */
         pci_config_write8(config->dev, 0xdf, 0x06);
+
+        /* Onboard NIC: slot 1, intno 0x21 */
+        ncells += pci_encode_phys_addr(props + ncells, 0, 0, PCI_ADDR(1, 1, 0), 0, 0);
+        props[ncells++] = 0x1;
+        props[ncells++] = find_dev("/pci");
+        props[ncells++] = 0x21;
+
+        /* Onboard IDE: slot 3, intno 0x20 */
+        ncells += pci_encode_phys_addr(props + ncells, 0, 0, PCI_ADDR(1, 3, 0), 0, 0);
+        props[ncells++] = 0x1;
+        props[ncells++] = find_dev("/pci");
+        props[ncells++] = 0x20;
+        set_property(get_cur_dev(), "interrupt-map", (char *)props, ncells * sizeof(props[0]));
+
+        props[0] = 0x00fff800;
+        props[1] = 0x0;
+        props[2] = 0x0;
+        props[3] = 0x7;
+        set_property(get_cur_dev(), "interrupt-map-mask", (char *)props, 4 * sizeof(props[0]));
         break;
 
     case 0:
