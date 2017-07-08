@@ -1289,7 +1289,7 @@ ob_pci_configure(pci_addr addr, pci_config_t *config, int num_regs, int rom_bar,
         pci_config_write16(addr, PCI_COMMAND, cmd);
 }
 
-static void ob_configure_pci_device(const char* parent_path,
+static phandle_t ob_configure_pci_device(const char* parent_path,
         int *bus_num, unsigned long *mem_base, unsigned long *io_base,
         int bus, int devnum, int fn, int *p_is_multi);
 
@@ -1482,7 +1482,7 @@ static int ob_pci_read_identification(int bus, int devnum, int fn,
     return 1;
 }
 
-static void ob_configure_pci_device(const char* parent_path,
+static phandle_t ob_configure_pci_device(const char* parent_path,
         int *bus_num, unsigned long *mem_base, unsigned long *io_base,
         int bus, int devnum, int fn, int *p_is_multi)
 {
@@ -1498,7 +1498,7 @@ static void ob_configure_pci_device(const char* parent_path,
     int is_host_bridge = 0;
 
     if (!ob_pci_read_identification(bus, devnum, fn, &vid, &did, &class, &subclass)) {
-        return;
+        return 0;
     }
 
     addr = PCI_ADDR(bus, devnum, fn);
@@ -1560,7 +1560,7 @@ static void ob_configure_pci_device(const char* parent_path,
 
         if (get_property(phandle, "vendor-id", NULL)) {
             PCI_DPRINTF("host bridge already configured\n");
-            return;
+            return 0;
         }
     }
 
@@ -1610,6 +1610,8 @@ static void ob_configure_pci_device(const char* parent_path,
 
         ob_configure_pci_bridge(addr, bus_num, mem_base, io_base, bus, &config);
     }
+
+    return phandle;
 }
 
 static void ob_pci_set_available(phandle_t host, unsigned long mem_base, unsigned long io_base)
