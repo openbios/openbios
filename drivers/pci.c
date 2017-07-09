@@ -1307,7 +1307,7 @@ static void ob_configure_pci_bridge(pci_addr addr,
     /* Always expose the legacy ioports on the first PCI bridge. If we
        must have legacy devices behind a PCI bridge then they must be
        on the first one discovered to ensure that the ioports will work. */
-    if (*io_base < 0x1000) {
+    if (primary_bus > 0 && *io_base < 0x1000) {
         *io_base = 0x0;
     }
 
