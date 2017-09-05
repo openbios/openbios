@@ -367,28 +367,20 @@ ob_pci_encode_unit(int *idx)
 	        ss, dev, fn, buf);
 }
 
-/* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
-
-static void
-ob_pci_bus_map_in(int *idx)
-{
+/* Map PCI MMIO or IO space from the BAR address. Note it is up to the caller
+   to understand whether the resulting address is in MEM or IO space and
+   use the appropriate accesses */
+static ucell ob_pci_map(uint32_t ba, ucell size) {
 	phys_addr_t phys;
-	uint32_t ba;
-	ucell size, virt, tmp;
-	int space;
+	uint32_t mask;
+	int flags, space_code;
+	ucell virt;
+	
+	pci_decode_pci_addr(ba, &flags, &space_code, &mask);
 
-	PCI_DPRINTF("ob_pci_bar_map_in idx=%p\n", idx);
-
-	size = POP();
-	tmp = POP();
-	POP();
-	ba = POP();
-
-	/* Get the space from the pci-addr.hi */
-	space = ((tmp & PCI_RANGE_TYPE_MASK) >> 24);
-
-	phys = pci_bus_addr_to_host_addr(space, ba);
-
+	phys = pci_bus_addr_to_host_addr(space_code,
+			ba & ~mask);
+	
 #if defined(CONFIG_OFMEM)
 	ofmem_claim_phys(phys, size, 0);
 
@@ -405,6 +397,27 @@ ob_pci_bus_map_in(int *idx)
 	virt = size;	/* Keep compiler quiet */
 	virt = phys;
 #endif
+
+	return virt;
+}
+
+/* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
+
+static void
+ob_pci_bus_map_in(int *idx)
+{
+	uint32_t ba;
+	ucell size;
+	ucell virt;
+
+	PCI_DPRINTF("ob_pci_bar_map_in idx=%p\n", idx);
+
+	size = POP();
+	POP();
+	POP();
+	ba = POP();
+
+	virt = ob_pci_map(ba, size);
 
 	PUSH(virt);
 }
