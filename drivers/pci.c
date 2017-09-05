@@ -150,6 +150,30 @@ static unsigned long pci_bus_addr_to_host_addr(int space, uint32_t ba)
     }
 }
 
+static inline void pci_decode_pci_addr(pci_addr addr, int *flags,
+                                       int *space_code, uint32_t *mask)
+{
+    *flags = 0;
+
+    if (addr & 0x01) {
+        *space_code = IO_SPACE;
+        *mask = 0x00000001;
+    } else {
+        if (addr & 0x04) {
+            *space_code = MEMORY_SPACE_64;
+            *flags |= IS_NOT_RELOCATABLE; /* XXX: why not relocatable? */
+        } else {
+            *space_code = MEMORY_SPACE_32;
+        }
+
+        if (addr & 0x08) {
+            *flags |= IS_PREFETCHABLE;
+        }
+
+        *mask = 0x0000000F;
+    }
+}
+
 static void
 ob_pci_open(int *idx)
 {
@@ -646,30 +670,6 @@ int rtl8139_config_cb(const pci_config_t *config)
 #endif
 
 	return eth_config_cb(config);
-}
-
-static inline void pci_decode_pci_addr(pci_addr addr, int *flags,
-				       int *space_code, uint32_t *mask)
-{
-    *flags = 0;
-
-	if (addr & 0x01) {
-		*space_code = IO_SPACE;
-		*mask = 0x00000001;
-	} else {
-	    if (addr & 0x04) {
-            *space_code = MEMORY_SPACE_64;
-            *flags |= IS_NOT_RELOCATABLE; /* XXX: why not relocatable? */
-        } else {
-            *space_code = MEMORY_SPACE_32;
-        }
-
-        if (addr & 0x08) {
-            *flags |= IS_PREFETCHABLE;
-        }
-
-        *mask = 0x0000000F;
-	}
 }
 
 /*
