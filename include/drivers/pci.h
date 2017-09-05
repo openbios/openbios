@@ -230,6 +230,7 @@ extern const pci_arch_t *arch;
 
 #define PCI_VENDOR_ID_INTEL              0x8086
 #define PCI_DEVICE_ID_INTEL_82378        0x0484
+#define PCI_DEVICE_ID_INTEL_E1000        0x100e
 #define PCI_DEVICE_ID_INTEL_82441        0x1237
 
 #endif	/* _H_PCI */

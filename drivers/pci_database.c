@@ -147,6 +147,12 @@ static const pci_dev_t eth_devices[] = {
         sunhme_config_cb, "ethernet",
     },
     {
+        PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_E1000,
+        NULL, "e1000", NULL,  "pci1086,100e\0",
+        0, 0, 0,
+        eth_config_cb, "ethernet",
+    },
+    {
         /* Virtio-network controller */
         PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_DEVICE_ID_VIRTIO_NET,
         NULL, "virtio-net", NULL,
