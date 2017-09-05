@@ -401,6 +401,10 @@ static ucell ob_pci_map(uint32_t ba, ucell size) {
 	return virt;
 }
 
+static void ob_pci_unmap(ucell virt, ucell size) {
+	ofmem_unmap(virt, size); 
+}
+
 /* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
 
 static void
@@ -711,6 +715,7 @@ int sungem_config_cb (const pci_config_t *config)
 	mac[0] = (val >> 8) & 0xff;
 	set_property(ph, "local-mac-address", (char *)mac, 6);
 	
+	ob_pci_unmap(virt, 0x8000);
 	return 0;
 }
 
