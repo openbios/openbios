@@ -685,6 +685,35 @@ int rtl8139_config_cb(const pci_config_t *config)
 	return eth_config_cb(config);
 }
 
+int sungem_config_cb (const pci_config_t *config)
+{
+	phandle_t ph = get_cur_dev();
+	uint32_t val, *mmio;
+	uint8_t mac[6];
+	ucell virt;
+
+#define MAC_ADDR0	(0x6080UL/4)	/* MAC Address 0 Register	*/
+#define MAC_ADDR1	(0x6084UL/4)	/* MAC Address 1 Register	*/
+#define MAC_ADDR2	(0x6088UL/4)	/* MAC Address 2 Register	*/
+
+	/* Map PCI memory BAR 0 to access the sungem registers */
+	virt = ob_pci_map(config->assigned[0], 0x8000);
+	mmio = (void *)(uintptr_t)virt;
+	
+	val = __le32_to_cpu(*(mmio + MAC_ADDR0));
+	mac[5] = val & 0xff;
+	mac[4] = (val >> 8) & 0xff;
+	val = __le32_to_cpu(*(mmio + MAC_ADDR1));
+	mac[3] = val & 0xff;
+	mac[2] = (val >> 8) & 0xff;
+	val = __le32_to_cpu(*(mmio + MAC_ADDR2));
+	mac[1] = val & 0xff;
+	mac[0] = (val >> 8) & 0xff;
+	set_property(ph, "local-mac-address", (char *)mac, 6);
+	
+	return 0;
+}
+
 /*
  * "Designing PCI Cards and Drivers for Power Macintosh Computers", p. 454
  *

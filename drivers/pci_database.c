@@ -135,6 +135,12 @@ static const pci_dev_t eth_devices[] = {
         rtl8139_config_cb, "ethernet",
     },
     {
+        PCI_VENDOR_ID_APPLE, PCI_DEVICE_ID_APPLE_UNI_N_GMAC,
+        NULL, "ethernet", NULL,  "gmac\0",
+        0, 0, 0,
+        sungem_config_cb, "ethernet",
+    },
+    {
         /* Virtio-network controller */
         PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_DEVICE_ID_VIRTIO_NET,
         NULL, "virtio-net", NULL,
