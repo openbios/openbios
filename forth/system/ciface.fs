@@ -159,7 +159,7 @@ external
 ;
 
 : instance-to-package ( ihandle -- phandle )
-  ?ihandle ihandle>phandle
+  ?ihandle instance-to-package
 ;
 
 : package-to-path ( buflen buf phandle -- length )

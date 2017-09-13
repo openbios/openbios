@@ -372,7 +372,7 @@ int obp_inst2pkg(int dev_desc)
     int ret;
 
     PUSH(dev_desc);
-    fword("ihandle>non-interposed-phandle");
+    fword("instance-to-package");
     ret = POP();
 
     DPRINTF("obp_inst2pkg(fd 0x%x) = 0x%x\n", dev_desc, ret);
