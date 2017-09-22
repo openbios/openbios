@@ -1486,6 +1486,7 @@ static void ob_configure_pci_bridge(pci_addr addr,
 
     /* Set the base limit registers */
     pci_config_write16(addr, PCI_MEMORY_BASE, ((*mem_base >> 16) & ~(0xf)));
+    pci_config_write16(addr, PCI_IO_BASE_UPPER, (*io_base >> 16));
     pci_config_write8(addr, PCI_IO_BASE, ((*io_base >> 8) & ~(0xf)));
 
     /* Always ensure legacy ioports are accessible during enumeration.
@@ -1493,6 +1494,7 @@ static void ob_configure_pci_bridge(pci_addr addr,
        the configuration process, so we allow them during the secondary
        bus scan and then set the correct IO limit below. */
     io_scan_limit = *io_base + (0xffff - *io_base);
+    pci_config_write16(addr, PCI_IO_LIMIT_UPPER, (io_scan_limit >> 16));
     pci_config_write8(addr, PCI_IO_LIMIT, (io_scan_limit >> 8) & ~(0xf));
 
     /* make pci bridge parent device, prepare for recursion */
@@ -1527,6 +1529,7 @@ static void ob_configure_pci_bridge(pci_addr addr,
 
     /* Set the limit registers */
     pci_config_write16(addr, PCI_MEMORY_LIMIT, (((*mem_base - 1) >> 16) & ~(0xf)));
+    pci_config_write16(addr, PCI_IO_LIMIT_UPPER, ((*io_base - 1) >> 16));
     pci_config_write8(addr, PCI_IO_LIMIT, (((*io_base - 1) >> 8) & ~(0xf)));
 
     /* Disable unused address spaces */
