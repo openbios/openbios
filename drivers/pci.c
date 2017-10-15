@@ -972,14 +972,14 @@ int ebus_config_cb(const pci_config_t *config)
     props[0] = 0x14;
     props[1] = 0x3f8;
     props[2] = 1;
-    props[3] = find_dev("/");
+    props[3] = find_dev("/pci");
     props[4] = 0x2b;
     
     /* PS2 keyboard */
     props[5] = 0x14;
     props[6] = 0x60;
     props[7] = 1;
-    props[8] = find_dev("/");
+    props[8] = find_dev("/pci");
     props[9] = 0x29;
     
     set_property(dev, "interrupt-map", (char *)props, 10 * sizeof(props[0]));
@@ -1427,8 +1427,16 @@ static void ob_scan_sabre_pci_bus(int *bus_num, unsigned long *mem_base,
 		is_multi = 0;
 		
 		if (devnum == 1) {
+			/* Force io_base/mem_base to match the pciA simba range */
+			*io_base = 0x0;       /* because of arch->iobase */
+			*mem_base = 0x20000000;
+			
 			ob_configure_pci_device(path, bus_num, mem_base, io_base,
 				bus, 1, 1, &is_multi);
+			
+			/* Force io_base/mem_base to match the pciB simba range */
+			*io_base = 0x800000;  /* because of arch->iobase */
+			*mem_base = 0x60000000;
 			
 			ph = ob_configure_pci_device(path, bus_num, mem_base, io_base,
 				bus, 1, 0, &is_multi);
@@ -1815,13 +1823,11 @@ static phandle_t ob_pci_host_set_interrupt_map(phandle_t host)
            
 static void ob_pci_host_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 addr, u32 intno)
 {
-    /* Note: this can be removed when the Simba bridges are in place
+    /* Note: this is invalid when the Simba bridges are in place
        as it is impossible to physically plug hardware into the PCI
-       root bus */
-    *ncells += pci_encode_phys_addr(props + *ncells, 0, 0, addr, 0, 0);
-    props[(*ncells)++] = intno;
-    props[(*ncells)++] = dnode;
-    props[(*ncells)++] = SUN4U_PCIAINTERRUPT(addr, intno);
+       root bus (and no hardware support for mapping these interrupts
+       either) */
+    return;
 }
 
 #else
