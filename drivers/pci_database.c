@@ -65,7 +65,7 @@ static const pci_dev_t scsi_devices[] = {
 static const pci_dev_t ide_devices[] = {
     {
         PCI_VENDOR_ID_CMD, PCI_DEVICE_ID_CMD_646, /* CMD646 IDE controller */
-        "pci-ide", "pci-ata", NULL,
+        "ide", "ide", NULL,
 	"pci1095,646\0pci1095,646\0pciclass,01018f\0",
         0, 0, 0,
         ide_config_cb2, NULL,
