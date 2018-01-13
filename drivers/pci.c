@@ -402,7 +402,9 @@ static ucell ob_pci_map(uint32_t ba, ucell size) {
 }
 
 static void ob_pci_unmap(ucell virt, ucell size) {
+#if defined(CONFIG_OFMEM)
 	ofmem_unmap(virt, size); 
+#endif
 }
 
 /* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
