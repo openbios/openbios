@@ -348,6 +348,14 @@ external
   find-method 0= if -1 else drop 0 then
 ;
 
+[IFDEF] CONFIG_SPARC64
+
+: SUNW,power-off ( -- )
+  power-off
+;
+
+[THEN]
+
 finish-device
 device-end
 
