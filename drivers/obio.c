@@ -224,6 +224,12 @@ volatile unsigned char *power_reg;
 volatile unsigned int *reset_reg;
 
 static void
+sparc32_power_off(void)
+{
+    *power_reg = 1;
+}
+
+static void
 sparc32_reset_all(void)
 {
     *reset_reg = 1;
@@ -236,6 +242,10 @@ ob_aux2_reset_init(uint64_t base, uint64_t offset, int intr)
     ob_new_obio_device("power", NULL);
 
     power_reg = (void *)ob_reg(base, offset, AUXIO2_REGS, 1);
+
+    bind_func("sparc32-power-off", sparc32_power_off);
+    push_str("' sparc32-power-off to power-off");
+    fword("eval");
 
     // Not in device tree
     reset_reg = (unsigned int *)ofmem_map_io(base + (uint64_t)SLAVIO_RESET, RESET_REGS);
