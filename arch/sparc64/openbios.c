@@ -120,6 +120,28 @@ sparc64_reset_all(void)
         : : "r" (val), "r" (addr) : "memory");
 }
 
+/* Power off */
+static void
+sparc64_power_off(void)
+{
+    /* Locate address of ebus power device */
+    phandle_t ph;
+    uint32_t addr;
+    volatile uint32_t *p;
+    int len;
+
+    ph = find_dev("/pci/pci@1,1/ebus/power");
+    if (ph) {
+        addr = get_int_property(ph, "address", &len);
+
+        if (len) {
+            /* Set bit 24 to invoke power off */
+            p = cell2pointer(addr);
+            *p = 0x1000000;
+        }
+    }
+}
+
 /* PCI Target Address Space Register (see UltraSPARC IIi User's Manual
   section 19.3.0.4) */
 #define PBM_PCI_TARGET_AS              0x2028
@@ -726,6 +748,11 @@ arch_init( void )
         bind_func("spacew@", spacew_read);
         bind_func("spacel@", spacel_read);
         bind_func("spacex@", spacex_read);
+
+        /* Bind power functions */
+        bind_func("sparc64-power-off", sparc64_power_off);
+        push_str("' sparc64-power-off to power-off");
+        fword("eval");
 
 	bind_func("platform-boot", boot );
 }
