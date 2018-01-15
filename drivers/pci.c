@@ -1046,6 +1046,40 @@ int ebus_config_cb(const pci_config_t *config)
     fword("device-name");
     fword("finish-device");
 
+    /* Build power node */
+    fword("new-device");
+    PUSH(0x14);
+    fword("encode-int");
+    PUSH(0x7240);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x4);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    PUSH(0);
+    PUSH(0);
+    push_str("button");
+    fword("property");
+
+    PUSH(1);
+    fword("encode-int");
+    push_str("interrupts");
+    fword("property");
+
+    /* Map the power registers so we can use them */
+    virt = ofmem_map_io(io_phys_base + 0x7240, 0x4);
+    PUSH(virt);
+    fword("encode-int");
+    push_str("address");
+    fword("property");
+
+    push_str("power");
+    fword("device-name");
+    fword("finish-device");
+
 #ifdef CONFIG_DRIVER_FLOPPY
     ob_floppy_init(config->path, "fdthree", 0x3f0ULL, 0);
 #endif
