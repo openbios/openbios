@@ -623,7 +623,7 @@ ucell ofmem_claim( ucell addr, ucell size, ucell align )
 	virt = phys = 0;
 	if( !align ) {
 		if( is_free(addr, size, ofmem->virt_range) &&
-		    is_free(addr, size, ofmem->phys_range) ) {
+		    is_free(addr, size, ofmem->phys_range) && addr < get_ram_size() ) {
 			ofmem_claim_phys_( addr, size, 0, 0, 0, 0 );
 			ofmem_claim_virt_( addr, size, 0, 0, 0, 0 );
 			virt = phys = addr;
