@@ -191,7 +191,7 @@ void setup_video()
 	   values in the Forth dictionary. Hence everything is always in
 	   sync. */
 	phandle_t options;
-	char buf[6];
+	char buf[10];
 
 	feval("['] display-ih cell+");
 	video.ih = cell2pointer(POP());

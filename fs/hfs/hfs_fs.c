@@ -101,7 +101,7 @@ _search( hfsvol *vol, const char *path, const char *sname, hfsfile **ret_fd )
 		*p = 0;
 		topdir = 0;
 
-		strncat( buf, ent.name, sizeof(buf) );
+		strncat( buf, ent.name, sizeof(buf) - 1);
 		if( (status=_search(vol, buf, sname, ret_fd)) != 2 )
 			continue;
 		topdir = 1;
