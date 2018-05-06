@@ -835,7 +835,7 @@ arch_of_init(void)
         push_str("AAPL,cpu-id");
         fword("property");
 
-        PUSH(66 * 1000 * 1000);
+        PUSH(fw_cfg_read_i32(FW_CFG_PPC_BUSFREQ));
         fword("encode-int");
         push_str("clock-frequency");
         fword("property");
@@ -872,7 +872,7 @@ arch_of_init(void)
         push_str("bootrom");
         fword("device-type");
 
-        PUSH(100 * 1000 * 1000);
+        PUSH(fw_cfg_read_i32(FW_CFG_PPC_BUSFREQ));
         fword("encode-int");
         push_str("clock-frequency");
         fword("property");
