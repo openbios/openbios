@@ -75,6 +75,26 @@ new-device
     ( phandle probe-xt )
     fs-handlers list-add , ,
   ;
+
+  : dma-alloc
+    " dma-alloc" $call-parent
+  ;
+
+  : dma-free
+    " dma-free" $call-parent
+  ;
+
+  : dma-map-in
+    " dma-map-in" $call-parent
+  ;
+
+  : dma-map-out
+    " dma-map-out" $call-parent
+  ;
+
+  : dma-sync
+    " dma-sync" $call-parent
+  ;
 finish-device
 
 \ ---------------------------------------------------------------------------
@@ -82,9 +102,27 @@ finish-device
 \ ---------------------------------------------------------------------------
 
 device-end
+
+: initialise-partition-package ( -- )
+  " dma-alloc" is-call-parent
+  " dma-free" is-call-parent
+  " dma-map-in" is-call-parent
+  " dma-map-out" is-call-parent
+  " dma-sync" is-call-parent
+;
+
+: initialise-fs-package ( -- )
+  " dma-alloc" is-call-parent
+  " dma-free" is-call-parent
+  " dma-map-in" is-call-parent
+  " dma-map-out" is-call-parent
+  " dma-sync" is-call-parent
+;
+
 : register-partition-package ( -- )
   " register-part-handler" " disk-label" $find-package-method ?dup if
     active-package swap execute
+    initialise-partition-package
   else
     ." [disk-label] internal error" cr
   then
@@ -93,6 +131,7 @@ device-end
 : register-fs-package ( -- )
   " register-fs-handler" " disk-label" $find-package-method ?dup if  
     active-package swap execute
+    initialise-fs-package
   else
     ." [misc-files] internal error" cr
   then

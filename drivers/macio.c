@@ -220,9 +220,44 @@ ob_macio_encode_unit(void *private)
 	push_str(buf);
 }
 
+static void
+ob_macio_dma_alloc(int *idx)
+{
+    call_parent_method("dma-alloc");
+}
+
+static void
+ob_macio_dma_free(int *idx)
+{
+    call_parent_method("dma-free");
+}
+
+static void
+ob_macio_dma_map_in(int *idx)
+{
+    call_parent_method("dma-map-in");
+}
+
+static void
+ob_macio_dma_map_out(int *idx)
+{
+    call_parent_method("dma-map-out");
+}
+
+static void
+ob_macio_dma_sync(int *idx)
+{
+    call_parent_method("dma-sync");
+}
+
 NODE_METHODS(ob_macio) = {
         { "decode-unit",	ob_macio_decode_unit	},
         { "encode-unit",	ob_macio_encode_unit	},
+        { "dma-alloc",		ob_macio_dma_alloc	},
+        { "dma-free",		ob_macio_dma_free		},
+        { "dma-map-in",		ob_macio_dma_map_in	},
+        { "dma-map-out",	ob_macio_dma_map_out	},
+        { "dma-sync",		ob_macio_dma_sync		},
 };
 
 static void

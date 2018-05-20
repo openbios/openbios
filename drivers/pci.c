@@ -428,6 +428,36 @@ ob_pci_bus_map_in(int *idx)
 	PUSH(virt);
 }
 
+static void
+ob_pci_dma_alloc(int *idx)
+{
+    call_parent_method("dma-alloc");
+}
+
+static void
+ob_pci_dma_free(int *idx)
+{
+    call_parent_method("dma-free");
+}
+
+static void
+ob_pci_dma_map_in(int *idx)
+{
+    call_parent_method("dma-map-in");
+}
+
+static void
+ob_pci_dma_map_out(int *idx)
+{
+    call_parent_method("dma-map-out");
+}
+
+static void
+ob_pci_dma_sync(int *idx)
+{
+    call_parent_method("dma-sync");
+}
+
 NODE_METHODS(ob_pci_bus_node) = {
 	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
@@ -435,6 +465,11 @@ NODE_METHODS(ob_pci_bus_node) = {
 	{ "decode-unit",	ob_pci_decode_unit	},
 	{ "encode-unit",	ob_pci_encode_unit	},
 	{ "pci-map-in",		ob_pci_bus_map_in	},
+	{ "dma-alloc",		ob_pci_dma_alloc	},
+	{ "dma-free",		ob_pci_dma_free		},
+	{ "dma-map-in",		ob_pci_dma_map_in	},
+	{ "dma-map-out",	ob_pci_dma_map_out	},
+	{ "dma-sync",		ob_pci_dma_sync		},
 };
 
 /* ( pci-addr.lo pci-addr.mid pci-addr.hi size -- virt ) */
@@ -453,6 +488,11 @@ NODE_METHODS(ob_pci_bridge_node) = {
 	{ "decode-unit",	ob_pci_decode_unit	},
 	{ "encode-unit",	ob_pci_encode_unit	},
 	{ "pci-map-in",		ob_pci_bridge_map_in	},
+	{ "dma-alloc",		ob_pci_dma_alloc	},
+	{ "dma-free",		ob_pci_dma_free		},
+	{ "dma-map-in",		ob_pci_dma_map_in	},
+	{ "dma-map-out",	ob_pci_dma_map_out	},
+	{ "dma-sync",		ob_pci_dma_sync		},
 };
 
 NODE_METHODS(ob_pci_simple_node) = {

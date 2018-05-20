@@ -60,6 +60,15 @@
   is-func-end
 ;
 
+\ is-call-parent installs a function that calls a function with
+\ the same name but on the parent node
+: is-call-parent  ( str len )
+  2dup is-func-begin
+  ['] (") , dup , ", null-align
+  ['] $call-parent ,
+  is-func-end
+;
+
 \ -------------------------------------------------------------------------
 \ install deblocker bindings
 \ -------------------------------------------------------------------------

@@ -1287,6 +1287,36 @@ ob_ide_close(struct ide_drive *drive)
 	selfword("close-deblocker");
 }
 
+static void
+ob_ide_dma_alloc(int *idx)
+{
+    call_parent_method("dma-alloc");
+}
+
+static void
+ob_ide_dma_free(int *idx)
+{
+    call_parent_method("dma-free");
+}
+
+static void
+ob_ide_dma_map_in(int *idx)
+{
+    call_parent_method("dma-map-in");
+}
+
+static void
+ob_ide_dma_map_out(int *idx)
+{
+    call_parent_method("dma-map-out");
+}
+
+static void
+ob_ide_dma_sync(int *idx)
+{
+    call_parent_method("dma-sync");
+}
+
 NODE_METHODS(ob_ide) = {
 	{ NULL,			ob_ide_initialize	},
 	{ "open",		ob_ide_open		},
@@ -1294,6 +1324,11 @@ NODE_METHODS(ob_ide) = {
 	{ "read-blocks",	ob_ide_read_blocks	},
 	{ "block-size",		ob_ide_block_size	},
 	{ "max-transfer",	ob_ide_max_transfer	},
+	{ "dma-alloc",		ob_ide_dma_alloc	},
+	{ "dma-free",		ob_ide_dma_free		},
+	{ "dma-map-in",		ob_ide_dma_map_in	},
+	{ "dma-map-out",	ob_ide_dma_map_out	},
+	{ "dma-sync",		ob_ide_dma_sync		},
 };
 
 static void
@@ -1318,6 +1353,11 @@ ob_ide_ctrl_decodeunit(int *idx)
 NODE_METHODS(ob_ide_ctrl) = {
 	{ NULL,			ob_ide_ctrl_initialize	},
 	{ "decode-unit",	ob_ide_ctrl_decodeunit  },
+	{ "dma-alloc",		ob_ide_dma_alloc	},
+	{ "dma-free",		ob_ide_dma_free		},
+	{ "dma-map-in",		ob_ide_dma_map_in	},
+	{ "dma-map-out",	ob_ide_dma_map_out	},
+	{ "dma-sync",		ob_ide_dma_sync		},
 };
 
 static void set_cd_alias(const char *path)
