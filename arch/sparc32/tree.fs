@@ -1,5 +1,21 @@
 include config.fs
 
+\ ---------
+\ DMA words
+\ ---------
+
+: sparc32-dma-free  ( virt size -- )
+  2drop
+;
+
+: sparc32-dma-map-out  ( virt devaddr size -- )
+  (dma-sync)
+;
+
+['] sparc32-dma-free to (dma-free)
+['] sparc32-dma-map-out to (dma-map-out)
+
+
 " /" find-device
   2 encode-int " #address-cells" property
   1 encode-int " #size-cells" property
@@ -9,6 +25,26 @@ include config.fs
 
   : encode-unit encode-unit-sbus ;
   : decode-unit decode-unit-sbus ;
+
+  : dma-sync
+    (dma-sync)
+  ;
+
+  : dma-alloc
+    (dma-alloc)
+  ;
+
+  : dma-free
+    (dma-free)
+  ;
+
+  : dma-map-in
+    (dma-map-in)
+  ;
+
+  : dma-map-out
+    (dma-map-out)
+  ;
 
 new-device
   " memory" device-name
