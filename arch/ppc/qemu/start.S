@@ -660,6 +660,27 @@ _GLOBAL(flush_icache_range):
         isync
         blr
 
+/* flush_dcache_range( unsigned long start, unsigned long stop) */
+_GLOBAL(flush_dcache_range):
+        li      r5,CACHE_LINE_SIZE-1
+        andc    r3,r3,r5
+        subf    r4,r3,r4
+        add     r4,r4,r5
+        srwi.   r4,r4,LG_CACHE_LINE_SIZE
+        beqlr
+        mtctr   r4
+        mr      r6,r3
+1:      dcbst   0,r3
+        addi    r3,r3,CACHE_LINE_SIZE
+        bdnz    1b
+        sync                            /* wait for dcbst's to get to ram */
+        mtctr   r4
+2:      dcbi    0,r6
+        addi    r6,r6,CACHE_LINE_SIZE
+        bdnz    2b
+        sync
+        blr
+
         /* Get RAM size from QEMU configuration device */
 
 #define CFG_ADDR 0xf0000510
