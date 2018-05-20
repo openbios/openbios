@@ -45,7 +45,7 @@ void *
 dvma_alloc(int size, unsigned int *pphys)
 {
     void *va;
-    unsigned int pa, ba;
+    unsigned int pa, iova;
     unsigned int npages;
     unsigned int mva, mpa;
     unsigned int i;
@@ -58,8 +58,8 @@ dvma_alloc(int size, unsigned int *pphys)
     if (ret != 0)
         return NULL;
 
-    ba = (unsigned int)mem_alloc(&cdvmem, npages * PAGE_SIZE, PAGE_SIZE);
-    if (ba == 0)
+    iova = (unsigned int)mem_alloc(&cdvmem, npages * PAGE_SIZE, PAGE_SIZE);
+    if (iova == 0)
         return NULL;
 
     pa = (unsigned int)va2pa((unsigned long)va);
@@ -75,13 +75,13 @@ dvma_alloc(int size, unsigned int *pphys)
      * Map into IOMMU page table.
      */
     mpa = (unsigned int) pa;
-    iopte = &t->page_table[(ba - t->plow) / PAGE_SIZE];
+    iopte = &t->page_table[(iova - t->plow) / PAGE_SIZE];
     for (i = 0; i < npages; i++) {
         *iopte++ = MKIOPTE(mpa);
         mpa += PAGE_SIZE;
     }
 
-    *pphys = ba;
+    *pphys = iova;
 
     return va;
 }
