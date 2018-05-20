@@ -268,6 +268,7 @@ ob_macio_keylargo_init(const char *path, phys_addr_t addr)
 {
         phandle_t aliases;
 
+        REGISTER_NODE(ob_macio);
         aliases = find_dev("/aliases");
         set_property(aliases, "mac-io", path, strlen(path) + 1);
 
