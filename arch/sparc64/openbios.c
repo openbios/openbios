@@ -722,6 +722,40 @@ static void init_memory(void)
     PUSH(virt + MEMORY_SIZE);
 }
 
+/* ( size -- virt ) */
+static void
+dma_alloc(void)
+{
+    ucell size = POP();
+    ucell addr;
+    int ret;
+
+    /* OpenBIOS doesn't enable the sun4u IOMMU so we can fall back to
+     * using ofmem_posix_memalign */
+    ret = ofmem_posix_memalign((void *)&addr, size, PAGE_SIZE);
+
+    if (ret) {
+        PUSH(0);
+    } else {
+        PUSH(addr);
+    }
+}
+
+/* ( virt devaddr size -- ) */
+static void
+dma_sync(void)
+{
+    ucell size = POP();
+    POP();
+    ucell virt = POP();
+    ucell va;
+
+    for (va = virt; va < virt + size; va += PAGE_SIZE_8K) {
+        itlb_demap(va);
+        dtlb_demap(va);
+    }
+}
+
 extern volatile uint64_t *obp_ticks_pointer;
 
 static void
@@ -729,6 +763,12 @@ arch_init( void )
 {
 	openbios_init();
 	modules_init();
+
+    bind_func("sparc64-dma-alloc", dma_alloc);
+    feval("['] sparc64-dma-alloc to (dma-alloc)");
+    bind_func("sparc64-dma-sync", dma_sync);
+    feval("['] sparc64-dma-sync to (dma-sync)");
+
 #ifdef CONFIG_DRIVER_PCI
         ob_pci_init();
 
