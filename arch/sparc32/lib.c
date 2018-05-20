@@ -11,7 +11,7 @@
 #include "libopenbios/bindings.h"
 #include "arch/sparc32/ofmem_sparc32.h"
 #include "asm/asi.h"
-#include "pgtsrmmu.h"
+#include "arch/sparc32/pgtsrmmu.h"
 #include "openprom.h"
 #include "libopenbios/sys_info.h"
 #include "boot.h"

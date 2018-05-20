@@ -17,7 +17,7 @@
 #include "libc/string.h"
 #include "arch/sparc32/ofmem_sparc32.h"
 #include "asm/asi.h"
-#include "pgtsrmmu.h"
+#include "arch/sparc32/pgtsrmmu.h"
 
 #define OF_MALLOC_BASE		((char*)OFMEM + ALIGN_SIZE(sizeof(ofmem_t), 8))
 
