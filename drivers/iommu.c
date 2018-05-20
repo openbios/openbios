@@ -10,6 +10,8 @@
 #include "drivers/drivers.h"
 #include "iommu.h"
 #include "arch/sparc32/ofmem_sparc32.h"
+#include "arch/sparc32/asi.h"
+#include "arch/sparc32/pgtsrmmu.h"
 
 #ifdef CONFIG_DEBUG_IOMMU
 #define DPRINTF(fmt, args...)                   \
@@ -79,6 +81,18 @@ dvma_alloc(int size)
     }
 
     return va;
+}
+
+void
+dvma_sync(unsigned char *va, int size)
+{
+    /* Synchronise the VA address region after DMA */
+    unsigned long virt = pointer2cell(va);
+    unsigned long page;
+
+    for (page = (unsigned long)virt; page < virt + size; page += PAGE_SIZE) {
+        srmmu_flush_tlb_page(page);
+    }
 }
 
 unsigned int

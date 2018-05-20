@@ -74,6 +74,7 @@ void ss5_init(uint64_t base);
 /* drivers/iommu.c */
 void ob_init_iommu(uint64_t base);
 void *dvma_alloc(int size);
+void dvma_sync(unsigned char *va, int size);
 unsigned int dvma_map_in(unsigned char *va);
 
 /* drivers/sbus.c */
