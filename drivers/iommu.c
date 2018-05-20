@@ -25,6 +25,7 @@ struct iommu {
     struct iommu_regs *regs;
     unsigned int *page_table;
     unsigned long plow;     /* Base bus address */
+    unsigned long pphys;    /* Base phys address */
 };
 
 static struct iommu ciommu;
@@ -51,18 +52,14 @@ dvma_alloc(int size, unsigned int *pphys)
     unsigned int i;
     unsigned int *iopte;
     struct iommu *t = &ciommu;
-    int ret;
 
     npages = (size + (PAGE_SIZE-1)) / PAGE_SIZE;
-    ret = ofmem_posix_memalign(&va, npages * PAGE_SIZE, PAGE_SIZE);
-    if (ret != 0)
-        return NULL;
-
     iova = (unsigned int)mem_alloc(&cdvmem, npages * PAGE_SIZE, PAGE_SIZE);
     if (iova == 0)
         return NULL;
 
-    pa = (unsigned int)va2pa((unsigned long)va);
+    pa = t->pphys + (iova - t->plow);
+    va = (void *)pa2va((unsigned long)pa);
 
     /*
      * Change page attributes in MMU to uncached.
@@ -86,6 +83,8 @@ dvma_alloc(int size, unsigned int *pphys)
     return va;
 }
 
+#define DVMA_SIZE 0x4000
+
 /*
  * Initialize IOMMU
  * This looks like initialization of CPU MMU but
@@ -94,7 +93,7 @@ dvma_alloc(int size, unsigned int *pphys)
 static struct iommu_regs *
 iommu_init(struct iommu *t, uint64_t base)
 {
-    unsigned int *ptab;
+    unsigned int *ptab, pva;
     int ptsize;
 #ifdef CONFIG_DEBUG_IOMMU
     unsigned int impl, vers;
@@ -145,7 +144,13 @@ iommu_init(struct iommu *t, uint64_t base)
     DPRINTF("IOMMU: impl %d vers %d page table at 0x%p (pa 0x%x) of size %d bytes\n",
             impl, vers, t->page_table, tmp, ptsize);
 
-    mem_init(&cdvmem, (char*)t->plow, (char *)0xfffff000);
+    mem_init(&cdvmem, (char*)t->plow, (char *)(t->plow + DVMA_SIZE));
+    ret = ofmem_posix_memalign((void *)&pva, DVMA_SIZE, PAGE_SIZE);
+    if (ret != 0) {
+        DPRINTF("Cannot allocate IOMMU phys size [0x%x]\n", DVMA_SIZE);
+        for (;;) { }
+    }
+    t->pphys = va2pa(pva);
     return regs;
 }
 
