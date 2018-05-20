@@ -247,7 +247,7 @@ create fcode-master-table
   ['], 4-byte-id
   ['], end1
   ['], reserved-fcode
-  ['], dma-alloc
+  ['], (dma-alloc)
   ['], my-address
   ['], my-space
   ['], memmap

@@ -228,6 +228,8 @@ variable obp-ticks
   strdup my-self >in.arguments 2!
 ;
 
-: dma-alloc
-  s" dma-alloc" $call-parent
-  ;
+defer (dma-alloc)
+defer (dma-free)
+defer (dma-map-in)
+defer (dma-map-out)
+defer (dma-sync)
