@@ -7,6 +7,26 @@
 
 include config.fs
 
+\ ---------
+\ DMA words
+\ ---------
+
+: ppc-dma-free  ( virt size -- )
+  2drop
+;
+
+: ppc-dma-map-in  ( virt size cacheable? -- devaddr )
+  2drop
+;
+
+: ppc-dma-map-out  ( virt devaddr size -- )
+  (dma-sync)
+;
+
+['] ppc-dma-free to (dma-free)
+['] ppc-dma-map-in to (dma-map-in)
+['] ppc-dma-map-out to (dma-map-out)
+
 \ -------------------------------------------------------------
 \ device-tree
 \ -------------------------------------------------------------
@@ -17,6 +37,26 @@ include config.fs
 [IFDEF] CONFIG_PPC64 2 [ELSE] 1 [THEN] encode-int " #address-cells" property
 1 encode-int " #size-cells" property
 h# 05f5e100 encode-int " clock-frequency" property
+
+	: dma-sync
+	  (dma-sync)
+	;
+
+	: dma-alloc
+	  (dma-alloc)
+	;
+
+	: dma-free
+	  (dma-free)
+	;
+
+	: dma-map-in
+	  (dma-map-in)
+	;
+
+	: dma-map-out
+	  (dma-map-out)
+	;
 
 new-device
 	" cpus" device-name

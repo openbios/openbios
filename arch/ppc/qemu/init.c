@@ -751,6 +751,35 @@ static void adler32(void)
     RET(s2 << 16 | s1);
 }
 
+/* ( size -- virt ) */
+static void
+dma_alloc(void)
+{
+    ucell size = POP();
+    ucell addr;
+    int ret;
+
+    ret = ofmem_posix_memalign((void *)&addr, size, PAGE_SIZE);
+
+    if (ret) {
+        PUSH(0);
+    } else {
+        PUSH(addr);
+    }
+}
+
+/* ( virt devaddr size -- ) */
+static void
+dma_sync(void)
+{
+    ucell size = POP();
+    POP();
+    ucell virt = POP();
+
+    flush_dcache_range(cell2pointer(virt), cell2pointer(virt + size));
+    flush_icache_range(cell2pointer(virt), cell2pointer(virt + size));
+}
+
 void
 arch_of_init(void)
 {
@@ -768,6 +797,12 @@ arch_of_init(void)
     openbios_init();
     modules_init();
     setup_timers();
+
+    bind_func("ppc-dma-alloc", dma_alloc);
+    feval("['] ppc-dma-alloc to (dma-alloc)");
+    bind_func("ppc-dma-sync", dma_sync);
+    feval("['] ppc-dma-sync to (dma-sync)");
+
 #ifdef CONFIG_DRIVER_PCI
     ob_pci_init();
 #endif
