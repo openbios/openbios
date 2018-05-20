@@ -207,6 +207,36 @@ ob_iommu_map_out(void)
     ofmem_release_io(virt, size);
 }
 
+static void
+ob_iommu_dma_alloc(void)
+{
+    call_parent_method("dma-alloc");
+}
+
+static void
+ob_iommu_dma_free(void)
+{
+    call_parent_method("dma-free");
+}
+
+static void
+ob_iommu_dma_map_in(void)
+{
+    call_parent_method("dma-map-in");
+}
+
+static void
+ob_iommu_dma_map_out(void)
+{
+    call_parent_method("dma-map-out");
+}
+
+static void
+ob_iommu_dma_sync(void)
+{
+    call_parent_method("dma-sync");
+}
+
 void
 ob_init_iommu(uint64_t base)
 {
@@ -234,4 +264,9 @@ ob_init_iommu(uint64_t base)
 
     bind_func("map-in", ob_iommu_map_in);
     bind_func("map-out", ob_iommu_map_out);
+    bind_func("dma-alloc", ob_iommu_dma_alloc);
+    bind_func("dma-free", ob_iommu_dma_free);
+    bind_func("dma-map-in", ob_iommu_dma_map_in);
+    bind_func("dma-map-out", ob_iommu_dma_map_out);
+    bind_func("dma-sync", ob_iommu_dma_sync);
 }

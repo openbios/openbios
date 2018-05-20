@@ -248,6 +248,35 @@ inquiry(esp_private_t *esp, sd_private_t *sd)
     return 1;
 }
 
+static void
+ob_esp_dma_alloc(__attribute__((unused)) esp_private_t **esp)
+{
+    call_parent_method("dma-alloc");
+}
+
+static void
+ob_esp_dma_free(__attribute__((unused)) esp_private_t **esp)
+{
+    call_parent_method("dma-free");
+}
+
+static void
+ob_esp_dma_map_in(__attribute__((unused)) esp_private_t **esp)
+{
+    call_parent_method("dma-map-in");
+}
+
+static void
+ob_esp_dma_map_out(__attribute__((unused)) esp_private_t **esp)
+{
+    call_parent_method("dma-map-out");
+}
+
+static void
+ob_esp_dma_sync(__attribute__((unused)) esp_private_t **esp)
+{
+    call_parent_method("dma-sync");
+}
 
 static void
 ob_sd_read_blocks(sd_private_t **sd)
@@ -333,6 +362,11 @@ NODE_METHODS(ob_sd) = {
     { "close",          ob_sd_close },
     { "read-blocks",    ob_sd_read_blocks },
     { "block-size",     ob_sd_block_size },
+    { "dma-alloc",      ob_esp_dma_alloc   },
+    { "dma-free",       ob_esp_dma_free    },
+    { "dma-map-in",     ob_esp_dma_map_in  },
+    { "dma-map-out",    ob_esp_dma_map_out },
+    { "dma-sync",       ob_esp_dma_sync    },
 };
 
 
@@ -443,9 +477,14 @@ ob_esp_encodeunit(__attribute__((unused)) esp_private_t **esp)
 }
 
 NODE_METHODS(ob_esp) = {
-    { NULL,             ob_esp_initialize },
-    { "decode-unit",    ob_esp_decodeunit },
-    { "encode-unit",    ob_esp_encodeunit },
+    { NULL,             ob_esp_initialize  },
+    { "decode-unit",    ob_esp_decodeunit  },
+    { "encode-unit",    ob_esp_encodeunit  },
+    { "dma-alloc",      ob_esp_dma_alloc   },
+    { "dma-free",       ob_esp_dma_free    },
+    { "dma-map-in",     ob_esp_dma_map_in  },
+    { "dma-map-out",    ob_esp_dma_map_out },
+    { "dma-sync",       ob_esp_dma_sync    },
 };
 
 static void
