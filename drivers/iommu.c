@@ -43,7 +43,7 @@ iommu_invalidate(struct iommu_regs *iregs)
  * BTW, we were not going to give away anonymous storage, were we not?
  */
 void *
-dvma_alloc(int size, unsigned int *pphys)
+dvma_alloc(int size)
 {
     void *va;
     unsigned int pa, iova;
@@ -78,9 +78,20 @@ dvma_alloc(int size, unsigned int *pphys)
         mpa += PAGE_SIZE;
     }
 
-    *pphys = iova;
-
     return va;
+}
+
+unsigned int
+dvma_map_in(unsigned char *va)
+{
+    /* Convert from VA to IOVA */
+    unsigned int pa, iova;
+    struct iommu *t = &ciommu;
+
+    pa = va2pa((unsigned int)va);
+    iova = t->plow + (pa - t->pphys);
+
+    return iova;
 }
 
 #define DVMA_SIZE 0x4000

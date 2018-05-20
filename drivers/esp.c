@@ -490,7 +490,8 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
         return -1;
     }
 
-    esp->buffer = (void *)dvma_alloc(BUFSIZE, &esp->buffer_dvma);
+    esp->buffer = (void *)dvma_alloc(BUFSIZE);
+    esp->buffer_dvma = dvma_map_in(esp->buffer);
     if (!esp->buffer || !esp->buffer_dvma) {
         DPRINTF("Can't get a DVMA buffer\n");
         return -1;

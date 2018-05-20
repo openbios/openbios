@@ -73,7 +73,8 @@ void ss5_init(uint64_t base);
 
 /* drivers/iommu.c */
 void ob_init_iommu(uint64_t base);
-void *dvma_alloc(int size, unsigned int *pphys);
+void *dvma_alloc(int size);
+unsigned int dvma_map_in(unsigned char *va);
 
 /* drivers/sbus.c */
 extern uint16_t graphic_depth;
