@@ -435,35 +435,6 @@ espdma_init(unsigned int slot, uint64_t base, unsigned long offset,
 }
 
 static void
-ob_esp_initialize(__attribute__((unused)) esp_private_t **esp)
-{
-    phandle_t ph = get_cur_dev();
-
-    set_int_property(ph, "#address-cells", 2);
-    set_int_property(ph, "#size-cells", 0);
-
-    /* set device type */
-    push_str("scsi");
-    fword("device-type");
-
-    /* QEMU's ESP emulation does not support mixing DMA and FIFO messages. By
-       setting this attribute, we prevent the Solaris ESP kernel driver from
-       trying to use this feature when booting a disk image (and failing) */
-    PUSH(0x58);
-    fword("encode-int");
-    push_str("scsi-options");
-    fword("property");
-
-    PUSH(0x24);
-    fword("encode-int");
-    PUSH(0);
-    fword("encode-int");
-    fword("encode+");
-    push_str("intr");
-    fword("property");
-}
-
-static void
 ob_esp_decodeunit(__attribute__((unused)) esp_private_t **esp)
 {
     fword("decode-unit-scsi");
@@ -477,7 +448,6 @@ ob_esp_encodeunit(__attribute__((unused)) esp_private_t **esp)
 }
 
 NODE_METHODS(ob_esp) = {
-    { NULL,             ob_esp_initialize  },
     { "decode-unit",    ob_esp_decodeunit  },
     { "encode-unit",    ob_esp_encodeunit  },
     { "dma-alloc",      ob_esp_dma_alloc   },
@@ -529,6 +499,53 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
         return -1;
     }
 
+    push_str("/iommu/sbus/espdma");
+    fword("find-device");
+    fword("new-device");
+
+    push_str("esp");
+    fword("device-name");
+
+    /* set device type */
+    push_str("scsi");
+    fword("device-type");
+
+    /* QEMU's ESP emulation does not support mixing DMA and FIFO messages. By
+       setting this attribute, we prevent the Solaris ESP kernel driver from
+       trying to use this feature when booting a disk image (and failing) */
+    PUSH(0x58);
+    fword("encode-int");
+    push_str("scsi-options");
+    fword("property");
+
+    PUSH(0x24);
+    fword("encode-int");
+    PUSH(0);
+    fword("encode-int");
+    fword("encode+");
+    push_str("intr");
+    fword("property");
+
+    PUSH(slot);
+    fword("encode-int");
+    PUSH(espoffset);
+    fword("encode-int");
+    fword("encode+");
+    PUSH(0x00000010);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    PUSH(0x02625a00);
+    fword("encode-int");
+    push_str("clock-frequency");
+    fword("property");
+
+    REGISTER_NODE_METHODS(ob_esp, "/iommu/sbus/espdma/esp");
+
+    fword("finish-device");
+
     esp->buffer = (void *)dvma_alloc(BUFSIZE);
     esp->buffer_dvma = dvma_map_in(esp->buffer);
     if (!esp->buffer || !esp->buffer_dvma) {
@@ -567,27 +584,6 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
         dump_drive(&esp->sd[id]);
 #endif
     }
-
-    REGISTER_NAMED_NODE(ob_esp, "/iommu/sbus/espdma/esp");
-    device_end();
-    /* set reg */
-    push_str("/iommu/sbus/espdma/esp");
-    fword("find-device");
-    PUSH(slot);
-    fword("encode-int");
-    PUSH(espoffset);
-    fword("encode-int");
-    fword("encode+");
-    PUSH(0x00000010);
-    fword("encode-int");
-    fword("encode+");
-    push_str("reg");
-    fword("property");
-
-    PUSH(0x02625a00);
-    fword("encode-int");
-    push_str("clock-frequency");
-    fword("property");
 
     for (id = 0; id < 8; id++) {
         if (!esp->sd[id].present)
