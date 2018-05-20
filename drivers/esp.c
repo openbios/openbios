@@ -476,6 +476,7 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
     int id, diskcount = 0, cdcount = 0, *counter_ptr;
     char nodebuff[256], aliasbuff[256];
     esp_private_t *esp;
+    ucell addr;
     unsigned int i;
 
     DPRINTF("Initializing SCSI...");
@@ -546,8 +547,22 @@ ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
 
     fword("finish-device");
 
-    esp->buffer = (void *)dvma_alloc(BUFSIZE);
-    esp->buffer_dvma = dvma_map_in(esp->buffer);
+    fword("my-self");
+    push_str("/iommu/sbus/espdma/esp");
+    feval("open-dev to my-self");
+    PUSH(BUFSIZE);
+    feval("dma-alloc");
+    addr = POP();
+    esp->buffer = cell2pointer(addr);
+
+    PUSH(addr);
+    PUSH(BUFSIZE);
+    PUSH(1);
+    feval("dma-map-in");
+    addr = POP();
+    esp->buffer_dvma = addr;
+    feval("to my-self");
+
     if (!esp->buffer || !esp->buffer_dvma) {
         DPRINTF("Can't get a DVMA buffer\n");
         return -1;
