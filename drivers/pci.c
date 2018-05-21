@@ -1111,7 +1111,10 @@ int i82378_config_cb(const pci_config_t *config)
 int usb_ohci_config_cb(const pci_config_t *config)
 {
 #ifdef CONFIG_DRIVER_USB
-    ob_usb_ohci_init(config->path, 0x80000000 | config->dev);
+    pci_addr addr = PCI_ADDR(
+        PCI_BUS(config->dev), PCI_DEV(config->dev), PCI_FN(config->dev));
+
+    ob_usb_ohci_init(config->path, addr);
 #endif
     return 0;
 }
