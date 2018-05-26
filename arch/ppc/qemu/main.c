@@ -24,6 +24,8 @@
 #include "kernel.h"
 #include "drivers/drivers.h"
 #include "libopenbios/ofmem.h"
+#include "libopenbios/initprogram.h"
+#include "context.h"
 #define NO_QEMU_PROTOS
 #include "arch/common/fw_cfg.h"
 
@@ -45,6 +47,7 @@ static void check_preloaded_kernel(void)
     unsigned long kernel_image, kernel_size;
     unsigned long initrd_image, initrd_size;
     const char * kernel_cmdline;
+    volatile struct context *ctx = __context;
 
     kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
     if (kernel_size) {
@@ -61,7 +64,13 @@ static void check_preloaded_kernel(void)
 	       ph = find_dev("/chosen");
                set_property(ph, "bootargs", strdup(kernel_cmdline), strlen(kernel_cmdline) + 1);
         }
-        call_elf(initrd_image, initrd_size, kernel_image);
+
+        arch_init_program();
+        ctx->regs[REG_R3] = initrd_image;
+        ctx->regs[REG_R4] = initrd_size;
+        ctx->pc = kernel_image;
+
+        start_elf();
     }
 }
 
