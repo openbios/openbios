@@ -134,6 +134,24 @@ unsigned char pc_kbd_readdata(void)
 	return tmp;
 }
 
+static void
+pc_kbd_reset(void)
+{
+	/* Reset first port */
+	outb(0xae, 0x64);
+	while (inb(0x64) & 2);
+
+	/* Write mode command, translated mode */
+	pc_kbd_controller_cmd(0x60, 0x40);
+
+	/* Reset keyboard device */
+	outb(0xff, 0x60);
+	while (inb(0x64) & 2);
+	inb(0x60);    /* Should be 0xfa */
+	while (inb(0x64) & 2);
+	inb(0x60);    /* Should be 0xaa */
+}
+
 /* ( addr len -- actual ) */
 static void
 pc_kbd_read(void)
@@ -280,8 +298,8 @@ ob_pc_kbd_init(const char *path, const char *kdev_name, const char *mdev_name,
     aliases = find_dev("/aliases");
     set_property(aliases, "keyboard", nodebuff, strlen(nodebuff) + 1);
 
-    pc_kbd_controller_cmd(0x60, 0x40); // Write mode command, translated mode
-    
+    pc_kbd_reset();
+
     /* Mouse (optional) */
     if (mdev_name != NULL) {
         snprintf(nodebuff, sizeof(nodebuff), "%s/8042", path);
