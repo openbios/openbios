@@ -8,6 +8,7 @@
 #include "libopenbios/bindings.h"
 #include "libopenbios/bootcode_load.h"
 #include "libopenbios/initprogram.h"
+#include "libopenbios/sys_info.h"
 #include "libc/diskio.h"
 #include "drivers/drivers.h"
 #define printf printk
@@ -33,6 +34,7 @@ bootcode_load(ihandle_t dev)
        loading bootcode via %BOOT */
     bootcode_info = find_ih_method("get-bootcode-info", dev);
     if (!bootcode_info) {
+        retval = LOADER_NOT_SUPPORT;
         goto out;
     }
     
