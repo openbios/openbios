@@ -768,6 +768,22 @@ dma_alloc(void)
     }
 }
 
+/* ( virt size cacheable? -- devaddr ) */
+static void
+dma_map_in(void)
+{
+    POP();
+    POP();
+    ucell va = POP();
+
+    if (is_apple()) {
+        PUSH(va);
+    } else {
+        /* PReP */
+        PUSH(va + 0x80000000);
+    }
+}
+
 /* ( virt devaddr size -- ) */
 static void
 dma_sync(void)
@@ -800,6 +816,8 @@ arch_of_init(void)
 
     bind_func("ppc-dma-alloc", dma_alloc);
     feval("['] ppc-dma-alloc to (dma-alloc)");
+    bind_func("ppc-dma-map-in", dma_map_in);
+    feval("['] ppc-dma-map-in to (dma-map-in)");
     bind_func("ppc-dma-sync", dma_sync);
     feval("['] ppc-dma-sync to (dma-sync)");
 

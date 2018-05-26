@@ -15,16 +15,11 @@ include config.fs
   2drop
 ;
 
-: ppc-dma-map-in  ( virt size cacheable? -- devaddr )
-  2drop
-;
-
 : ppc-dma-map-out  ( virt devaddr size -- )
   (dma-sync)
 ;
 
 ['] ppc-dma-free to (dma-free)
-['] ppc-dma-map-in to (dma-map-in)
 ['] ppc-dma-map-out to (dma-map-out)
 
 \ -------------------------------------------------------------
