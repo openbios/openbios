@@ -10,6 +10,7 @@ struct context {
     /* General registers */
     unsigned long regs[34];
 #define REG_R3 3
+#define REG_R4 7
 #define REG_R5 8
 #define REG_R6 9
 #define REG_R7 10
