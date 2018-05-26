@@ -226,6 +226,17 @@ defer mol-color!
   loop
 ;
 
+\
+\ Cancel Bochs VBE mode
+\
+
+: vbe-deinit ( -- )
+  \ Switching VBE on and off clears the framebuffer
+  VBE_DISPI_DISABLED VBE_DISPI_INDEX_ENABLE vbe-iow!
+  VBE_DISPI_ENABLED VBE_DISPI_INDEX_ENABLE vbe-iow!
+  VBE_DISPI_DISABLED VBE_DISPI_INDEX_ENABLE vbe-iow!
+;
+
 headerless
 
 \

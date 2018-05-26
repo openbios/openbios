@@ -613,9 +613,25 @@ static void arch_go(void);
 static void
 arch_go(void)
 {
+    phandle_t ph;
+    xt_t xt;
+
     /* Insert copyright property for MacOS 9 and below */
     if (find_dev("/rom/macos")) {
         fword("insert-copyright-property");
+    }
+
+    /* PReP machines expect a standard VGA console, so disable
+       VBE extensions just before we transfer control */
+    if (!is_apple()) {
+        ph = dt_iterate_type(find_dev("/"), "display");
+        if (ph != 0) {
+            xt = find_package_method("vbe-deinit", ph);
+            if (xt != 0) {
+                PUSH(xt);
+                fword("execute");
+            }
+        }
     }
 }
 
