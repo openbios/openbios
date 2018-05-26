@@ -161,6 +161,12 @@ static const pci_dev_t eth_devices[] = {
         NULL, NULL,
     },
     {
+        PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_LANCE,
+        NULL, "pcnet", NULL,  "pci1022,2000\0",
+        0, 0, 0,
+        eth_config_cb, "ethernet",
+    },
+    {
         0xFFFF, 0xFFFF,
         NULL, NULL, NULL, NULL,
         -1, -1, -1,

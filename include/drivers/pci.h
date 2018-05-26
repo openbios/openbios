@@ -192,6 +192,9 @@ extern const pci_arch_t *arch;
 #define PCI_DEVICE_ID_IBM_OPENPIC        0x0002
 #define PCI_DEVICE_ID_IBM_OPENPIC2       0xffff
 
+#define PCI_VENDOR_ID_AMD                0x1022
+#define PCI_DEVICE_ID_AMD_LANCE          0x2000
+
 #define PCI_VENDOR_ID_MOTOROLA           0x1057
 #define PCI_DEVICE_ID_MOTOROLA_MPC106    0x0002
 #define PCI_DEVICE_ID_MOTOROLA_RAVEN     0x4801
