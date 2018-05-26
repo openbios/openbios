@@ -26,6 +26,7 @@
   <object source="usbhid.c" condition="USB_HID"/>
   <object source="usbohci.c" condition="DRIVER_USB"/>
   <object source="usbohci_rh.c" condition="DRIVER_USB"/>
+  <object source="lsi.c" condition="DRIVER_LSI_53C810"/>
  </library>
 
  <dictionary name="openbios" target="forth">

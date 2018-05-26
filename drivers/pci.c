@@ -1159,6 +1159,25 @@ int usb_ohci_config_cb(const pci_config_t *config)
     return 0;
 }
 
+int lsi53c810_config_cb(const pci_config_t *config)
+{    
+#ifdef CONFIG_DRIVER_LSI_53C810
+    uint64_t mmio, ram;
+
+    /* Enable PCI bus mastering */
+    ob_pci_enable_bus_master(config);
+    
+    /* Map PCI memory BAR 1: LSI MMIO */
+    mmio = ob_pci_map(config->assigned[1], 0x400);
+
+    /* Map PCI memory BAR 2: LSI RAM */
+    ram = ob_pci_map(config->assigned[2], 0x400);    
+    
+    ob_lsi_init(config->path, mmio, ram);
+#endif
+    return 0;
+}
+
 void ob_pci_enable_bus_master(const pci_config_t *config)
 {
 	/* Enable bus mastering for the PCI device */

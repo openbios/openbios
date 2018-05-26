@@ -182,6 +182,9 @@ extern const pci_arch_t *arch;
 
 /* Vendors and devices. */
 
+#define PCI_VENDOR_ID_LSI_LOGIC          0x1000
+#define PCI_DEVICE_ID_LSI_53C810         0x0001
+
 #define PCI_VENDOR_ID_ATI                0x1002
 #define PCI_DEVICE_ID_ATI_RAGE128_PF     0x5046
 

@@ -55,6 +55,14 @@ static const pci_dev_t scsi_devices[] = {
         NULL, NULL,
     },
     {
+        /* lsi53c810 controller */
+        PCI_VENDOR_ID_LSI_LOGIC, PCI_DEVICE_ID_LSI_53C810,
+        NULL, "lsi53c810", NULL,
+        "pci1000,1\0",
+        0, 0, 0,
+        lsi53c810_config_cb, NULL,
+    },
+    {
         0xFFFF, 0xFFFF,
         NULL, NULL, NULL, NULL,
         -1, -1, -1,

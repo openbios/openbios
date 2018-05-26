@@ -60,6 +60,10 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels);
 int ob_esp_init(unsigned int slot, uint64_t base, unsigned long espoffset,
                 unsigned long dmaoffset);
 #endif
+#ifdef CONFIG_DRIVER_LSI_53C810
+/* drivers/lsi.c */
+int ob_lsi_init(const char *path, uint64_t mmio, uint64_t ram);
+#endif
 #ifdef CONFIG_DRIVER_OBIO
 /* drivers/obio.c */
 int ob_obio_init(uint64_t slavio_base, unsigned long fd_offset,
