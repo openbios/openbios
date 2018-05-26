@@ -32,6 +32,7 @@
   <option name="CONFIG_LOADER_ELF" type="boolean" value="true"/>
   <option name="CONFIG_LOADER_FCODE" type="boolean" value="false"/>
   <option name="CONFIG_LOADER_FORTH" type="boolean" value="false"/>
+  <option name="CONFIG_LOADER_PREP" type="boolean" value="true"/>
   <option name="CONFIG_LOADER_XCOFF" type="boolean" value="true"/>
 
   <!-- Filesystem Configuration -->

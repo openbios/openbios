@@ -19,6 +19,7 @@
   <object source="load.c"/>
   <object source="linuxbios_info.c" condition="LINUXBIOS"/>
   <object source="ofmem_common.c" condition="OFMEM"/>
+  <object source="prep_load.c" condition="LOADER_PREP"/>
   <object source="xcoff_load.c" condition="LOADER_XCOFF"/>
   <object source="video_common.c"/>
  </library>

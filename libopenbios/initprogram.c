@@ -29,6 +29,7 @@
 #include "libopenbios/elf_load.h"
 #include "libopenbios/fcode_load.h"
 #include "libopenbios/forth_load.h"
+#include "libopenbios/prep_load.h"
 #include "libopenbios/xcoff_load.h"
 
 
@@ -86,6 +87,13 @@ void init_program(void)
 #ifdef CONFIG_LOADER_XCOFF
 	if (is_xcoff((COFF_filehdr_t *)cell2pointer(addr))) {
 		xcoff_init_program();
+		return;
+	}
+#endif
+
+#ifdef CONFIG_LOADER_PREP
+	if (is_prep((char *)cell2pointer(addr))) {
+		prep_init_program();
 		return;
 	}
 #endif

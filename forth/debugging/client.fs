@@ -51,6 +51,7 @@ variable file-size
 10 constant fcode
 11 constant forth
 12 constant bootcode
+13 constant prep
 
 
 : init-program    ( -- )

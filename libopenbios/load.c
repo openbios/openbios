@@ -45,6 +45,10 @@
 #include "libopenbios/bootcode_load.h"
 #endif
 
+#ifdef CONFIG_LOADER_PREP
+#include "libopenbios/prep_load.h"
+#endif
+
 
 struct sys_info sys_info;
 void *elf_boot_notes = NULL;
@@ -108,6 +112,13 @@ void load(ihandle_t dev)
 #ifdef CONFIG_LOADER_BOOTCODE
 	/* Check for a "raw" %BOOT bootcode payload */
 	if (bootcode_load(dev) != LOADER_NOT_SUPPORT) {
+            feval("load-state >ls.file-size @");
+            return;
+        }
+#endif
+
+#ifdef CONFIG_LOADER_PREP
+	if (prep_load(dev) != LOADER_NOT_SUPPORT) {
             feval("load-state >ls.file-size @");
             return;
         }
