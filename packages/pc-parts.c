@@ -164,6 +164,11 @@ pcparts_open( pcparts_info_t *di )
 
 		DPRINTF("Primary partition at sector %x\n", __le32_to_cpu(p->start_sect));
 
+		/* If PReP boot partition, exit immediately with no filesystem probe */
+		if (p->type == 0x41) {
+			RET(-1);
+		}
+
 		found = 1;
 	} else {
 		/* Extended partition */
@@ -219,6 +224,11 @@ pcparts_open( pcparts_info_t *di )
 				size = (long long)__le32_to_cpu(p->nr_sects) * bs;
 				di->size_hi = size >> BITS;
 				di->size_lo = size & (ucell) -1;
+
+				/* If PReP boot partition, exit immediately with no filesystem probe */
+				if (p->type == 0x41) {
+					RET(-1);
+				}
 
 				found = 1;
 				break;
