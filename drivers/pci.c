@@ -1894,6 +1894,12 @@ static phandle_t ob_pci_host_set_interrupt_map(phandle_t host)
         target_node = find_dev(buf);
         set_int_property(target_node, "interrupt-parent", dnode);
 
+        snprintf(buf, sizeof(buf), "%s/mac-io/via-pmu", path);
+        target_node = find_dev(buf);
+        if (target_node) {
+            set_int_property(target_node, "interrupt-parent", dnode);
+        }
+
         snprintf(buf, sizeof(buf), "%s/mac-io/gpio/extint-gpio1", path);
         target_node = find_dev(buf);
         if (target_node) {

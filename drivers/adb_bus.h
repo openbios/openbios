@@ -17,6 +17,9 @@
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA, 02110-1301 USA
  */
 
+#ifndef __ADB_BUS_H__
+#define __ADB_BUS_H__
+
 typedef struct adb_bus_t adb_bus_t;
 typedef struct adb_dev_t adb_dev_t;
 
@@ -101,4 +104,6 @@ static inline int adb_reg_set (adb_dev_t *dev, uint8_t reg,
 do { printk("ADB - %s: " fmt, __func__ , ##args); } while (0)
 #else
 #define ADB_DPRINTF(fmt, args...) do { } while (0)
+#endif
+
 #endif

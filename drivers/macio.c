@@ -18,6 +18,7 @@
 #include "drivers/drivers.h"
 #include "macio.h"
 #include "cuda.h"
+#include "pmu.h"
 #include "escc.h"
 #include "drivers/pci.h"
 
@@ -378,10 +379,11 @@ ob_macio_keylargo_init(const char *path, phys_addr_t addr)
         aliases = find_dev("/aliases");
         set_property(aliases, "mac-io", path, strlen(path) + 1);
 
-        cuda_init(path, addr);
-
         if (has_pmu()) {
             macio_gpio_init(path);
+            pmu_init(path, addr);
+        } else {
+            cuda_init(path, addr);
         }
 
         /* The NewWorld NVRAM is not located in the MacIO device */
