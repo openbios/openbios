@@ -92,6 +92,25 @@ int is_newworld(void)
            (machine_id == ARCH_MAC99_U3);
 }
 
+#define CORE99_VIA_CONFIG_CUDA     0x0
+#define CORE99_VIA_CONFIG_PMU      0x1
+#define CORE99_VIA_CONFIG_PMU_ADB  0x2
+
+int has_pmu(void)
+{
+    uint32_t via_config = fw_cfg_read_i32(FW_CFG_PPC_VIACONFIG);
+
+    return (via_config != CORE99_VIA_CONFIG_CUDA);
+}
+
+int has_adb(void)
+{
+    uint32_t via_config = fw_cfg_read_i32(FW_CFG_PPC_VIACONFIG);
+
+    return (via_config == CORE99_VIA_CONFIG_CUDA ||
+            via_config == CORE99_VIA_CONFIG_PMU_ADB);
+}
+
 static const pci_arch_t known_arch[] = {
     [ARCH_PREP] = {
         .name = "PREP",
