@@ -575,5 +575,5 @@ void ob_usb_hid_add_keyboard(const char *path)
 	fword("device-type");
 
 	aliases = find_dev("/aliases");
-	set_property(aliases, "adb-keyboard", name, strlen(name) + 1);
+	set_property(aliases, "keyboard", name, strlen(name) + 1);
 }

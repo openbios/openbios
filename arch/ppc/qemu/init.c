@@ -1043,13 +1043,8 @@ arch_of_init(void)
         push_str("screen");
         fword("property");
     } else {
-        if (is_apple()) {
-            stdin_path = "adb-keyboard";
-            stdout_path = "screen";
-        } else {
-            stdin_path = "keyboard";
-            stdout_path = "screen";
-        }
+        stdin_path = "keyboard";
+        stdout_path = "screen";
     }
 
     kvm_of_init();
