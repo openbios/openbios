@@ -283,6 +283,77 @@ ob_unin_init(void)
         fword("finish-device");
 }
 
+static void ob_macio_gpio_initialize (int *idx)
+{
+    phandle_t ph=get_cur_dev();
+    int props[2];
+
+    push_str("gpio");
+    fword("device-type");
+
+    set_int_property(ph, "#address-cells", 1);
+    set_int_property(ph, "#size-cells", 0);
+    set_property(ph, "compatible", "mac-io-gpio", 12);
+    props[0] = __cpu_to_be32(0x50);
+    props[1] = __cpu_to_be32(0x30);
+    set_property(ph, "reg", (char *)&props, sizeof(props));
+
+    /* Build the extint-gpio1 for the PMU */
+    fword("new-device");
+    push_str("extint-gpio1");
+    fword("device-name");
+    PUSH(0x2f);
+    fword("encode-int");
+    PUSH(0x1);
+    fword("encode-int");
+    fword("encode+");
+    push_str("interrupts");
+    fword("property");
+    PUSH(0x9);
+    fword("encode-int");
+    push_str("reg");
+    fword("property");
+    push_str("keywest-gpio1");
+    fword("encode-string");
+    push_str("gpio");
+    fword("encode-string");
+    fword("encode+");
+    push_str("compatible");
+    fword("property");
+    fword("finish-device");
+
+    /* Build the programmer-switch */
+    fword("new-device");
+    push_str("programmer-switch");
+    fword("device-name");
+    push_str("programmer-switch");
+    fword("encode-string");
+    push_str("device_type");
+    fword("property");
+    PUSH(0x37);
+    fword("encode-int");
+    PUSH(0x0);
+    fword("encode-int");
+    fword("encode+");
+    push_str("interrupts");
+    fword("property");
+    fword("finish-device");
+}
+
+DECLARE_UNNAMED_NODE(ob_macio_gpio, 0, 0);
+
+NODE_METHODS(ob_macio_gpio) = {
+    { NULL,  ob_macio_gpio_initialize }
+};
+
+static void macio_gpio_init(const char *path)
+{
+    char buf[64];
+
+    snprintf(buf, sizeof(buf), "%s/gpio", path);
+    REGISTER_NAMED_NODE(ob_macio_gpio, buf);
+}
+
 void
 ob_macio_heathrow_init(const char *path, phys_addr_t addr)
 {
@@ -308,6 +379,11 @@ ob_macio_keylargo_init(const char *path, phys_addr_t addr)
         set_property(aliases, "mac-io", path, strlen(path) + 1);
 
         cuda_init(path, addr);
+
+        if (has_pmu()) {
+            macio_gpio_init(path);
+        }
+
         /* The NewWorld NVRAM is not located in the MacIO device */
         macio_nvram_init("", 0);
         escc_init(path, addr);
