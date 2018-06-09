@@ -20,6 +20,7 @@
  */
 
 #include "config.h"
+#include "drivers/drivers.h"
 #include "libopenbios/bindings.h"
 #include "libc/vsprintf.h"
 
@@ -37,7 +38,12 @@ adb_initialize (int *idx)
 	push_str("adb");
 	fword("device-type");
 
-	set_property(ph, "compatible", "adb", 4);
+	if (has_pmu()) {
+		set_property(ph, "compatible", "pmu-99", 7);
+	} else {
+		set_property(ph, "compatible", "adb", 4);
+	}
+
 	set_int_property(ph, "#address-cells", 1);
 	set_int_property(ph, "#size-cells", 0);
 }
