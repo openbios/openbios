@@ -1599,7 +1599,7 @@ static void ob_configure_pci_bridge(pci_addr addr,
        Some drivers (e.g. IDE) will attempt ioport access as part of
        the configuration process, so we allow them during the secondary
        bus scan and then set the correct IO limit below. */
-    io_scan_limit = *io_base + (0xffff - *io_base);
+    io_scan_limit = *io_base + 0xffff;
     pci_config_write16(addr, PCI_IO_LIMIT_UPPER, (io_scan_limit >> 16));
     pci_config_write8(addr, PCI_IO_LIMIT, (io_scan_limit >> 8) & ~(0xf));
 
