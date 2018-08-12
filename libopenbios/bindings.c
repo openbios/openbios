@@ -161,7 +161,12 @@ my_self( void )
 xt_t
 find_package_method( const char *method, phandle_t ph )
 {
-	push_str( method );
+	if (method == NULL) {
+		push_str("");
+	} else {
+		push_str( method );
+	}
+	
 	PUSH_ph( ph );
 	fword("find-method");
 	if( POP() )
