@@ -66,7 +66,7 @@
   <option name="CONFIG_DRIVER_IDE" type="boolean" value="true"/>
   <option name="CONFIG_IDE_NUM_CHANNELS" type="integer" value="2"/>
   <option name="CONFIG_IDE_FIRST_UNIT" type="integer" value="1"/>
-  <option name="CONFIG_IDE_DEV_NAME" type="string" value="ata-%d"/>
+  <option name="CONFIG_IDE_DEV_NAME" type="string" value="ata"/>
   <option name="CONFIG_IDE_DEV_TYPE" type="string" value="ata"/>
   <option name="CONFIG_DEBUG_IDE" type="boolean" value="false"/>
   <option name="CONFIG_DRIVER_ADB" type="boolean" value="true"/>

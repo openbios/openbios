@@ -58,7 +58,7 @@ DECLARE_UNNAMED_NODE( ob_ide_ctrl, INSTALL_OPEN, sizeof(int));
 #endif
 
 #ifndef CONFIG_IDE_DEV_NAME
-#define DEV_NAME "ide%d"
+#define DEV_NAME "ide"
 #else
 #define DEV_NAME CONFIG_IDE_DEV_NAME
 #endif
@@ -1457,8 +1457,7 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 		ob_ide_identify_drives(chan);
 
-                snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
-                         current_channel);
+		snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path);
 		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
 
 		chan->ph = dnode;
@@ -1469,11 +1468,10 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 			     (char *)&props, 2*sizeof(props[0]));
 #endif
 
-		props[0] = __cpu_to_be32(chan->io_regs[0]);
-		props[1] = __cpu_to_be32(1); props[2] = __cpu_to_be32(8);
-		props[3] = __cpu_to_be32(chan->io_regs[8]);
-		props[4] = __cpu_to_be32(1); props[5] = __cpu_to_be32(2);
-		set_property(dnode, "reg", (char *)&props, 6*sizeof(props[0]));
+		props[0] = __cpu_to_be32(current_channel);
+		props[1] = __cpu_to_be32(0);
+		props[2] = 0;
+		set_property(dnode, "reg", (char *)&props, 3*sizeof(props[0]));
 
 		IDE_DPRINTF(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
 		            current_channel, chan->io_regs[0],
@@ -1624,8 +1622,8 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 
 		ob_ide_identify_drives(chan);
 
-                snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path,
-                         current_channel);
+		snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME "-%d", path,
+                current_channel);
 		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
 
 		chan->ph = dnode;
