@@ -16,6 +16,7 @@
 #include "libopenbios/ofmem.h"
 #include "libopenbios/initprogram.h"
 #include "libopenbios/sys_info.h"
+#include "arch/ppc/processor.h"
 
 #define MAIN_STACK_SIZE 16384
 #define IMAGE_STACK_SIZE 4096*2
@@ -231,6 +232,14 @@ arch_init_program(void)
     ctx->regs[REG_R5] = (unsigned long)of_client_callback;
     ctx->regs[REG_R6] = 0;
     ctx->regs[REG_R7] = 0;
+
+    /* Override the stack in the default context: the OpenBSD bootloader
+       fails soon after setting up virt to phys mappings with the default
+       stack. My best guess is that this is because the malloc() heap
+       doesn't have a 1:1 virt to phys mapping. So for the moment we use
+       the original (pre-context) location just under the MMU hash table
+       (SDR1) which is mapped 1:1 and makes the bootloader happy. */
+    ctx->sp = mfsdr1() - 32768 - 65536;
 
     /* Set param */
     feval("load-state >ls.param @");
