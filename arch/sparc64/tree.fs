@@ -52,26 +52,23 @@ include config.fs
   : decode-unit decode-unit-upa ;
 
   : dma-sync  ( virt devaddr size -- )
-    s" (dma-sync)" $find if execute then
+    (dma-sync)
   ;
 
   : dma-alloc  ( size -- virt )
-    \ OpenBIOS doesn't enable the sun4u IOMMU so we can fall back to using
-    \ alloc-mem
-    h# 2000 + alloc-mem dup
-    h# 2000 1 - and -  \ align to 8K page size
+    (dma-alloc)
   ;
 
   : dma-free  ( virt size -- )
-    2drop
+    (dma-free)
   ;
 
   : dma-map-in  ( virt size cacheable? -- devaddr )
-    2drop
+    (dma-map-in)
   ;
 
   : dma-map-out  ( virt devaddr size -- )
-    dma-sync
+    (dma-map-out)
   ;
 
 new-device
