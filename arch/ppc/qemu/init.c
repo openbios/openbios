@@ -839,10 +839,11 @@ arch_of_init(void)
 #endif
     uint64_t ram_size;
     const struct cpudef *cpu;
-    char buf[64], qemu_uuid[16];
+    char buf[256], qemu_uuid[16];
     const char *stdin_path, *stdout_path, *boot_path;
     uint32_t temp = 0;
-    char *boot_device;
+    char *boot_device, *bootorder_file;
+    uint32_t bootorder_sz, sz;
     ofmem_t *ofmem = ofmem_arch_get_private();
     ucell load_base;
 
@@ -1054,11 +1055,17 @@ arch_of_init(void)
     push_str("/options");
     fword("find-device");
 
-    /* Setup default boot devices (not overriding user settings) */
-    fword("boot-device");
-    boot_device = pop_fstr_copy();
-    if (boot_device && strcmp(boot_device, "disk") == 0) {
-        switch (fw_cfg_read_i16(FW_CFG_BOOT_DEVICE)) {
+    /* Boot order */
+    bootorder_file = fw_cfg_read_file("bootorder", &bootorder_sz);
+
+    if (bootorder_file == NULL) {
+        /* No bootorder present, use fw_cfg device if no custom
+           boot-device specified */
+        fword("boot-device");
+        boot_device = pop_fstr_copy();
+
+        if (boot_device && strcmp(boot_device, "disk") == 0) {
+            switch (fw_cfg_read_i16(FW_CFG_BOOT_DEVICE)) {
             case 'c':
                 boot_path = "hd";
                 break;
@@ -1066,15 +1073,43 @@ arch_of_init(void)
             case 'd':
                 boot_path = "cd";
                 break;
+            }
+
+            snprintf(buf, sizeof(buf),
+                     "%s:,\\\\:tbxi "
+                     "%s:,\\ppc\\bootinfo.txt "
+                     "%s:,%%BOOT",
+                     boot_path, boot_path, boot_path);
+
+            push_str(buf);
+            fword("encode-string");
+            push_str("boot-device");
+            fword("property");
         }
 
-        snprintf(buf, sizeof(buf), "%s:,\\\\:tbxi %s:,\\ppc\\bootinfo.txt %s:,%%BOOT", boot_path, boot_path, boot_path);
-        push_str(buf);
+        free(boot_device);
+    } else {
+        sz = bootorder_sz * (3 * 2);
+        boot_device = malloc(sz);
+        memset(boot_device, 0, sz);
+
+        while ((boot_path = strsep(&bootorder_file, "\n")) != NULL) {
+            snprintf(buf, sizeof(buf),
+                     "%s:,\\\\:tbxi "
+                     "%s:,\\ppc\\bootinfo.txt "
+                     "%s:,%%BOOT ",
+                     boot_path, boot_path, boot_path);
+
+            strncat(boot_device, buf, sz);
+        }
+
+        push_str(boot_device);
         fword("encode-string");
         push_str("boot-device");
         fword("property");
+
+        free(boot_device);
     }
-    free(boot_device);
 
     /* Set up other properties */
 
