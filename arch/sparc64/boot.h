@@ -14,7 +14,7 @@ extern uint64_t kernel_image;
 extern uint64_t kernel_size;
 extern uint64_t qemu_cmdline;
 extern uint64_t cmdline_size;
-extern char boot_device;
+extern char *boot_device;
 extern void boot(void);
 
 // sys_info.c

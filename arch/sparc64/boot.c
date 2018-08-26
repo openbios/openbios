@@ -15,7 +15,7 @@ uint64_t kernel_image;
 uint64_t kernel_size;
 uint64_t qemu_cmdline;
 uint64_t cmdline_size;
-char boot_device;
+char *boot_device;
 
 extern int sparc64_of_client_interface( int *params );
 
