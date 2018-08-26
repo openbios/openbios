@@ -46,7 +46,6 @@ extern void setup_mmu(unsigned long code_base);
  *
  */
 
-#define FREE_BASE		0x00004000UL
 #define OF_CODE_START	0xfff00000UL
 #define OF_CODE_SIZE    0x00100000
 #define IO_BASE			0x80000000UL
@@ -79,12 +78,6 @@ static unsigned long
 get_ram_top(void)
 {
     return get_hash_base() - (32 + 64 + 64) * 1024 - OFMEM_SIZE;
-}
-
-static unsigned long
-get_ram_bottom(void)
-{
-    return FREE_BASE;
 }
 
 static unsigned long get_heap_top(void)
@@ -577,11 +570,6 @@ void
 ofmem_init(void)
 {
     ofmem_t *ofmem = ofmem_arch_get_private();
-
-    /* Map the memory (don't map page 0 to allow catching of NULL dereferences) */
-    ofmem_claim_phys(PAGE_SIZE, get_ram_bottom() - PAGE_SIZE, 0);
-    ofmem_claim_virt(PAGE_SIZE, get_ram_bottom() - PAGE_SIZE, 0);
-    ofmem_map(PAGE_SIZE, PAGE_SIZE, get_ram_bottom() - PAGE_SIZE, 0);
 
     /* Mark the first page as non-free */
     ofmem_claim_phys(0, PAGE_SIZE, 0);

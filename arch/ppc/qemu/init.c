@@ -844,6 +844,7 @@ arch_of_init(void)
     uint32_t temp = 0;
     char *boot_device;
     ofmem_t *ofmem = ofmem_arch_get_private();
+    ucell load_base;
 
     openbios_init();
     modules_init();
@@ -1105,4 +1106,11 @@ arch_of_init(void)
     
     bind_func("platform-boot", boot);
     bind_func("(arch-go)", arch_go);
+
+    /* Allocate 8MB memory at load-base */
+    fword("load-base");
+    load_base = POP();
+    ofmem_claim_phys(load_base, 0x800000, 0);
+    ofmem_claim_virt(load_base, 0x800000, 0);
+    ofmem_map(load_base, load_base, 0x800000, 0);
 }
