@@ -30,14 +30,13 @@ extern unsigned long isa_io_base;
 
 #define inb(port)		in_8((uint8_t *)((port)+isa_io_base))
 #define outb(val, port)		out_8((uint8_t *)((port)+isa_io_base), (val))
-#define inw(port)		in_be16((uint16_t *)((port)+isa_io_base))
-#define outw(val, port)		out_be16((uint16_t *)((port)+isa_io_base), (val))
-#define inl(port)		in_be32((uint32_t *)((port)+isa_io_base))
-#define outl(val, port)		out_be32((uint32_t *)((port)+isa_io_base), (val))
+#define inw(port)		in_le16((uint16_t *)((port)+isa_io_base))
+#define outw(val, port)		out_le16((uint16_t *)((port)+isa_io_base), (val))
+#define inl(port)		in_le32((uint32_t *)((port)+isa_io_base))
+#define outl(val, port)		out_le32((uint32_t *)((port)+isa_io_base), (val))
 
 /*
  * 8, 16 and 32 bit, big and little endian I/O operations, with barrier.
- * On Sparc64, BE versions must swap bytes using LE access ASI.
  */
 static inline int in_8(volatile unsigned char *addr)
 {
@@ -59,7 +58,7 @@ static inline void out_8(volatile unsigned char *addr, int val)
                          : "memory");
 }
 
-static inline int in_le16(volatile unsigned short *addr)
+static inline int in_be16(volatile unsigned short *addr)
 {
     int ret;
 
@@ -71,7 +70,7 @@ static inline int in_le16(volatile unsigned short *addr)
     return ret;
 }
 
-static inline int in_be16(volatile unsigned short *addr)
+static inline int in_le16(volatile unsigned short *addr)
 {
     int ret;
 
@@ -83,7 +82,7 @@ static inline int in_be16(volatile unsigned short *addr)
     return ret;
 }
 
-static inline void out_le16(volatile unsigned short *addr, int val)
+static inline void out_be16(volatile unsigned short *addr, int val)
 {
 
     __asm__ __volatile__("stha %0, [%1] %2\n\t"
@@ -92,24 +91,12 @@ static inline void out_le16(volatile unsigned short *addr, int val)
                          : "memory");
 }
 
-static inline void out_be16(volatile unsigned short *addr, int val)
+static inline void out_le16(volatile unsigned short *addr, int val)
 {
     __asm__ __volatile__("stha %0, [%1] %2\n\t"
                          :
                          : "r"(val), "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
                          : "memory");
-}
-
-static inline unsigned in_le32(volatile unsigned *addr)
-{
-    unsigned ret;
-
-    __asm__ __volatile__("lduwa [%1] %2, %0\n\t"
-                         : "=r"(ret)
-                         : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
-                         : "memory");
-
-    return ret;
 }
 
 static inline unsigned in_be32(volatile unsigned *addr)
@@ -118,12 +105,24 @@ static inline unsigned in_be32(volatile unsigned *addr)
 
     __asm__ __volatile__("lduwa [%1] %2, %0\n\t"
                          : "=r"(ret)
+                         : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E)
+                         : "memory");
+
+    return ret;
+}
+
+static inline unsigned in_le32(volatile unsigned *addr)
+{
+    unsigned ret;
+
+    __asm__ __volatile__("lduwa [%1] %2, %0\n\t"
+                         : "=r"(ret)
                          : "r"(addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
                          : "memory");
     return ret;
 }
 
-static inline void out_le32(volatile unsigned *addr, int val)
+static inline void out_be32(volatile unsigned *addr, int val)
 {
     __asm__ __volatile__("stwa %0, [%1] %2\n\t"
                          :
@@ -131,7 +130,7 @@ static inline void out_le32(volatile unsigned *addr, int val)
                          : "memory");
 }
 
-static inline void out_be32(volatile unsigned *addr, int val)
+static inline void out_le32(volatile unsigned *addr, int val)
 {
     __asm__ __volatile__("stwa %0, [%1] %2\n\t"
                          :
@@ -144,7 +143,7 @@ static inline void _insw_ns(volatile uint16_t * port, void *buf, int ns)
 	uint16_t *b = (uint16_t *) buf;
 
 	while (ns > 0) {
-		*b++ = in_le16(port);
+		*b++ = in_be16(port);
 		ns--;
 	}
 }
@@ -155,7 +154,7 @@ static inline void _outsw_ns(volatile uint16_t * port, const void *buf,
 	uint16_t *b = (uint16_t *) buf;
 
 	while (ns > 0) {
-		out_le16(port, *b++);
+		out_be16(port, *b++);
 		ns--;
 	}
 }
@@ -165,7 +164,7 @@ static inline void _insw(volatile uint16_t * port, void *buf, int ns)
 	uint16_t *b = (uint16_t *) buf;
 
 	while (ns > 0) {
-		*b++ = in_be16(port);
+		*b++ = in_le16(port);
 		ns--;
 	}
 }
@@ -176,7 +175,7 @@ static inline void _outsw(volatile uint16_t * port, const void *buf,
 	uint16_t *b = (uint16_t *) buf;
 
 	while (ns > 0) {
-		out_be16(port, *b++);
+		out_le16(port, *b++);
 		ns--;
 	}
 }
