@@ -47,12 +47,20 @@ static const pci_subclass_t undef_subclass[] = {
 
 static const pci_dev_t scsi_devices[] = {
     {
-        /* Virtio-block controller */
+        /* Legacy virtio-block controller */
         PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_DEVICE_ID_VIRTIO_BLOCK,
-        NULL, "virtio-blk", NULL,
+        NULL, "scsi", NULL,
         "pci1af4,1001\0pci1af4,1001\0pciclass,01018f\0",
         0, 0, 0,
-        NULL, NULL,
+        virtio_blk_config_cb, NULL,
+    },
+    {
+        /* Modern virtio-block controller */
+        PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_DEVICE_ID_VIRTIO_BLOCK + 0x41,
+        NULL, "scsi", NULL,
+        "pci1af4,1042\0pci1af4,1042\0pciclass,01018f\0",
+        0, 0, 0,
+        virtio_blk_config_cb, NULL,
     },
     {
         /* lsi53c810 controller */

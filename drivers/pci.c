@@ -37,6 +37,9 @@
 #ifdef CONFIG_DRIVER_USB
 #include "drivers/usb.h"
 #endif
+#ifdef CONFIG_DRIVER_VIRTIO_BLK
+#include "virtio.h"
+#endif
 
 #if defined (CONFIG_DEBUG_PCI)
 # define PCI_DPRINTF(format, ...) printk(format, ## __VA_ARGS__)
@@ -767,6 +770,66 @@ int sungem_config_cb (const pci_config_t *config)
 	set_property(ph, "local-mac-address", (char *)mac, 6);
 	
 	ob_pci_unmap(virt, 0x8000);
+	return 0;
+}
+
+int virtio_blk_config_cb(const pci_config_t *config)
+{
+#ifdef CONFIG_DRIVER_VIRTIO_BLK
+	pci_addr addr;
+	uint8_t idx, cap_idx, cap_vndr;
+	uint8_t cfg_type, bar;
+	uint16_t status;
+	uint32_t offset, notify_mult = 0;
+	uint64_t common_cfg = 0, device_cfg = 0, notify_base = 0;
+
+	addr = PCI_ADDR(
+		PCI_BUS(config->dev),
+		PCI_DEV(config->dev),
+		PCI_FN(config->dev));
+
+	idx = (uint8_t)(pci_config_read16(addr, PCI_DEVICE_ID) & 0xff) - 1;
+
+	/*  Check PCI capabilties: if they don't exist then we're certainly not
+		a 1.0 device */
+	status = pci_config_read16(addr, PCI_STATUS);
+	if (!(status & PCI_STATUS_CAP_LIST)) {
+		return 0;
+	}
+
+	/* Locate VIRTIO_PCI_CAP_COMMON_CFG and VIRTIO_PCI_CAP_DEVICE_CFG */
+	cap_idx = pci_config_read8(addr, PCI_CAPABILITY_LIST);
+	while ((cap_vndr = pci_config_read8(addr, cap_idx)) != 0) {
+		if (cap_vndr == PCI_CAP_ID_VNDR) {
+			cfg_type = pci_config_read8(addr, cap_idx + 0x3);
+			bar = pci_config_read8(addr, cap_idx + 0x4);
+			offset = pci_config_read32(addr, cap_idx + 0x8);
+
+			switch (cfg_type) {
+			case VIRTIO_PCI_CAP_COMMON_CFG:
+				common_cfg = arch->host_pci_base + (config->assigned[bar] & ~0x0000000F) + offset;
+				break;
+			case VIRTIO_PCI_CAP_NOTIFY_CFG:
+				notify_base = arch->host_pci_base + (config->assigned[bar] & ~0x0000000F) + offset;
+				notify_mult = pci_config_read32(addr, cap_idx + 16);
+				break;
+			case VIRTIO_PCI_CAP_DEVICE_CFG:
+				device_cfg = arch->host_pci_base + (config->assigned[bar] & ~0x0000000F) + offset;
+				break;
+			}
+		}
+
+		cap_idx = pci_config_read8(addr, cap_idx + 1);
+	}
+
+	/* If we didn't find the required configuration then exit */
+	if (common_cfg == 0 || device_cfg == 0 || notify_base == 0) {
+		return 0;
+	}
+
+	ob_virtio_init(config->path, "virtio-blk", common_cfg, device_cfg,
+					notify_base, notify_mult, idx);
+#endif
 	return 0;
 }
 

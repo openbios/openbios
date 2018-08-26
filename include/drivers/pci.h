@@ -40,6 +40,12 @@ struct pci_arch_t {
 
 extern const pci_arch_t *arch;
 
+/* Vendor-Specific */
+#define PCI_CAP_ID_VNDR          0x9
+
+/* Offset of first capability list entry */
+#define PCI_CAPABILITY_LIST      0x34
+
 /* Device tree offsets */
 
 #define PCI_INT_MAP_PCI0         0

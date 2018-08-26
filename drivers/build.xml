@@ -28,6 +28,7 @@
   <object source="usbohci.c" condition="DRIVER_USB"/>
   <object source="usbohci_rh.c" condition="DRIVER_USB"/>
   <object source="lsi.c" condition="DRIVER_LSI_53C810"/>
+  <object source="virtio.c" condition="DRIVER_VIRTIO_BLK"/>
  </library>
 
  <dictionary name="openbios" target="forth">
