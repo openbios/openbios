@@ -1300,13 +1300,11 @@ static void ob_pci_add_properties(phandle_t phandle,
 	set_int_property(dev, "class-code", class_code << 8 | class_prog);
 
 	if (config->irq_pin) {
-		OLDWORLD(set_int_property(dev, "AAPL,interrupts",
-					  config->irq_line));
-#if defined(CONFIG_SPARC64)
-                set_int_property(dev, "interrupts", config->irq_pin);
-#else
-		NEWWORLD(set_int_property(dev, "interrupts", config->irq_pin));
-#endif
+		if (is_oldworld()) {
+			set_int_property(dev, "AAPL,interrupts", config->irq_line);
+		} else {
+			set_int_property(dev, "interrupts", config->irq_pin);
+		}
 	}
 
 	set_int_property(dev, "min-grant", pci_config_read8(addr, PCI_MIN_GNT));
@@ -1911,8 +1909,9 @@ static phandle_t ob_pci_host_set_interrupt_map(phandle_t host)
     char *path, buf[256];
 
     /* Oldworld macs do interrupt maps differently */
-    if (!is_newworld())
+    if (is_oldworld()) {
         return 0;
+    }
 
     PCI_DPRINTF("setting up interrupt map for host %x\n", host);
     dnode = dt_iterate_type(0, "open-pic");
