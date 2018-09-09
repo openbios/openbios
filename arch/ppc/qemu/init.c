@@ -130,7 +130,7 @@ static const pci_arch_t known_arch[] = {
             { .type = MEMORY_SPACE_32, .parentaddr = 0, .childaddr = 0xc0100000, .len = 0x10000000 },
             { .type = 0, .parentaddr = 0, .childaddr = 0, .len = 0 }
          },
-        .irqs = { 9, 11, 9, 11 }
+        .irqs = { 15, 15, 15, 15 }
     },
     [ARCH_MAC99] = {
         .name = "MAC99",
