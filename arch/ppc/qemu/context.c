@@ -111,7 +111,7 @@ static void *
 residual_build(uint32_t memsize, uint32_t load_base, uint32_t load_size)
 {
     residual_t *res;
-    const unsigned char model[] = "Qemu\0PPC\0";
+    const unsigned char model[] = "IBM PPS Model 6015\0";
     int i;
 
     res = malloc(sizeof(residual_t));
