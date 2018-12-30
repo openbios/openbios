@@ -294,12 +294,13 @@ static void ignore_dfault_addr(void)
 }
 
 void
-ob_init_mmu(void)
+ob_init_mmu(uint32_t simm_size)
 {
     ucell *memreg;
     ucell *virtreg;
     phys_addr_t virtregsize;
     ofmem_t *ofmem = ofmem_arch_get_private();
+    int i, c;
 
     /* Find the phandles for the /memory and /virtual-memory nodes */
     push_str("/memory");
@@ -315,14 +316,17 @@ ob_init_mmu(void)
     ofmem_register(s_phandle_memory, s_phandle_mmu);
 
     /* Setup /memory:reg (totphys) property */
-    memreg = malloc(3 * sizeof(ucell));
-    ofmem_arch_encode_physaddr(memreg, 0); /* physical base */
-    memreg[2] = (ucell)ofmem->ramsize; /* size */
+    c = ofmem->ramsize / simm_size;
+    memreg = malloc(3 * c * sizeof(ucell));
+    for (i = 0; i < c; i++) {
+        ofmem_arch_encode_physaddr(&memreg[i * 3], simm_size * i); /* physical base */
+        memreg[i * 3 + 2] = simm_size; /* size */
+    }
 
     push_str("/memory");
     fword("find-device");
     PUSH(pointer2cell(memreg));
-    PUSH(3 * sizeof(ucell));
+    PUSH(3 * c * sizeof(ucell));
     push_str("reg");
     PUSH_ph(s_phandle_memory);
     fword("encode-property");

@@ -33,5 +33,5 @@ extern struct linux_mlist_v0 *ptphys;
 extern struct linux_mlist_v0 *ptmap;
 extern struct linux_mlist_v0 *ptavail;
 
-void ob_init_mmu(void);
+void ob_init_mmu(uint32_t simm_size);
 void init_mmu_swift(void);

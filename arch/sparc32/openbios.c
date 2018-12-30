@@ -42,6 +42,7 @@ struct hwdef {
     unsigned long aux1_offset, aux2_offset;
     uint64_t dma_base, esp_base, le_base;
     uint64_t tcx_base;
+    uint32_t simm_size;
     int intr_ncpu;
     int mid_offset;
     int machine_id_low, machine_id_high;
@@ -65,6 +66,7 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0x78400000,
         .esp_base     = 0x78800000,
         .le_base      = 0x78c00000,
+        .simm_size    = 0x2000000,
         .mid_offset   = 0,
         .machine_id_low = 32,
         .machine_id_high = 63,
@@ -86,6 +88,7 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0xef0400000ULL,
         .esp_base     = 0xef0800000ULL,
         .le_base      = 0xef0c00000ULL,
+        .simm_size    = 0x4000000,
         .mid_offset   = 8,
         .machine_id_low = 64,
         .machine_id_high = 65,
@@ -107,6 +110,7 @@ static const struct hwdef hwdefs[] = {
         .dma_base     = 0xef0081000ULL,
         .esp_base     = 0xef0080000ULL,
         .le_base      = 0xef0060000ULL,
+        .simm_size    = 0x4000000,
         .mid_offset   = 8,
         .machine_id_low = 66,
         .machine_id_high = 66,
@@ -874,7 +878,7 @@ arch_init( void )
 
 	openbios_init();
 	modules_init();
-        ob_init_mmu();
+        ob_init_mmu(hwdef->simm_size);
         ob_init_iommu(hwdef->iommu_base);
 
         bind_func("(sparc32-dma-alloc)", dma_alloc);
