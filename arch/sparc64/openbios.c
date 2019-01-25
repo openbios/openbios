@@ -560,8 +560,14 @@ void arch_nvram_get(char *data)
     }
 
     kernel_size = fw_cfg_read_i32(FW_CFG_KERNEL_SIZE);
-    if (kernel_size)
+    if (kernel_size) {
         kernel_image = fw_cfg_read_i64(FW_CFG_KERNEL_ADDR);
+
+        /* Mark the kernel memory as mapped 1:1 and in use */
+        ofmem_claim_phys(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), 0);
+        ofmem_claim_virt(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), 0);
+        ofmem_map(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), -1);
+    }
 
     size = fw_cfg_read_i32(FW_CFG_CMDLINE_SIZE);
     if (size) {
