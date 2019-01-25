@@ -13,6 +13,8 @@
 
 uint64_t kernel_image;
 uint64_t kernel_size;
+uint64_t initrd_image;
+uint64_t initrd_size;
 uint64_t qemu_cmdline;
 uint64_t cmdline_size;
 char *boot_device;

@@ -580,6 +580,16 @@ void arch_nvram_get(char *data)
     qemu_cmdline = (uint64_t)obio_cmdline;
     cmdline_size = size;
 
+    initrd_size = fw_cfg_read_i32(FW_CFG_INITRD_SIZE);
+    if (initrd_size) {
+        initrd_image = fw_cfg_read_i32(FW_CFG_INITRD_ADDR);
+
+        /* Mark initrd memory as mapped 1:1 and in use */
+        ofmem_claim_phys(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), 0);
+        ofmem_claim_virt(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), 0);
+        ofmem_map(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), -1);
+    }
+
     if (kernel_size)
         printk("kernel addr %llx size %llx\n", kernel_image, kernel_size);
     if (size)
