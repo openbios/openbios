@@ -932,6 +932,16 @@ arch_init( void )
     obp_arg.argv[1] = cmdline;
     qemu_cmdline = (uint32_t)cmdline;
 
+    initrd_size = fw_cfg_read_i32(FW_CFG_INITRD_SIZE);
+    if (initrd_size) {
+        initrd_image = fw_cfg_read_i32(FW_CFG_INITRD_ADDR);
+
+        /* Mark initrd memory as mapped 1:1 and in use */
+        ofmem_claim_phys(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), 0);
+        ofmem_claim_virt(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), 0);
+        ofmem_map(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), -1);
+    }
+
         /* Setup nvram variables */
         push_str("/options");
         fword("find-device");

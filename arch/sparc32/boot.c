@@ -17,6 +17,8 @@
 
 uint32_t kernel_image;
 uint32_t kernel_size;
+uint32_t initrd_image;
+uint32_t initrd_size;
 uint32_t qemu_cmdline;
 uint32_t cmdline_size;
 char boot_device;

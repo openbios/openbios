@@ -106,6 +106,8 @@ void ob_intr(int intr);
 /* arch/sparc32/boot.c */
 extern uint32_t kernel_image;
 extern uint32_t kernel_size;
+extern uint32_t initrd_image;
+extern uint32_t initrd_size;
 extern uint32_t qemu_cmdline;
 extern uint32_t cmdline_size;
 extern char boot_device;
