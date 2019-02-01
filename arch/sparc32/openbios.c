@@ -922,14 +922,14 @@ arch_init( void )
 		ofmem_claim_virt(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), 0);
 	}
 
-        kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
-        if (kernel_cmdline) {
-            cmdline = strdup(kernel_cmdline);
-            obp_arg.argv[1] = cmdline;
-        } else {
-	    cmdline = strdup("");
-	}
-	qemu_cmdline = (uint32_t)cmdline;
+    kernel_cmdline = (const char *) fw_cfg_read_i32(FW_CFG_KERNEL_CMDLINE);
+    if (kernel_cmdline) {
+        cmdline = strdup(kernel_cmdline);
+    } else {
+        cmdline = strdup("");
+    }
+    obp_arg.argv[1] = cmdline;
+    qemu_cmdline = (uint32_t)cmdline;
 
         /* Setup nvram variables */
         push_str("/options");
