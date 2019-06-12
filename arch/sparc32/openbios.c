@@ -758,8 +758,16 @@ static void setup_stdio(void)
 {
     char nographic;
     const char *stdin, *stdout;
+    phandle_t display_ph;
 
     fw_cfg_read(FW_CFG_NOGRAPHIC, &nographic, 1);
+
+    /* Check to see if any framebuffer present */
+    display_ph = dt_iterate_type(0, "display");
+    if (display_ph == 0) {
+        nographic = 1;
+    }
+
     if (nographic) {
         obp_stdin = PROMDEV_TTYA;
         obp_stdout = PROMDEV_TTYA;
