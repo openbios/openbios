@@ -138,6 +138,7 @@ ob_le_init(unsigned int slot, uint64_t base, unsigned long leoffset, unsigned lo
 
 uint16_t graphic_depth;
 
+#if !defined(CONFIG_QEMU)
 static void
 ob_tcx_init(unsigned int slot, const char *path)
 {
@@ -162,6 +163,7 @@ ob_tcx_init(unsigned int slot, const char *path)
     /* Restore */
     feval("to my-self active-package!");
 }
+#endif
 
 static void
 ob_apc_init(unsigned int slot, unsigned long base)
@@ -298,9 +300,12 @@ sbus_probe_slot_ss5(unsigned int slot, uint64_t base)
     }
 
     switch(slot) {
+#if !defined(CONFIG_QEMU)
+    /* QEMU always uses the FCode driver */
     case 3: // SUNW,tcx
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
+#endif
     case 4:
         // SUNW,CS4231
         ob_cs4231_init(slot);
@@ -327,9 +332,12 @@ sbus_probe_slot_ss10(unsigned int slot, uint64_t base)
     }
 
     switch(slot) {
+#if !defined(CONFIG_QEMU)
+    /* QEMU always uses the FCode driver */
     case 2: // SUNW,tcx
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
+#endif
     case 0xf: // le, esp, bpp, power-management
         ob_macio_init(slot, base, 0);
         // Power management (APC) XXX should not exist
@@ -352,9 +360,12 @@ sbus_probe_slot_ss600mp(unsigned int slot, uint64_t base)
     }
 
     switch(slot) {
+#if !defined(CONFIG_QEMU)
+    /* QEMU always uses the FCode driver */
     case 2: // SUNW,tcx
         ob_tcx_init(slot, "/iommu/sbus/SUNW,tcx");
         break;
+#endif
     case 0xf: // le, esp, bpp, power-management
 #ifdef CONFIG_DRIVER_ESP
         ob_esp_init(slot, base, SS600MP_ESP, SS600MP_ESPDMA);
