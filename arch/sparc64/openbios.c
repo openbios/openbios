@@ -537,10 +537,11 @@ void arch_nvram_get(char *data)
     uint32_t temp;
     uint64_t ram_size;
     uint32_t clock_frequency;
-    uint16_t machine_id;
+    uint16_t machine_id, nographic;
     const char *stdin_path, *stdout_path;
     char *bootorder_file, *boot_path;
     uint32_t bootorder_sz, sz;
+    phandle_t display_ph;
 
     fw_cfg_init();
 
@@ -701,7 +702,15 @@ void arch_nvram_get(char *data)
     push_str("/chosen");
     fword("find-device");
 
-    if (fw_cfg_read_i16(FW_CFG_NOGRAPHIC)) {
+    nographic = fw_cfg_read_i16(FW_CFG_NOGRAPHIC);
+
+    /* Check to see if any framebuffer present */
+    display_ph = dt_iterate_type(0, "display");
+    if (display_ph == 0) {
+        nographic = 1;
+    }
+
+    if (nographic) {
         stdin_path = stdout_path = "ttya";
     } else {
         stdin_path = "keyboard";
