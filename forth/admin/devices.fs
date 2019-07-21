@@ -417,7 +417,7 @@
 
 \ This function hardwires data formats to particular node properties
 : (.property-by-name) ( name-str name-len data len -- )
-  2over " reg" strcmp 0= if
+  2over 2dup " reg" strcmp 0= -rot " assigned-addresses" strcmp 0= or if
     my-#acells my-#scells 2swap .p-reg
     2drop exit
   then
