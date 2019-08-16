@@ -105,7 +105,7 @@ create_free_part( char *ptr, int size )
 	nvpart_t *nvp = (nvpart_t*)ptr;
 	memset( nvp, 0, size );
 
-	strncpy( nvp->name, "777777777777", sizeof(nvp->name) );
+	strncpy( nvp->name, "77777777777", sizeof(nvp->name) );
 	nvp->signature = NV_SIG_FREE;
 	nvp->len_hi = (size /16) >> 8;
 	nvp->len_lo = size /16;

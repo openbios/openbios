@@ -86,7 +86,7 @@ _search( hfsvol *vol, const char *path, const char *sname, hfsfile **ret_fd )
 
 	strncpy( buf, path, sizeof(buf) );
 	if( buf[strlen(buf)-1] != ':' )
-		strncat( buf, ":", sizeof(buf) );
+		strncat( buf, ":", sizeof(buf) - 1 );
 	buf[sizeof(buf)-1] = 0;
 	p = buf + strlen( buf );
 

@@ -369,7 +369,7 @@ static void
 rtc_init(char *path)
 {
 	phandle_t ph, aliases;
-	char buf[64];
+	char buf[128];
 
         snprintf(buf, sizeof(buf), "%s/rtc", path);
 	REGISTER_NAMED_NODE(rtc, buf);
@@ -387,7 +387,7 @@ static void
 powermgt_init(char *path)
 {
 	phandle_t ph;
-	char buf[64];
+	char buf[128];
 
         snprintf(buf, sizeof(buf), "%s/power-mgt", path);
 	REGISTER_NAMED_NODE(rtc, buf);
