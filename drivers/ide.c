@@ -32,8 +32,8 @@ do { printk("IDE - %s: " fmt, __func__ , ##args); } while (0)
 #endif
 
 /* DECLARE data structures for the nodes.  */
-DECLARE_UNNAMED_NODE( ob_ide, INSTALL_OPEN, sizeof(struct ide_drive*) );
-DECLARE_UNNAMED_NODE( ob_ide_ctrl, INSTALL_OPEN, sizeof(int));
+DECLARE_UNNAMED_NODE( ob_ide, 0, sizeof(struct ide_drive*) );
+DECLARE_UNNAMED_NODE( ob_ide_ctrl, 0, sizeof(int));
 
 /*
  * define to 2 for the standard 2 channels only
@@ -1225,26 +1225,6 @@ ob_ide_block_size(int *idx)
 }
 
 static void
-ob_ide_initialize(int *idx)
-{
-	int props[3];
-	phandle_t ph=get_cur_dev();
-
-	push_str("block");
-	fword("device-type");
-
-	// Set dummy reg properties
-
-	set_int_property(ph, "#address-cells", 1);
-	set_int_property(ph, "#size-cells", 0);
-
-	props[0] = __cpu_to_be32(0); props[1] = __cpu_to_be32(0); props[2] = __cpu_to_be32(0);
-	set_property(ph, "reg", (char *)&props, 3*sizeof(int));
-
-	fword("is-deblocker");
-}
-
-static void
 ob_ide_open(int *idx)
 {
 	int ret=1;
@@ -1318,7 +1298,6 @@ ob_ide_dma_sync(int *idx)
 }
 
 NODE_METHODS(ob_ide) = {
-	{ NULL,			ob_ide_initialize	},
 	{ "open",		ob_ide_open		},
 	{ "close",		ob_ide_close		},
 	{ "read-blocks",	ob_ide_read_blocks	},
@@ -1332,26 +1311,25 @@ NODE_METHODS(ob_ide) = {
 };
 
 static void
-ob_ide_ctrl_initialize(int *idx)
-{
-	phandle_t ph=get_cur_dev();
-
-	/* set device type */
-	push_str(DEV_TYPE);
-	fword("device-type");
-
-	set_int_property(ph, "#address-cells", 1);
-	set_int_property(ph, "#size-cells", 0);
-}
-
-static void
 ob_ide_ctrl_decodeunit(int *idx)
 {
 	fword("parse-hex");
 }
 
+static void
+ob_ide_ctrl_open(int *idx)
+{
+	RET(-1);
+}
+
+static void
+ob_ide_ctrl_close(int *idx)
+{
+}
+
 NODE_METHODS(ob_ide_ctrl) = {
-	{ NULL,			ob_ide_ctrl_initialize	},
+	{ "open",		ob_ide_ctrl_open		},
+	{ "close",		ob_ide_ctrl_close		},
 	{ "decode-unit",	ob_ide_ctrl_decodeunit  },
 	{ "dma-alloc",		ob_ide_dma_alloc	},
 	{ "dma-free",		ob_ide_dma_free		},
@@ -1414,6 +1392,9 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	io_ports[1] = io_port1;
 	ctl_ports[1] = ctl_port1;
 
+	push_str(path);
+	fword("find-device");
+
 	for (i = 0; i < IDE_NUM_CHANNELS; i++, current_channel++) {
 
 		chan = malloc(sizeof(struct ide_channel));
@@ -1457,10 +1438,11 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 		ob_ide_identify_drives(chan);
 
-		snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME, path);
-		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
-
+		fword("new-device");
+		dnode = get_cur_dev();
 		chan->ph = dnode;
+
+		BIND_NODE_METHODS(get_cur_dev(), ob_ide_ctrl);
 
 #if !defined(CONFIG_PPC) && !defined(CONFIG_SPARC64)
 		props[0]=14; props[1]=0;
@@ -1472,6 +1454,15 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 		props[1] = __cpu_to_be32(0);
 		props[2] = 0;
 		set_property(dnode, "reg", (char *)&props, 3*sizeof(props[0]));
+
+		set_int_property(dnode, "#address-cells", 1);
+		set_int_property(dnode, "#size-cells", 0);
+
+		push_str(DEV_NAME);
+		fword("device-name");
+
+		push_str(DEV_TYPE);
+		fword("device-type");
 
 		IDE_DPRINTF(DEV_NAME": [io ports 0x%x-0x%x,0x%x]\n",
 		            current_channel, chan->io_regs[0],
@@ -1500,20 +1491,34 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 					media = "disk";
 					break;
 			}
+
 			IDE_DPRINTF("%s]: %s\n", media, drive->model);
-			snprintf(nodebuff, sizeof(nodebuff), "%s/%s",
-				 get_path_from_ph(dnode), media);
-			REGISTER_NAMED_NODE_PHANDLE(ob_ide, nodebuff, dnode);
+
+			fword("new-device");
+			dnode = get_cur_dev();
 			set_int_property(dnode, "reg", j);
+			push_str(media);
+			fword("device-name");
+
+			push_str("block");
+			fword("device-type");
+
+			BIND_NODE_METHODS(dnode, ob_ide);
+			fword("is-deblocker");
+
+			fword("finish-device");
 
 			/* create aliases */
-
+			snprintf(nodebuff, sizeof(nodebuff), "%s",
+				 get_path_from_ph(dnode));
 			set_ide_alias(nodebuff);
 			if (drive->media == ide_media_cdrom)
 				set_cd_alias(nodebuff);
 			if (drive->media == ide_media_disk)
 				set_hd_alias(nodebuff);
 		}
+
+		fword("finish-device");
 	}
 
 	return 0;
@@ -1583,6 +1588,9 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 	 * Also see comments in pci.c:ob_pci_host_set_interrupt_map() */
 	current_channel = 3;
 
+	push_str(path);
+	fword("find-device");
+
 	for (i = 0; i < nb_channels; i++) {
 
 		chan = malloc(sizeof(struct ide_channel));
@@ -1622,11 +1630,19 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 
 		ob_ide_identify_drives(chan);
 
-		snprintf(nodebuff, sizeof(nodebuff), "%s/" DEV_NAME "-%d", path,
-                current_channel);
-		REGISTER_NAMED_NODE_PHANDLE(ob_ide_ctrl, nodebuff, dnode);
-
+		fword("new-device");
+		dnode = get_cur_dev();
 		chan->ph = dnode;
+
+		snprintf(nodebuff, sizeof(nodebuff), DEV_NAME "-%d", current_channel);
+		push_str(nodebuff);
+		fword("device-name");
+
+		push_str(DEV_TYPE);
+		fword("device-type");
+
+		set_int_property(dnode, "#address-cells", 1);
+		set_int_property(dnode, "#size-cells", 0);
 
 		set_property(dnode, "compatible", (is_oldworld() ?
 			     "heathrow-ata" : "keylargo-ata"), 13);
@@ -1695,6 +1711,8 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 		IDE_DPRINTF(DEV_NAME": [io ports 0x%lx]\n",
 		            current_channel, chan->mmio);
 
+		BIND_NODE_METHODS(dnode, ob_ide_ctrl);
+
 		for (j = 0; j < 2; j++) {
 			struct ide_drive *drive = &chan->drives[j];
                         const char *media = "UNKNOWN";
@@ -1719,19 +1737,32 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 					break;
 			}
 			IDE_DPRINTF("%s]: %s\n", media, drive->model);
-			snprintf(nodebuff, sizeof(nodebuff), "%s/%s",
-				 get_path_from_ph(dnode), media);
-			REGISTER_NAMED_NODE_PHANDLE(ob_ide, nodebuff, dnode);
+
+			fword("new-device");
+			dnode = get_cur_dev();
 			set_int_property(dnode, "reg", j);
+			push_str(media);
+			fword("device-name");
+
+			push_str("block");
+			fword("device-type");
+
+			BIND_NODE_METHODS(dnode, ob_ide);
+			fword("is-deblocker");
+
+			fword("finish-device");
 
 			/* create aliases */
-
+			snprintf(nodebuff, sizeof(nodebuff), "%s",
+				 get_path_from_ph(dnode));
 			set_ide_alias(nodebuff);
 			if (drive->media == ide_media_cdrom)
 				set_cd_alias(nodebuff);
 			if (drive->media == ide_media_disk)
 				set_hd_alias(nodebuff);
 		}
+
+		fword("finish-device");
 	}
 
 	return 0;
