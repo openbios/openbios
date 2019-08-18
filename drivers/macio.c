@@ -91,9 +91,8 @@ void macio_nvram_init(const char *path, phys_addr_t addr)
         nvram_size = macio_nvram_size();
 
 	nvram = (char*)addr + nvram_offset;
-        snprintf(buf, sizeof(buf), "%s/nvram", path);
-	nvram_init(buf);
-	dnode = find_dev(buf);
+	snprintf(buf, sizeof(buf), "%s", path);
+	dnode = nvram_init(buf);
 	set_int_property(dnode, "#bytes", arch_nvram_size() );
 	props[0] = __cpu_to_be32(nvram_offset);
 	props[1] = __cpu_to_be32(nvram_size);
@@ -102,6 +101,7 @@ void macio_nvram_init(const char *path, phys_addr_t addr)
 	NEWWORLD(set_property(dnode, "compatible", "nvram,flash", 12));
 
 	chosen = find_dev("/chosen");
+	snprintf(buf, sizeof(buf), "%s", get_path_from_ph(dnode));
 	push_str(buf);
 	fword("open-dev");
 	set_int_property(chosen, "nvram", POP());
@@ -395,7 +395,7 @@ ob_macio_keylargo_init(const char *path, phys_addr_t addr)
     }
 
     /* The NewWorld NVRAM is not located in the MacIO device */
-    macio_nvram_init("", 0);
+    macio_nvram_init("/", 0);
     escc_init(path, addr);
     macio_ide_init(path, addr, 2);
     openpic_init(path, addr);

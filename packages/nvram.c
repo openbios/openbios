@@ -291,7 +291,20 @@ nvram_size( __attribute__((unused)) nvram_ibuf_t *nd )
 	PUSH( nvram.size );
 }
 
+static void
+nvram_open( __attribute__((unused)) nvram_ibuf_t *nd )
+{
+	RET(-1);
+}
+
+static void
+nvram_close( __attribute__((unused)) nvram_ibuf_t *nd )
+{
+}
+
 NODE_METHODS( nvram ) = {
+	{ "open",	(void*)nvram_open	},
+	{ "close",	(void*)nvram_close	},
 	{ "size",	(void*)nvram_size	},
 	{ "read",	(void*)nvram_read	},
 	{ "write",	(void*)nvram_write	},
@@ -299,10 +312,25 @@ NODE_METHODS( nvram ) = {
 };
 
 
-void
+phandle_t
 nvram_init( const char *path )
 {
+	phandle_t ph;
+
+	push_str(path);
+	fword("find-device");
+
+	fword("new-device");
+
 	nvconf_init();
 
-	REGISTER_NAMED_NODE( nvram, path );
+	ph = get_cur_dev();
+
+	push_str("nvram");
+	fword("device-name");
+
+	BIND_NODE_METHODS(get_cur_dev(), nvram);
+	fword("finish-device");
+
+	return ph;
 }

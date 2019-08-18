@@ -17,8 +17,10 @@
 #ifndef _H_NVRAM_PACKAGE
 #define _H_NVRAM_PACKAGE
 
+#include "kernel/stack.h"
+
 extern void	nvconf_init( void );
-extern void	nvram_init( const char *path );
+extern phandle_t	nvram_init( const char *path );
 extern void	update_nvram( void );
 
 #endif   /* _H_NVRAM_PACKAGE */
