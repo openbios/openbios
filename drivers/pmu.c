@@ -348,7 +348,7 @@ static int pmu_adb_req(void *host, const uint8_t *snd_buf, int len,
 }
 #endif
 
-DECLARE_UNNAMED_NODE(ob_pmu, INSTALL_OPEN, sizeof(int));
+DECLARE_UNNAMED_NODE(ob_pmu, 0, sizeof(int));
 
 static pmu_t *main_pmu;
 
@@ -364,32 +364,6 @@ static void pmu_poweroff(void)
     pmu_request(main_pmu, PMU_SHUTDOWN, 4, params, NULL, NULL);
 }
 
-static void ob_pmu_initialize (int *idx)
-{
-    phandle_t ph=get_cur_dev();
-    int props[2];
-
-    push_str("via-pmu");
-    fword("device-type");
-
-    set_int_property(ph, "#address-cells", 1);
-    set_int_property(ph, "#size-cells", 0);
-    set_property(ph, "compatible", "pmu", 4);
-
-    props[0] = __cpu_to_be32(IO_PMU_OFFSET);
-    props[1] = __cpu_to_be32(IO_PMU_SIZE);
-    set_property(ph, "reg", (char *)&props, sizeof(props));
-
-    /* On newworld machines the PMU is on interrupt 0x19 */
-    props[0] = 0x19;
-    props[1] = 1;
-    set_property(ph, "interrupts", (char *)props, sizeof(props));
-    set_int_property(ph, "pmu-version", 0xd0330c);
-
-    bind_func("pmu-reset-all", pmu_reset_all);
-    feval("['] pmu-reset-all to reset-all");
-}
-
 static void ob_pmu_open(int *idx)
 {
     RET(-1);
@@ -400,16 +374,19 @@ static void ob_pmu_close(int *idx)
 }
 
 NODE_METHODS(ob_pmu) = {
-    { NULL,        ob_pmu_initialize },
     { "open",      ob_pmu_open },
     { "close",     ob_pmu_close },
 };
 
-DECLARE_UNNAMED_NODE(rtc, INSTALL_OPEN, sizeof(int));
+DECLARE_UNNAMED_NODE(rtc, 0, sizeof(int));
 
 static void rtc_open(int *idx)
 {
     RET(-1);
+}
+
+static void rtc_close(int *idx)
+{
 }
 
 /*
@@ -516,31 +493,64 @@ static  void rtc_set_time(int *idx)
 
 NODE_METHODS(rtc) = {
     { "open",      rtc_open },
+    { "close",      rtc_close },
     { "get-time",  rtc_get_time },
     { "set-time",  rtc_set_time },
 };
 
 static void rtc_init(char *path)
 {
-    phandle_t ph, aliases;
+    phandle_t aliases;
     char buf[128];
 
-    snprintf(buf, sizeof(buf), "%s/rtc", path);
-    REGISTER_NAMED_NODE(rtc, buf);
+    push_str(path);
+    fword("find-device");
 
-    ph = find_dev(buf);
-    set_property(ph, "device_type", "rtc", 4);
-    set_property(ph, "compatible", "rtc,via-pmu", 12);
+    fword("new-device");
+
+    push_str("rtc");
+    fword("device-name");
+
+    push_str("rtc");
+    fword("device-type");
+
+    push_str("rtc,via-pmu");
+    fword("encode-string");
+    push_str("compatible");
+    fword("property");
+
+    BIND_NODE_METHODS(get_cur_dev(), rtc);
+    fword("finish-device");
 
     aliases = find_dev("/aliases");
+    snprintf(buf, sizeof(buf), "%s/rtc", path);
     set_property(aliases, "rtc", buf, strlen(buf) + 1);
-    device_end();
 }
 
 static void powermgt_init(char *path)
 {
     phandle_t ph;
-    char buf[128];
+
+    push_str(path);
+    fword("find-device");
+
+    fword("new-device");
+
+    push_str("power-mgt");
+    fword("device-name");
+
+    push_str("power-mgt");
+    fword("device-type");
+
+    push_str("via-pmu-99");
+    fword("encode-string");
+    push_str("compatible");
+    fword("property");
+
+    push_str("extint-gpio1");
+    fword("encode-string");
+    push_str("registry-name");
+    fword("property");
 
     /* This is a bunch of magic "Feature" bits for which we only have
      * partial definitions from Darwin. These are taken from a
@@ -574,15 +584,12 @@ static void powermgt_init(char *path)
                           0x46, 0x00, 0x02, 0x78,
                           0x78, 0x3c, 0x00 };
 
-    snprintf(buf, sizeof(buf), "%s/power-mgt", path);
-    REGISTER_NAMED_NODE(rtc, buf); // XXX ?
+    ph = get_cur_dev();
+    BIND_NODE_METHODS(ph, rtc);
 
-    ph = find_dev(buf);
-    set_property(ph, "device_type", "power-mgt", 10);
-    set_property(ph, "compatible", "via-pmu-99", 11);
-    set_property(ph, "registry-name", "extint-gpio1", 13);
     set_property(ph, "prim-info", prim, sizeof(prim));
-    device_end();
+
+    fword("finish-device");
 }
 
 pmu_t *pmu_init(const char *path, phys_addr_t base)
@@ -599,10 +606,58 @@ pmu_t *pmu_init(const char *path, phys_addr_t base)
         return NULL;
     }
 
-    snprintf(buf, sizeof(buf), "%s/via-pmu", path);
-    REGISTER_NAMED_NODE(ob_pmu, buf);
+    push_str(path);
+    fword("find-device");
+
+    fword("new-device");
+
+    push_str("via-pmu");
+    fword("device-name");
+
+    push_str("via-pmu");
+    fword("device-type");
+
+    push_str("pmu");
+    fword("encode-string");
+    push_str("compatible");
+    fword("property");
+
+    PUSH(1);
+    fword("encode-int");
+    push_str("#address-cells");
+    fword("property");
+
+    PUSH(0);
+    fword("encode-int");
+    push_str("#size-cells");
+    fword("property");
+
+    PUSH(IO_PMU_OFFSET);
+    fword("encode-int");
+    PUSH(IO_PMU_SIZE);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
+
+    /* On newworld machines the PMU is on interrupt 0x19 */
+    PUSH(0x19);
+    fword("encode-int");
+    PUSH(1);
+    fword("encode-int");
+    fword("encode+");
+    push_str("interrupts");
+    fword("property");
+
+    PUSH(0xd0330c);
+    fword("encode-int");
+    push_str("pmu-version");
+    fword("property");
+
+    BIND_NODE_METHODS(get_cur_dev(), ob_pmu);
 
     aliases = find_dev("/aliases");
+    snprintf(buf, sizeof(buf), "%s/via-pmu", path);
     set_property(aliases, "via-pmu", buf, strlen(buf) + 1);
     pmu->base = base;
 
@@ -618,8 +673,12 @@ pmu_t *pmu_init(const char *path, phys_addr_t base)
 
     main_pmu = pmu;
 
-    device_end();
-    bind_func("poweroff", pmu_poweroff);
+    fword("finish-device");
+
+    bind_func("pmu-power-off", pmu_poweroff);
+    feval("['] pmu-power-off to power-off");
+    bind_func("pmu-reset-all", pmu_reset_all);
+    feval("['] pmu-reset-all to reset-all");
 
     return pmu;
 }
