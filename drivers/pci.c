@@ -1748,6 +1748,8 @@ static phandle_t ob_configure_pci_device(const char* parent_path,
         const pci_dev_t *pci_dev;
     uint8_t class, subclass, iface;
     int num_bars, rom_bar;
+    uint32_t props[3];
+    char *unit_str;
 
     phandle_t phandle = 0, t;
     int is_host_bridge = 0;
@@ -1803,6 +1805,25 @@ static phandle_t ob_configure_pci_device(const char* parent_path,
     PCI_DPRINTF("%s - ", config.path);
 
     config.dev = addr & 0x00FFFFFF;
+
+    if (!is_host_bridge) {
+        /* Get encoded address for set-args */
+        pci_encode_phys_addr(props, 0, CONFIGURATION_SPACE, config.dev, 0, 0);
+        PUSH(props[2]);
+        PUSH(props[1]);
+        PUSH(props[0]);
+        call_parent_method("encode-unit");
+
+        unit_str = pop_fstr_copy();
+
+        /* Call set-args to set up my-space and my-address */
+        PUSH(0);
+        PUSH(0);
+        push_str(unit_str);
+        fword("set-args");
+
+        free(unit_str);
+    }
 
     phandle = get_cur_dev();
 
