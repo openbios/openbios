@@ -624,13 +624,12 @@ NODE_METHODS(ob_lsi) = {
 static void
 add_alias(const char *device, const char *alias)
 {
+    phandle_t aliases;
+
     DPRINTF("add_alias dev \"%s\" = alias \"%s\"\n", device, alias);
-    push_str("/aliases");
-    fword("find-device");
-    push_str(device);
-    fword("encode-string");
-    push_str(alias);
-    fword("property");
+
+    aliases = find_dev("/aliases");
+    set_property(aliases, alias, device, strlen(device) + 1);
 }
 
 int
