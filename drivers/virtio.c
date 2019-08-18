@@ -503,12 +503,11 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     ucell addr;
     VDev *vdev, **_vdev;
 
-    REGISTER_NODE_METHODS(ob_virtio, path);
-
     /* Open ob_virtio */
     fword("my-self");
     push_str(path);
     feval("open-dev to my-self");
+    BIND_NODE_METHODS(get_cur_dev(), ob_virtio);
 
     ph = find_ih_method("vdev", my_self());
     PUSH(ph);
@@ -546,10 +545,9 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     push_str("_vdev");
     fword("property");
 
+    BIND_NODE_METHODS(get_cur_dev(), ob_virtio_disk);
     fword("finish-device");
 
     snprintf(buf, sizeof(buf), "%s/disk", path);
-    REGISTER_NODE_METHODS(ob_virtio_disk, buf);
-
     set_virtio_alias(buf, idx);
 }
