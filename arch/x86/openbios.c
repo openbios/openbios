@@ -56,8 +56,15 @@ arch_init( void )
 	openbios_init();
 	modules_init();
 #ifdef CONFIG_DRIVER_PCI
-        arch = &default_pci_host;
+	arch = &default_pci_host;
+
+	push_str("/");
+	fword("find-device");
+	feval("\" /\" open-dev to my-self");
+
 	ob_pci_init();
+
+	feval("0 to my-self");
 #endif
 #ifdef CONFIG_DRIVER_IDE
 	setup_timers();
