@@ -504,9 +504,6 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     VDev *vdev, **_vdev;
 
     /* Open ob_virtio */
-    fword("my-self");
-    push_str(path);
-    feval("open-dev to my-self");
     BIND_NODE_METHODS(get_cur_dev(), ob_virtio);
 
     ph = find_ih_method("vdev", my_self());
@@ -532,7 +529,6 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     vdev->ring_area = cell2pointer(addr);
 
     *_vdev = vdev;
-    feval("to my-self");
 
     fword("new-device");
     push_str("disk");

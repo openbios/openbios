@@ -653,10 +653,6 @@ ob_lsi_init(const char *path, uint64_t mmio, uint64_t ram)
     global_lsi = lsi;
 
     /* Buffer for commands */
-    fword("my-self");
-    push_str(path);
-    feval("open-dev to my-self");
-
     PUSH(0x1000);
     feval("dma-alloc");
     addr = POP();
@@ -695,7 +691,6 @@ ob_lsi_init(const char *path, uint64_t mmio, uint64_t ram)
 
     set_int_property(ph, "#address-cells", 1);
     set_int_property(ph, "#size-cells", 0);
-    feval("to my-self");
 
     /* Initialise SCRIPTS */
     lsi->mmio = (uint8_t *)(uint32_t)mmio;
