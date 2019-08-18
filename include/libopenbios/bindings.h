@@ -108,17 +108,6 @@ typedef struct {
 	void		*func;
 } method_t;
 
-#define REGISTER_NAMED_NODE( name, path )   do { \
-	bind_new_node( name##_flags_, name##_size_, \
-		path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-	} while(0)
-
-#define REGISTER_NAMED_NODE_PHANDLE( name, path, phandle )   do { \
-    phandle = \
-    bind_new_node( name##_flags_, name##_size_, \
-        path, name##_m, sizeof(name##_m)/sizeof(method_t)); \
-    } while(0)
-
 #define REGISTER_NODE_METHODS( name, path )   do {			\
 	const char *paths[1];						\
 									\
