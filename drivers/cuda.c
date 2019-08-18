@@ -170,7 +170,7 @@ static int cuda_adb_req (void *host, const uint8_t *snd_buf, int len,
 }
 
 
-DECLARE_UNNAMED_NODE(ob_cuda, INSTALL_OPEN, sizeof(int));
+DECLARE_UNNAMED_NODE(ob_cuda, 0, sizeof(int));
 
 static cuda_t *main_cuda;
 
@@ -193,43 +193,6 @@ ppc32_poweroff(void)
 }
 
 static void
-ob_cuda_initialize (int *idx)
-{
-	phandle_t ph=get_cur_dev();
-	int props[2];
-
-	push_str("via-cuda");
-	fword("device-type");
-
-	set_int_property(ph, "#address-cells", 1);
-        set_int_property(ph, "#size-cells", 0);
-
-	set_property(ph, "compatible", "cuda", 5);
-
-	props[0] = __cpu_to_be32(IO_CUDA_OFFSET);
-	props[1] = __cpu_to_be32(IO_CUDA_SIZE);
-
-	set_property(ph, "reg", (char *)&props, sizeof(props));
-
-	/* on newworld machines the cuda is on interrupt 0x19 */
-
-	props[0] = 0x19;
-	props[1] = 0;
-	NEWWORLD(set_property(ph, "interrupts", (char *)props, sizeof(props)));
-	NEWWORLD(set_int_property(ph, "#interrupt-cells", 2));
-
-	/* we emulate an oldworld hardware, so we must use
-	 * non-standard oldworld property (needed by linux 2.6.18)
-	 */
-
-	OLDWORLD(set_int_property(ph, "AAPL,interrupts", 0x12));
-
-        bind_func("ppc32-reset-all", ppc32_reset_all);
-        push_str("' ppc32-reset-all to reset-all");
-        fword("eval");
-}
-
-static void
 ob_cuda_open(int *idx)
 {
 	RET(-1);
@@ -241,12 +204,11 @@ ob_cuda_close(int *idx)
 }
 
 NODE_METHODS(ob_cuda) = {
-	{ NULL,			ob_cuda_initialize	},
 	{ "open",		ob_cuda_open		},
 	{ "close",		ob_cuda_close		},
 };
 
-DECLARE_UNNAMED_NODE(rtc, INSTALL_OPEN, sizeof(int));
+DECLARE_UNNAMED_NODE(rtc, 0, sizeof(int));
 
 static void
 rtc_open(int *idx)
@@ -368,41 +330,67 @@ NODE_METHODS(rtc) = {
 static void
 rtc_init(char *path)
 {
-	phandle_t ph, aliases;
+	phandle_t aliases;
 	char buf[128];
 
-        snprintf(buf, sizeof(buf), "%s/rtc", path);
-	REGISTER_NAMED_NODE(rtc, buf);
+	push_str(path);
+	fword("find-device");
 
-	ph = find_dev(buf);
-	set_property(ph, "device_type", "rtc", 4);
-	set_property(ph, "compatible", "rtc", 4);
+	fword("new-device");
+
+	push_str("rtc");
+	fword("device-name");
+
+	push_str("rtc");
+	fword("device-type");
+
+	push_str("rtc");
+	fword("encode-string");
+	push_str("compatible");
+	fword("property");
+
+	BIND_NODE_METHODS(get_cur_dev(), rtc);
+	fword("finish-device");
 
 	aliases = find_dev("/aliases");
+	snprintf(buf, sizeof(buf), "%s/rtc", path);
 	set_property(aliases, "rtc", buf, strlen(buf) + 1);
-
 }
 
 static void
 powermgt_init(char *path)
 {
-	phandle_t ph;
-	char buf[128];
+	push_str(path);
+	fword("find-device");
 
-        snprintf(buf, sizeof(buf), "%s/power-mgt", path);
-	REGISTER_NAMED_NODE(rtc, buf);
+	fword("new-device");
 
-	ph = find_dev(buf);
-	set_property(ph, "device_type", "power-mgt", 10);
-	set_property(ph, "mgt-kind", "min-consumption-pwm-led", strlen("min-consumption-pwm-led") + 1);
-	set_property(ph, "compatible", "cuda", strlen("cuda") + 1);
+	push_str("power-mgt");
+	fword("device-name");
+
+	push_str("power-mgt");
+	fword("device-type");
+
+	push_str("min-consumption-pwm-led");
+	fword("encode-string");
+	push_str("mgt-kind");
+	fword("property");
+
+	push_str("cuda");
+	fword("encode-string");
+	push_str("compatible");
+	fword("property");
+
+	BIND_NODE_METHODS(get_cur_dev(), rtc);
+	fword("finish-device");
 }
 
 cuda_t *cuda_init (const char *path, phys_addr_t base)
 {
 	cuda_t *cuda;
 	char buf[64];
-	phandle_t aliases;
+	phandle_t ph, aliases;
+	int props[2];
 
 	base += IO_CUDA_OFFSET;
 	CUDA_DPRINTF(" base=" FMT_plx "\n", base);
@@ -410,10 +398,57 @@ cuda_t *cuda_init (const char *path, phys_addr_t base)
 	if (cuda == NULL)
 	    return NULL;
 
-	snprintf(buf, sizeof(buf), "%s/via-cuda", path);
-	REGISTER_NAMED_NODE(ob_cuda, buf);
+	push_str(path);
+	fword("find-device");
+
+	fword("new-device");
+
+	push_str("via-cuda");
+	fword("device-name");
+
+	push_str("via-cuda");
+	fword("device-type");
+
+	push_str("cuda");
+	fword("encode-string");
+	push_str("compatible");
+	fword("property");
+
+	PUSH(1);
+	fword("encode-int");
+	push_str("#address-cells");
+	fword("property");
+
+	PUSH(0);
+	fword("encode-int");
+	push_str("#size-cells");
+	fword("property");
+
+	PUSH(IO_CUDA_OFFSET);
+	fword("encode-int");
+	PUSH(IO_CUDA_SIZE);
+	fword("encode-int");
+	fword("encode+");
+	push_str("reg");
+	fword("property");
+
+	ph = get_cur_dev();
+
+	/* on newworld machines the cuda is on interrupt 0x19 */
+	props[0] = 0x19;
+	props[1] = 0;
+	NEWWORLD(set_property(ph, "interrupts", (char *)props, sizeof(props)));
+	NEWWORLD(set_int_property(ph, "#interrupt-cells", 2));
+
+	/* we emulate an oldworld hardware, so we must use
+	 * non-standard oldworld property (needed by linux 2.6.18)
+	 */
+	OLDWORLD(set_int_property(ph, "AAPL,interrupts", 0x12));
+
+	BIND_NODE_METHODS(get_cur_dev(), ob_cuda);
 
 	aliases = find_dev("/aliases");
+	snprintf(buf, sizeof(buf), "%s/via-cuda", path);
 	set_property(aliases, "via-cuda", buf, strlen(buf) + 1);
 
 	cuda->base = base;
@@ -430,10 +465,14 @@ cuda_t *cuda_init (const char *path, phys_addr_t base)
 	rtc_init(buf);
 	powermgt_init(buf);
 
-        main_cuda = cuda;
+	main_cuda = cuda;
 
-	device_end();
-	bind_func("poweroff", ppc32_poweroff);
+	fword("finish-device");
+
+	bind_func("ppc32-power-off", ppc32_poweroff);
+	feval("['] ppc32-power-off to power-off");
+	bind_func("ppc32-reset-all", ppc32_reset_all);
+	feval("['] ppc32-reset-all to reset-all");
 
 	return cuda;
 }
