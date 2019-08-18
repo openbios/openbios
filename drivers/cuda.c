@@ -398,9 +398,6 @@ cuda_t *cuda_init (const char *path, phys_addr_t base)
 	if (cuda == NULL)
 	    return NULL;
 
-	push_str(path);
-	fword("find-device");
-
 	fword("new-device");
 
 	push_str("via-cuda");

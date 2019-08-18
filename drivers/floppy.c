@@ -1146,9 +1146,6 @@ int ob_floppy_init(const char *path, const char *dev_name,
     char nodebuff[128];
     phandle_t aliases;
 
-    push_str(path);
-    fword("find-device");
-
     fword("new-device");
 
     push_str(dev_name);

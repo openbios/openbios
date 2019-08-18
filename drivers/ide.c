@@ -1585,9 +1585,6 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 	 * Also see comments in pci.c:ob_pci_host_set_interrupt_map() */
 	current_channel = 3;
 
-	push_str(path);
-	fword("find-device");
-
 	for (i = 0; i < nb_channels; i++) {
 
 		chan = malloc(sizeof(struct ide_channel));

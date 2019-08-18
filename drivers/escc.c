@@ -450,9 +450,6 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
 
     /* add device */
 
-    push_str(path);
-    fword("find-device");
-
     fword("new-device");
 
     snprintf(buf, sizeof(buf), "ch-%s", node);
@@ -531,8 +528,6 @@ escc_init(const char *path, phys_addr_t addr)
     int props[2];
     phandle_t dnode;
 
-    push_str(path);
-    fword("find-device");
     fword("new-device");
 
     push_str("escc");

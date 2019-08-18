@@ -51,9 +51,6 @@ void adb_mouse_new (char *path, void *private)
 	phandle_t aliases;
 	adb_dev_t *dev = private;
 
-	push_str(path);
-	fword("find-device");
-
 	fword("new-device");
 
 	push_str("mouse");

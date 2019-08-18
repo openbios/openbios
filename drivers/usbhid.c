@@ -564,9 +564,6 @@ void ob_usb_hid_add_keyboard(const char *path)
 	char name[128];
 	phandle_t aliases;
 
-	push_str(path);
-	fword("find-device");
-
 	fword("new-device");
 
 	push_str("keyboard");

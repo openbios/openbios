@@ -168,9 +168,6 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
     phandle_t aliases;
     char nodebuff[128];
 
-    push_str(path);
-    fword("find-device");
-
     fword("new-device");
 
     push_str(dev_name);

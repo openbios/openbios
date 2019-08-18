@@ -168,8 +168,6 @@ openpic_init(const char *path, phys_addr_t addr)
         int props[2];
         char buf[128];
 
-        push_str(path);
-        fword("find-device");
         fword("new-device");
         push_str("interrupt-controller");
         fword("device-name");
@@ -268,8 +266,6 @@ ob_unin_init(void)
         phandle_t dnode;
         int props[2];
 
-	push_str("/");
-        fword("find-device");
         fword("new-device");
         push_str("uni-n");
         fword("device-name");
@@ -287,9 +283,6 @@ ob_unin_init(void)
 
 static void macio_gpio_init(const char *path)
 {
-    push_str(path);
-    fword("find-device");
-
     fword("new-device");
 
     push_str("gpio");

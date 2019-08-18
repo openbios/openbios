@@ -76,9 +76,6 @@ int adb_bus_init (char *path, adb_bus_t *bus)
     int reloc = 0, next_free = 7;
     int keep;
 
-    push_str(path);
-    fword("find-device");
-
     fword("new-device");
 
     push_str("adb");

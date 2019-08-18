@@ -208,9 +208,6 @@ ob_pc_kbd_init(const char *path, const char *kdev_name, const char *mdev_name,
 {
     phandle_t chosen, aliases;
     char nodebuff[128];
-    
-    push_str(path);
-    fword("find-device");
 
     fword("new-device");
     
@@ -303,10 +300,6 @@ ob_pc_kbd_init(const char *path, const char *kdev_name, const char *mdev_name,
 
     /* Mouse (optional) */
     if (mdev_name != NULL) {
-        snprintf(nodebuff, sizeof(nodebuff), "%s/8042", path);
-        push_str(nodebuff);
-        fword("find-device");
-
         fword("new-device");
 
         push_str(mdev_name);

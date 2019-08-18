@@ -606,9 +606,6 @@ pmu_t *pmu_init(const char *path, phys_addr_t base)
         return NULL;
     }
 
-    push_str(path);
-    fword("find-device");
-
     fword("new-device");
 
     push_str("via-pmu");

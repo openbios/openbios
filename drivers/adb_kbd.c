@@ -552,9 +552,6 @@ void *adb_kbd_new (char *path, void *private)
 	my_adb_dev = dev;
     }
 
-	push_str(path);
-	fword("find-device");
-
 	fword("new-device");
 
 	push_str("keyboard");
