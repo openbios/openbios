@@ -28,7 +28,7 @@
 #include "adb_bus.h"
 #include "adb_kbd.h"
 
-DECLARE_UNNAMED_NODE( keyboard, INSTALL_OPEN, sizeof(int));
+DECLARE_UNNAMED_NODE( keyboard, 0, sizeof(int));
 
 static void
 keyboard_open(int *idx)
@@ -523,8 +523,7 @@ static int adb_kbd_read (void *private)
 void *adb_kbd_new (char *path, void *private)
 {
 	char buf[64];
-	int props[1];
-	phandle_t ph, aliases;
+	phandle_t aliases;
     adb_kbd_t *kbd;
     adb_dev_t *dev = private;
     kbd = (adb_kbd_t*)malloc(sizeof(adb_kbd_t));
@@ -553,16 +552,27 @@ void *adb_kbd_new (char *path, void *private)
 	my_adb_dev = dev;
     }
 
-        snprintf(buf, sizeof(buf), "%s/keyboard", path);
-	REGISTER_NAMED_NODE( keyboard, buf);
+	push_str(path);
+	fword("find-device");
 
-	ph = find_dev(buf);
+	fword("new-device");
 
-	set_property(ph, "device_type", "keyboard", 9);
-	props[0] = __cpu_to_be32(dev->addr);
-	set_property(ph, "reg", (char *)&props, sizeof(props));
+	push_str("keyboard");
+	fword("device-name");
+
+	push_str("keyboard");
+	fword("device-type");
+
+	PUSH(dev->addr);
+	fword("encode-int");
+	push_str("reg");
+	fword("property");
+
+	BIND_NODE_METHODS(get_cur_dev(), keyboard);
+	fword("finish-device");
 
 	aliases = find_dev("/aliases");
+	snprintf(buf, sizeof(buf), "%s/keyboard", path);
 	set_property(aliases, "adb-keyboard", buf, strlen(buf) + 1);
 
     return kbd;

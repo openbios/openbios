@@ -28,25 +28,7 @@
 #include "adb_kbd.h"
 #include "adb_mouse.h"
 
-DECLARE_UNNAMED_NODE( adb, INSTALL_OPEN, sizeof(int));
-
-static void
-adb_initialize (int *idx)
-{
-	phandle_t ph=get_cur_dev();
-
-	push_str("adb");
-	fword("device-type");
-
-	if (has_pmu()) {
-		set_property(ph, "compatible", "pmu-99", 7);
-	} else {
-		set_property(ph, "compatible", "adb", 4);
-	}
-
-	set_int_property(ph, "#address-cells", 1);
-	set_int_property(ph, "#size-cells", 0);
-}
+DECLARE_UNNAMED_NODE( adb, 0, sizeof(int));
 
 static void
 adb_open(int *idx)
@@ -60,7 +42,6 @@ adb_close(int *idx)
 }
 
 NODE_METHODS( adb ) = {
-	{ NULL,			adb_initialize		},
 	{ "open",		adb_open		},
 	{ "close",		adb_close		},
 };
@@ -95,8 +76,43 @@ int adb_bus_init (char *path, adb_bus_t *bus)
     int reloc = 0, next_free = 7;
     int keep;
 
+    push_str(path);
+    fword("find-device");
+
+    fword("new-device");
+
+    push_str("adb");
+    fword("device-name");
+
+    push_str("adb");
+    fword("device-type");
+
+    if (has_pmu()) {
+        push_str("pmu-99");
+        fword("encode-string");
+        push_str("compatible");
+        fword("property");
+    } else {
+        push_str("adb");
+        fword("encode-string");
+        push_str("compatible");
+        fword("property");
+    }
+
+    PUSH(1);
+    fword("encode-int");
+    push_str("#address-cells");
+    fword("property");
+
+    PUSH(0);
+    fword("encode-int");
+    push_str("#size-cells");
+    fword("property");
+
+    BIND_NODE_METHODS(get_cur_dev(), adb);
+
     snprintf(buf, sizeof(buf), "%s/adb", path);
-    REGISTER_NAMED_NODE( adb, buf);
+
     /* Reset the bus */
     // ADB_DPRINTF("\n");
     adb_reset(bus);
@@ -194,6 +210,8 @@ int adb_bus_init (char *path, adb_bus_t *bus)
             return -1;
         }
     }
+
+    fword("finish-device");
 
     return 0;
 }
