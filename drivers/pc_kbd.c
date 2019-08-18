@@ -181,15 +181,9 @@ pc_kbd_close(void)
 static void
 pc_kbd_open(unsigned long *address)
 {
-    int len;
-    phandle_t ph;
-    unsigned long *prop;
-
-    fword("my-self");
-    fword("ihandle>phandle");
-    ph = (phandle_t)POP();
-    prop = (unsigned long *)get_property(ph, "address", &len);
-    *address = *prop;
+    PUSH(find_ih_method("address", my_self()));
+    fword("execute");
+    *address = POP();
 
     RET ( -1 );
 }
@@ -285,6 +279,10 @@ ob_pc_kbd_init(const char *path, const char *kdev_name, const char *mdev_name,
     fword("property");
 
     BIND_NODE_METHODS(get_cur_dev(), pc_kbd);
+
+    PUSH(offset);
+    feval("value address");
+
     fword("finish-device");
 
     snprintf(nodebuff, sizeof(nodebuff), "%s/8042/%s", path, kdev_name);
