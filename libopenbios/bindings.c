@@ -485,6 +485,16 @@ add_methods( int flags, int size, const method_t *methods, int nmet )
 }
 
 void
+bind_node_methods(phandle_t ph, int flags, int size, const method_t *methods, int nmet)
+{
+	phandle_t save_ph = get_cur_dev();
+
+	activate_dev(ph);
+	add_methods(flags, size, methods, nmet);
+	activate_dev( save_ph );
+}
+
+void
 bind_node( int flags, int size, const char * const *paths, int npaths,
 	   const method_t *methods, int nmet )
 {
