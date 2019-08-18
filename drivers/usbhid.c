@@ -39,7 +39,7 @@
 #include "drivers/usb.h"
 #include "usb.h"
 
-DECLARE_UNNAMED_NODE(usb_kbd, INSTALL_OPEN, sizeof(int));
+DECLARE_UNNAMED_NODE(usb_kbd, 0, sizeof(int));
 
 static void
 keyboard_open(int *idx)
@@ -564,15 +564,23 @@ void ob_usb_hid_add_keyboard(const char *path)
 	char name[128];
 	phandle_t aliases;
 
-	snprintf(name, sizeof(name), "%s/keyboard", path);
-	usb_debug("Found keyboard at %s\n", name);
-	REGISTER_NAMED_NODE(usb_kbd, name);
-
-	push_str(name);
+	push_str(path);
 	fword("find-device");
+
+	fword("new-device");
+
+	push_str("keyboard");
+	fword("device-name");
 
 	push_str("keyboard");
 	fword("device-type");
+
+	snprintf(name, sizeof(name), "%s/keyboard", path);
+	usb_debug("Found keyboard at %s\n", name);
+
+	BIND_NODE_METHODS(get_cur_dev(), usb_kbd);
+
+	fword("finish-device");
 
 	aliases = find_dev("/aliases");
 	set_property(aliases, "keyboard", name, strlen(name) + 1);
