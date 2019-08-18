@@ -9,7 +9,7 @@
 #include "timer.h"
 
 /* DECLARE data structures for the nodes.  */
-DECLARE_UNNAMED_NODE( ob_floppy, INSTALL_OPEN, 2*sizeof(int) );
+DECLARE_UNNAMED_NODE( ob_floppy, 0, 2*sizeof(int) );
 
 #ifdef CONFIG_DEBUG_FLOPPY
 #define printk_info printk
@@ -1078,22 +1078,6 @@ static void floppy_reset(void)
 }
 
 static void
-ob_floppy_initialize(const char *path)
-{
-        int props[3];
-        phandle_t ph = find_dev(path);
-
-        set_property(ph, "device_type", "block", sizeof("block"));
-
-	// Set dummy reg properties
-        props[0] = __cpu_to_be32(0); props[1] = __cpu_to_be32(0); props[2] = __cpu_to_be32(0);
-        set_property(ph, "reg", (char *)&props, 3*sizeof(int));
-
-        fword("is-deblocker");
-}
-
-
-static void
 ob_floppy_open(int *idx)
 {
         int ret = 1;
@@ -1159,21 +1143,46 @@ NODE_METHODS(ob_floppy) = {
 int ob_floppy_init(const char *path, const char *dev_name,
                    unsigned long io_base, unsigned long mmio_base)
 {
-        char nodebuff[128];
-	phandle_t aliases;
+    char nodebuff[128];
+    phandle_t aliases;
 
-        snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
-        if (!mmio_base) {
-            REGISTER_NAMED_NODE(ob_floppy, nodebuff);
-            ob_floppy_initialize(nodebuff);
-        } else {
-            // Already in tree and mapped
-            REGISTER_NODE_METHODS(ob_floppy, nodebuff);
-        }
-        floppy_init(io_base, mmio_base);
+    push_str(path);
+    fword("find-device");
 
-	aliases = find_dev("/aliases");
-	set_property(aliases, "floppy", nodebuff, strlen(nodebuff) + 1);
+    fword("new-device");
 
-	return 0;
+    push_str(dev_name);
+    fword("device-name");
+    push_str("block");
+    fword("device-type");
+
+    if (!mmio_base) {
+        BIND_NODE_METHODS(get_cur_dev(), ob_floppy);
+
+        PUSH(0);
+        fword("encode-int");
+        PUSH(0);
+        fword("encode-int");
+        fword("encode+");
+        PUSH(0);
+        fword("encode-int");
+        fword("encode+");
+
+        push_str("reg");
+        fword("property");
+
+        fword("is-deblocker");
+    } else {
+        // Already in tree and mapped
+        BIND_NODE_METHODS(get_cur_dev(), ob_floppy);
+    }
+    floppy_init(io_base, mmio_base);
+
+    fword("finish-device");
+
+    aliases = find_dev("/aliases");
+    snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
+    set_property(aliases, "floppy", nodebuff, strlen(nodebuff) + 1);
+
+    return 0;
 }
