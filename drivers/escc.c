@@ -131,7 +131,7 @@ void serial_cls(void)
 
 /* ( addr len -- actual ) */
 static void
-escc_read(ucell *address)
+escc_port_read(ucell *address)
 {
     char *addr;
     int len;
@@ -152,7 +152,7 @@ escc_read(ucell *address)
 
 /* ( addr len -- actual ) */
 static void
-escc_write(ucell *address)
+escc_port_write(ucell *address)
 {
     unsigned char *addr;
     int i, len;
@@ -167,14 +167,15 @@ escc_write(ucell *address)
 }
 
 static void
-escc_close(void)
+escc_port_close(void)
 {
 }
 
-static void
-escc_open(ucell *address)
-{
 #ifdef CONFIG_DRIVER_ESCC_SUN
+static void
+escc_port_open(ucell *address)
+{
+
     int len;
     phandle_t ph;
     unsigned long *prop;
@@ -193,19 +194,46 @@ escc_open(ucell *address)
         //printk("escc_open: address %lx, args %s\n", *address, args);
         free(args);
     }
-#else
-    *address = (unsigned long)escc_serial_dev; // XXX
-#endif
+
     RET ( -1 );
 }
 
-DECLARE_UNNAMED_NODE(escc, INSTALL_OPEN, sizeof(ucell));
+#else
+
+static void
+escc_port_open(ucell *address)
+{
+    *address = (unsigned long)escc_serial_dev; // XXX
+    RET(-1);
+}
+
+static void
+escc_open(int *idx)
+{
+    RET(-1);
+}
+
+static void
+escc_close(int *idx)
+{
+}
+
+DECLARE_UNNAMED_NODE(escc, 0, sizeof(int *));
 
 NODE_METHODS(escc) = {
-    { "open",               escc_open              },
-    { "close",              escc_close             },
-    { "read",               escc_read              },
-    { "write",              escc_write             },
+    { "open",               escc_open      },
+    { "close",              escc_close     },
+};
+
+#endif
+
+DECLARE_UNNAMED_NODE(escc_port, 0, sizeof(ucell));
+
+NODE_METHODS(escc_port) = {
+    { "open",               escc_port_open      },
+    { "close",              escc_port_close     },
+    { "read",               escc_port_read      },
+    { "write",              escc_port_write     },
 };
 
 #ifdef CONFIG_DRIVER_ESCC_SUN
@@ -305,11 +333,11 @@ escc_read_keyboard(void)
     }
 }
 
-DECLARE_UNNAMED_NODE(escc_keyboard, INSTALL_OPEN, sizeof(ucell));
+DECLARE_UNNAMED_NODE(escc_keyboard, 0, sizeof(ucell));
 
 NODE_METHODS(escc_keyboard) = {
-    { "open",               escc_open              },
-    { "close",              escc_close             },
+    { "open",               escc_port_open         },
+    { "close",              escc_port_close        },
     { "read",               escc_read_keyboard     },
 };
 
@@ -352,19 +380,20 @@ ob_zs_init(phys_addr_t base, uint64_t offset, int intr, int slave, int keyboard)
     push_str("port-b-ignore-cd");
     fword("property");
 
+    if (keyboard) {
+        BIND_NODE_METHODS(get_cur_dev(), escc_keyboard);
+    } else {
+        BIND_NODE_METHODS(get_cur_dev(), escc_port);
+    }
+
     fword("finish-device");
 
-    snprintf(nodebuff, sizeof(nodebuff), "/obio/zs@0,%x",
-             (int)offset & 0xffffffff);
+    aliases = find_dev("/aliases");
     if (keyboard) {
-        REGISTER_NODE_METHODS(escc_keyboard, nodebuff);
-
-        aliases = find_dev("/aliases");
+        snprintf(nodebuff, sizeof(nodebuff), "/obio/zs@0,%x",
+             (int)offset & 0xffffffff);
         set_property(aliases, "keyboard", nodebuff, strlen(nodebuff) + 1);
     } else {
-        REGISTER_NODE_METHODS(escc, nodebuff);
-
-        aliases = find_dev("/aliases");
         snprintf(nodebuff, sizeof(nodebuff), "/obio/zs@0,%x:a",
                  (int)offset & 0xffffffff);
         set_property(aliases, "ttya", nodebuff, strlen(nodebuff) + 1);
@@ -421,11 +450,16 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
 
     /* add device */
 
-    snprintf(buf, sizeof(buf), "%s/ch-%s", path, node);
+    push_str(path);
+    fword("find-device");
 
-    REGISTER_NAMED_NODE(escc, buf);
+    fword("new-device");
 
-    activate_device(buf);
+    snprintf(buf, sizeof(buf), "ch-%s", node);
+    push_str(buf);
+    fword("device-name");
+
+    BIND_NODE_METHODS(get_cur_dev(), escc_port);
 
     /* add aliases */
 
@@ -440,7 +474,7 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     }
     /* add properties */
 
-    dnode = find_dev(buf);
+    dnode = get_cur_dev();
     set_property(dnode, "device_type", "serial",
                  strlen("serial") + 1);
 
@@ -484,7 +518,7 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
 
     set_int_property(dnode, "slot-names", 0);
 
-    device_end();
+    fword("finish-device");
 
     uart_init_line((unsigned char*)addr + offset + reg_offsets[legacy][index][0],
                    CONFIG_SERIAL_SPEED);
@@ -504,10 +538,7 @@ escc_init(const char *path, phys_addr_t addr)
     push_str("escc");
     fword("device-name");
 
-    snprintf(buf, sizeof(buf), "%s/escc", path);
-
-    dnode = find_dev(buf);
-
+    dnode = get_cur_dev();
     set_int_property(dnode, "#address-cells", 1);
     props[0] = __cpu_to_be32(IO_ESCC_OFFSET);
     props[1] = __cpu_to_be32(IO_ESCC_SIZE);
@@ -517,25 +548,22 @@ escc_init(const char *path, phys_addr_t addr)
     set_property(dnode, "compatible", "escc\0CHRP,es0", 14);
     set_property(dnode, "ranges", "", 0);
 
-    fword("finish-device");
-
+    snprintf(buf, sizeof(buf), "%s/escc", path);
     escc_add_channel(buf, "a", addr, 2);
     escc_add_channel(buf, "b", addr, 3);
+
+    BIND_NODE_METHODS(dnode, escc);
+    fword("finish-device");
 
     escc_serial_dev = (unsigned char *)addr + IO_ESCC_OFFSET +
                  (CONFIG_SERIAL_PORT ? 0 : 0x20);
 
-    push_str(path);
-    fword("find-device");
     fword("new-device");
 
     push_str("escc-legacy");
     fword("device-name");
 
-    snprintf(buf, sizeof(buf), "%s/escc-legacy", path);
-
-    dnode = find_dev(buf);
-
+    dnode = get_cur_dev();
     set_int_property(dnode, "#address-cells", 1);
     props[0] = __cpu_to_be32(IO_ESCC_LEGACY_OFFSET);
     props[1] = __cpu_to_be32(IO_ESCC_LEGACY_SIZE);
@@ -545,9 +573,11 @@ escc_init(const char *path, phys_addr_t addr)
     set_property(dnode, "compatible", "chrp,es1", 9);
     set_property(dnode, "ranges", "", 0);
 
-    fword("finish-device");
-
+    snprintf(buf, sizeof(buf), "%s/escc-legacy", path);
     escc_add_channel(buf, "a", addr, 4);
     escc_add_channel(buf, "b", addr, 5);
+
+    BIND_NODE_METHODS(dnode, escc);
+    fword("finish-device");
 }
 #endif
