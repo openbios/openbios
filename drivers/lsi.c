@@ -642,7 +642,7 @@ ob_lsi_init(const char *path, uint64_t mmio, uint64_t ram)
     int i;
     ucell addr;
 
-    REGISTER_NODE_METHODS(ob_lsi, path);
+    BIND_NODE_METHODS(ph, ob_lsi);
 
     lsi = malloc(sizeof(lsi_private_t));
     if (!lsi) {
@@ -744,10 +744,13 @@ ob_lsi_init(const char *path, uint64_t mmio, uint64_t ram)
         fword("encode+");
         push_str("reg");
         fword("property");
+
+        BIND_NODE_METHODS(get_cur_dev(), ob_sd);
         fword("finish-device");
+
         snprintf(nodebuff, sizeof(nodebuff), "%s/sd@%d",
                  get_path_from_ph(ph), id);
-        REGISTER_NODE_METHODS(ob_sd, nodebuff);
+
         if (lsi->sd[id].media == TYPE_ROM) {
             counter_ptr = &cdcount;
         } else {
