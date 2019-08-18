@@ -821,11 +821,17 @@ arch_init( void )
     feval("['] sparc64-dma-sync to (dma-sync)");
 
 #ifdef CONFIG_DRIVER_PCI
+        push_str("/");
+        fword("find-device");
+        feval("\" /\" open-dev to my-self");
+
         ob_pci_init();
 
         /* Set TAS register to match the virtual-dma properties
            set during sabre configure */
         sparc64_set_tas_register(PBM_PCI_TARGET_AS_CD_ENABLE);
+
+        feval("0 to my-self");
 #endif
         nvconf_init();
         device_end();

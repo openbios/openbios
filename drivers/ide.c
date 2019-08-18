@@ -1392,9 +1392,6 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 	io_ports[1] = io_port1;
 	ctl_ports[1] = ctl_port1;
 
-	push_str(path);
-	fword("find-device");
-
 	for (i = 0; i < IDE_NUM_CHANNELS; i++, current_channel++) {
 
 		chan = malloc(sizeof(struct ide_channel));
