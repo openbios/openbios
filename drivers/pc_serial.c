@@ -151,7 +151,7 @@ pc_serial_init(unsigned long *address)
     *address = POP();
 }
 
-DECLARE_UNNAMED_NODE(pc_serial, INSTALL_OPEN, sizeof(unsigned long));
+DECLARE_UNNAMED_NODE(pc_serial, 0, sizeof(unsigned long));
 
 NODE_METHODS(pc_serial) = {
     { "init",               pc_serial_init              },
@@ -168,15 +168,13 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
     phandle_t aliases;
     char nodebuff[128];
 
-    snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
-    REGISTER_NAMED_NODE(pc_serial, nodebuff);
-
-    push_str(nodebuff);
+    push_str(path);
     fword("find-device");
 
-    PUSH(offset);
-    PUSH(find_package_method("init", get_cur_dev()));
-    fword("execute");
+    fword("new-device");
+
+    push_str(dev_name);
+    fword("device-name");
 
     push_str("serial");
     fword("device-type");
@@ -203,6 +201,14 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
     set_int_property(get_cur_dev(), "interrupts", 1);
 #endif
 
+    BIND_NODE_METHODS(get_cur_dev(), pc_serial);
+
+    PUSH(offset);
+    feval("['] init execute");
+
+    fword("finish-device");
+
     aliases = find_dev("/aliases");
+    snprintf(nodebuff, sizeof(nodebuff), "%s/%s", path, dev_name);
     set_property(aliases, "ttya", nodebuff, strlen(nodebuff) + 1);
 }
