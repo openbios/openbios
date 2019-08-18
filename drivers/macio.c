@@ -91,6 +91,7 @@ void macio_nvram_init(const char *path, phys_addr_t addr)
         nvram_size = macio_nvram_size();
 
 	nvram = (char*)addr + nvram_offset;
+	nvconf_init();
 	snprintf(buf, sizeof(buf), "%s", path);
 	dnode = nvram_init(buf);
 	set_int_property(dnode, "#bytes", arch_nvram_size() );

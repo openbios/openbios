@@ -186,8 +186,6 @@ nvconf_init( void )
 	nvram.data = malloc( nvram.size );
 	arch_nvram_get( nvram.data );
 
-	bind_func( "update-nvram", update_nvram );
-
 	for( ;; ) {
 		nvpart_t *p = NULL;
 		int err;
@@ -309,6 +307,7 @@ NODE_METHODS( nvram ) = {
 	{ "read",	(void*)nvram_read	},
 	{ "write",	(void*)nvram_write	},
 	{ "seek",	(void*)nvram_seek	},
+	{ "update-nvram",	(void*)update_nvram	},
 };
 
 
@@ -321,8 +320,6 @@ nvram_init( const char *path )
 	fword("find-device");
 
 	fword("new-device");
-
-	nvconf_init();
 
 	ph = get_cur_dev();
 
