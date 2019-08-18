@@ -262,7 +262,7 @@ NODE_METHODS(ob_macio) = {
         { "dma-sync",		ob_macio_dma_sync		},
 };
 
-static void
+void
 ob_unin_init(void)
 {
         phandle_t dnode;
@@ -395,12 +395,9 @@ ob_macio_keylargo_init(const char *path, phys_addr_t addr)
         cuda_init(path, addr);
     }
 
-    /* The NewWorld NVRAM is not located in the MacIO device */
-    macio_nvram_init("/", 0);
     escc_init(path, addr);
     macio_ide_init(path, addr, 2);
     openpic_init(path, addr);
-    ob_unin_init();
 
     aliases = find_dev("/aliases");
     set_property(aliases, "mac-io", path, strlen(path) + 1);

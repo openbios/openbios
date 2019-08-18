@@ -31,7 +31,6 @@
 #include "pci.h"
 #include "pci_database.h"
 #ifdef CONFIG_DRIVER_MACIO
-#include "cuda.h"
 #include "macio.h"
 #endif
 #ifdef CONFIG_DRIVER_USB

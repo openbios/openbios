@@ -149,6 +149,8 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
 int macio_get_nvram_size(void);
 void macio_nvram_put(char *buf);
 void macio_nvram_get(char *buf);
+void macio_nvram_init(const char *path, phys_addr_t addr);
+void ob_unin_init(void);
 
 /* drivers/timer.c */
 void setup_timers(void);
