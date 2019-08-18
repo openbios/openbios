@@ -142,19 +142,16 @@ pc_serial_close(void)
 static void
 pc_serial_open(unsigned long *address)
 {
-    RET ( -1 );
-}
-
-static void
-pc_serial_init(unsigned long *address)
-{
+    PUSH(find_ih_method("address", my_self()));
+    fword("execute");
     *address = POP();
+
+    RET ( -1 );
 }
 
 DECLARE_UNNAMED_NODE(pc_serial, 0, sizeof(unsigned long));
 
 NODE_METHODS(pc_serial) = {
-    { "init",               pc_serial_init              },
     { "open",               pc_serial_open              },
     { "close",              pc_serial_close             },
     { "read",               pc_serial_read              },
@@ -201,7 +198,7 @@ ob_pc_serial_init(const char *path, const char *dev_name, uint64_t base,
     BIND_NODE_METHODS(get_cur_dev(), pc_serial);
 
     PUSH(offset);
-    feval("['] init execute");
+    feval("value address");
 
     fword("finish-device");
 
