@@ -54,7 +54,6 @@
 DECLARE_UNNAMED_NODE( ob_pci_bus_node, INSTALL_OPEN, 2*sizeof(int) );
 DECLARE_UNNAMED_NODE( ob_pci_bridge_node, INSTALL_OPEN, 2*sizeof(int) );
 DECLARE_UNNAMED_NODE( ob_pci_simple_node, 0, 2*sizeof(int) );
-DECLARE_UNNAMED_NODE( ob_pci_empty_node, 0, 2*sizeof(int) );
 
 const pci_arch_t *arch;
 
@@ -186,11 +185,6 @@ ob_pci_open(int *idx)
 
 static void
 ob_pci_close(int *idx)
-{
-}
-
-static void
-ob_pci_initialize(int *idx)
 {
 }
 
@@ -462,7 +456,6 @@ ob_pci_dma_sync(int *idx)
 }
 
 NODE_METHODS(ob_pci_bus_node) = {
-	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
 	{ "decode-unit",	ob_pci_decode_unit	},
@@ -485,7 +478,6 @@ ob_pci_bridge_map_in(int *idx)
 }
 
 NODE_METHODS(ob_pci_bridge_node) = {
-	{ NULL,			ob_pci_initialize	},
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
 	{ "decode-unit",	ob_pci_decode_unit	},
@@ -501,10 +493,6 @@ NODE_METHODS(ob_pci_bridge_node) = {
 NODE_METHODS(ob_pci_simple_node) = {
 	{ "open",		ob_pci_open		},
 	{ "close",		ob_pci_close		},
-};
-
-NODE_METHODS(ob_pci_empty_node) = {
-	{ NULL,			ob_pci_initialize	}
 };
 
 static void pci_set_bus_range(const pci_config_t *config)
@@ -1826,9 +1814,6 @@ static phandle_t ob_configure_pci_device(const char* parent_path,
         } else {
             BIND_NODE_METHODS(phandle, ob_pci_bus_node);
         }
-        break;
-    default:
-        BIND_NODE_METHODS(phandle, ob_pci_empty_node);
         break;
     }
 
