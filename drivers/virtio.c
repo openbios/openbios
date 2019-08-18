@@ -337,8 +337,13 @@ ob_virtio_configure_device(VDev *vdev)
 static void
 ob_virtio_disk_open(VDev **_vdev)
 {
-    VDev *vdev = *_vdev;
+    VDev *vdev;
     phandle_t ph;
+
+    PUSH(find_ih_method("vdev", my_self()));
+    fword("execute");
+    *_vdev = cell2pointer(POP());
+    vdev = *_vdev;
 
     vdev->pos = 0;
 
@@ -409,24 +414,9 @@ static void set_virtio_alias(const char *path, int idx)
     set_property(aliases, name, path, strlen(path) + 1);
 }
 
-static void
-ob_virtio_disk_initialize(VDev **_vdev)
-{
-    phandle_t ph = get_cur_dev();
-    VDev *vdev;
-    int len;
-
-    vdev = cell2pointer(get_int_property(ph, "_vdev", &len));
-    push_str("_vdev");
-    feval("delete-property");
-
-    *_vdev = vdev;
-}
-
 DECLARE_UNNAMED_NODE(ob_virtio_disk, 0, sizeof(VDev *));
 
 NODE_METHODS(ob_virtio_disk) = {
-    { NULL,        ob_virtio_disk_initialize    },
     { "open",      ob_virtio_disk_open          },
     { "close",     ob_virtio_disk_close         },
     { "seek",      ob_virtio_disk_seek          },
@@ -443,12 +433,6 @@ static void
 ob_virtio_close(VDev **_vdev)
 {
     return;
-}
-
-static void
-ob_virtio_vdev(VDev **_vdev)
-{
-    PUSH(pointer2cell(_vdev));
 }
 
 static void
@@ -486,7 +470,6 @@ DECLARE_UNNAMED_NODE(ob_virtio, 0, sizeof(VDev *));
 NODE_METHODS(ob_virtio) = {
     { "open",          ob_virtio_open        },
     { "close",         ob_virtio_close       },
-    { "vdev",          ob_virtio_vdev        },
     { "dma-alloc",     ob_virtio_dma_alloc   },
     { "dma-free",      ob_virtio_dma_free    },
     { "dma-map-in",    ob_virtio_dma_map_in  },
@@ -499,17 +482,11 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
                     int idx)
 {
     char buf[256];
-    phandle_t ph;
     ucell addr;
-    VDev *vdev, **_vdev;
+    VDev *vdev;
 
     /* Open ob_virtio */
     BIND_NODE_METHODS(get_cur_dev(), ob_virtio);
-
-    ph = find_ih_method("vdev", my_self());
-    PUSH(ph);
-    fword("execute");
-    _vdev = cell2pointer(POP());
 
     vdev = malloc(sizeof(VDev));
     vdev->common_cfg = common_cfg;
@@ -517,6 +494,9 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     vdev->notify_base = notify_base;
     vdev->notify_mult = notify_mult;
     vdev->configured = 0;
+
+    PUSH(pointer2cell(vdev));
+    feval("value vdev");
 
     PUSH(sizeof(VRing) * VIRTIO_MAX_VQS);
     feval("dma-alloc");
@@ -528,8 +508,6 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     addr = POP();
     vdev->ring_area = cell2pointer(addr);
 
-    *_vdev = vdev;
-
     fword("new-device");
     push_str("disk");
     fword("device-name");
@@ -537,9 +515,7 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     fword("device-type");
 
     PUSH(pointer2cell(vdev));
-    fword("encode-int");
-    push_str("_vdev");
-    fword("property");
+    feval("value vdev");
 
     BIND_NODE_METHODS(get_cur_dev(), ob_virtio_disk);
     fword("finish-device");
