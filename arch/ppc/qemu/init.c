@@ -859,6 +859,10 @@ arch_of_init(void)
     feval("['] ppc-dma-sync to (dma-sync)");
 
 #ifdef CONFIG_DRIVER_PCI
+    push_str("/");
+    fword("find-device");
+    feval("\" /\" open-dev to my-self");
+
     switch (machine_id) {
     case ARCH_MAC99:
     case ARCH_MAC99_U3:
@@ -870,6 +874,8 @@ arch_of_init(void)
     default:
         ob_pci_init();
     }
+
+    feval("0 to my-self");
 #endif
 
     printk("\n");
