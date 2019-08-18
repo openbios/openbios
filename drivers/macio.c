@@ -189,7 +189,7 @@ openpic_init(const char *path, phys_addr_t addr)
         fword("finish-device");
 }
 
-DECLARE_NODE(ob_macio, INSTALL_OPEN, sizeof(int), "Tmac-io");
+DECLARE_UNNAMED_NODE(ob_macio, 0, sizeof(int));
 
 /* ( str len -- addr ) */
 
@@ -284,20 +284,41 @@ ob_unin_init(void)
         fword("finish-device");
 }
 
-static void ob_macio_gpio_initialize (int *idx)
+static void macio_gpio_init(const char *path)
 {
-    phandle_t ph=get_cur_dev();
-    int props[2];
+    push_str(path);
+    fword("find-device");
+
+    fword("new-device");
+
+    push_str("gpio");
+    fword("device-name");
 
     push_str("gpio");
     fword("device-type");
 
-    set_int_property(ph, "#address-cells", 1);
-    set_int_property(ph, "#size-cells", 0);
-    set_property(ph, "compatible", "mac-io-gpio", 12);
-    props[0] = __cpu_to_be32(0x50);
-    props[1] = __cpu_to_be32(0x30);
-    set_property(ph, "reg", (char *)&props, sizeof(props));
+    PUSH(1);
+    fword("encode-int");
+    push_str("#address-cells");
+    fword("property");
+
+    PUSH(0);
+    fword("encode-int");
+    push_str("#size-cells");
+    fword("property");
+
+    push_str("mac-io-gpio");
+    fword("encode-string");
+    push_str("compatible");
+    fword("property");
+
+    PUSH(0x50);
+    fword("encode-int");
+    PUSH(0x30);
+    fword("encode-int");
+    fword("encode+");
+    push_str("reg");
+    fword("property");
 
     /* Build the extint-gpio1 for the PMU */
     fword("new-device");
@@ -339,57 +360,47 @@ static void ob_macio_gpio_initialize (int *idx)
     push_str("interrupts");
     fword("property");
     fword("finish-device");
-}
 
-DECLARE_UNNAMED_NODE(ob_macio_gpio, 0, 0);
-
-NODE_METHODS(ob_macio_gpio) = {
-    { NULL,  ob_macio_gpio_initialize }
-};
-
-static void macio_gpio_init(const char *path)
-{
-    char buf[64];
-
-    snprintf(buf, sizeof(buf), "%s/gpio", path);
-    REGISTER_NAMED_NODE(ob_macio_gpio, buf);
+    fword("finish-device");
 }
 
 void
 ob_macio_heathrow_init(const char *path, phys_addr_t addr)
 {
-        phandle_t aliases;
+    phandle_t aliases;
 
-	REGISTER_NODE(ob_macio);
-	aliases = find_dev("/aliases");
-	set_property(aliases, "mac-io", path, strlen(path) + 1);
+    BIND_NODE_METHODS(get_cur_dev(), ob_macio);
 
-	cuda_init(path, addr);
-	macio_nvram_init(path, addr);
-        escc_init(path, addr);
-	macio_ide_init(path, addr, 2);
+    cuda_init(path, addr);
+    macio_nvram_init(path, addr);
+    escc_init(path, addr);
+    macio_ide_init(path, addr, 2);
+
+    aliases = find_dev("/aliases");
+    set_property(aliases, "mac-io", path, strlen(path) + 1);
 }
 
 void
 ob_macio_keylargo_init(const char *path, phys_addr_t addr)
 {
-        phandle_t aliases;
+    phandle_t aliases;
 
-        REGISTER_NODE(ob_macio);
-        aliases = find_dev("/aliases");
-        set_property(aliases, "mac-io", path, strlen(path) + 1);
+    BIND_NODE_METHODS(get_cur_dev(), ob_macio);
 
-        if (has_pmu()) {
-            macio_gpio_init(path);
-            pmu_init(path, addr);
-        } else {
-            cuda_init(path, addr);
-        }
+    if (has_pmu()) {
+        macio_gpio_init(path);
+        pmu_init(path, addr);
+    } else {
+        cuda_init(path, addr);
+    }
 
-        /* The NewWorld NVRAM is not located in the MacIO device */
-        macio_nvram_init("", 0);
-        escc_init(path, addr);
-        macio_ide_init(path, addr, 2);
-        openpic_init(path, addr);
-	ob_unin_init();
+    /* The NewWorld NVRAM is not located in the MacIO device */
+    macio_nvram_init("", 0);
+    escc_init(path, addr);
+    macio_ide_init(path, addr, 2);
+    openpic_init(path, addr);
+    ob_unin_init();
+
+    aliases = find_dev("/aliases");
+    set_property(aliases, "mac-io", path, strlen(path) + 1);
 }
