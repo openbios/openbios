@@ -284,7 +284,7 @@ keyboard_dataready(void)
 unsigned char
 keyboard_readdata(void)
 {
-    unsigned char ch;
+    volatile unsigned char ch;
 
     while (!keyboard_dataready()) { }
 
