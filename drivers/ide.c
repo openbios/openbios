@@ -65,14 +65,6 @@ DECLARE_UNNAMED_NODE( ob_ide_ctrl, 0, sizeof(int));
 
 static int current_channel = FIRST_UNIT;
 
-static struct ide_channel *channels = NULL;
-
-static inline void ide_add_channel(struct ide_channel *chan)
-{
-	chan->next = channels;
-	channels = chan;
-}
-
 /*
  * don't be pedantic
  */
@@ -1405,8 +1397,6 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 			chan->drives[j].nr = i * 2 + j;
 		}
 
-		ide_add_channel(chan);
-
 		ob_ide_probe(chan);
 
 		if (!chan->present)
@@ -1507,23 +1497,21 @@ int ob_ide_init(const char *path, uint32_t io_port0, uint32_t ctl_port0,
 
 void ob_ide_quiesce(void)
 {
-	struct ide_channel *channel;
-	int i;
+	phandle_t ph = 0, xt;
+	struct ide_drive *drive;
 
-	channel = channels;
-	while (channel) {
-		for (i = 0; i < 2; i++) {
-			struct ide_drive *drive = &channel->drives[i];
+	while ((ph = dt_iterate_type(ph, "block"))) {
+		xt = find_package_method("drive", ph);
 
-			if (!drive->present)
-				continue;
+		if (xt) {
+			PUSH(xt);
+			fword("execute");
+			drive = cell2pointer(POP());
 
 			ob_ide_select_drive(drive);
 			ob_ide_software_reset(drive);
 			ob_ide_device_type_check(drive);
 		}
-
-		channel = channel->next;
 	}
 }
 
@@ -1603,8 +1591,6 @@ int macio_ide_init(const char *path, uint32_t addr, int nb_channels)
 			free(chan);
 			continue;
 		}
-
-		ide_add_channel(chan);
 
 		ob_ide_identify_drives(chan);
 
