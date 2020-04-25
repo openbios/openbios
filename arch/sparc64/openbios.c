@@ -564,10 +564,8 @@ void arch_nvram_get(char *data)
     if (kernel_size) {
         kernel_image = fw_cfg_read_i64(FW_CFG_KERNEL_ADDR);
 
-        /* Mark the kernel memory as mapped 1:1 and in use */
-        ofmem_claim_phys(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), 0);
-        ofmem_claim_virt(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), 0);
-        ofmem_map(PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_image), PAGE_ALIGN(kernel_size), -1);
+        /* Map kernel memory the same as SILO */
+        ofmem_map(PAGE_ALIGN(kernel_image) - 0x4000, IMAGE_VIRT_ADDR, PAGE_ALIGN(kernel_size), -1);
     }
 
     size = fw_cfg_read_i32(FW_CFG_CMDLINE_SIZE);
@@ -585,14 +583,14 @@ void arch_nvram_get(char *data)
     if (initrd_size) {
         initrd_image = fw_cfg_read_i32(FW_CFG_INITRD_ADDR);
 
-        /* Mark initrd memory as mapped 1:1 and in use */
-        ofmem_claim_phys(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), 0);
-        ofmem_claim_virt(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), 0);
-        ofmem_map(PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_image), PAGE_ALIGN(initrd_size), -1);
+        /* Map initrd memory the same as SILO  */
+        ofmem_map(PAGE_ALIGN(initrd_image), INITRD_VIRT_ADDR, PAGE_ALIGN(initrd_size), -1);
     }
 
     if (kernel_size)
-        printk("kernel addr %llx size %llx\n", kernel_image, kernel_size);
+        printk("kernel phys %llx virt %x size 0x%llx\n", kernel_image, IMAGE_VIRT_ADDR + 0x4000, kernel_size);
+    if (initrd_size)
+        printk("initrd phys %llx virt %x size 0x%llx\n", initrd_image, INITRD_VIRT_ADDR, initrd_size);
     if (size)
         printk("kernel cmdline %s\n", obio_cmdline);
 

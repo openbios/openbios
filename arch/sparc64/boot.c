@@ -37,7 +37,7 @@ void boot(void)
                           unsigned long p4, unsigned long p5);
 
             printk("[sparc64] Kernel already loaded\n");
-            entry = (void *) (unsigned long)kernel_image;
+            entry = (void *) (unsigned long)(IMAGE_VIRT_ADDR + 0x4000);
             entry(0, 0, 0, 0, (unsigned long)&sparc64_of_client_interface);
         }
 
