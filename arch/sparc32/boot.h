@@ -6,6 +6,9 @@
  * the copyright and warranty status of this work.
  */
 
+#define INITRD_VIRT_ADDR    0x60000000
+#define IMAGE_VIRT_ADDR     0x4000
+
 // linux_load.c
 int linux_load(struct sys_info *info, const char *file, const char *cmdline);
 
