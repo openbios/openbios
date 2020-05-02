@@ -816,6 +816,9 @@ int virtio_blk_config_cb(const pci_config_t *config)
 		return 0;
 	}
 
+	/* Enable bus mastering to ensure vring processing will run. */
+	ob_pci_enable_bus_master(config);
+
 	ob_virtio_init(config->path, "virtio-blk", common_cfg, device_cfg,
 					notify_base, notify_mult, idx);
 #endif
