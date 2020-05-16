@@ -147,8 +147,9 @@ struct VirtioDev {
 };
 typedef struct VirtioDev VirtioDev;
 
-#define VIRTIO_RING_SIZE            (PAGE_SIZE * 8)
-#define VIRTIO_MAX_VQS              3
+#define VIRTIO_MAX_RING_ENTRIES     128
+#define VIRTIO_RING_SIZE            (sizeof(VRingDesc) * VIRTIO_MAX_RING_ENTRIES)
+#define VIRTIO_MAX_VQS              1
 #define KVM_S390_VIRTIO_RING_ALIGN  4096
 
 #define VRING_USED_F_NO_NOTIFY  1

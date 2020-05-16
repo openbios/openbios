@@ -303,7 +303,12 @@ ob_virtio_configure_device(VDev *vdev)
         };
 
         virtio_cfg_write16(vdev->common_cfg, VIRTIO_PCI_COMMON_Q_SELECT, i);
+
         info.num = virtio_cfg_read16(vdev->common_cfg, VIRTIO_PCI_COMMON_Q_SIZE);
+        if (info.num > VIRTIO_MAX_RING_ENTRIES) {
+            info.num = VIRTIO_MAX_RING_ENTRIES;
+            virtio_cfg_write16(vdev->common_cfg, VIRTIO_PCI_COMMON_Q_SIZE, info.num);
+        }
 
         vring_init(&vdev->vrings[i], &info);
 
@@ -503,7 +508,7 @@ void ob_virtio_init(const char *path, const char *dev_name, uint64_t common_cfg,
     addr = POP();
     vdev->vrings = cell2pointer(addr);
 
-    PUSH(VIRTIO_RING_SIZE * VIRTIO_MAX_VQS);
+    PUSH((VIRTIO_RING_SIZE * 2 + VIRTIO_PCI_VRING_ALIGN) * VIRTIO_MAX_VQS);
     feval("dma-alloc");
     addr = POP();
     vdev->ring_area = cell2pointer(addr);
