@@ -102,3 +102,18 @@
   2dup " tell" is-relay
   2drop
 ;
+
+\ -------------------------------------------------------------------------
+\ Miscellaneous
+\ -------------------------------------------------------------------------
+
+[IFDEF] CONFIG_SPARC32 1 [ELSE] [IFDEF] CONFIG_SPARC64 1 [ELSE] 0 [THEN] [THEN] [IF]
+
+\ Return the address of a named constant or value
+: addr  ( <word> -- addr )
+  parse-word $find if
+    cell +
+  then
+;
+
+[THEN]
