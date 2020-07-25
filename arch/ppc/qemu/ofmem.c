@@ -571,9 +571,9 @@ ofmem_init(void)
 {
     ofmem_t *ofmem = ofmem_arch_get_private();
 
-    /* Mark the first page as non-free */
-    ofmem_claim_phys(0, PAGE_SIZE, 0);
-    ofmem_claim_virt(0, PAGE_SIZE, 0);
+    /* Mark the first 4 pages as non-free */
+    ofmem_claim_phys(0, 4 * PAGE_SIZE, 0);
+    ofmem_claim_virt(0, 4 * PAGE_SIZE, 0);
 
     /* Map everything at the top of physical RAM 1:1, minus the OpenBIOS ROM in RAM copy */
     ofmem_claim_phys(get_ram_top(), get_hash_base() + HASH_SIZE - get_ram_top(), 0);
