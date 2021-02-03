@@ -1991,7 +1991,7 @@ static void ob_pci_host_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 
 {
     *ncells += pci_encode_phys_addr(props + *ncells, 0, 0, addr, 0, 0);
 
-    if (is_oldworld() || is_newworld()) {
+    if (is_apple()) {
         /* Mac machines */
         props[(*ncells)++] = intno;
         props[(*ncells)++] = dnode;
