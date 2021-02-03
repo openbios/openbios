@@ -1991,28 +1991,15 @@ static void ob_pci_host_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 
 {
     *ncells += pci_encode_phys_addr(props + *ncells, 0, 0, addr, 0, 0);
 
-    if (is_apple()) {
-        /* Mac machines */
-        props[(*ncells)++] = intno;
-        props[(*ncells)++] = dnode;
-        props[(*ncells)++] = arch->irqs[((intno - 1) + (addr >> 11)) & 3];
-        props[(*ncells)++] = 1;
+    props[(*ncells)++] = intno;
+    props[(*ncells)++] = dnode;
+    if (!is_apple() && (PCI_DEV(addr) == 1 && PCI_FN(addr) == 0)) {
+        /* On PReP machine the LSI SCSI has fixed routing to IRQ 13 */
+        props[(*ncells)++] = 13;
     } else {
-        /* PReP machines */
-        props[(*ncells)++] = intno;
-        props[(*ncells)++] = dnode;
-
-        if (PCI_DEV(addr) == 1 && PCI_FN(addr) == 0) {
-            /* LSI SCSI has fixed routing to IRQ 13 */
-            props[(*ncells)++] = 13;
-        } else {
-            /* Use the same "physical" routing as QEMU's raven_map_irq() although
-               ultimately all 4 PCI interrupts are ORd to IRQ 15 as indicated
-               by the PReP specification */
-            props[(*ncells)++] = arch->irqs[((intno - 1) + (addr >> 11)) & 3];
-        }
-        props[(*ncells)++] = 1;
+        props[(*ncells)++] = arch->irqs[((intno - 1) + (addr >> 11)) & 3];
     }
+    props[(*ncells)++] = 1;
 }
 
 #elif defined(CONFIG_SPARC64)
