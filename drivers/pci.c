@@ -2009,7 +2009,7 @@ static void ob_pci_host_bus_interrupt(ucell dnode, u32 *props, int *ncells, u32 
             /* Use the same "physical" routing as QEMU's raven_map_irq() although
                ultimately all 4 PCI interrupts are ORd to IRQ 15 as indicated
                by the PReP specification */
-            props[(*ncells)++] = arch->irqs[((intno - 1) + (addr >> 11)) & 1];
+            props[(*ncells)++] = arch->irqs[((intno - 1) + (addr >> 11)) & 3];
         }
         props[(*ncells)++] = 1;
     }
