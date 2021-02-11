@@ -1356,7 +1356,7 @@ static void ob_pci_add_properties(phandle_t phandle,
 }
 
 #ifdef CONFIG_XBOX
-static char pci_xbox_blacklisted (int bus, int devnum, int fn)
+static char pci_xbox_ignore_device (int bus, int devnum, int fn)
 {
 	/*
 	 * The Xbox MCPX chipset is a derivative of the nForce 1
@@ -1387,9 +1387,6 @@ static char pci_xbox_blacklisted (int bus, int devnum, int fn)
 	if (bus >= 2)
 		return 1;
 
-	/*
-	 * The device is not blacklisted.
-	 */
 	return 0;
 }
 #endif
@@ -1708,7 +1705,7 @@ static int ob_pci_read_identification(int bus, int devnum, int fn,
     pci_addr addr;
 
 #ifdef CONFIG_XBOX
-    if (pci_xbox_blacklisted (bus, devnum, fn))
+    if (pci_xbox_ignore_device (bus, devnum, fn))
         return;
 #endif
     addr = PCI_ADDR(bus, devnum, fn);
