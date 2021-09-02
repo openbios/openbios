@@ -78,7 +78,7 @@ static void escc_uart_port_putchar(uintptr_t port, unsigned char c)
     DATA(port) = c;
 }
 
-static void uart_init_line(volatile unsigned char *port, unsigned long baud)
+static void uart_init_line(volatile unsigned char *port, unsigned long baud, int index)
 {
     CTRL(port) = 4; // reg 4
     CTRL(port) = SB1 | X16CLK; // no parity, async, 1 stop bit, 16x
@@ -110,7 +110,7 @@ int escc_uart_init(phys_addr_t port, unsigned long speed)
 #else
     escc_serial_dev = (unsigned char *)(uintptr_t)port;
 #endif
-    uart_init_line(escc_serial_dev, speed);
+    uart_init_line(escc_serial_dev, speed, 1);
     return -1;
 }
 
@@ -518,7 +518,7 @@ escc_add_channel(const char *path, const char *node, phys_addr_t addr,
     fword("finish-device");
 
     uart_init_line((unsigned char*)addr + offset + reg_offsets[legacy][index][0],
-                   CONFIG_SERIAL_SPEED);
+                   CONFIG_SERIAL_SPEED, index);
 }
 
 void
