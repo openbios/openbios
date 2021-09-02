@@ -46,6 +46,9 @@ static volatile unsigned char *escc_serial_dev;
 #define Tx8             0x60    /* Tx 8 bits/character */
 #define DTR             0x80    /* DTR */
 
+/* Write Register 9 */
+#define SW_CHAN_RESET_B 0x40    /* Software reset channel B */
+
 /* Write Register 14 (Misc control bits) */
 #define BRENAB  1       /* Baud rate generator enable */
 #define BRSRC   2       /* Baud rate generator source */
@@ -80,6 +83,9 @@ static void escc_uart_port_putchar(uintptr_t port, unsigned char c)
 
 static void uart_init_line(volatile unsigned char *port, unsigned long baud, int index)
 {
+    CTRL(port) = 9; // reg 9
+    CTRL(port) = SW_CHAN_RESET_B << index;
+
     CTRL(port) = 4; // reg 4
     CTRL(port) = SB1 | X16CLK; // no parity, async, 1 stop bit, 16x
                                // clock
