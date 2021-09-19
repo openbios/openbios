@@ -177,7 +177,7 @@ static cuda_t *main_cuda;
 static void
 ppc32_reset_all(void)
 {
-        uint8_t cmdbuf[2], obuf[64];
+        uint8_t cmdbuf[1], obuf[64];
 
         cmdbuf[0] = CUDA_RESET_SYSTEM;
         cuda_request(main_cuda, CUDA_PACKET, cmdbuf, sizeof(cmdbuf), obuf);
@@ -186,7 +186,7 @@ ppc32_reset_all(void)
 static void
 ppc32_poweroff(void)
 {
-        uint8_t cmdbuf[2], obuf[64];
+        uint8_t cmdbuf[1], obuf[64];
 
         cmdbuf[0] = CUDA_POWERDOWN;
         cuda_request(main_cuda, CUDA_PACKET, cmdbuf, sizeof(cmdbuf), obuf);
