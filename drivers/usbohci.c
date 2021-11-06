@@ -232,12 +232,12 @@ ohci_init (void *bar)
 
 	usb_debug("HCCA addr %p\n", OHCI_INST(controller)->hcca);
 	/* Initialize interrupt table. */
-	u32 *const intr_table = OHCI_INST(controller)->hcca->HccaInterruptTable;
+	ohci_t *const ohci = OHCI_INST(controller);
 	ed_t *const periodic_ed;
         ofmem_posix_memalign((void **)&periodic_ed, sizeof(ed_t), sizeof(ed_t));
 	memset((void *)periodic_ed, 0, sizeof(*periodic_ed));
 	for (i = 0; i < 32; ++i)
-		intr_table[i] = __cpu_to_le32(virt_to_phys(periodic_ed));
+		ohci->hcca->HccaInterruptTable[i] = __cpu_to_le32(virt_to_phys(periodic_ed));
 	OHCI_INST (controller)->periodic_ed = periodic_ed;
 
 	OHCI_INST (controller)->opreg->HcHCCA = __cpu_to_le32(virt_to_phys(OHCI_INST(controller)->hcca));
@@ -607,7 +607,7 @@ struct _intrq_td {
 	u8			*data;
 	struct _intrq_td	*next;
 	struct _intr_queue	*intrq;
-};
+} __attribute__ ((packed));
 
 struct _intr_queue {
 	volatile ed_t		ed;
@@ -698,14 +698,13 @@ ohci_create_intr_queue(endpoint_t *const ep, const int reqsize,
 	/* Insert ED into periodic table. */
 	int nothing_placed	= 1;
 	ohci_t *const ohci	= OHCI_INST(ep->dev->controller);
-	u32 *const intr_table	= ohci->hcca->HccaInterruptTable;
 	const u32 dummy_ptr	= __cpu_to_le32(virt_to_phys(ohci->periodic_ed));
 	for (i = 0; i < 32; i += reqtiming) {
 		/* Advance to the next free position. */
-		while ((i < 32) && (intr_table[i] != dummy_ptr)) ++i;
+		while ((i < 32) && (ohci->hcca->HccaInterruptTable[i] != dummy_ptr)) ++i;
 		if (i < 32) {
 			usb_debug("Placed endpoint %lx to %d\n", virt_to_phys(&intrq->ed), i);
-			intr_table[i] = __cpu_to_le32(virt_to_phys(&intrq->ed));
+			ohci->hcca->HccaInterruptTable[i] = __cpu_to_le32(virt_to_phys(&intrq->ed));
 			nothing_placed = 0;
 		}
 	}
@@ -729,10 +728,9 @@ ohci_destroy_intr_queue(endpoint_t *const ep, void *const q_)
 
 	/* Remove interrupt queue from periodic table. */
 	ohci_t *const ohci	= OHCI_INST(ep->dev->controller);
-	u32 *const intr_table	= ohci->hcca->HccaInterruptTable;
 	for (i=0; i < 32; ++i) {
-		if (intr_table[i] == __cpu_to_le32(virt_to_phys(intrq)))
-			intr_table[i] = __cpu_to_le32(virt_to_phys(ohci->periodic_ed));
+		if (ohci->hcca->HccaInterruptTable[i] == __cpu_to_le32(virt_to_phys(intrq)))
+			ohci->hcca->HccaInterruptTable[i] = __cpu_to_le32(virt_to_phys(ohci->periodic_ed));
 	}
 	/* Wait for frame to finish. */
 	mdelay(1);
