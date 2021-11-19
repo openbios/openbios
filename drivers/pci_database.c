@@ -247,7 +247,7 @@ static const pci_dev_t vga_devices[] = {
     },
     {
         PCI_VENDOR_ID_QEMU, PCI_DEVICE_ID_QEMU_VGA,
-        NULL, "QEMU,VGA", "Qemu VGA",    "VGA\0",
+        NULL, "QEMU,VGA", "QEMU VGA",    "VGA\0",
         0, 0, 0,
         NULL, NULL,
     },
