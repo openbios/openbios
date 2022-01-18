@@ -234,7 +234,7 @@ static inline int is_leap(int year)
 static  void
 rtc_get_time(int *idx)
 {
-        uint8_t cmdbuf[2], obuf[64];
+        uint8_t cmdbuf[1], obuf[64];
 	ucell second, minute, hour, day, month, year;
 	uint32_t now;
 	int current;
