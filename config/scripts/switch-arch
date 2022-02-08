@@ -295,7 +295,7 @@ for ARCH in $arch_list; do
         ;;
 
         x86)
-        select_prefix i486
+        select_prefix i486 x86_64
         CFLAGS="-fno-builtin -m32"
         AS_FLAGS="-Wa,-32"
         ;;
