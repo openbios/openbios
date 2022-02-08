@@ -68,7 +68,9 @@ static int verbose = 0;
 unsigned long isa_io_base;
 #endif
 
+#if defined(__APPLE__)
 int errno_int;	/* implement for fs drivers, needed to build on Mac OS X */
+#endif
 
 ucell ofmem_claim(ucell addr, ucell size, ucell align)
 {
