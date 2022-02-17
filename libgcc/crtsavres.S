@@ -76,12 +76,8 @@ GLUE(.,name):
 
 #define _GLOBAL(n)	\
 	.text;		\
-	.stabs __stringify(n:F-1),N_FUN,0,0,n;\
 	.globl n;	\
 n:
-
-/* some stab codes */
-#define N_FUN	36
 
 #endif
 
