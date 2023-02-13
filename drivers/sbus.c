@@ -86,6 +86,7 @@ ob_le_init(unsigned int slot, uint64_t base, unsigned long leoffset, unsigned lo
     le->dmaregs = (void *)ofmem_map_io(base + (uint64_t)dmaoffset, LEDMA_REGS);
     if (le->dmaregs == NULL) {
         DPRINTF("Can't map LANCE DMA registers\n");
+        free(le);
         return;
     }
 
@@ -119,6 +120,7 @@ ob_le_init(unsigned int slot, uint64_t base, unsigned long leoffset, unsigned lo
     le->regs = (void *)ofmem_map_io(base + (uint64_t)leoffset, LE_REGS);
     if (le->regs == NULL) {
         DPRINTF("Can't map LANCE registers\n");
+        free(le);
         return;
     }
     
@@ -134,6 +136,8 @@ ob_le_init(unsigned int slot, uint64_t base, unsigned long leoffset, unsigned lo
     fword("encode+");
     push_str("reg");
     fword("property");
+    
+    free(le);
 }
 
 uint16_t graphic_depth;
