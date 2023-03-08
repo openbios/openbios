@@ -38,7 +38,8 @@ longbits()
     if test "$cpu" = "sparc64" -o "$cpu" = "ia64" \
         -o "$cpu" = "amd64" -o "$cpu" = "x86_64" \
         -o "$cpu" = "powerpc64" -o "$cpu" = "ppc64" \
-        -o "$cpu" = "ppc64le" -o "$cpu" = "alpha" ; then
+        -o "$cpu" = "ppc64le" -o "$cpu" = "alpha" \
+        -o "$cpu" = "aarch64" -o "$cpu" = "riscv64" ; then
         echo 64
     else
         echo 32
