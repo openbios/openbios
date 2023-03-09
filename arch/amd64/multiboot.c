@@ -67,38 +67,83 @@ void collect_multiboot_info(struct sys_info *info)
     info->dict_start=(unsigned long *)mod->mod_start;
     info->dict_end=(unsigned long *)mod->mod_end;
 
-    if (mbinfo->flags & MULTIBOOT_MMAP_VALID) {
-	/* convert mmap records */
-	mbmem = phys_to_virt(mbinfo->mmap_addr);
-	mbcount = mbinfo->mmap_length / (mbmem->entry_size + 4);
-	mmap = malloc(mbcount * sizeof(struct memrange));
-	mmap_count = 0;
-	mbaddr = mbinfo->mmap_addr;
-	for (i = 0; i < mbcount; i++) {
-	    mbmem = phys_to_virt(mbaddr);
-	    debug("%08x%08x %08x%08x (%d)\n",
-		    mbmem->base_hi,
-		    mbmem->base_lo,
-		    mbmem->size_hi,
-		    mbmem->size_lo,
-		    mbmem->type);
-	    if (mbmem->type == 1) { /* Only normal RAM */
-		mmap[mmap_count].base = mbmem->base_lo
-		    + (((unsigned long long) mbmem->base_hi) << 32);
-		mmap[mmap_count].size = mbmem->size_lo
-		    + (((unsigned long long) mbmem->size_hi) << 32);
-		mmap_count++;
-	    }
-	    mbaddr += mbmem->entry_size + 4;
-	    if (mbaddr >= mbinfo->mmap_addr + mbinfo->mmap_length)
-		break;
-	}
-	/* simple sanity check - there should be at least 2 RAM segments
-	 * (base 640k and extended) */
-	if (mmap_count >= 2)
-	    goto got_it;
+    void collect_multiboot_info(struct sys_info *info) {
+    if (info->boot_type != 0x2BADB002)
+        return;
 
-	printf("Multiboot mmap is broken\n");
+    debug("Using Multiboot information at %#lx\n", info->boot_data);
+
+    struct multiboot_info *mbinfo = phys_to_virt(info->boot_data);
+
+    if (mbinfo->mods_count != 1) {
+        printf("Multiboot: no dictionary\n");
+        return;
+    }
+
+    module_t *mod = (module_t *)mbinfo->mods_addr;
+    info->dict_start = (unsigned long *)mod->mod_start;
+    info->dict_end = (unsigned long *)mod->mod_end;
+
+    if (mbinfo->flags & MULTIBOOT_MMAP_VALID) {
+        // count the number of entries in the memory map
+        unsigned mmap_count = 0;
+        struct multiboot_mmap *mbmem = phys_to_virt(mbinfo->mmap_addr);
+        for (unsigned char *p = (unsigned char *)mbinfo->mmap_addr;
+             p < (unsigned char *)mbinfo->mmap_addr + mbinfo->mmap_length;
+             p += mbmem->entry_size + 4) {
+            mbmem = (struct multiboot_mmap *)p;
+            if (mbmem->type == 1) // Only normal RAM
+                mmap_count++;
+        }
+
+        // allocate memory for the memory map
+        struct memrange *mmap = malloc(mmap_count * sizeof(struct memrange));
+        if (mmap == NULL) {
+            printf("Failed to allocate memory for memory map\n");
+            return;
+        }
+
+        // fill the memory map
+        mbmem = phys_to_virt(mbinfo->mmap_addr);
+        unsigned i = 0;
+        for (unsigned char *p = (unsigned char *)mbinfo->mmap_addr;
+             p < (unsigned char *)mbinfo->mmap_addr + mbinfo->mmap_length;
+             p += mbmem->entry_size + 4) {
+            mbmem = (struct multiboot_mmap *)p;
+            if (mbmem->type == 1) { // Only normal RAM
+                mmap[i].base = mbmem->base_lo + ((unsigned long long)mbmem->base_hi << 32);
+                mmap[i].size = mbmem->size_lo + ((unsigned long long)mbmem->size_hi << 32);
+                i++;
+            }
+        }
+
+        if (i < 2) {
+            printf("Multiboot mmap is broken\n");
+            free(mmap);
+            return;
+        }
+
+        info->memrange = mmap;
+        info->n_memranges = i;
+    } else if (mbinfo->flags & MULTIBOOT_MEM_VALID) {
+        // use mem_lower and mem_upper
+        struct memrange *mmap = malloc(2 * sizeof(*mmap));
+        if (mmap == NULL) {
+            printf("Failed to allocate memory for memory map\n");
+            return;
+        }
+
+        mmap[0].base = 0;
+        mmap[0].size = mbinfo->mem_lower << 10;
+        mmap[1].base = 1 << 20; // 1MB
+        mmap[1].size = mbinfo->mem_upper << 10;
+
+        info->memrange = mmap;
+        info->n_memranges = 2;
+    } else {
+        printf("Can't get memory information from Multiboot\n");
+    }
+}
 	free(mmap);
 	/* fall back to mem_lower/mem_upper */
     }
