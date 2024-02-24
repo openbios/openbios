@@ -1004,7 +1004,11 @@ encode_file( const char *name )
         if (verbose) {
                 printk("\nEncoding %s [%d bytes]\n", name, size );
         }
-	fread( dict + dicthead, size, 1, file );
+	if (fread( dict + dicthead, size, 1, file ) != 1) {
+		printk("panic: Can't read dictionary.\n");
+		fclose(file);
+		exit(1);
+	}
 	PUSH( pointer2cell(dict + dicthead) );
 	PUSH( size );
 	dicthead += size;
