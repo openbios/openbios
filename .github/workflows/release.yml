@@ -93,7 +93,7 @@ jobs:
         run: cd archive && zip -r ../openbios-multiarch-${{ github.ref_name }}.zip debug release && cd ..
 
       - name: Upload release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: "crowbarmaster/GH-Automatic-Releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false

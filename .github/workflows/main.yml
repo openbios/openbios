@@ -94,7 +94,7 @@ jobs:
 
       - name: Upload pre-release (upstream repository only)
         if: "${{ github.repository_owner == 'openbios' }}"
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: "crowbarmaster/GH-Automatic-Releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: true
