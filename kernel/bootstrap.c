@@ -171,9 +171,9 @@ static void write_dictionary(const char *filename)
 		.version	= 2,
 		.cellsize	= sizeof(ucell),
 #ifdef CONFIG_BIG_ENDIAN
-		.endianess	= -1,
+		.endianness	= -1,
 #else
-		.endianess	= 0,
+		.endianness	= 0,
 #endif
 		.checksum	= 0,
 		.compression	= 0,
