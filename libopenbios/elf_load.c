@@ -335,7 +335,7 @@ find_elf(Elf_ehdr *ehdr)
    int offset;
 
    for (offset = 0; offset < MAX_HEADERS * BS; offset += BS) {
-        if ((size_t)read_io(fd, ehdr, sizeof ehdr) != sizeof ehdr) {
+        if ((size_t)read_io(fd, ehdr, sizeof *ehdr) != sizeof *ehdr) {
             debug("Can't read ELF header\n");
             return 0;
         }
