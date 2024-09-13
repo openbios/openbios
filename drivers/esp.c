@@ -115,11 +115,12 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
         return status;
     }
     if (replylen == 0) {
-        return 0;
+        /* No reply expected, ICCS and MSGACC to complete */
+        goto done;
     }
     /* Target went to status phase instead of data phase? */
     if ((status & ESP_STAT_PMASK) == ESP_STATP) {
-        return status;
+        goto done;
     }
 
     // Get reply
@@ -141,10 +142,18 @@ do_command(esp_private_t *esp, sd_private_t *sd, int cmdlen, int replylen)
 
     DPRINTF("do_command_reply: status 0x%x\n", status);
 
-    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT)
+    if ((status & ESP_STAT_TCNT) != ESP_STAT_TCNT) {
         return status;
-    else
-        return 0; // OK
+    }
+
+done:
+    // ICCS and MSGACC sequence to complete
+    esp->ll->regs[ESP_CMD] = ESP_CMD_ICCSEQ;
+    (void)esp->ll->regs[ESP_FDATA];  // Ignore 1st byte for now
+    (void)esp->ll->regs[ESP_FDATA];  // Ignore 2nd byte for now
+    esp->ll->regs[ESP_CMD] = ESP_CMD_MOK;
+
+    return 0; // OK
 }
 
 // offset is in sectors
