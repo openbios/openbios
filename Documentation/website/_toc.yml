@@ -1,0 +1,46 @@
+root: index
+defaults:
+  titlesonly: True
+subtrees:
+- entries:
+  - file: Contact_us
+  - file: Mailinglist
+  - file: Code_of_Conduct
+  - file: Credits
+  - file: Licensing
+    entries:
+      - file: GPLv2
+- caption: Implementations 
+  titlesonly: True
+  entries:
+  - file: Open_Firmware
+    entries:
+      - file: Building_OFW_for_QEMU
+      - file: OFW_as_a_coreboot_Payload
+      - file: Building_OFW_for_OLPC
+      - file: Building_OFW_to_Load_from_BIOS
+      - file: Building_OFW_for_ARM
+  - file: SmartFirmware
+  - file: OpenBOOT
+  - file: OpenBIOS
+    entries:
+      - file: How_to_build_OpenBIOS_on_Mac_OS_X
+  - file: SLOF
+- caption: Development
+  entries:
+  - file: FCODE_suite
+  - file: BeginAgain
+  - file: FlashRom
+  - url: https://github.com/openbios/openbios/issues
+    title: Issues/Bugs
+- caption: Documentation
+  entries:
+  - file: IEEE_1275-1994
+  - file: Bindings
+  - file: Forth_FCode
+  - file: News
+  - file: On_the_Net
+- caption: Tutorials
+  entries:
+  - file: Adding_words_to_openbios
+  - file: How_Local_Variables_in_Forth_Work
